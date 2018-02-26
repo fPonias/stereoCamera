@@ -42,7 +42,12 @@ public class BluetoothCtrl
 
 	public static final UUID APP_ID = UUID.fromString("e1dd45ec-c2ac-4a47-8b71-986095f25450");
 
-	public void setup()
+	public interface SetupListener
+	{
+		void onSetup();
+	}
+
+	public void setup(final SetupListener listener)
 	{
 		if (adapter == null)
 			return;
@@ -55,7 +60,7 @@ public class BluetoothCtrl
 				@Override
 				public void onResult(int resultCode, Intent data)
 				{
-					setup();
+					setup(listener);
 				}
 			});
 			return;
@@ -68,7 +73,7 @@ public class BluetoothCtrl
 				@Override
 				public void onResult(int resultCode, Intent data)
 				{
-					setup();
+					setup(listener);
 				}
 			});
 			return;
@@ -79,6 +84,7 @@ public class BluetoothCtrl
 		master=  new BluetoothMaster(this);
 
 		isSetup = true;
+		listener.onSetup();
 	}
 
 	public void cleanUp()

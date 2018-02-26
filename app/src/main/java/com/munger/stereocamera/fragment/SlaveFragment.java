@@ -34,7 +34,14 @@ public class SlaveFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		slaveComm = MainActivity.getInstance().getBtCtrl().getSlave().getComm();
+		try
+		{
+			slaveComm = MainActivity.getInstance().getBtCtrl().getSlave().getComm();
+		}
+		catch (NullPointerException e){
+			return;
+		}
+
 		slaveComm.setListener(new BluetoothSlaveComm.CommandListener()
 		{
 			@Override
@@ -69,6 +76,52 @@ public class SlaveFragment extends PreviewFragment
 				}
 
 				return imgBytes;
+			}
+
+			@Override
+			public void onLatencyCheck()
+			{
+				final Object lock = new Object();
+
+				getLatency(new LatencyListener()
+				{
+					@Override
+					public void triggered()
+					{
+						synchronized (lock)
+						{
+							lock.notify();
+						}
+					}
+
+					@Override
+					public void done()
+					{
+					}
+				});
+
+				synchronized (lock)
+				{
+					try{lock.wait(3000);}catch(InterruptedException e){}
+				}
+			}
+
+			@Override
+			public void onFlip()
+			{
+				doFlip();
+			}
+
+			@Override
+			public float[] getViewAngles()
+			{
+				return new float[] {horizontalAngle, verticalAngle};
+			}
+
+			@Override
+			public void setZoom(float zoom)
+			{
+				SlaveFragment.this.setZoom(null, zoom);
 			}
 		});
 	}

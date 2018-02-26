@@ -91,17 +91,18 @@ public class MainActivity extends AppCompatActivity
 			btCtrl.cleanUp();
 	}
 
-	public boolean setupBTServer()
+	public void setupBTServer(BluetoothCtrl.SetupListener listener)
 	{
 		if (btCtrl == null)
 			btCtrl = new BluetoothCtrl(this);
 
 		if (!btCtrl.getIsSetup())
 		{
-			btCtrl.setup();
+			btCtrl.setup(listener);
+			return;
 		}
 
-		return true;
+		listener.onSetup();
 	}
 
 	public BluetoothCtrl getBtCtrl()
@@ -153,6 +154,14 @@ public class MainActivity extends AppCompatActivity
 
 		listener.onResult(resultCode, data);
 		resultListeners.remove(requestCode);
+	}
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+
+		startSlaveView();
 	}
 
 	private Fragment currentFragment;

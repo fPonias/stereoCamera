@@ -3,6 +3,8 @@ package com.munger.stereocamera.fragment;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Matrix;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,10 +12,12 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -23,6 +27,8 @@ import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 
 import java.io.IOException;
+import java.security.Policy;
+import java.util.List;
 
 /**
  * Created by hallmarklabs on 2/23/18.
@@ -36,10 +42,21 @@ public class PreviewFragment extends Fragment
 	private boolean previewStarted = false;
 
 	protected View rootView;
-	private SurfaceView previewView;
-	private SurfaceHolder preview;
+	private TextureView previewView;
+	private SurfaceTexture preview;
 	private int cameraId;
 	private Camera camera;
+
+	public int status;
+
+	public static final int CREATED = 1;
+	public static final int READY = 2;
+	public static final int BUSY = 3;
+
+	public PreviewFragment()
+	{
+		status = CREATED;
+	}
 
 	protected void onCreateView(View rootView)
 	{
@@ -51,24 +68,20 @@ public class PreviewFragment extends Fragment
 		d.getMetrics(m);
 
 		int w = m.widthPixels;
-		int h = m.heightPixels;
 
-		if (h > w)
-			previewView.setLayoutParams(new RelativeLayout.LayoutParams(w, w));
-		else
-			previewView.setLayoutParams(new RelativeLayout.LayoutParams(h, h));
+		previewView.setLayoutParams(new RelativeLayout.LayoutParams(w, w));
 	}
 
 	@Override
 	public void onViewCreated(final View view, Bundle savedInstanceState)
 	{
-		preview = previewView.getHolder();
-
-		preview.addCallback(new SurfaceHolder.Callback()
+		preview = previewView.getSurfaceTexture();
+		previewView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener()
 		{
 			@Override
-			public void surfaceCreated(SurfaceHolder surfaceHolder)
+			public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1)
 			{
+				preview = surfaceTexture;
 				boolean doLoad = false;
 				synchronized (lock)
 				{
@@ -83,13 +96,28 @@ public class PreviewFragment extends Fragment
 			}
 
 			@Override
-			public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2)
+			public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1)
 			{
 
 			}
 
 			@Override
-			public void surfaceDestroyed(SurfaceHolder surfaceHolder)
+			public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture)
+			{
+				preview = null;
+				camera.stopPreview();
+				camera.release();
+
+				synchronized (lock)
+				{
+					previewReady = false;
+				}
+
+				return true;
+			}
+
+			@Override
+			public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture)
 			{
 
 			}
@@ -109,7 +137,7 @@ public class PreviewFragment extends Fragment
 	{
 		super.onStart();
 
-		cameraId = 0;
+		cameraId = 1;
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
@@ -130,9 +158,6 @@ public class PreviewFragment extends Fragment
 	private void startCamera()
 	{
 		camera = Camera.open(cameraId);
-		Camera.CameraInfo info = new Camera.CameraInfo();
-		Camera.getCameraInfo(cameraId, info);
-
 
 		boolean doLoad = false;
 		synchronized (lock)
@@ -147,6 +172,11 @@ public class PreviewFragment extends Fragment
 			startPreview();
 	}
 
+	protected float horizontalAngle = -1.0f;
+	protected float verticalAngle = -1.0f;
+	protected int pictureHeight = -1;
+	protected int pictureWidth = -1;
+
 	private void startPreview()
 	{
 		synchronized (lock)
@@ -160,7 +190,15 @@ public class PreviewFragment extends Fragment
 		try
 		{
 			setCameraDisplayOrientation(cameraId, camera);
-			camera.setPreviewDisplay(preview);
+			camera.setPreviewTexture(preview);
+
+			Camera.Parameters parameters = camera.getParameters();
+			horizontalAngle = parameters.getHorizontalViewAngle();
+			verticalAngle = parameters.getVerticalViewAngle();
+			pictureHeight = parameters.getPictureSize().height;
+			pictureWidth = parameters.getPictureSize().width;
+
+			adjustCrop(parameters);
 		}
 		catch(IOException e){
 			camera.release();
@@ -168,6 +206,69 @@ public class PreviewFragment extends Fragment
 		}
 
 		camera.startPreview();
+		onPreviewStarted();
+	}
+
+	protected double calculateZoom(float localAngle, int dim, float remoteAngle)
+	{
+		double targetAngle = remoteAngle * Math.PI / 180.0;
+		double angle = localAngle * Math.PI / 180.0;
+
+		double y = (Math.tan(angle / 2.0) / Math.tan(targetAngle / 2.0)) * (double) dim;
+		double zoom = (double) dim / y;
+
+		return zoom;
+	}
+
+	protected void setZoom(Camera.Parameters parameters, float zoom)
+	{
+		if (parameters == null)
+			parameters = camera.getParameters();
+
+		zoom *= 100.0f;
+
+		int max = parameters.getMaxZoom();
+		List<Integer> zoomList = parameters.getZoomRatios();
+
+		double lastDiff = 0;
+		int idx = -1;
+		int z = zoomList.size();
+
+		for (int i = 0; i < z; i++)
+		{
+			int zv = zoomList.get(i);
+			double diff = Math.abs(zoom - zv);
+
+			if (i == 0 || diff < lastDiff)
+			{
+				lastDiff = diff;
+				idx = i;
+			}
+		}
+
+		parameters.setZoom(idx);
+		camera.setParameters(parameters);
+	}
+
+	private void adjustCrop(Camera.Parameters parameters)
+	{
+		Camera.Size sz = parameters.getPreviewSize();
+		int preWidth = previewView.getMeasuredWidth();
+
+		float ratio = sz.width / sz.height;
+		float scaleX = (float) sz.width / (float) preWidth;
+
+		if (scaleX < 1)
+			scaleX = 1.0f / scaleX;
+
+		Matrix m = new Matrix();
+		m.setScale(1, scaleX);
+		previewView.setTransform(m);
+	}
+
+	protected void onPreviewStarted()
+	{
+		status = READY;
 	}
 
 	public static void setCameraDisplayOrientation(int cameraId, android.hardware.Camera camera)
@@ -218,6 +319,7 @@ public class PreviewFragment extends Fragment
 
 			listener = null;
 			camera.startPreview();
+			status = READY;
 		}
 	};
 
@@ -232,9 +334,40 @@ public class PreviewFragment extends Fragment
 
 	public void fireShutter(ImageListener listener)
 	{
+		status = BUSY;
 		this.listener = listener;
 		shutterStart = System.currentTimeMillis();
 		camera.takePicture(shutterCallback, null, null, jpegCallback);
+	}
+
+	public interface LatencyListener
+	{
+		void triggered();
+		void done();
+	}
+
+	public void getLatency(final LatencyListener listener)
+	{
+		camera.takePicture(
+			new Camera.ShutterCallback()
+			{
+				@Override
+				public void onShutter()
+				{
+					listener.triggered();
+				}
+			},
+			null, null,
+			new Camera.PictureCallback()
+			{
+				@Override
+				public void onPictureTaken(byte[] bytes, Camera camera)
+				{
+					camera.startPreview();
+					listener.done();
+				}
+			}
+		);
 	}
 
 	public void doFlip()

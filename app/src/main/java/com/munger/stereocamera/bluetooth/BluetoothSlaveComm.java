@@ -64,7 +64,12 @@ public class BluetoothSlaveComm
 	public interface CommandListener
 	{
 		void onPing();
+		int onStatus();
 		byte[] onFireShutter();
+		void onLatencyCheck();
+		void onFlip();
+		float[] getViewAngles();
+		void setZoom(float zoom);
 	}
 
 	private CommandListener listener;
@@ -90,9 +95,30 @@ public class BluetoothSlaveComm
 				{
 					doPing();
 				}
+				else if (action == BluetoothComm.GET_STATUS)
+				{
+					doGetStatus();
+				}
 				else if (action == BluetoothComm.FIRE_SHUTTER)
 				{
 					doShutter();
+				}
+				else if (action == BluetoothComm.LATENCY_CHECK)
+				{
+					doLatencyCheck();
+				}
+				else if (action == BluetoothComm.FLIP)
+				{
+					doFlip();
+				}
+				else if (action == BluetoothComm.GET_ANGLE_OF_VIEW)
+				{
+					doGetAngleOfView();
+				}
+				else if (action == BluetoothComm.SET_ZOOM)
+				{
+					float value = bb.getFloat();
+					doSetZoom(value);
 				}
 			}
 			catch(IOException e){
@@ -140,6 +166,101 @@ public class BluetoothSlaveComm
 				outs.write(bb.array());
 			}
 
+			outs.flush();
+		}
+		catch(IOException e){
+
+		}
+	}
+
+	private void doLatencyCheck()
+	{
+		long now = System.currentTimeMillis();
+		if (listener != null)
+			listener.onLatencyCheck();
+		long diff = System.currentTimeMillis() - now;
+
+		try
+		{
+			ByteBuffer bb = ByteBuffer.allocate(12);
+			bb.putInt(BluetoothComm.LATENCY_CHECK);
+			bb.putLong(diff);
+			outs.write(bb.array());
+			outs.flush();
+		}
+		catch(IOException e){
+
+		}
+	}
+
+	private void doFlip()
+	{
+		if (listener != null)
+			listener.onFlip();
+
+		try
+		{
+			ByteBuffer bb = ByteBuffer.allocate(4);
+			bb.putInt(BluetoothComm.FLIP);
+			outs.write(bb.array());
+			outs.flush();
+		}
+		catch(IOException e){
+
+		}
+	}
+
+	private void doGetAngleOfView()
+	{
+		float[] vals;
+		if (listener != null)
+			vals = listener.getViewAngles();
+		else
+			vals = new float[] { -1.0f, -1.0f};
+
+		try
+		{
+			ByteBuffer bb = ByteBuffer.allocate(12);
+			bb.putInt(BluetoothComm.GET_ANGLE_OF_VIEW);
+			bb.putFloat(vals[0]);
+			bb.putFloat(vals[1]);
+			outs.write(bb.array());
+			outs.flush();
+		}
+		catch(IOException e){
+
+		}
+	}
+
+	private void doSetZoom(float value)
+	{
+		if (listener != null)
+			listener.setZoom(value);
+
+		try
+		{
+			ByteBuffer bb = ByteBuffer.allocate(4);
+			bb.putInt(BluetoothComm.SET_ZOOM);
+			outs.write(bb.array());
+			outs.flush();
+		}
+		catch(IOException e){
+
+		}
+	}
+
+	private void doGetStatus()
+	{
+		int status = -1;
+		if (listener != null)
+			status = listener.onStatus();
+
+		try
+		{
+			ByteBuffer bb = ByteBuffer.allocate(8);
+			bb.putInt(BluetoothComm.GET_STATUS);
+			bb.putInt(status);
+			outs.write(bb.array());
 			outs.flush();
 		}
 		catch(IOException e){

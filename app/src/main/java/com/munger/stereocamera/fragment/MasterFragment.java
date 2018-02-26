@@ -76,26 +76,231 @@ public class MasterFragment extends PreviewFragment
 			public void onClick(View view)
 			{
 				doFlip();
+				masterComm.flip(new BluetoothMasterComm.FlipListener()
+				{
+					@Override
+					public void done()
+					{
+					}
+
+					@Override
+					public void fail()
+					{
+					}
+				});
 			}
 		});
 
 		return rootView;
 	}
 
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+
+		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
+		Log.d(getTag(), "pinging slave phone");
+		masterComm.ping(new BluetoothMasterComm.PingListener()
+		{
+			@Override
+			public void pong(long diff)
+			{
+				Log.d(getTag(), "pinged slave phone for " + diff + " ms");
+			}
+
+			@Override
+			public void fail()
+			{
+				Log.d(getTag(), "slave ping failed");
+			}
+		});
+	}
+
+	@Override
+	protected void onPreviewStarted()
+	{
+		super.onPreviewStarted();
+
+		if (remoteLatency != -1 && localLatency != -1)
+			return;
+
+		onPreviewStarted2();
+	}
+
+	private void onPreviewStarted2()
+	{
+		masterComm.getStatus(new BluetoothMasterComm.StatusListener()
+		{
+			@Override
+			public void done(int status)
+			{
+				if (status != PreviewFragment.READY)
+				{
+					try
+					{
+						Thread.sleep(250);
+					}
+					catch (InterruptedException e)
+					{
+					}
+					onPreviewStarted2();
+				}
+				else
+				{
+					onPreviewStarted3();
+				}
+			}
+
+			@Override
+			public void fail()
+			{
+				Log.d(getTag(), "slave status failed");
+			}
+		});
+	}
+
+	private void onPreviewStarted3()
+	{
+		masterComm.getAngleOfView(new BluetoothMasterComm.AngleOfViewListener()
+		{
+			@Override
+			public void done(float horiz, float vert)
+			{
+				if (vert > -1.0f && verticalAngle > -1.0f)
+				{
+					if (verticalAngle > vert)
+					{
+						double zoom = calculateZoom(verticalAngle, pictureHeight, vert);
+						setZoom(null, (float) zoom);
+						onPreviewStarted5();
+					}
+					else
+					{
+						double zoom = calculateZoom(vert, pictureHeight, verticalAngle);
+
+						if (zoom > 1.0)
+							onPreviewStarted4(zoom);
+						else
+							onPreviewStarted5();
+					}
+				}
+				else
+					onPreviewStarted5();
+			}
+
+			@Override
+			public void fail()
+			{
+				Log.d(getTag(), "slave viewAngle failed");
+			}
+		});
+	}
+
+	private void onPreviewStarted4(double zoom)
+	{
+		masterComm.setZoom((float) zoom, new BluetoothMasterComm.ZoomListener()
+		{
+			@Override
+			public void done()
+			{
+				onPreviewStarted5();
+			}
+
+			@Override
+			public void fail()
+			{
+				Log.d(getTag(), "slave set zoom failed");
+			}
+		});
+	}
+
+	private void onPreviewStarted5()
+	{
+		synchronized (lock)
+		{
+			if (shutterFiring)
+				try{lock.wait();}catch(InterruptedException e){return;}
+
+			shutterFiring = true;
+		}
+
+		masterComm.latencyCheck(new BluetoothMasterComm.LatencyCheckListener()
+		{
+			@Override
+			public void trigger(final BluetoothMasterComm.LatencyCheckListenerListener listener)
+			{
+				getLatency(new LatencyListener()
+				{
+					@Override
+					public void triggered()
+					{
+						listener.reply();
+					}
+
+					@Override
+					public void done()
+					{
+						synchronized (lock)
+						{
+							shutterFiring = false;
+							lock.notify();
+						}
+					}
+				});
+			}
+
+			@Override
+			public void pong(long localLatency, long remoteLatency)
+			{
+				MasterFragment.this.localLatency = localLatency;
+				MasterFragment.this.remoteLatency = remoteLatency;
+			}
+
+			@Override
+			public void fail()
+			{
+				Log.d(getTag(), "slave latency failed");
+				synchronized (lock)
+				{
+					shutterFiring = false;
+					lock.notify();
+				}
+			}
+		});
+	}
+
+	private long localLatency = 0;
+	private long remoteLatency = 0;
+
 	private final Object lock = new Object();
 	private boolean localShutterDone = false;
 	private boolean remoteShutterDone = false;
+	private boolean shutterFiring = false;
 
 	private byte[] localData;
 	private byte[] remoteData;
 
 	private void fireShutter()
 	{
-		super.fireShutter(new ImageListener()
+		synchronized (lock)
 		{
-			@Override
-			public void onImage(byte[] bytes)
+			if (shutterFiring)
+				return;
+
+			shutterFiring = true;
+		}
+
+		Thread t = new Thread(new Runnable() {public void run()
+		{
+			long diff = remoteLatency - localLatency;
+			try { Thread.sleep(diff); } catch(InterruptedException e){}
+
+			MasterFragment.super.fireShutter(new ImageListener()
 			{
+				@Override
+				public void onImage(byte[] bytes)
+				{
 				localData = bytes;
 				boolean doNext = false;
 
@@ -105,12 +310,17 @@ public class MasterFragment extends PreviewFragment
 
 					if (remoteShutterDone)
 						doNext = true;
+
+					shutterFiring = false;
+					lock.notify();
 				}
 
 				if (doNext)
 					fireShutter2();
-			}
-		});
+				}
+			});
+		}});
+		t.start();
 
 		masterComm.shutter(new BluetoothMasterComm.ShutterListener()
 		{
@@ -148,29 +358,6 @@ public class MasterFragment extends PreviewFragment
 
 				if (doNext)
 					fireShutter2();
-			}
-		});
-	}
-
-	@Override
-	public void onStart()
-	{
-		super.onStart();
-
-		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
-		Log.d(getTag(), "pinging slave phone");
-		masterComm.ping(new BluetoothMasterComm.PingListener()
-		{
-			@Override
-			public void pong(long diff)
-			{
-				Log.d(getTag(), "pinged slave phone for " + diff + " ms");
-			}
-
-			@Override
-			public void fail()
-			{
-				Log.d(getTag(), "slave ping failed");
 			}
 		});
 	}

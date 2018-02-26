@@ -77,12 +77,19 @@ public class ConnectFragment extends Fragment
 
 	private void connectClicked()
 	{
-		boolean success = MainActivity.getInstance().setupBTServer();
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				connectClicked2();
+			}
+		});
 
-		if (!success)
-			return;
+	}
 
-
+	private void connectClicked2()
+	{
 		try
 		{
 			discoverDialog = new DiscoverDialog();
@@ -163,14 +170,21 @@ public class ConnectFragment extends Fragment
 
 	private void listenClicked()
 	{
-		boolean success = MainActivity.getInstance().setupBTServer();
-
-		if (!success)
-			return;
-
 		if (listenSlave != null)
 			return;
 
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				listenClicked2();
+			}
+		});
+	}
+
+	private void listenClicked2()
+	{
 		listenDialog = new ListenDialog();
 		listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
 		listenDialog.setStatus("Starting Listener");
