@@ -1,12 +1,13 @@
 package com.munger.stereocamera.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
+import android.util.Log;
 
-import java.io.ByteArrayInputStream;
+import com.munger.stereocamera.MainActivity;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
@@ -20,8 +21,6 @@ public class BluetoothSlaveComm
 	private BluetoothSocket socket;
 	private InputStream ins;
 	private OutputStream outs;
-	private byte[] buffer;
-	private static final int BUFFER_SIZE = 4096;
 	private Thread thread;
 
 	public BluetoothSlaveComm(BluetoothCtrl ctrl)
@@ -37,9 +36,6 @@ public class BluetoothSlaveComm
 		catch (IOException e){
 
 		}
-
-		buffer = new byte[BUFFER_SIZE];
-		listen();
 	}
 
 	public void cleanUp()
@@ -76,8 +72,14 @@ public class BluetoothSlaveComm
 
 	public void setListener(CommandListener listener)
 	{
+		CommandListener old = this.listener;
 		this.listener = listener;
+
+		if (old == null)
+			listen();
 	}
+
+	private BluetoothCommands currentAction = BluetoothCommands.NONE;
 
 	private void listen2()
 	{
@@ -86,38 +88,37 @@ public class BluetoothSlaveComm
 		{
 			try
 			{
-				read = ins.read(buffer);
-				ByteBuffer bb = ByteBuffer.wrap(buffer);
+				int actionInt = getInt();
+				currentAction = BluetoothCommands.values()[actionInt];
+				Log.d("bluetoothSlaveComm", "command: " + currentAction.name() + " received");
 
-				int action = bb.getInt();
-
-				if (action == BluetoothComm.PING)
+				if (currentAction == BluetoothCommands.PING)
 				{
 					doPing();
 				}
-				else if (action == BluetoothComm.GET_STATUS)
+				else if (currentAction == BluetoothCommands.GET_STATUS)
 				{
 					doGetStatus();
 				}
-				else if (action == BluetoothComm.FIRE_SHUTTER)
+				else if (currentAction == BluetoothCommands.FIRE_SHUTTER)
 				{
 					doShutter();
 				}
-				else if (action == BluetoothComm.LATENCY_CHECK)
+				else if (currentAction == BluetoothCommands.LATENCY_CHECK)
 				{
 					doLatencyCheck();
 				}
-				else if (action == BluetoothComm.FLIP)
+				else if (currentAction == BluetoothCommands.FLIP)
 				{
 					doFlip();
 				}
-				else if (action == BluetoothComm.GET_ANGLE_OF_VIEW)
+				else if (currentAction == BluetoothCommands.GET_ANGLE_OF_VIEW)
 				{
 					doGetAngleOfView();
 				}
-				else if (action == BluetoothComm.SET_ZOOM)
+				else if (currentAction == BluetoothCommands.SET_ZOOM)
 				{
-					float value = bb.getFloat();
+					float value = getFloat();
 					doSetZoom(value);
 				}
 			}
@@ -127,6 +128,30 @@ public class BluetoothSlaveComm
 		}
 	}
 
+	private int getInt() throws IOException
+	{
+		byte[] in = new byte[4];
+		ByteBuffer bb = ByteBuffer.wrap(in);
+		int read = ins.read(in);
+
+		if (read < 4)
+			throw new IOException ();
+
+		return bb.getInt();
+	}
+
+	private float getFloat() throws IOException
+	{
+		byte[] in = new byte[4];
+		ByteBuffer bb = ByteBuffer.wrap(in);
+		int read = ins.read(in);
+
+		if (read < 4)
+			throw new IOException();
+
+		return bb.getFloat();
+	}
+
 	private void doPing()
 	{
 		if (listener != null)
@@ -134,12 +159,13 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			byte[] bytes = ByteBuffer.allocate(4).putInt(BluetoothComm.PING).array();
+			byte[] bytes = ByteBuffer.allocate(4).putInt(BluetoothCommands.PING.ordinal()).array();
 			outs.write(bytes);
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 
@@ -152,7 +178,7 @@ public class BluetoothSlaveComm
 		try
 		{
 			ByteBuffer bb = ByteBuffer.allocate(8);
-			bb.putInt(BluetoothComm.FIRE_SHUTTER);
+			bb.putInt(BluetoothCommands.FIRE_SHUTTER.ordinal());
 
 			if (imgData != null)
 			{
@@ -167,9 +193,10 @@ public class BluetoothSlaveComm
 			}
 
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 
@@ -183,13 +210,14 @@ public class BluetoothSlaveComm
 		try
 		{
 			ByteBuffer bb = ByteBuffer.allocate(12);
-			bb.putInt(BluetoothComm.LATENCY_CHECK);
+			bb.putInt(BluetoothCommands.LATENCY_CHECK.ordinal());
 			bb.putLong(diff);
 			outs.write(bb.array());
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 
@@ -201,12 +229,13 @@ public class BluetoothSlaveComm
 		try
 		{
 			ByteBuffer bb = ByteBuffer.allocate(4);
-			bb.putInt(BluetoothComm.FLIP);
+			bb.putInt(BluetoothCommands.FLIP.ordinal());
 			outs.write(bb.array());
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 
@@ -221,14 +250,15 @@ public class BluetoothSlaveComm
 		try
 		{
 			ByteBuffer bb = ByteBuffer.allocate(12);
-			bb.putInt(BluetoothComm.GET_ANGLE_OF_VIEW);
+			bb.putInt(BluetoothCommands.GET_ANGLE_OF_VIEW.ordinal());
 			bb.putFloat(vals[0]);
 			bb.putFloat(vals[1]);
 			outs.write(bb.array());
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 
@@ -240,12 +270,13 @@ public class BluetoothSlaveComm
 		try
 		{
 			ByteBuffer bb = ByteBuffer.allocate(4);
-			bb.putInt(BluetoothComm.SET_ZOOM);
+			bb.putInt(BluetoothCommands.SET_ZOOM.ordinal());
 			outs.write(bb.array());
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 
@@ -258,13 +289,16 @@ public class BluetoothSlaveComm
 		try
 		{
 			ByteBuffer bb = ByteBuffer.allocate(8);
-			bb.putInt(BluetoothComm.GET_STATUS);
+			bb.putInt(BluetoothCommands.GET_STATUS.ordinal());
 			bb.putInt(status);
-			outs.write(bb.array());
+			byte[] array = bb.array();
+
+			outs.write(array);
 			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
 		catch(IOException e){
-
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
 		}
 	}
 }

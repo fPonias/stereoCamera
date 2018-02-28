@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
@@ -23,16 +24,33 @@ public class SlaveFragment extends PreviewFragment
 	{
 		View ret = inflater.inflate(R.layout.fragment_slave, null);
 		super.onCreateView(ret);
+
+		zoomInButton = ret.findViewById(R.id.zoom_in);
+		zoomOutButton = ret.findViewById(R.id.zoom_out);
+
 		return ret;
 	}
 
 	private BluetoothSlaveComm slaveComm;
 	private byte[] imgBytes;
 
+	private Button zoomInButton;
+	private Button zoomOutButton;
+
 	@Override
 	public void onStart()
 	{
 		super.onStart();
+
+		zoomInButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
+		{
+			zoom(true);
+		}});
+
+		zoomOutButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
+		{
+			zoom(false);
+		}});
 
 		try
 		{
@@ -45,6 +63,12 @@ public class SlaveFragment extends PreviewFragment
 		slaveComm.setListener(new BluetoothSlaveComm.CommandListener()
 		{
 			@Override
+			public int onStatus()
+			{
+				return status;
+			}
+
+			@Override
 			public void onPing()
 			{
 
@@ -53,57 +77,13 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public byte[] onFireShutter()
 			{
-				final Object lock = new Object();
-				imgBytes = null;
-
-				fireShutter(new ImageListener()
-				{
-					@Override
-					public void onImage(byte[] bytes)
-					{
-						synchronized (lock)
-						{
-							imgBytes = bytes;
-							lock.notify();
-						}
-					}
-				});
-
-				synchronized (lock)
-				{
-					if (imgBytes == null)
-						try{lock.wait(2000);}catch(InterruptedException e){}
-				}
-
-				return imgBytes;
+				return doFireShutter();
 			}
 
 			@Override
 			public void onLatencyCheck()
 			{
-				final Object lock = new Object();
-
-				getLatency(new LatencyListener()
-				{
-					@Override
-					public void triggered()
-					{
-						synchronized (lock)
-						{
-							lock.notify();
-						}
-					}
-
-					@Override
-					public void done()
-					{
-					}
-				});
-
-				synchronized (lock)
-				{
-					try{lock.wait(3000);}catch(InterruptedException e){}
-				}
+				doLatencyCheck();
 			}
 
 			@Override
@@ -124,5 +104,59 @@ public class SlaveFragment extends PreviewFragment
 				SlaveFragment.this.setZoom(null, zoom);
 			}
 		});
+	}
+
+	private void doLatencyCheck()
+	{
+		final Object lock = new Object();
+
+		getLatency(new LatencyListener()
+		{
+			@Override
+			public void triggered()
+			{
+				synchronized (lock)
+				{
+					lock.notify();
+				}
+			}
+
+			@Override
+			public void done()
+			{
+			}
+		});
+
+		synchronized (lock)
+		{
+			try{lock.wait(3000);}catch(InterruptedException e){}
+		}
+	}
+
+	private byte[] doFireShutter()
+	{
+		final Object lock = new Object();
+		imgBytes = null;
+
+		fireShutter(new ImageListener()
+		{
+			@Override
+			public void onImage(byte[] bytes)
+			{
+				synchronized (lock)
+				{
+					imgBytes = bytes;
+					lock.notify();
+				}
+			}
+		});
+
+		synchronized (lock)
+		{
+			if (imgBytes == null)
+				try{lock.wait(2000);}catch(InterruptedException e){}
+		}
+
+		return imgBytes;
 	}
 }

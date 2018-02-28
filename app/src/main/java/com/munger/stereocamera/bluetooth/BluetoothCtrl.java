@@ -10,8 +10,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -39,6 +41,20 @@ public class BluetoothCtrl
 	private BluetoothDiscoverer discoverer;
 	private BluetoothSlave slave;
 	private BluetoothMaster master;
+
+	public enum Roles
+	{
+		MASTER,
+		SLAVE,
+		NONE
+	};
+
+	private static final String LAST_ROLE_KEY = "lastRole";
+	private static final String LAST_CLIENT_KEY = "lastClient";
+
+	private SharedPreferences preferences;
+	private Roles lastRole = Roles.NONE;
+	private String lastClient = null;
 
 	public static final UUID APP_ID = UUID.fromString("e1dd45ec-c2ac-4a47-8b71-986095f25450");
 
@@ -81,10 +97,57 @@ public class BluetoothCtrl
 
 		discoverer = new BluetoothDiscoverer(this);
 		slave = new BluetoothSlave(this);
-		master=  new BluetoothMaster(this);
+		master = new BluetoothMaster(this);
+
+		readPreferences();
 
 		isSetup = true;
 		listener.onSetup();
+	}
+
+	private void readPreferences()
+	{
+		preferences = MainActivity.getInstance().getPreferences(Context.MODE_PRIVATE);
+
+		if (preferences.contains(LAST_ROLE_KEY))
+		{
+			int value = preferences.getInt(LAST_ROLE_KEY, -1);
+			lastRole = Roles.values()[value];
+		}
+		else
+		{
+			lastRole = Roles.NONE;
+		}
+
+		if (preferences.contains(LAST_CLIENT_KEY))
+		{
+			String value = preferences.getString(LAST_CLIENT_KEY, null);
+			lastClient = value;
+		}
+		else
+		{
+			lastClient = null;
+		}
+	}
+
+	public Roles getLastRole()
+	{
+		return lastRole;
+	}
+
+	public void setLastRole(Roles role)
+	{
+		preferences.edit().putInt(LAST_ROLE_KEY, role.ordinal()).apply();
+	}
+
+	public String getLastClient()
+	{
+		return lastClient;
+	}
+
+	public void setLastClient(String client)
+	{
+		preferences.edit().putString(LAST_CLIENT_KEY, client).apply();
 	}
 
 	public void cleanUp()

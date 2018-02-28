@@ -47,7 +47,7 @@ public class BluetoothSlave
 		}
 	}
 
-	public void listen(ListenListener listener, long timeout)
+	public void startDiscovery(ListenListener listener, long timeout)
 	{
 		synchronized (lock)
 		{
@@ -66,12 +66,26 @@ public class BluetoothSlave
 			@Override
 			public void onResult(int resultCode, Intent data)
 			{
-				listen2();
+				listen();
 			}
 		});
 	}
 
-	private void listen2()
+	public void startListener(ListenListener listener, long timeout)
+	{
+		synchronized (lock)
+		{
+			if (listenListener != null)
+				return;
+
+			listenListener = listener;
+			this.timeout = timeout;
+		}
+
+		listen();
+	}
+
+	private void listen()
 	{
 		listenThread = new Thread(new Runnable() { public void run()
 		{
@@ -118,7 +132,7 @@ public class BluetoothSlave
 			{
 				if (listenListener == null)
 				{
-					if (socket != null)
+					if (socket != null && serverSocket != null)
 					{
 						try
 						{
@@ -134,6 +148,10 @@ public class BluetoothSlave
 		}
 		catch(IOException e){
 			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket");
+
+			if (listenListener == null)
+				return;
+
 			listenListener.onFailed();
 			synchronized (lock)
 			{

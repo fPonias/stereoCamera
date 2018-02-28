@@ -57,6 +57,8 @@ public class ListenDialog extends DialogFragment
 			}
 		});
 
+
+
 		return view;
 	}
 

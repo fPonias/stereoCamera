@@ -1,33 +1,23 @@
 package com.munger.stereocamera;
 
-import android.Manifest;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
-import com.munger.stereocamera.fragment.MasterFragment2;
 import com.munger.stereocamera.fragment.SlaveFragment;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
@@ -35,7 +25,7 @@ public class MainActivity extends AppCompatActivity
 	public static final String BT_SERVICE_NAME = "stereoCamera";
 
 	public static int DISCOVER_TIMEOUT = 30000;
-	public static int LISTEN_TIMEOUT = 300000;
+	public static int LISTEN_TIMEOUT = 30000;
 
 	// Used to load the 'native-lib' library on application startup.
 	static
@@ -160,8 +150,6 @@ public class MainActivity extends AppCompatActivity
 	protected void onStart()
 	{
 		super.onStart();
-
-		startSlaveView();
 	}
 
 	private Fragment currentFragment;
@@ -188,5 +176,53 @@ public class MainActivity extends AppCompatActivity
 		ft.commit();
 
 		currentFragment = slaveFragment;
+	}
+
+	public void popSubViews()
+	{
+		if (currentFragment != connectFragment)
+		{
+			getSupportFragmentManager().popBackStack();
+
+			currentFragment = connectFragment;
+		}
+	}
+
+	public void handleNewConnection(BluetoothDevice device)
+	{
+		Log.d("stereoCamera", "bluetooh device connected " + device.getName());
+
+		if (!device.getName().equals(btCtrl.getLastClient()))
+			return;
+
+		if (btCtrl.getLastRole() == BluetoothCtrl.Roles.SLAVE)
+		{
+			popSubViews();
+			connectFragment.listenForMaster();
+		}
+		else if (btCtrl.getLastRole() == BluetoothCtrl.Roles.MASTER)
+		{
+			popSubViews();
+			connectFragment.slaveConnected(device);
+		}
+	}
+
+	public void handleDisconnection(BluetoothDevice device)
+	{
+		Log.d("stereoCamera", "bluetooh device disconnected " + device.getName());
+
+		if (!device.getName().equals(btCtrl.getLastClient()))
+			return;
+
+		if (btCtrl.getLastRole() == BluetoothCtrl.Roles.SLAVE)
+		{
+			popSubViews();
+			btCtrl.getSlave().cancelListen();
+		}
+		else
+		{
+			popSubViews();
+			btCtrl.getMaster().cancelConnect();
+		}
 	}
 }

@@ -1,11 +1,13 @@
 package com.munger.stereocamera.fragment;
 
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +51,34 @@ public class ConnectFragment extends Fragment
 		return view;
 	}
 
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+
+
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				BluetoothCtrl btctrl = MainActivity.getInstance().getBtCtrl();
+				BluetoothCtrl.Roles role = btctrl.getLastRole();
+				String deviceName = btctrl.getLastClient();
+
+				if (role == BluetoothCtrl.Roles.MASTER)
+				{
+					BluetoothDevice device = btctrl.getDiscoverer().getKnownDevice(deviceName);
+					deviceSelected(device);
+				}
+				else if (role == BluetoothCtrl.Roles.SLAVE)
+				{
+					listenForMaster();
+				}
+			}
+		});
+	}
+
 	private void findViews()
 	{
 		statusView = view.findViewById(R.id.statusText);
@@ -70,6 +100,8 @@ public class ConnectFragment extends Fragment
 			listenClicked();
 		}});
 	}
+
+	private BluetoothCtrl btCtrl;
 
 	private DiscoverDialog discoverDialog;
 	private HashMap<String, BluetoothDevice> devices;
@@ -139,6 +171,11 @@ public class ConnectFragment extends Fragment
 		discoverer.cancelDiscover();
 
 		BluetoothDevice device = devices.get(id);
+		deviceSelected(device);
+	}
+
+	public void deviceSelected(final BluetoothDevice device)
+	{
 		master = MainActivity.getInstance().getBtCtrl().getMaster();
 		master.connect(device, new BluetoothMaster.ConnectListener()
 		{
@@ -157,7 +194,13 @@ public class ConnectFragment extends Fragment
 				handler.post(new Runnable() {public void run()
 				{
 					Toast.makeText(getActivity(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
-					discoverDialog.dismiss();
+
+					if (discoverDialog != null)
+						discoverDialog.dismiss();
+
+					btCtrl.setLastRole(BluetoothCtrl.Roles.MASTER);
+					btCtrl.setLastClient(device.getName());
+
 					MainActivity.getInstance().startMasterView();
 				}});
 			}
@@ -171,9 +214,9 @@ public class ConnectFragment extends Fragment
 	private void listenClicked()
 	{
 		if (listenSlave != null)
-			return;
-
-		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+			listenClicked2();
+		else
+			MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
 			@Override
 			public void onSetup()
@@ -182,6 +225,50 @@ public class ConnectFragment extends Fragment
 			}
 		});
 	}
+
+	private AlertDialog againDialog;
+
+	private BluetoothSlave.ListenListener listenListener = new BluetoothSlave.ListenListener()
+	{
+		@Override
+		public void onAttached()
+		{
+			handler.post(new Runnable() {public void run()
+			{
+				listenDialog.setStatus("Connected");
+				listenDialog.dismiss();
+
+				btCtrl.setLastRole(BluetoothCtrl.Roles.SLAVE);
+				btCtrl.setLastClient(null);
+
+				MainActivity.getInstance().startSlaveView();
+			}});
+		}
+
+		@Override
+		public void onFailed()
+		{
+			handler.post(new Runnable() {public void run()
+			{
+				listenDialog.dismiss();
+
+				againDialog = new AlertDialog.Builder(getActivity())
+						.setTitle(R.string.bluetooth_listen_failed_error)
+						.setMessage(R.string.bluetooth_try_again_message)
+						.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							againDialog.dismiss();
+						}})
+						.setPositiveButton(R.string.retry_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							againDialog.dismiss();
+							listenForMaster();
+						}})
+						.create();
+				againDialog.show();
+			}});
+		}
+	};
 
 	private void listenClicked2()
 	{
@@ -198,28 +285,48 @@ public class ConnectFragment extends Fragment
 		});
 
 		listenSlave = MainActivity.getInstance().getBtCtrl().getSlave();
-		listenSlave.listen(new BluetoothSlave.ListenListener()
+		listenSlave.startDiscovery(listenListener, MainActivity.LISTEN_TIMEOUT);
+	}
+
+	public void listenForMaster()
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
 			@Override
-			public void onAttached()
+			public void onSetup()
 			{
-				handler.post(new Runnable() {public void run()
-				{
-					listenDialog.setStatus("Connected");
-					listenDialog.dismiss();
-					MainActivity.getInstance().startSlaveView();
-				}});
-			}
+			btCtrl = MainActivity.getInstance().getBtCtrl();
 
-			@Override
-			public void onFailed()
+			listenDialog = new ListenDialog();
+			listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
+			listenDialog.setStatus("Starting Listener");
+			listenDialog.setListener(new ListenDialog.ActionListener()
 			{
-				handler.post(new Runnable() {public void run()
+				@Override
+				public void cancelled()
 				{
-					Toast.makeText(getActivity().getApplicationContext(), R.string.bluetooth_listen_failed_error, Toast.LENGTH_LONG).show();
-					listenDialog.dismiss();
-				}});
+					listenSlave.cancelListen();
+				}
+			});
+
+			listenSlave = MainActivity.getInstance().getBtCtrl().getSlave();
+			listenSlave.startListener(listenListener, MainActivity.LISTEN_TIMEOUT);
+			listenDialog.setStatus("Listening");
 			}
-		}, MainActivity.LISTEN_TIMEOUT);
+		});
+	}
+
+	public void slaveConnected(final BluetoothDevice device)
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+			btCtrl = MainActivity.getInstance().getBtCtrl();
+
+			deviceSelected(device);
+			}
+		});
 	}
 }

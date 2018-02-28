@@ -2,6 +2,7 @@
     <string name="app_name">StereoCamera</string>
     <string name="connect_button">Connect to slave</string>
     <string name="listen_button">Listen to master</string>
+    <string name="retry_button">Retry</string>
     <string name="cancel_button">Cancel</string>
     <string name="discover_title">Discovered Bluetooth Devices</string>
 
@@ -10,4 +11,5 @@
     <string name="bluetooth_connect_failed_error">Bluetooth client connection has failed.</string>
     <string name="bluetooth_connect_success">Bluetooth client connection succeeded.</string>
     <string name="bluetooth_listen_failed_error">Bluetooth listen has failed.</string>
+    <string name="bluetooth_try_again_message">Listen again for incoming connections?</string>
 </resources>

@@ -3,13 +3,9 @@ package com.munger.stereocamera.bluetooth;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
@@ -55,8 +51,10 @@ public class BluetoothMasterComm
 			try
 			{
 				ping2(listener);
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.PING.name() + " success");
 			}
 			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.PING.name() + " failed");
 				listener.fail();
 			}
 		}});
@@ -66,7 +64,7 @@ public class BluetoothMasterComm
 	private void ping2(PingListener listener) throws IOException
 	{
 		long now = System.currentTimeMillis();
-		sendCommand(BluetoothComm.PING);
+		sendCommand(BluetoothCommands.PING);
 
 		long then = System.currentTimeMillis();
 		long diff = then - now;
@@ -87,8 +85,10 @@ public class BluetoothMasterComm
 			try
 			{
 				shutter2(listener);
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.FIRE_SHUTTER.name() + " success");
 			}
 			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.FIRE_SHUTTER.name() + " failed");
 				listener.fail();
 			}
 		}});
@@ -97,7 +97,7 @@ public class BluetoothMasterComm
 
 	private void shutter2(ShutterListener listener) throws IOException
 	{
-		sendCommand(BluetoothComm.FIRE_SHUTTER);
+		sendCommand(BluetoothCommands.FIRE_SHUTTER);
 
 		int size = readInt();
 		ByteBuffer imgBuffer = ByteBuffer.allocate(size);
@@ -135,6 +135,7 @@ public class BluetoothMasterComm
 		final long now = System.currentTimeMillis();
 		localLatency = -1;
 		remoteLatency = -1;
+		Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " called");
 
 		listener.trigger(new LatencyCheckListenerListener() { public void reply()
 		{
@@ -142,6 +143,7 @@ public class BluetoothMasterComm
 			{
 				localLatency = System.currentTimeMillis() - now;
 
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " local check success");
 				if (remoteLatency != -1)
 					latencyLock.notify();
 			}
@@ -153,8 +155,11 @@ public class BluetoothMasterComm
 			try
 			{
 				ret = latencyCheck2(listener);
+
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " remote check success");
 			}
 			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " remote check failed");
 				listener.fail();
 				return;
 			}
@@ -176,9 +181,15 @@ public class BluetoothMasterComm
 				try{latencyLock.wait(3000);}catch(InterruptedException e){}
 
 				if (localLatency == -1 || remoteLatency == -1)
+				{
+					Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " failed");
 					listener.fail();
+				}
 				else
+				{
+					Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " success");
 					listener.pong(localLatency, remoteLatency);
+				}
 			}
 		}});
 		foo.start();
@@ -186,7 +197,7 @@ public class BluetoothMasterComm
 
 	private long latencyCheck2(LatencyCheckListener listener) throws IOException
 	{
-		sendCommand(BluetoothComm.LATENCY_CHECK);
+		sendCommand(BluetoothCommands.LATENCY_CHECK);
 
 		long ret = readLong();
 		return ret;
@@ -204,10 +215,13 @@ public class BluetoothMasterComm
 		{
 			try
 			{
-				sendCommand(BluetoothComm.FLIP);
+				sendCommand(BluetoothCommands.FLIP);
+
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.FLIP.name() + " success");
 				listener.done();
 			}
 			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.FLIP.name() + " failed");
 				listener.fail();
 			}
 		}});
@@ -226,12 +240,14 @@ public class BluetoothMasterComm
 		{
 			try
 			{
-				sendCommand(BluetoothComm.GET_STATUS);
+				sendCommand(BluetoothCommands.GET_STATUS);
 				int ret = readInt();
 
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.GET_STATUS.name() + " success");
 				listener.done(ret);
 			}
 			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.GET_STATUS.name() + " failed");
 				listener.fail();
 			}
 		}});
@@ -251,17 +267,18 @@ public class BluetoothMasterComm
 			float[] ret = new float[2];
 			try
 			{
-				sendCommand(BluetoothComm.GET_ANGLE_OF_VIEW);
+				sendCommand(BluetoothCommands.GET_ANGLE_OF_VIEW);
 
 				for (int i = 0; i < 2; i++)
 				{
 					ret[i] = readFloat();
 				}
 
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.GET_ANGLE_OF_VIEW.name() + " success");
 				listener.done(ret[0], ret[1]);
 			}
-			catch(IOException e)
-			{
+			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.GET_ANGLE_OF_VIEW.name() + " failed");
 				listener.fail();
 			}
 		}});
@@ -281,23 +298,27 @@ public class BluetoothMasterComm
 			byte[] args = ByteBuffer.allocate(4).putFloat(zoom).array();
 			try
 			{
-				sendCommand(BluetoothComm.SET_ZOOM, args);
+				sendCommand(BluetoothCommands.SET_ZOOM, args);
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.SET_ZOOM.name() + " success");
+				listener.done();
 			}
 			catch(IOException e){
+				Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.SET_ZOOM.name() + " failed");
 				listener.fail();
 			}
 		}});
 		t.start();
 	}
 
-	private void sendCommand(int command) throws IOException
+	private void sendCommand(BluetoothCommands command) throws IOException
 	{
 		sendCommand(command, null);
 	}
 
-	private void sendCommand(int command, byte[] args) throws IOException
+	private void sendCommand(BluetoothCommands command, byte[] args) throws IOException
 	{
-		byte[] bytes = ByteBuffer.wrap(intBuf).putInt(command).array();
+		Log.d("BluetoothMasterComm", "command: " + command.name() + " started");
+		byte[] bytes = ByteBuffer.wrap(intBuf).putInt(command.ordinal()).array();
 		outs.write(bytes);
 
 		if (args != null)
@@ -305,7 +326,8 @@ public class BluetoothMasterComm
 
 		outs.flush();
 
-		int action = readInt();
+		int actionInt = readInt();
+		BluetoothCommands action = BluetoothCommands.values()[actionInt];
 
 		if (action != command)
 		{
@@ -324,7 +346,7 @@ public class BluetoothMasterComm
 		int read;
 		do
 		{
-			read = ins.read(longBuf);
+			read = ins.read(longBuf, 0, 8);
 		} while (read == 0);
 
 		if (read < 8)
@@ -332,7 +354,7 @@ public class BluetoothMasterComm
 			throw new IOException("incorrect response");
 		}
 
-		return longBufBuf.getLong();
+		return longBufBuf.getLong(0);
 	}
 
 	private byte[] intBuf = new byte[4];
@@ -342,7 +364,7 @@ public class BluetoothMasterComm
 		int read;
 		do
 		{
-			read = ins.read(intBuf);
+			read = ins.read(intBuf, 0, 4);
 		} while (read == 0);
 
 		if (read < 4)
@@ -350,7 +372,7 @@ public class BluetoothMasterComm
 			throw new IOException("incorrect response");
 		}
 
-		return intBufBuf.getInt();
+		return intBufBuf.getInt(0);
 	}
 
 	private float readFloat() throws IOException
@@ -358,7 +380,7 @@ public class BluetoothMasterComm
 		int read;
 		do
 		{
-			read = ins.read(intBuf);
+			read = ins.read(intBuf, 0, 4);
 		} while (read == 0);
 
 		if (read < 4)
@@ -366,6 +388,6 @@ public class BluetoothMasterComm
 			throw new IOException("incorrect response");
 		}
 
-		return intBufBuf.getFloat();
+		return intBufBuf.getFloat(0);
 	}
 }

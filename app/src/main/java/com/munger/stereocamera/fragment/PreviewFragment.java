@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.hardware.Camera.Size;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -137,7 +139,18 @@ public class PreviewFragment extends Fragment
 	{
 		super.onStart();
 
-		cameraId = 1;
+		cameraId = 0;
+		int sz = Camera.getNumberOfCameras();
+		Camera.CameraInfo info = new Camera.CameraInfo();
+		for (int i = 0; i < sz; i++)
+		{
+			Camera.getCameraInfo(i, info);
+			if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+			{
+				cameraId = i;
+				break;
+			}
+		}
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
@@ -174,8 +187,6 @@ public class PreviewFragment extends Fragment
 
 	protected float horizontalAngle = -1.0f;
 	protected float verticalAngle = -1.0f;
-	protected int pictureHeight = -1;
-	protected int pictureWidth = -1;
 
 	private void startPreview()
 	{
@@ -195,10 +206,9 @@ public class PreviewFragment extends Fragment
 			Camera.Parameters parameters = camera.getParameters();
 			horizontalAngle = parameters.getHorizontalViewAngle();
 			verticalAngle = parameters.getVerticalViewAngle();
-			pictureHeight = parameters.getPictureSize().height;
-			pictureWidth = parameters.getPictureSize().width;
-
+			setSizes(parameters);
 			adjustCrop(parameters);
+			camera.setParameters(parameters);
 		}
 		catch(IOException e){
 			camera.release();
@@ -209,15 +219,49 @@ public class PreviewFragment extends Fragment
 		onPreviewStarted();
 	}
 
-	protected double calculateZoom(float localAngle, int dim, float remoteAngle)
+	protected void setSizes(Camera.Parameters parameters)
 	{
-		double targetAngle = remoteAngle * Math.PI / 180.0;
-		double angle = localAngle * Math.PI / 180.0;
+		float targetRatio = 640.0f / 480.0f;
 
-		double y = (Math.tan(angle / 2.0) / Math.tan(targetAngle / 2.0)) * (double) dim;
-		double zoom = (double) dim / y;
+		List<Size> sizes = parameters.getSupportedPreviewSizes();
+		Size previewSize = getClosestSize(targetRatio, sizes);
+		parameters.setPreviewSize(previewSize.width, previewSize.height);
 
-		return zoom;
+		sizes = parameters.getSupportedPictureSizes();
+		Size pictureSize = getClosestSize(targetRatio, sizes);
+		parameters.setPictureSize(pictureSize.width, pictureSize.height);
+	}
+
+	private Size getClosestSize(float targetRatio, List<Size> sizes)
+	{
+		Size closestSize = null;
+		float closestDiff = 0.0f;
+
+		for (Size sz : sizes)
+		{
+			float ratio = (float) sz.width / (float) sz.height;
+			float diff = Math.abs(targetRatio - ratio);
+
+			if (closestSize == null || diff < closestDiff)
+			{
+				closestSize = sz;
+				closestDiff = diff;
+			}
+			else if (Math.abs(diff - closestDiff) < 0.05f && sz.width > closestSize.width)
+			{
+				closestSize = sz;
+				closestDiff = diff;
+			}
+		}
+
+		return closestSize;
+	}
+
+	protected float calculateZoom(float localAngle, float remoteAngle)
+	{
+		float ret = remoteAngle / localAngle;
+
+		return ret;
 	}
 
 	protected void setZoom(Camera.Parameters parameters, float zoom)
@@ -250,12 +294,28 @@ public class PreviewFragment extends Fragment
 		camera.setParameters(parameters);
 	}
 
+	protected void zoom(boolean in)
+	{
+		Camera.Parameters parameters = camera.getParameters();
+		int max = parameters.getMaxZoom();
+		int zoom = parameters.getZoom();
+		List<Integer> zoomList = parameters.getZoomRatios();
+
+		if (in)
+			zoom = Math.min(zoom + 1, max);
+		else
+			zoom = Math.max(zoom - 1, 0);
+
+		Log.d("PreviewFragment", "zoom set to index " + zoom + " zoom value " + zoomList.get(zoom));
+		parameters.setZoom(zoom);
+		camera.setParameters(parameters);
+	}
+
 	private void adjustCrop(Camera.Parameters parameters)
 	{
 		Camera.Size sz = parameters.getPreviewSize();
 		int preWidth = previewView.getMeasuredWidth();
 
-		float ratio = sz.width / sz.height;
 		float scaleX = (float) sz.width / (float) preWidth;
 
 		if (scaleX < 1)

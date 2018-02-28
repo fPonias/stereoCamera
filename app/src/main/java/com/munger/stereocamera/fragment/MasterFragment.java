@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -36,6 +37,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.Policy;
+import java.text.ParseException;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -169,20 +172,17 @@ public class MasterFragment extends PreviewFragment
 			{
 				if (vert > -1.0f && verticalAngle > -1.0f)
 				{
-					if (verticalAngle > vert)
+					float zoom = calculateZoom(horizontalAngle, horiz);
+
+					if (zoom > 1.0f)
 					{
-						double zoom = calculateZoom(verticalAngle, pictureHeight, vert);
-						setZoom(null, (float) zoom);
+						setZoom(null, zoom);
 						onPreviewStarted5();
 					}
 					else
 					{
-						double zoom = calculateZoom(vert, pictureHeight, verticalAngle);
-
-						if (zoom > 1.0)
-							onPreviewStarted4(zoom);
-						else
-							onPreviewStarted5();
+						zoom = 1.0f / zoom;
+						onPreviewStarted4(zoom);
 					}
 				}
 				else
@@ -270,8 +270,8 @@ public class MasterFragment extends PreviewFragment
 		});
 	}
 
-	private long localLatency = 0;
-	private long remoteLatency = 0;
+	private long localLatency = -1;
+	private long remoteLatency = -1;
 
 	private final Object lock = new Object();
 	private boolean localShutterDone = false;
@@ -377,17 +377,22 @@ public class MasterFragment extends PreviewFragment
 			return;
 		}
 
-		File targetDir = MainActivity.getInstance().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+		File targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 		String[] files = targetDir.list();
 		int max = 0;
 
 		for (String filename : files)
 		{
 			String[] parts = filename.split("\\.");
-			int count = Integer.parseInt(parts[0]);
 
-			if (count > max)
-				max = count;
+			try
+			{
+				int count = Integer.parseInt(parts[0]);
+
+				if (count > max)
+					max = count;
+			}
+			catch(NumberFormatException e) {}
 		}
 
 		max++;
@@ -396,9 +401,9 @@ public class MasterFragment extends PreviewFragment
 		String localName = max + ".jpg";
 		saveFile(localName, targetDir, merged);
 		localName = max + ".left.jpg";
-		saveFile(localName, targetDir, localData);
+		//saveFile(localName, targetDir, localData);
 		localName = max + ".right.jpg";
-		saveFile(localName, targetDir, remoteData);
+		//saveFile(localName, targetDir, remoteData);
 	}
 
 	private byte[] processData(byte[] left, byte[] right)
@@ -448,6 +453,8 @@ public class MasterFragment extends PreviewFragment
 			FileOutputStream fos = new FileOutputStream(f);
 			fos.write(data);
 			fos.close();
+
+			MediaScannerConnection.scanFile(MainActivity.getInstance(), new String[]{f.getPath()}, null, null);
 		}
 		catch(IOException e){
 
