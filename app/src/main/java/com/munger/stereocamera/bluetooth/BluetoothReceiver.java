@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 
 import java.util.Set;
 
@@ -20,25 +22,32 @@ public class BluetoothReceiver extends BroadcastReceiver
 	@Override
 	public void onReceive(Context context, Intent intent)
 	{
-		MainActivity instance = MainActivity.getInstance();
+		MyApplication instance = MyApplication.getInstance();
 
 		if (instance == null)
 			return;
 
 		String action = intent.getAction();
 		Bundle b = intent.getExtras();
-		MainActivity act = MainActivity.getInstance();
+		BaseActivity act = instance.getCurrentActivity();
+
+
+		if(!(act instanceof MainActivity))
+			return;
+
+		MainActivity mact = (MainActivity) act;
+
 		String device;
 
 		if (action.equals(BluetoothDevice.ACTION_ACL_CONNECTED))
 		{
 			BluetoothDevice dev = (BluetoothDevice) b.get(BluetoothDevice.EXTRA_DEVICE);
-			act.handleNewConnection(dev);
+			mact.handleNewConnection(dev);
 		}
 		else if (action.equals(BluetoothDevice.ACTION_ACL_DISCONNECTED))
 		{
 			BluetoothDevice dev = (BluetoothDevice) b.get(BluetoothDevice.EXTRA_DEVICE);
-			act.handleDisconnection(dev);
+			mact.handleDisconnection(dev);
 		}
 	}
 }

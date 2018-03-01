@@ -31,4 +31,13 @@
             android:id="@+id/listenButton"
             android:text="@string/listen_button"/>
     </LinearLayout>
+
+    <ImageView android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:id="@+id/thumbnail"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        />
 </android.support.constraint.ConstraintLayout>

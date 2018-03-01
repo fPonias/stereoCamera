@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class PreviewFragment extends Fragment
 		this.rootView = rootView;
 		previewView = rootView.findViewById(R.id.preview);
 
-		Display d = MainActivity.getInstance().getWindowManager().getDefaultDisplay();
+		Display d = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay();
 		DisplayMetrics m = new DisplayMetrics();
 		d.getMetrics(m);
 
@@ -113,6 +114,7 @@ public class PreviewFragment extends Fragment
 				synchronized (lock)
 				{
 					previewReady = false;
+					previewStarted = false;
 				}
 
 				return true;
@@ -151,10 +153,16 @@ public class PreviewFragment extends Fragment
 				break;
 			}
 		}
+	}
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
-			MainActivity.getInstance().requestPermissionForResult(new String[]{Manifest.permission.CAMERA}, new MainActivity.ResultListener()
+			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.CAMERA}, new MainActivity.ResultListener()
 			{
 				@Override
 				public void onResult(int resultCode, Intent data)
@@ -335,7 +343,7 @@ public class PreviewFragment extends Fragment
 	{
 		Camera.CameraInfo info = new Camera.CameraInfo();
 		Camera.getCameraInfo(cameraId, info);
-		int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
+		int rotation = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
 		int degrees = 0;
 
 		switch (rotation)

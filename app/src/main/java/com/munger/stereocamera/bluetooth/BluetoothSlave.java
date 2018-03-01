@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 
 import java.io.IOException;
 
@@ -61,7 +62,7 @@ public class BluetoothSlave
 		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout / 1000);
 
-		server.getParent().startActivityForResult(discoverableIntent, new MainActivity.ResultListener()
+		MyApplication.getInstance().getCurrentActivity().startActivityForResult(discoverableIntent, new MainActivity.ResultListener()
 		{
 			@Override
 			public void onResult(int resultCode, Intent data)
@@ -117,7 +118,7 @@ public class BluetoothSlave
 	{
 		try
 		{
-			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MainActivity.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
+			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MyApplication.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
 			synchronized (lock)
 			{
 				if (listenListener == null)
@@ -147,7 +148,7 @@ public class BluetoothSlave
 			}
 		}
 		catch(IOException e){
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket");
+			Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket");
 
 			if (listenListener == null)
 				return;
@@ -198,7 +199,7 @@ public class BluetoothSlave
 				doClose.close();
 			}
 			catch(IOException e){
-				Log.d(MainActivity.BT_SERVICE_NAME, "failed to close bluetooth socket");
+				Log.d(MyApplication.BT_SERVICE_NAME, "failed to close bluetooth socket");
 			}
 		}
 	}

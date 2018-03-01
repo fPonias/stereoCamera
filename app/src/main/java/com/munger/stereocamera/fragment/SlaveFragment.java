@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.BluetoothSlaveComm;
 
@@ -54,7 +55,7 @@ public class SlaveFragment extends PreviewFragment
 
 		try
 		{
-			slaveComm = MainActivity.getInstance().getBtCtrl().getSlave().getComm();
+			slaveComm = MyApplication.getInstance().getBtCtrl().getSlave().getComm();
 		}
 		catch (NullPointerException e){
 			return;

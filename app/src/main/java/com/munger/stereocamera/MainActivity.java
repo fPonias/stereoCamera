@@ -1,40 +1,32 @@
 package com.munger.stereocamera;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.fragment.ConnectFragment;
+import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
 
 import java.util.HashMap;
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends BaseActivity
 {
-	public static final String BT_SERVICE_NAME = "stereoCamera";
-
-	public static int DISCOVER_TIMEOUT = 30000;
-	public static int LISTEN_TIMEOUT = 30000;
-
-	// Used to load the 'native-lib' library on application startup.
-	static
-	{
-		System.loadLibrary("native-lib");
-	}
-
-
-	private BluetoothCtrl btCtrl = null;
 	private Handler handler;
 	private FrameLayout frame;
 	private ConnectFragment connectFragment;
@@ -62,88 +54,6 @@ public class MainActivity extends AppCompatActivity
 		setContentView(frame);
 
 		handler = new Handler(Looper.getMainLooper());
-
-		instance = this;
-	}
-
-	private static MainActivity instance;
-	public static MainActivity getInstance()
-	{
-		return instance;
-	}
-
-	@Override
-	protected void onDestroy()
-	{
-		super.onDestroy();
-
-		if (btCtrl != null)
-			btCtrl.cleanUp();
-	}
-
-	public void setupBTServer(BluetoothCtrl.SetupListener listener)
-	{
-		if (btCtrl == null)
-			btCtrl = new BluetoothCtrl(this);
-
-		if (!btCtrl.getIsSetup())
-		{
-			btCtrl.setup(listener);
-			return;
-		}
-
-		listener.onSetup();
-	}
-
-	public BluetoothCtrl getBtCtrl()
-	{
-		return btCtrl;
-	}
-
-
-	/**
-	 * A native method that is implemented by the 'native-lib' native library,
-	 * which is packaged with this application.
-	 */
-	public native String stringFromJNI();
-
-	public interface ResultListener
-	{
-		void onResult(int resultCode, Intent data);
-	}
-
-	private HashMap<Integer, ResultListener> resultListeners = new HashMap<>();
-
-	public void startActivityForResult(Intent i, ResultListener listener)
-	{
-		int code = (int)(Math.random() * 0x8000);
-		resultListeners.put(code, listener);
-		startActivityForResult(i, code);
-	}
-
-	public void requestPermissionForResult(String[] permissions, ResultListener listener)
-	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-		{
-			int code = (int) (Math.random() * 0x8000);
-			resultListeners.put(code, listener);
-
-			requestPermissions(permissions, code);
-		}
-		else
-		{
-			listener.onResult(0, null);
-		}
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data)
-	{
-		super.onActivityResult(requestCode, resultCode, data);
-		ResultListener listener = resultListeners.get(requestCode);
-
-		listener.onResult(resultCode, data);
-		resultListeners.remove(requestCode);
 	}
 
 	@Override
@@ -155,6 +65,7 @@ public class MainActivity extends AppCompatActivity
 	private Fragment currentFragment;
 	private MasterFragment masterFragment;
 	private SlaveFragment slaveFragment;
+	private ImageViewerFragment imgViewFragment;
 
 	public void startMasterView()
 	{
@@ -178,11 +89,22 @@ public class MainActivity extends AppCompatActivity
 		currentFragment = slaveFragment;
 	}
 
+	public void startThumbnailView()
+	{
+		imgViewFragment = new ImageViewerFragment();
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.addToBackStack("imgView");
+		ft.replace(android.R.id.content, imgViewFragment, imgViewFragment.getTag());
+		ft.commit();
+	}
+
 	public void popSubViews()
 	{
 		if (currentFragment != connectFragment)
 		{
-			getSupportFragmentManager().popBackStack();
+			FragmentManager mgr = getSupportFragmentManager();
+			while (mgr.getBackStackEntryCount() > 0)
+				mgr.popBackStack();
 
 			currentFragment = connectFragment;
 		}
@@ -191,6 +113,8 @@ public class MainActivity extends AppCompatActivity
 	public void handleNewConnection(BluetoothDevice device)
 	{
 		Log.d("stereoCamera", "bluetooh device connected " + device.getName());
+
+		BluetoothCtrl btCtrl = MyApplication.getInstance().getBtCtrl();
 
 		if (!device.getName().equals(btCtrl.getLastClient()))
 			return;
@@ -211,7 +135,9 @@ public class MainActivity extends AppCompatActivity
 	{
 		Log.d("stereoCamera", "bluetooh device disconnected " + device.getName());
 
-		if (!device.getName().equals(btCtrl.getLastClient()))
+		BluetoothCtrl btCtrl = MyApplication.getInstance().getBtCtrl();
+
+		if (btCtrl == null || !device.getName().equals(btCtrl.getLastClient()))
 			return;
 
 		if (btCtrl.getLastRole() == BluetoothCtrl.Roles.SLAVE)

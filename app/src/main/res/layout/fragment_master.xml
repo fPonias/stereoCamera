@@ -16,15 +16,24 @@
         android:orientation="horizontal"
         android:layout_below="@id/preview"
         android:gravity="center">
-        <Button
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Click!"
+            android:src="@drawable/shutter_icon"
             android:id="@+id/shutter"/>
-        <Button
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Flip"
+            android:src="@drawable/flip_icon"
             android:id="@+id/flip"/>
     </LinearLayout>
+    <ImageView android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:id="@+id/thumbnail"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="10dp"
+        />
+
 </RelativeLayout>

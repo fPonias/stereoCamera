@@ -8,13 +8,18 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.media.ImageReader;
 import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatImageButton;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -25,16 +30,21 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothMasterComm;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.Policy;
@@ -50,8 +60,9 @@ public class MasterFragment extends PreviewFragment
 	private boolean previewReady = false;
 	private boolean previewStarted = false;
 
-	private Button clickButton;
-	private Button flipButton;
+	private ImageButton clickButton;
+	private ImageButton flipButton;
+	private ImageView thumbnailView;
 
 	private BluetoothMasterComm masterComm;
 
@@ -63,6 +74,12 @@ public class MasterFragment extends PreviewFragment
 
 		clickButton = rootView.findViewById(R.id.shutter);
 		flipButton = rootView.findViewById(R.id.flip);
+		thumbnailView = rootView.findViewById(R.id.thumbnail);
+
+		thumbnailView.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
+		{
+			openThumbnail();
+		}});
 
 		clickButton.setOnClickListener(new View.OnClickListener()
 		{
@@ -102,7 +119,56 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
+		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+	}
+
+	@Override
+	protected void onPreviewStarted()
+	{
+		super.onPreviewStarted();
+
+		updateThumbnail();
+		onPreviewStarted1();
+	}
+
+	private void updateThumbnail()
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		{
+			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
+			{
+				@Override
+				public void onResult(int resultCode, Intent data)
+				{
+					updateThumbnail();
+				}
+			});
+			return;
+		}
+
+		new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
+		{
+			File targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+			int max = getNewestFile(targetDir);
+
+			if (max == 0)
+			{
+				thumbnailView.setImageDrawable(null);
+				return;
+			}
+			else
+			{
+				Bitmap bmp = BitmapFactory.decodeFile(targetDir.getPath() + "/" + max + ".jpg");
+				thumbnailView.setImageBitmap(bmp);
+			}
+		}});
+	}
+
+	private void onPreviewStarted1()
+	{
+		if (remoteLatency != -1 && localLatency != -1)
+			return;
+
 		Log.d(getTag(), "pinging slave phone");
 		masterComm.ping(new BluetoothMasterComm.PingListener()
 		{
@@ -110,6 +176,7 @@ public class MasterFragment extends PreviewFragment
 			public void pong(long diff)
 			{
 				Log.d(getTag(), "pinged slave phone for " + diff + " ms");
+				onPreviewStarted2();
 			}
 
 			@Override
@@ -118,17 +185,6 @@ public class MasterFragment extends PreviewFragment
 				Log.d(getTag(), "slave ping failed");
 			}
 		});
-	}
-
-	@Override
-	protected void onPreviewStarted()
-	{
-		super.onPreviewStarted();
-
-		if (remoteLatency != -1 && localLatency != -1)
-			return;
-
-		onPreviewStarted2();
 	}
 
 	private void onPreviewStarted2()
@@ -268,6 +324,15 @@ public class MasterFragment extends PreviewFragment
 				}
 			}
 		});
+
+		synchronized (lock)
+		{
+			if (shutterFiring)
+			{
+				try {lock.wait(2000); } catch(InterruptedException e){}
+				shutterFiring = false;
+			}
+		}
 	}
 
 	private long localLatency = -1;
@@ -364,9 +429,9 @@ public class MasterFragment extends PreviewFragment
 
 	private void fireShutter2()
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
 		{
-			MainActivity.getInstance().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
+			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
 			{
 				@Override
 				public void onResult(int resultCode, Intent data)
@@ -378,6 +443,23 @@ public class MasterFragment extends PreviewFragment
 		}
 
 		File targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+		int max = getNewestFile(targetDir);
+		max++;
+
+		byte[] merged = processData(localData, remoteData);
+		String localName = max + ".jpg";
+		saveFile(localName, targetDir, merged);
+
+		//localName = max + ".left.jpg";
+		//saveFile(localName, targetDir, localData);
+		//localName = max + ".right.jpg";
+		//saveFile(localName, targetDir, remoteData);
+
+		updateThumbnail();
+	}
+
+	private int getNewestFile(File targetDir)
+	{
 		String[] files = targetDir.list();
 		int max = 0;
 
@@ -395,15 +477,7 @@ public class MasterFragment extends PreviewFragment
 			catch(NumberFormatException e) {}
 		}
 
-		max++;
-
-		byte[] merged = processData(localData, remoteData);
-		String localName = max + ".jpg";
-		saveFile(localName, targetDir, merged);
-		localName = max + ".left.jpg";
-		//saveFile(localName, targetDir, localData);
-		localName = max + ".right.jpg";
-		//saveFile(localName, targetDir, remoteData);
+		return max;
 	}
 
 	private byte[] processData(byte[] left, byte[] right)
@@ -454,12 +528,43 @@ public class MasterFragment extends PreviewFragment
 			fos.write(data);
 			fos.close();
 
-			MediaScannerConnection.scanFile(MainActivity.getInstance(), new String[]{f.getPath()}, null, null);
+			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{f.getPath()}, null, null);
 		}
 		catch(IOException e){
 
 		}
 	}
 
+	private byte[] loadFile(String name, File targetDir)
+	{
+		byte[] ret = null;
+		try
+		{
+			File f = new File(targetDir, name);
+			FileInputStream fis = new FileInputStream(f);
 
+			int sz = (int) f.length();
+			ret = new byte[sz];
+
+			int read = 0;
+			int total = 0;
+			while (total < sz)
+			{
+				read = fis.read(ret, total, sz - total);
+				total += read;
+			}
+		}
+		catch(IOException e){
+
+		}
+
+		return ret;
+	}
+
+	private void openThumbnail()
+	{
+		BaseActivity act = MyApplication.getInstance().getCurrentActivity();
+		if (act instanceof MainActivity)
+			((MainActivity) act).startThumbnailView();
+	}
 }

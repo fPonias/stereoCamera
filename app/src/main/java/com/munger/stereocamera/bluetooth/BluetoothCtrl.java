@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -18,7 +19,9 @@ import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -27,14 +30,14 @@ import java.util.UUID;
 
 public class BluetoothCtrl
 {
-	public BluetoothCtrl(MainActivity parent)
+	public BluetoothCtrl(MyApplication parent)
 	{
 		this.parent = parent;
 		adapter = BluetoothAdapter.getDefaultAdapter();
 	}
 
 	private BluetoothAdapter adapter;
-	private MainActivity parent;
+	private MyApplication parent;
 	private boolean isSetup = false;
 	private final Object lock = new Object();
 
@@ -68,10 +71,12 @@ public class BluetoothCtrl
 		if (adapter == null)
 			return;
 
+		BaseActivity a = MyApplication.getInstance().getCurrentActivity();
+
 		if (!adapter.isEnabled())
 		{
 			Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			parent.startActivityForResult(i, new MainActivity.ResultListener()
+			a.startActivityForResult(i, new MainActivity.ResultListener()
 			{
 				@Override
 				public void onResult(int resultCode, Intent data)
@@ -84,7 +89,7 @@ public class BluetoothCtrl
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(parent, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
 		{
-			parent.requestPermissionForResult(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, new MainActivity.ResultListener()
+			a.requestPermissionForResult(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, new MainActivity.ResultListener()
 			{
 				@Override
 				public void onResult(int resultCode, Intent data)
@@ -107,7 +112,7 @@ public class BluetoothCtrl
 
 	private void readPreferences()
 	{
-		preferences = MainActivity.getInstance().getPreferences(Context.MODE_PRIVATE);
+		preferences = MyApplication.getInstance().getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
 
 		if (preferences.contains(LAST_ROLE_KEY))
 		{
@@ -177,7 +182,7 @@ public class BluetoothCtrl
 		return isSetup;
 	}
 
-	public MainActivity getParent()
+	public MyApplication getParent()
 	{
 		return parent;
 	}
