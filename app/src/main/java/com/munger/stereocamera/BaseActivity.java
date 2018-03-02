@@ -20,6 +20,13 @@ public abstract class BaseActivity extends AppCompatActivity
 	}
 
 	@Override
+	protected void onStart()
+	{
+		MyApplication.getInstance().setCurrentActivity(this);
+		super.onStart();
+	}
+
+	@Override
 	protected void onPause()
 	{
 		clearActivity();

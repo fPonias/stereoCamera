@@ -53,24 +53,30 @@ public class ConnectFragment extends Fragment
 		return view;
 	}
 
-	@Override
-	public void onResume()
-	{
-		super.onResume();
+	private boolean firstConnect = true;
 
+	@Override
+	public void onStart()
+	{
+		super.onStart();
 
 		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				BluetoothCtrl btctrl = MyApplication.getInstance().getBtCtrl();
-				BluetoothCtrl.Roles role = btctrl.getLastRole();
-				String deviceName = btctrl.getLastClient();
+				btCtrl = MyApplication.getInstance().getBtCtrl();
+				BluetoothCtrl.Roles role = btCtrl.getLastRole();
+				String deviceName = btCtrl.getLastClient();
 
 				if (role == BluetoothCtrl.Roles.MASTER)
 				{
-					BluetoothDevice device = btctrl.getDiscoverer().getKnownDevice(deviceName);
+					if (btCtrl.isMasterConnected())
+					{
+						return;
+					}
+
+					BluetoothDevice device = btCtrl.getDiscoverer().getKnownDevice(deviceName);
 					deviceSelected(device);
 				}
 				else if (role == BluetoothCtrl.Roles.SLAVE)
@@ -130,7 +136,7 @@ public class ConnectFragment extends Fragment
 			devices = new HashMap<>();
 			discoverer = MyApplication.getInstance().getBtCtrl().getDiscoverer();
 
-			discoverer.discover(new BluetoothDiscoverer.DiscoverListener()
+			btCtrl.discover(new BluetoothDiscoverer.DiscoverListener()
 			{
 				public void onDiscovered(BluetoothDevice device)
 				{
@@ -141,7 +147,7 @@ public class ConnectFragment extends Fragment
 
 					discoverDialog.addDiscovery(id, name);
 				}
-			}, MyApplication.DISCOVER_TIMEOUT);
+			});
 		}
 		catch(BluetoothCtrl.BluetoothDiscoveryFailedException e)
 		{
@@ -178,8 +184,10 @@ public class ConnectFragment extends Fragment
 
 	public void deviceSelected(final BluetoothDevice device)
 	{
-		master = MyApplication.getInstance().getBtCtrl().getMaster();
-		master.connect(device, new BluetoothMaster.ConnectListener()
+		if (btCtrl == null)
+			btCtrl = MyApplication.getInstance().getBtCtrl();
+
+		btCtrl.connect(device, new BluetoothCtrl.ConnectListener()
 		{
 			@Override
 			public void onFailed()
@@ -208,6 +216,12 @@ public class ConnectFragment extends Fragment
 						((MainActivity) act).startMasterView();
 				}});
 			}
+
+			@Override
+			public void onDisconnected()
+			{
+
+			}
 		});
 	}
 
@@ -217,14 +231,12 @@ public class ConnectFragment extends Fragment
 
 	private void listenClicked()
 	{
-		if (listenSlave != null)
-			listenClicked2();
-		else
-			MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				listenClicked2();
 			}
 		});
@@ -232,10 +244,10 @@ public class ConnectFragment extends Fragment
 
 	private AlertDialog againDialog;
 
-	private BluetoothSlave.ListenListener listenListener = new BluetoothSlave.ListenListener()
+	private BluetoothCtrl.ConnectListener listenListener = new BluetoothCtrl.ConnectListener()
 	{
 		@Override
-		public void onAttached()
+		public void onConnected()
 		{
 			handler.post(new Runnable() {public void run()
 			{
@@ -274,6 +286,12 @@ public class ConnectFragment extends Fragment
 				againDialog.show();
 			}});
 		}
+
+		@Override
+		public void onDisconnected()
+		{
+
+		}
 	};
 
 	private void listenClicked2()
@@ -286,12 +304,11 @@ public class ConnectFragment extends Fragment
 			@Override
 			public void cancelled()
 			{
-				listenSlave.cancelListen();
+				btCtrl.cancelListen();
 			}
 		});
 
-		listenSlave = MyApplication.getInstance().getBtCtrl().getSlave();
-		listenSlave.startDiscovery(listenListener, MyApplication.LISTEN_TIMEOUT);
+		btCtrl.listen(true, listenListener);
 	}
 
 	public void listenForMaster()
@@ -311,12 +328,11 @@ public class ConnectFragment extends Fragment
 				@Override
 				public void cancelled()
 				{
-					listenSlave.cancelListen();
+					btCtrl.cancelListen();
 				}
 			});
 
-			listenSlave = MyApplication.getInstance().getBtCtrl().getSlave();
-			listenSlave.startListener(listenListener, MyApplication.LISTEN_TIMEOUT);
+			btCtrl.listen(false, listenListener);
 			listenDialog.setStatus("Listening");
 			}
 		});

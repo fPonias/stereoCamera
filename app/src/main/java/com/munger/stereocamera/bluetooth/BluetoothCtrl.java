@@ -55,6 +55,9 @@ public class BluetoothCtrl
 	private static final String LAST_ROLE_KEY = "lastRole";
 	private static final String LAST_CLIENT_KEY = "lastClient";
 
+	public static int LISTEN_TIMEOUT = 30000;
+	public static int DISCOVER_TIMEOUT = 300000;
+
 	private SharedPreferences preferences;
 	private Roles lastRole = Roles.NONE;
 	private String lastClient = null;
@@ -101,13 +104,72 @@ public class BluetoothCtrl
 		}
 
 		discoverer = new BluetoothDiscoverer(this);
-		slave = new BluetoothSlave(this);
-		master = new BluetoothMaster(this);
 
 		readPreferences();
 
 		isSetup = true;
 		listener.onSetup();
+	}
+
+	public interface ConnectListener
+	{
+		void onFailed();
+		void onConnected();
+		void onDisconnected();
+	}
+
+	public void connect(BluetoothDevice device, ConnectListener listener)
+	{
+		synchronized (lock)
+		{
+			if (master != null)
+				master.cleanUp();
+		}
+
+		master = new BluetoothMaster(this, device, listener);
+	}
+
+	public boolean isMasterConnected()
+	{
+		synchronized (lock)
+		{
+			if (master == null)
+				return false;
+
+			return master.isConnected();
+		}
+	}
+
+	public void listen(boolean startDiscovery, ConnectListener listener)
+	{
+		cancelListen();
+		slave = new BluetoothSlave(this, startDiscovery, LISTEN_TIMEOUT, listener);
+	}
+
+	public void cancelListen()
+	{
+		synchronized (lock)
+		{
+			if (slave != null)
+				slave.cleanUp();
+
+			slave = null;
+		}
+	}
+
+	public void discover(BluetoothDiscoverer.DiscoverListener listener) throws BluetoothDiscoveryFailedException
+	{
+		cancelDiscover();
+		discoverer.discover(listener, DISCOVER_TIMEOUT);
+	}
+
+	public void cancelDiscover()
+	{
+		synchronized (lock)
+		{
+			if (discoverer.isDiscovering())
+				discoverer.cancelDiscover();
+		}
 	}
 
 	private void readPreferences()
@@ -142,6 +204,8 @@ public class BluetoothCtrl
 
 	public void setLastRole(Roles role)
 	{
+		lastRole = role;
+
 		preferences.edit().putInt(LAST_ROLE_KEY, role.ordinal()).apply();
 	}
 
@@ -152,6 +216,8 @@ public class BluetoothCtrl
 
 	public void setLastClient(String client)
 	{
+		lastClient = client;
+
 		preferences.edit().putString(LAST_CLIENT_KEY, client).apply();
 	}
 
@@ -159,7 +225,12 @@ public class BluetoothCtrl
 	{
 		discoverer.cleanUp();
 		slave.cleanUp();
-		master.cleanUp();
+
+		if (master != null)
+		{
+			master.cleanUp();
+			master = null;
+		}
 	}
 
 	public BluetoothMaster getMaster()

@@ -25,9 +25,6 @@ public class MyApplication extends Application
 
 	public static final String BT_SERVICE_NAME = "stereoCamera";
 
-	public static int DISCOVER_TIMEOUT = 30000;
-	public static int LISTEN_TIMEOUT = 30000;
-
 	private BluetoothCtrl btCtrl;
 
 	@Override

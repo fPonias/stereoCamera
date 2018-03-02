@@ -20,22 +20,20 @@ import java.net.ConnectException;
 
 public class BluetoothMaster
 {
-	public BluetoothMaster(BluetoothCtrl parent)
+	public BluetoothMaster(BluetoothCtrl parent, BluetoothDevice device, BluetoothCtrl.ConnectListener listener)
 	{
 		this.server = parent;
-	}
+		this.connectListener = listener;
+		this.targetDevice = device;
 
-	public interface ConnectListener
-	{
-		void onFailed();
-		void onConnected();
+		connect();
 	}
 
 	private BluetoothCtrl server;
 	private BluetoothDevice targetDevice;
 	private BluetoothSocket targetSocket;
 	private Thread connectThread;
-	private ConnectListener connectListener;
+	private BluetoothCtrl.ConnectListener connectListener;
 	private final Object lock = new Object();
 
 	private BluetoothMasterComm masterComm;
@@ -50,91 +48,82 @@ public class BluetoothMaster
 		return targetSocket;
 	}
 
-	public void connect(BluetoothDevice device, ConnectListener listener)
-	{
-		synchronized (lock)
-		{
-			if (connectListener != null)
-				return;
-
-			connectListener = listener;
-		}
-
-		targetDevice = device;
-
-		connectThread = new Thread(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				try
-				{
-					targetSocket = targetDevice.createRfcommSocketToServiceRecord(BluetoothCtrl.APP_ID);
-
-
-					targetSocket.connect();
-				}
-				catch(ConnectException ce)
-				{
-					try
-					{
-						targetSocket.close();
-					}
-					catch(IOException e){}
-
-					synchronized (lock)
-					{
-						if (connectListener != null)
-							connectListener.onFailed();
-
-						return;
-					}
-				}
-				catch(IOException e){
-					synchronized (lock)
-					{
-						if (connectListener != null)
-							connectListener.onFailed();
-
-						return;
-					}
-				}
-
-				synchronized (lock)
-				{
-					if (connectListener == null)
-						return;
-				}
-
-				masterComm = new BluetoothMasterComm(server);
-				connectListener.onConnected();
-			}
-		});
-		connectThread.start();
-	}
-
-	public void cancelConnect()
+	public boolean isConnected()
 	{
 		synchronized (lock)
 		{
 			if (connectListener == null)
-				return;
+				return false;
 
-			connectListener = null;
+			return targetSocket.isConnected();
+
 		}
+	}
 
+	private void connect()
+	{
+		connectThread = new Thread(new Runnable() { public void run()
+		{
+			connect2();
+		}});
+		connectThread.start();
+	}
+
+	private void connect2()
+	{
 		try
 		{
-			targetSocket.close();
+			targetSocket = targetDevice.createRfcommSocketToServiceRecord(BluetoothCtrl.APP_ID);
+
+			targetSocket.connect();
 		}
-		catch(IOException e){}
+		catch(ConnectException ce)
+		{
+			try
+			{
+				targetSocket.close();
+			}
+			catch(IOException e){}
+
+			synchronized (lock)
+			{
+				if (connectListener != null)
+					connectListener.onFailed();
+
+				return;
+			}
+		}
+		catch(IOException e){
+			synchronized (lock)
+			{
+				if (connectListener != null)
+					connectListener.onFailed();
+
+				return;
+			}
+		}
+
+		synchronized (lock)
+		{
+			if (connectListener == null)
+				return;
+		}
+
+		masterComm = new BluetoothMasterComm(server);
+		connectListener.onConnected();
 	}
 
 	public void cleanUp()
 	{
-		cancelConnect();
+		try
+		{
+			targetSocket.close();
 
-		if (masterComm != null)
-			masterComm.cleanUp();
+			if (masterComm != null)
+				masterComm.cleanUp();
+		}
+		catch(IOException e){}
+
+		connectListener.onDisconnected();
 	}
 }

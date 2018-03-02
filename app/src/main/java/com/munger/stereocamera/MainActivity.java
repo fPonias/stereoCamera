@@ -103,32 +103,19 @@ public class MainActivity extends BaseActivity
 		if (currentFragment != connectFragment)
 		{
 			FragmentManager mgr = getSupportFragmentManager();
-			while (mgr.getBackStackEntryCount() > 0)
+			int sz = mgr.getBackStackEntryCount();
+			for (int i = 0; i < sz; i++)
 				mgr.popBackStack();
 
 			currentFragment = connectFragment;
 		}
 	}
 
+	private boolean firstConnect = true;
+
 	public void handleNewConnection(BluetoothDevice device)
 	{
 		Log.d("stereoCamera", "bluetooh device connected " + device.getName());
-
-		BluetoothCtrl btCtrl = MyApplication.getInstance().getBtCtrl();
-
-		if (!device.getName().equals(btCtrl.getLastClient()))
-			return;
-
-		if (btCtrl.getLastRole() == BluetoothCtrl.Roles.SLAVE)
-		{
-			popSubViews();
-			connectFragment.listenForMaster();
-		}
-		else if (btCtrl.getLastRole() == BluetoothCtrl.Roles.MASTER)
-		{
-			popSubViews();
-			connectFragment.slaveConnected(device);
-		}
 	}
 
 	public void handleDisconnection(BluetoothDevice device)
@@ -137,18 +124,15 @@ public class MainActivity extends BaseActivity
 
 		BluetoothCtrl btCtrl = MyApplication.getInstance().getBtCtrl();
 
-		if (btCtrl == null || !device.getName().equals(btCtrl.getLastClient()))
-			return;
-
 		if (btCtrl.getLastRole() == BluetoothCtrl.Roles.SLAVE)
 		{
 			popSubViews();
-			btCtrl.getSlave().cancelListen();
+			firstConnect = true;
 		}
 		else
 		{
 			popSubViews();
-			btCtrl.getMaster().cancelConnect();
+			firstConnect = true;
 		}
 	}
 }

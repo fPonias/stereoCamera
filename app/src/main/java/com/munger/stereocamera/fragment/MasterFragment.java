@@ -183,6 +183,8 @@ public class MasterFragment extends PreviewFragment
 			public void fail()
 			{
 				Log.d(getTag(), "slave ping failed");
+				Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
+				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 			}
 		});
 	}

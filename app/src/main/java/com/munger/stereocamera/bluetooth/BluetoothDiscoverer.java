@@ -69,7 +69,7 @@ public class BluetoothDiscoverer
 		}
 	}
 
-	public void discover(DiscoverListener listener, final long timeout) throws BluetoothCtrl.BluetoothDiscoveryFailedException
+	void discover(DiscoverListener listener, final long timeout) throws BluetoothCtrl.BluetoothDiscoveryFailedException
 	{
 		synchronized (lock)
 		{

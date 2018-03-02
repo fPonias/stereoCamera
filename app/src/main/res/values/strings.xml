@@ -14,6 +14,7 @@
     <string name="bluetooth_connect_success">Bluetooth client connection succeeded.</string>
     <string name="bluetooth_listen_failed_error">Bluetooth listen has failed.</string>
     <string name="bluetooth_try_again_message">Listen again for incoming connections?</string>
+    <string name="bluetooth_communication_failed_error">Failed to communicate with slave camera.</string>
 
     <string name="delete_confirm_title">Confirm</string>
     <string name="delete_confirm_message">Delete the selected image?</string>

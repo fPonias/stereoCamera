@@ -13,21 +13,24 @@ import java.io.IOException;
 
 public class BluetoothSlave
 {
-	public BluetoothSlave(BluetoothCtrl server)
+	public BluetoothSlave(BluetoothCtrl server, boolean doDiscovery, long timeout, BluetoothCtrl.ConnectListener listener)
 	{
 		this.server = server;
-	}
+		this.timeout = timeout;
+		listenListener = listener;
 
-	public interface ListenListener
-	{
-		void onAttached();
-		void onFailed();
+		isCancelled = false;
+
+		if (doDiscovery)
+			startDiscovery();
+		else
+			startListener();
 	}
 
 	private BluetoothCtrl server;
-	private ListenListener listenListener = null;
+	private BluetoothCtrl.ConnectListener listenListener;
+	private boolean isCancelled;
 	private final Object lock = new Object();
-	private Thread listenThread;
 	private BluetoothServerSocket serverSocket;
 	private BluetoothSocket socket;
 	private long timeout;
@@ -40,25 +43,8 @@ public class BluetoothSlave
 	}
 	public BluetoothSlaveComm getComm() { return slaveComm; }
 
-	public boolean isListening()
+	private void startDiscovery()
 	{
-		synchronized (lock)
-		{
-			return (listenListener != null) ? true : false;
-		}
-	}
-
-	public void startDiscovery(ListenListener listener, long timeout)
-	{
-		synchronized (lock)
-		{
-			if (listenListener != null)
-				return;
-
-			listenListener = listener;
-			this.timeout = timeout;
-		}
-
 		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout / 1000);
 
@@ -67,51 +53,48 @@ public class BluetoothSlave
 			@Override
 			public void onResult(int resultCode, Intent data)
 			{
-				listen();
+			listen();
 			}
 		});
 	}
 
-	public void startListener(ListenListener listener, long timeout)
+	private void startListener()
 	{
-		synchronized (lock)
-		{
-			if (listenListener != null)
-				return;
-
-			listenListener = listener;
-			this.timeout = timeout;
-		}
-
 		listen();
 	}
 
 	private void listen()
 	{
-		listenThread = new Thread(new Runnable() { public void run()
+		Thread listenThread = new Thread(new Runnable() { public void run()
 		{
 			doListen();
 		}});
 		listenThread.start();
 
-		Thread t = new Thread(new Runnable() { public void run()
+		Thread cancelThread = new Thread(new Runnable() { public void run()
 		{
 			try {Thread.sleep(timeout);} catch(InterruptedException e){}
-
-			boolean doCancel = false;
-			synchronized (lock)
-			{
-				if (socket == null)
-					doCancel = true;
-			}
-
-			if (doCancel)
-			{
-				listenListener.onFailed();
-				cancelListen();
-			}
+			doCancel();
 		}});
-		t.start();
+		cancelThread.start();
+	}
+
+	private void doCancel()
+	{
+		boolean doCleanUp = false;
+		synchronized (lock)
+		{
+			if (serverSocket == null || socket == null)
+				doCleanUp = true;
+			else if (socket != null && !socket.isConnected())
+				doCleanUp = true;
+		}
+
+		if (doCleanUp)
+		{
+			listenListener.onFailed();
+			cleanUp();
+		}
 	}
 
 	private void doListen()
@@ -119,19 +102,10 @@ public class BluetoothSlave
 		try
 		{
 			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MyApplication.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
-			synchronized (lock)
-			{
-				if (listenListener == null)
-				{
-					serverSocket = null;
-					return;
-				}
-			}
-
 			socket = serverSocket.accept();
 			synchronized (lock)
 			{
-				if (listenListener == null)
+				if (isCancelled)
 				{
 					if (socket != null && serverSocket != null)
 					{
@@ -150,67 +124,47 @@ public class BluetoothSlave
 		catch(IOException e){
 			Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket");
 
-			if (listenListener == null)
-				return;
-
-			listenListener.onFailed();
 			synchronized (lock)
 			{
-				listenListener = null;
-				serverSocket = null;
-				socket = null;
-				return;
+				if (isCancelled)
+					return;
 			}
+
+			listenListener.onFailed();
 		}
 
 		if (socket != null)
 		{
 			slaveComm = new BluetoothSlaveComm(server);
-			listenListener.onAttached();
+			listenListener.onConnected();
 		}
 		else
 		{
-			listenListener.onFailed();
-		}
-	}
-
-	public void cancelListen()
-	{
-		BluetoothServerSocket doClose = null;
-
-		synchronized (lock)
-		{
-			if (listenListener == null)
-				return;
-
-			listenListener = null;
-
-			if (socket != null)
-				doClose = serverSocket;
-
 			socket = null;
-			serverSocket = null;
-		}
-
-		if (doClose != null)
-		{
-			try
-			{
-				doClose.close();
-			}
-			catch(IOException e){
-				Log.d(MyApplication.BT_SERVICE_NAME, "failed to close bluetooth socket");
-			}
+			listenListener.onFailed();
 		}
 	}
 
 	public void cleanUp()
 	{
-		cancelListen();
+		synchronized (lock)
+		{
+			if (isCancelled)
+				return;
+
+			isCancelled = true;
+		}
+
+		try
+		{
+			if (serverSocket != null)
+				serverSocket.close();
+		}
+		catch(IOException e){
+			Log.d(MyApplication.BT_SERVICE_NAME, "failed to close bluetooth socket");
+		}
 
 		if (slaveComm != null)
-		{
 			slaveComm.cleanUp();
-		}
 	}
 }
