@@ -1,54 +1,34 @@
 package com.munger.stereocamera.fragment;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.hardware.Camera;
-import android.media.ImageReader;
-import android.media.MediaScannerConnection;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.constraint.ConstraintLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatImageButton;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.bluetooth.BluetoothMaster;
-import com.munger.stereocamera.bluetooth.BluetoothMasterComm;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.Policy;
-import java.text.ParseException;
+import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.Flip;
+import com.munger.stereocamera.bluetooth.command.master.GetAngleOfView;
+import com.munger.stereocamera.bluetooth.command.master.Ping;
+import com.munger.stereocamera.bluetooth.command.master.SetZoom;
+import com.munger.stereocamera.bluetooth.utility.FireShutter;
+import com.munger.stereocamera.bluetooth.utility.GetLatency;
+import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
+import com.munger.stereocamera.bluetooth.utility.WaitForReadyStatus;
+import com.munger.stereocamera.orientation.MasterOrientationCtrl;
+import com.munger.stereocamera.orientation.OrientationCtrl;
+import com.munger.stereocamera.orientation.OrientationWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -56,15 +36,13 @@ import java.text.ParseException;
 
 public class MasterFragment extends PreviewFragment
 {
-	private boolean cameraReady = false;
-	private boolean previewReady = false;
-	private boolean previewStarted = false;
-
 	private ImageButton clickButton;
 	private ImageButton flipButton;
 	private ImageView thumbnailView;
+	private OrientationWidget horizIndicator;
 
 	private BluetoothMasterComm masterComm;
+	private MasterOrientationCtrl gravityCtrl;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -75,6 +53,20 @@ public class MasterFragment extends PreviewFragment
 		clickButton = rootView.findViewById(R.id.shutter);
 		flipButton = rootView.findViewById(R.id.flip);
 		thumbnailView = rootView.findViewById(R.id.thumbnail);
+		horizIndicator = rootView.findViewById(R.id.horiz_level);
+
+		MyApplication.getInstance().getOrientationCtrl().setChangeListener(new OrientationCtrl.ChangeListener()
+		{
+			@Override
+			public void change(float[] values)
+			{
+				float zval = values[0] * values[0] + values[1] * values[1];
+				double azrad = Math.atan2(Math.sqrt(zval), values[2]);
+				double az = azrad * 180.0 / Math.PI;
+
+				horizIndicator.setRotation((float) az - 90.0f);
+			}
+		});
 
 		thumbnailView.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
@@ -86,7 +78,7 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void onClick(View view)
 			{
-				fireShutter();
+				new FireShutter(MasterFragment.this).execute(localLatency, remoteLatency);
 			}
 		});
 
@@ -96,7 +88,7 @@ public class MasterFragment extends PreviewFragment
 			public void onClick(View view)
 			{
 				doFlip();
-				masterComm.flip(new BluetoothMasterComm.FlipListener()
+				masterComm.runCommand(new Flip(new Flip.Listener()
 				{
 					@Override
 					public void done()
@@ -107,12 +99,14 @@ public class MasterFragment extends PreviewFragment
 					public void fail()
 					{
 					}
-				});
+				}));
 			}
 		});
 
 		return rootView;
 	}
+
+
 
 	@Override
 	public void onStart()
@@ -133,35 +127,29 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateThumbnail()
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		final PhotoFiles photoFiles = new PhotoFiles();
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
+			@Override
+			public void done()
 			{
-				@Override
-				public void onResult(int resultCode, Intent data)
+				new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
 				{
-					updateThumbnail();
-				}
-			});
-			return;
-		}
+					String max = photoFiles.getNewestFile().getPath();
 
-		new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
-		{
-			File targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-			int max = getNewestFile(targetDir);
-
-			if (max == 0)
-			{
-				thumbnailView.setImageDrawable(null);
-				return;
+					if (max == null)
+					{
+						thumbnailView.setImageDrawable(null);
+						return;
+					}
+					else
+					{
+						Bitmap bmp = BitmapFactory.decodeFile(photoFiles.getFilePath(max));
+						thumbnailView.setImageBitmap(bmp);
+					}
+				}});
 			}
-			else
-			{
-				Bitmap bmp = BitmapFactory.decodeFile(targetDir.getPath() + "/" + max + ".jpg");
-				thumbnailView.setImageBitmap(bmp);
-			}
-		}});
+		});
 	}
 
 	private void onPreviewStarted1()
@@ -170,7 +158,7 @@ public class MasterFragment extends PreviewFragment
 			return;
 
 		Log.d(getTag(), "pinging slave phone");
-		masterComm.ping(new BluetoothMasterComm.PingListener()
+		masterComm.runCommand(new Ping(new Ping.Listener()
 		{
 			@Override
 			public void pong(long diff)
@@ -186,44 +174,33 @@ public class MasterFragment extends PreviewFragment
 				Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
 				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 			}
-		});
+		}));
 	}
 
 	private void onPreviewStarted2()
 	{
-		masterComm.getStatus(new BluetoothMasterComm.StatusListener()
+		new WaitForReadyStatus(new WaitForReadyStatus.Listener()
 		{
 			@Override
 			public void done(int status)
 			{
-				if (status != PreviewFragment.READY)
-				{
-					try
-					{
-						Thread.sleep(250);
-					}
-					catch (InterruptedException e)
-					{
-					}
-					onPreviewStarted2();
-				}
-				else
-				{
-					onPreviewStarted3();
-				}
+				onPreviewStarted3();
 			}
 
 			@Override
 			public void fail()
 			{
-				Log.d(getTag(), "slave status failed");
+				Log.d(getTag(), "wait for ready failed");
+				Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
+				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 			}
-		});
+		}, 3000).execute();
+
 	}
 
 	private void onPreviewStarted3()
 	{
-		masterComm.getAngleOfView(new BluetoothMasterComm.AngleOfViewListener()
+		masterComm.runCommand(new GetAngleOfView(new GetAngleOfView.Listener()
 		{
 			@Override
 			public void done(float horiz, float vert)
@@ -252,12 +229,12 @@ public class MasterFragment extends PreviewFragment
 			{
 				Log.d(getTag(), "slave viewAngle failed");
 			}
-		});
+		}));
 	}
 
 	private void onPreviewStarted4(double zoom)
 	{
-		masterComm.setZoom((float) zoom, new BluetoothMasterComm.ZoomListener()
+		masterComm.runCommand(new SetZoom((float) zoom, new SetZoom.Listener()
 		{
 			@Override
 			public void done()
@@ -270,8 +247,11 @@ public class MasterFragment extends PreviewFragment
 			{
 				Log.d(getTag(), "slave set zoom failed");
 			}
-		});
+		}));
 	}
+
+	final private Object lock = new Object();
+	private boolean shutterFiring = false;
 
 	private void onPreviewStarted5()
 	{
@@ -283,10 +263,10 @@ public class MasterFragment extends PreviewFragment
 			shutterFiring = true;
 		}
 
-		masterComm.latencyCheck(new BluetoothMasterComm.LatencyCheckListener()
+		new GetLatency(new GetLatency.Listener()
 		{
 			@Override
-			public void trigger(final BluetoothMasterComm.LatencyCheckListenerListener listener)
+			public void trigger(final GetLatency.ListenerListener listener)
 			{
 				getLatency(new LatencyListener()
 				{
@@ -325,7 +305,7 @@ public class MasterFragment extends PreviewFragment
 					lock.notify();
 				}
 			}
-		});
+		}, 3000).execute();
 
 		synchronized (lock)
 		{
@@ -335,257 +315,20 @@ public class MasterFragment extends PreviewFragment
 				shutterFiring = false;
 			}
 		}
+
+		onPreviewStarted6();
+	}
+
+	private void onPreviewStarted6()
+	{
+		gravityCtrl = new MasterOrientationCtrl(horizIndicator);
+		gravityCtrl.start();
 	}
 
 	private long localLatency = -1;
 	private long remoteLatency = -1;
 
-	private final Object lock = new Object();
-	private boolean localShutterDone = false;
-	private boolean remoteShutterDone = false;
-	private boolean shutterFiring = false;
 
-	private byte[] localData;
-	private byte[] remoteData;
-
-	private void fireShutter()
-	{
-		synchronized (lock)
-		{
-			if (shutterFiring)
-				return;
-
-			shutterFiring = true;
-		}
-
-		Thread t = new Thread(new Runnable() {public void run()
-		{
-			long diff = remoteLatency - localLatency;
-			try { Thread.sleep(diff); } catch(InterruptedException e){}
-
-			MasterFragment.super.fireShutter(new ImageListener()
-			{
-				@Override
-				public void onImage(byte[] bytes)
-				{
-				localData = bytes;
-				boolean doNext = false;
-
-				synchronized (lock)
-				{
-					localShutterDone = true;
-
-					if (remoteShutterDone)
-						doNext = true;
-
-					shutterFiring = false;
-					lock.notify();
-				}
-
-				if (doNext)
-					fireShutter2();
-				}
-			});
-		}});
-		t.start();
-
-		masterComm.shutter(new BluetoothMasterComm.ShutterListener()
-		{
-			@Override
-			public void onData(byte[] data)
-			{
-				remoteData = data;
-				boolean doNext = false;
-
-				synchronized (lock)
-				{
-					remoteShutterDone = true;
-
-					if (localShutterDone)
-						doNext = true;
-				}
-
-				if (doNext)
-					fireShutter2();
-			}
-
-			@Override
-			public void fail()
-			{
-				remoteData = null;
-				boolean doNext = false;
-
-				synchronized (lock)
-				{
-					remoteShutterDone = true;
-
-					if (localShutterDone)
-						doNext = true;
-				}
-
-				if (doNext)
-					fireShutter2();
-			}
-		});
-	}
-
-	private void fireShutter2()
-	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
-			{
-				@Override
-				public void onResult(int resultCode, Intent data)
-				{
-					fireShutter2();
-				}
-			});
-			return;
-		}
-
-		File targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		int max = getNewestFile(targetDir);
-		max++;
-
-		byte[] merged = processData(localData, remoteData, isFrontFacing());
-
-		String localName = max + ".jpg";
-		saveFile(localName, targetDir, merged);
-
-		localName = max + ".left.jpg";
-		saveFile(localName, targetDir, localData);
-		localName = max + ".right.jpg";
-		saveFile(localName, targetDir, remoteData);
-
-		updateThumbnail();
-	}
-
-	private int getNewestFile(File targetDir)
-	{
-		String[] files = targetDir.list();
-		int max = 0;
-
-		for (String filename : files)
-		{
-			String[] parts = filename.split("\\.");
-
-			try
-			{
-				int count = Integer.parseInt(parts[0]);
-
-				if (count > max)
-					max = count;
-			}
-			catch(NumberFormatException e) {}
-		}
-
-		return max;
-	}
-
-	private byte[] processData(byte[] left, byte[] right, boolean flip)
-	{
-		Bitmap leftBmp = BitmapFactory.decodeByteArray(left, 0, left.length);
-		Bitmap rightBmp = BitmapFactory.decodeByteArray(right, 0, right.length);
-
-		if (flip)
-		{
-			Bitmap tmp = rightBmp;
-			rightBmp = leftBmp;
-			leftBmp = tmp;
-		}
-
-		int h1 = leftBmp.getHeight();
-		int w1 = leftBmp.getWidth();
-		int h2 = rightBmp.getHeight();
-		int w2 = rightBmp.getWidth();
-
-		int w = (h1 > h2) ? h1 : h2;
-
-		int degrees = 90;
-		if (flip)
-			degrees = -degrees;
-
-		Matrix m1 = new Matrix();
-
-		if (h1 < h2)
-		{
-			float scale = (float) h2 / (float) h1;
-			m1.postScale(scale, scale);
-		}
-
-		m1.postRotate(degrees);
-		Bitmap leftRotated = Bitmap.createBitmap(leftBmp, 0, 0, h1, h1, m1, true);
-
-		Matrix m2 = new Matrix();
-
-		if (h2 < h1)
-		{
-			float scale = (float) h1 / (float) h2;
-			m2.postScale(scale, scale);
-		}
-
-		m2.postRotate(degrees);
-		Bitmap rightRotated = Bitmap.createBitmap(rightBmp, 0, 0, h2, h2, m2, true);
-
-		Bitmap out = Bitmap.createBitmap(w * 2, w, leftBmp.getConfig());
-
-		int[] buffer = new int[w * w];
-		leftRotated.getPixels(buffer, 0, w, 0, 0, w, w);
-		out.setPixels(buffer, 0, w, 0, 0, w, w);
-		leftRotated.recycle();
-
-		rightRotated.getPixels(buffer, 0, w, 0, 0, w, w);
-		out.setPixels(buffer, 0, w, w, 0, w, w);
-		rightRotated.recycle();
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		out.compress(Bitmap.CompressFormat.JPEG, 85, baos);
-		byte[] ret = baos.toByteArray();
-		return ret;
-	}
-
-	private void saveFile(String name, File targetDir, byte[] data)
-	{
-		try
-		{
-			File f = new File(targetDir, name);
-			FileOutputStream fos = new FileOutputStream(f);
-			fos.write(data);
-			fos.close();
-
-			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{f.getPath()}, null, null);
-		}
-		catch(IOException e){
-
-		}
-	}
-
-	private byte[] loadFile(String name, File targetDir)
-	{
-		byte[] ret = null;
-		try
-		{
-			File f = new File(targetDir, name);
-			FileInputStream fis = new FileInputStream(f);
-
-			int sz = (int) f.length();
-			ret = new byte[sz];
-
-			int read = 0;
-			int total = 0;
-			while (total < sz)
-			{
-				read = fis.read(ret, total, sz - total);
-				total += read;
-			}
-		}
-		catch(IOException e){
-
-		}
-
-		return ret;
-	}
 
 	private void openThumbnail()
 	{

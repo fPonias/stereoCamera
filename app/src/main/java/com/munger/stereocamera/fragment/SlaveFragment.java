@@ -3,17 +3,14 @@ package com.munger.stereocamera.fragment;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.SeekBar;
 
-import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.bluetooth.BluetoothSlaveComm;
+import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 
 /**
  * Created by hallmarklabs on 2/22/18.

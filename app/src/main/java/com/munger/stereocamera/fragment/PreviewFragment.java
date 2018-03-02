@@ -181,7 +181,7 @@ public class PreviewFragment extends Fragment
 		}
 	}
 
-	protected boolean isFrontFacing()
+	public boolean isFrontFacing()
 	{
 		Camera.CameraInfo info = new Camera.CameraInfo();
 		Camera.getCameraInfo(cameraId, info);

@@ -33,6 +33,7 @@ import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -41,7 +42,7 @@ import java.util.ArrayList;
 
 public class ImageViewerFragment extends Fragment
 {
-	private ViewPager pager;
+	ViewPager pager;
 	private ImagePagerAdapter adapter;
 	private ActionBar toolbar;
 
@@ -109,6 +110,7 @@ public class ImageViewerFragment extends Fragment
 	{
 		int idx = pager.getCurrentItem();
 		ArrayList<String> list = adapter.getData();
+		int sz = list.size();
 		String selectedPath = list.get(idx);
 
 		File f = new File(selectedPath);
@@ -117,6 +119,11 @@ public class ImageViewerFragment extends Fragment
 			f.delete();
 
 		adapter.deleteItem(idx);
+
+		if (sz == 1)
+		{
+			((MainActivity)MyApplication.getInstance().getCurrentActivity()).popView();
+		}
 	}
 
 	@Override
@@ -134,27 +141,20 @@ public class ImageViewerFragment extends Fragment
 
 	private void updateAdapter()
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance().getCurrentActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		final PhotoFiles photoFiles = new PhotoFiles();
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
+			@Override
+			public void done()
 			{
-				@Override
-				public void onResult(int resultCode, Intent data)
-				{
-					updateAdapter();
-				}
-			});
-			return;
-		}
-
-		File targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-		adapter = new ImagePagerAdapter(getFragmentManager(), targetDir);
-		pager.setAdapter(adapter);
+				adapter = new ImagePagerAdapter(getFragmentManager(), photoFiles);
+				pager.setAdapter(adapter);
+			}
+		});
 	}
 
 	public static class ImagePagerAdapter extends FragmentStatePagerAdapter
 	{
-		private File targetDir;
 		private ArrayList<String> files;
 
 		public ArrayList<String> getData()
@@ -162,12 +162,11 @@ public class ImageViewerFragment extends Fragment
 			return files;
 		}
 
-		public ImagePagerAdapter(FragmentManager fm, File targetDir)
+		public ImagePagerAdapter(FragmentManager fm, PhotoFiles pf)
 		{
 			super(fm);
 
-			this.targetDir = targetDir;
-			files = getFiles();
+			files = pf.getFiles();
 		}
 
 		@Override
@@ -183,6 +182,22 @@ public class ImageViewerFragment extends Fragment
 			return ret;
 		}
 
+		@Override
+		public int getItemPosition(Object object)
+		{
+			ImagePage page = (ImagePage) object;
+			int sz = files.size();
+			for (int i = 0; i < sz; i++)
+			{
+				String item = files.get(i);
+
+				if (item.equals(page.path))
+					return POSITION_UNCHANGED;
+			}
+
+			return POSITION_NONE;
+		}
+
 		public void deleteItem(int position)
 		{
 			files.remove(position);
@@ -195,26 +210,10 @@ public class ImageViewerFragment extends Fragment
 			return files.size();
 		}
 
-		private ArrayList<String> getFiles()
+		@Override
+		public void setPrimaryItem(ViewGroup container, int position, Object object)
 		{
-			ArrayList<String> ret = new ArrayList<>();
-			File[] files = targetDir.listFiles();
-
-			for (File file : files)
-			{
-				String filename = file.getName();
-				String[] parts = filename.split("\\.");
-
-				try
-				{
-					int count = Integer.parseInt(parts[0]);
-					if (parts[1].equals("jpg"))
-						ret.add(file.getPath());
-				}
-				catch(NumberFormatException e) {}
-			}
-
-			return ret;
+			super.setPrimaryItem(container, position, object);
 		}
 	}
 

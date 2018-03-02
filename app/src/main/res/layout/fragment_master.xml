@@ -13,19 +13,33 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:layout_below="@id/preview"
-        android:gravity="center">
-        <ImageButton
-            android:layout_width="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/shutter_icon"
-            android:id="@+id/shutter"/>
-        <ImageButton
-            android:layout_width="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/shutter_icon"
+                android:id="@+id/shutter"/>
+            <ImageButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/flip_icon"
+                android:id="@+id/flip"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:src="@drawable/flip_icon"
-            android:id="@+id/flip"/>
+            android:orientation="horizontal">
+            <com.munger.stereocamera.orientation.OrientationWidget
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:id="@+id/horiz_level"/>
+        </LinearLayout>
     </LinearLayout>
     <ImageView android:layout_width="120dp"
         android:layout_height="60dp"

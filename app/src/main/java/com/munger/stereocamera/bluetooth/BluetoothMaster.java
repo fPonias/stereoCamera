@@ -1,15 +1,9 @@
 package com.munger.stereocamera.bluetooth;
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.Bundle;
 
-import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 
 import java.io.IOException;
 import java.net.ConnectException;

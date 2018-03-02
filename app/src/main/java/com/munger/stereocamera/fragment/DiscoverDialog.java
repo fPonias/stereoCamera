@@ -1,5 +1,6 @@
 package com.munger.stereocamera.fragment;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -131,8 +132,19 @@ public class DiscoverDialog extends DialogFragment
 		}
 	}
 
+	@Override
+	public void onDismiss(DialogInterface dialog)
+	{
+		super.onDismiss(dialog);
+
+		cancelled = true;
+	}
+
 	private void renderItem(EntryStruct str)
 	{
+		if (cancelled)
+			return;
+
 		DiscoverDialogItem tv = (DiscoverDialogItem) getLayoutInflater().inflate(R.layout.dialog_discover_item, listView, false);
 		tv.setText(str.entry);
 		tv.setOnClickListener(entryListener);

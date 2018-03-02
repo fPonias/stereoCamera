@@ -1,13 +1,14 @@
-package com.munger.stereocamera.bluetooth;
+package com.munger.stereocamera.bluetooth.command.slave;
 
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
@@ -120,6 +121,10 @@ public class BluetoothSlaveComm
 				{
 					float value = getFloat();
 					doSetZoom(value);
+				}
+				else if (currentAction == BluetoothCommands.GET_GRAVITY)
+				{
+					doGetGravity();
 				}
 			}
 			catch(IOException e){
@@ -288,6 +293,32 @@ public class BluetoothSlaveComm
 			bb.putInt(status);
 			byte[] array = bb.array();
 
+			outs.write(array);
+			outs.flush();
+			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
+		}
+		catch(IOException e){
+			Log.d("bluetoothSlaveComm", "failed: " + currentAction.name());
+		}
+	}
+
+	private void doGetGravity()
+	{
+		try
+		{
+			float[] ret = MyApplication.getInstance().getOrientationCtrl().getValue();
+			ByteBuffer bb = ByteBuffer.allocate(13);
+			bb.put((byte) BluetoothCommands.GET_GRAVITY.ordinal());
+
+			if (ret == null || (ret != null && ret.length != 3))
+			{
+				ret = new float[3];
+			}
+
+			for (int i = 0; i < 3; i++)
+				bb.putFloat(ret[i]);
+
+			byte[] array = bb.array();
 			outs.write(array);
 			outs.flush();
 			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());

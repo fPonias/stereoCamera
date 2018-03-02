@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 
 import java.io.IOException;
 

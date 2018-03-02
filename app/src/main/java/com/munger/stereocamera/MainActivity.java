@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
@@ -91,11 +92,22 @@ public class MainActivity extends BaseActivity
 
 	public void startThumbnailView()
 	{
-		imgViewFragment = new ImageViewerFragment();
-		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-		ft.addToBackStack("imgView");
-		ft.replace(android.R.id.content, imgViewFragment, imgViewFragment.getTag());
-		ft.commit();
+		final PhotoFiles photoFiles = new PhotoFiles();
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		{
+			@Override
+			public void done()
+			{
+				if (!photoFiles.hasFiles())
+					return;
+
+				imgViewFragment = new ImageViewerFragment();
+				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+				ft.addToBackStack("imgView");
+				ft.replace(android.R.id.content, imgViewFragment, imgViewFragment.getTag());
+				ft.commit();
+			}
+		});
 	}
 
 	public void popSubViews()
@@ -109,6 +121,12 @@ public class MainActivity extends BaseActivity
 
 			currentFragment = connectFragment;
 		}
+	}
+
+	public void popView()
+	{
+		FragmentManager mgr = getSupportFragmentManager();
+		mgr.popBackStack();
 	}
 
 	private boolean firstConnect = true;

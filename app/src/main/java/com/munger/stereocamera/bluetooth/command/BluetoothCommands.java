@@ -1,4 +1,4 @@
-package com.munger.stereocamera.bluetooth;
+package com.munger.stereocamera.bluetooth.command;
 
 /**
  * Created by hallmarklabs on 2/23/18.
@@ -13,5 +13,6 @@ public enum BluetoothCommands
 	FLIP,
 	GET_ANGLE_OF_VIEW,
 	SET_ZOOM,
-	GET_STATUS
+	GET_STATUS,
+	GET_GRAVITY
 }
