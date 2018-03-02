@@ -1,5 +1,6 @@
 package com.munger.stereocamera.fragment;
 
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -7,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.SeekBar;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
@@ -26,8 +28,7 @@ public class SlaveFragment extends PreviewFragment
 		View ret = inflater.inflate(R.layout.fragment_slave, null);
 		super.onCreateView(ret);
 
-		zoomInButton = ret.findViewById(R.id.zoom_in);
-		zoomOutButton = ret.findViewById(R.id.zoom_out);
+		zoomBar = ret.findViewById(R.id.seekBar);
 
 		return ret;
 	}
@@ -35,23 +36,46 @@ public class SlaveFragment extends PreviewFragment
 	private BluetoothSlaveComm slaveComm;
 	private byte[] imgBytes;
 
-	private Button zoomInButton;
-	private Button zoomOutButton;
+	private SeekBar zoomBar;
+
+	@Override
+	protected void updatePreviewParameters()
+	{
+		super.updatePreviewParameters();
+
+		zoomBar.setMax(maxZoom);
+		zoomBar.setProgress(currentZoom);
+	}
 
 	@Override
 	public void onStart()
 	{
 		super.onStart();
 
-		zoomInButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
+		zoomBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
 		{
-			zoom(true);
-		}});
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+			{
+				currentZoom = i;
 
-		zoomOutButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
-		{
-			zoom(false);
-		}});
+				Camera.Parameters parameters = camera.getParameters();
+				parameters.setZoom(i);
+				camera.setParameters(parameters);
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar)
+			{
+
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar)
+			{
+
+			}
+		});
 
 		try
 		{
@@ -105,6 +129,17 @@ public class SlaveFragment extends PreviewFragment
 				SlaveFragment.this.setZoom(null, zoom);
 			}
 		});
+	}
+
+	@Override
+	protected void setZoom(Camera.Parameters parameters, float zoom)
+	{
+		if (parameters == null)
+			parameters = camera.getParameters();
+
+		super.setZoom(parameters, zoom);
+
+		zoomBar.setProgress(parameters.getZoom());
 	}
 
 	private void doLatencyCheck()

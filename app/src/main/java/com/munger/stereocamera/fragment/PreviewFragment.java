@@ -8,6 +8,9 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.util.DisplayMetrics;
@@ -47,8 +50,8 @@ public class PreviewFragment extends Fragment
 	protected View rootView;
 	private TextureView previewView;
 	private SurfaceTexture preview;
-	private int cameraId;
-	private Camera camera;
+	protected int cameraId;
+	protected Camera camera;
 
 	public int status;
 
@@ -140,19 +143,49 @@ public class PreviewFragment extends Fragment
 	public void onStart()
 	{
 		super.onStart();
+	}
 
-		cameraId = 0;
-		int sz = Camera.getNumberOfCameras();
-		Camera.CameraInfo info = new Camera.CameraInfo();
-		for (int i = 0; i < sz; i++)
+	@Override
+	public void onSaveInstanceState(Bundle outState)
+	{
+		outState.putInt("currentZoom", currentZoom);
+		outState.putInt("cameraId", cameraId);
+		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	public void onViewStateRestored(@Nullable Bundle savedInstanceState)
+	{
+		super.onViewStateRestored(savedInstanceState);
+
+		if (savedInstanceState != null && savedInstanceState.containsKey("cameraId"))
 		{
-			Camera.getCameraInfo(i, info);
-			if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+			cameraId = savedInstanceState.getInt("cameraId");
+			currentZoom = savedInstanceState.getInt("currentZoom");
+		}
+		else
+		{
+			currentZoom = 0;
+			cameraId = 0;
+			int sz = Camera.getNumberOfCameras();
+			Camera.CameraInfo info = new Camera.CameraInfo();
+			for (int i = 0; i < sz; i++)
 			{
-				cameraId = i;
-				break;
+				Camera.getCameraInfo(i, info);
+				if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+				{
+					cameraId = i;
+					break;
+				}
 			}
 		}
+	}
+
+	protected boolean isFrontFacing()
+	{
+		Camera.CameraInfo info = new Camera.CameraInfo();
+		Camera.getCameraInfo(cameraId, info);
+		return info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
 	}
 
 	@Override
@@ -195,36 +228,49 @@ public class PreviewFragment extends Fragment
 
 	protected float horizontalAngle = -1.0f;
 	protected float verticalAngle = -1.0f;
+	protected int minZoom = 0;
+	protected int maxZoom = 0;
 
 	private void startPreview()
 	{
-		synchronized (lock)
+		new Handler(Looper.getMainLooper()).post(new Runnable() {public void run()
 		{
-			if (previewStarted)
+			synchronized (lock)
+			{
+				if (previewStarted)
+					return;
+
+				previewStarted = true;
+			}
+
+			try
+			{
+				updatePreviewParameters();
+
+				camera.setPreviewTexture(preview);
+			}
+			catch(IOException e){
+				camera.release();
 				return;
+			}
 
-			previewStarted = true;
-		}
+			camera.startPreview();
+			onPreviewStarted();
+		}});
+	}
 
-		try
-		{
-			setCameraDisplayOrientation(cameraId, camera);
-			camera.setPreviewTexture(preview);
+	protected void updatePreviewParameters()
+	{
+		setCameraDisplayOrientation(cameraId, camera);
 
-			Camera.Parameters parameters = camera.getParameters();
-			horizontalAngle = parameters.getHorizontalViewAngle();
-			verticalAngle = parameters.getVerticalViewAngle();
-			setSizes(parameters);
-			adjustCrop(parameters);
-			camera.setParameters(parameters);
-		}
-		catch(IOException e){
-			camera.release();
-			return;
-		}
-
-		camera.startPreview();
-		onPreviewStarted();
+		Camera.Parameters parameters = camera.getParameters();
+		horizontalAngle = parameters.getHorizontalViewAngle();
+		verticalAngle = parameters.getVerticalViewAngle();
+		maxZoom = parameters.getMaxZoom();
+		setSizes(parameters);
+		adjustCrop(parameters);
+		parameters.setZoom(currentZoom);
+		camera.setParameters(parameters);
 	}
 
 	protected void setSizes(Camera.Parameters parameters)
@@ -272,6 +318,8 @@ public class PreviewFragment extends Fragment
 		return ret;
 	}
 
+	protected int currentZoom = 0;
+
 	protected void setZoom(Camera.Parameters parameters, float zoom)
 	{
 		if (parameters == null)
@@ -298,6 +346,7 @@ public class PreviewFragment extends Fragment
 			}
 		}
 
+		currentZoom = idx;
 		parameters.setZoom(idx);
 		camera.setParameters(parameters);
 	}
@@ -315,6 +364,7 @@ public class PreviewFragment extends Fragment
 			zoom = Math.max(zoom - 1, 0);
 
 		Log.d("PreviewFragment", "zoom set to index " + zoom + " zoom value " + zoomList.get(zoom));
+		currentZoom = zoom;
 		parameters.setZoom(zoom);
 		camera.setParameters(parameters);
 	}

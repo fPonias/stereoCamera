@@ -88,7 +88,7 @@ public class BluetoothSlaveComm
 		{
 			try
 			{
-				int actionInt = getInt();
+				int actionInt = ins.read();
 				currentAction = BluetoothCommands.values()[actionInt];
 				Log.d("bluetoothSlaveComm", "command: " + currentAction.name() + " received");
 
@@ -159,8 +159,7 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			byte[] bytes = ByteBuffer.allocate(4).putInt(BluetoothCommands.PING.ordinal()).array();
-			outs.write(bytes);
+			outs.write((byte) BluetoothCommands.PING.ordinal());
 			outs.flush();
 			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
@@ -177,8 +176,8 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			ByteBuffer bb = ByteBuffer.allocate(8);
-			bb.putInt(BluetoothCommands.FIRE_SHUTTER.ordinal());
+			ByteBuffer bb = ByteBuffer.allocate(5);
+			bb.put((byte) BluetoothCommands.FIRE_SHUTTER.ordinal());
 
 			if (imgData != null)
 			{
@@ -209,8 +208,8 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			ByteBuffer bb = ByteBuffer.allocate(12);
-			bb.putInt(BluetoothCommands.LATENCY_CHECK.ordinal());
+			ByteBuffer bb = ByteBuffer.allocate(9);
+			bb.put((byte) BluetoothCommands.LATENCY_CHECK.ordinal());
 			bb.putLong(diff);
 			outs.write(bb.array());
 			outs.flush();
@@ -228,9 +227,7 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			ByteBuffer bb = ByteBuffer.allocate(4);
-			bb.putInt(BluetoothCommands.FLIP.ordinal());
-			outs.write(bb.array());
+			outs.write((byte) BluetoothCommands.FLIP.ordinal());
 			outs.flush();
 			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
@@ -249,8 +246,8 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			ByteBuffer bb = ByteBuffer.allocate(12);
-			bb.putInt(BluetoothCommands.GET_ANGLE_OF_VIEW.ordinal());
+			ByteBuffer bb = ByteBuffer.allocate(9);
+			bb.put((byte) BluetoothCommands.GET_ANGLE_OF_VIEW.ordinal());
 			bb.putFloat(vals[0]);
 			bb.putFloat(vals[1]);
 			outs.write(bb.array());
@@ -269,9 +266,7 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			ByteBuffer bb = ByteBuffer.allocate(4);
-			bb.putInt(BluetoothCommands.SET_ZOOM.ordinal());
-			outs.write(bb.array());
+			outs.write((byte) BluetoothCommands.SET_ZOOM.ordinal());
 			outs.flush();
 			Log.d("bluetoothSlaveComm", "success: " + currentAction.name());
 		}
@@ -288,8 +283,8 @@ public class BluetoothSlaveComm
 
 		try
 		{
-			ByteBuffer bb = ByteBuffer.allocate(8);
-			bb.putInt(BluetoothCommands.GET_STATUS.ordinal());
+			ByteBuffer bb = ByteBuffer.allocate(5);
+			bb.put((byte) BluetoothCommands.GET_STATUS.ordinal());
 			bb.putInt(status);
 			byte[] array = bb.array();
 

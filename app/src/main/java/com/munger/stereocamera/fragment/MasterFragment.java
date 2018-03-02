@@ -448,14 +448,15 @@ public class MasterFragment extends PreviewFragment
 		int max = getNewestFile(targetDir);
 		max++;
 
-		byte[] merged = processData(localData, remoteData);
+		byte[] merged = processData(localData, remoteData, isFrontFacing());
+
 		String localName = max + ".jpg";
 		saveFile(localName, targetDir, merged);
 
-		//localName = max + ".left.jpg";
-		//saveFile(localName, targetDir, localData);
-		//localName = max + ".right.jpg";
-		//saveFile(localName, targetDir, remoteData);
+		localName = max + ".left.jpg";
+		saveFile(localName, targetDir, localData);
+		localName = max + ".right.jpg";
+		saveFile(localName, targetDir, remoteData);
 
 		updateThumbnail();
 	}
@@ -482,26 +483,49 @@ public class MasterFragment extends PreviewFragment
 		return max;
 	}
 
-	private byte[] processData(byte[] left, byte[] right)
+	private byte[] processData(byte[] left, byte[] right, boolean flip)
 	{
 		Bitmap leftBmp = BitmapFactory.decodeByteArray(left, 0, left.length);
 		Bitmap rightBmp = BitmapFactory.decodeByteArray(right, 0, right.length);
+
+		if (flip)
+		{
+			Bitmap tmp = rightBmp;
+			rightBmp = leftBmp;
+			leftBmp = tmp;
+		}
 
 		int h1 = leftBmp.getHeight();
 		int w1 = leftBmp.getWidth();
 		int h2 = rightBmp.getHeight();
 		int w2 = rightBmp.getWidth();
-		float scale = (float) w1 / (float) w2;
 
-		int w = (h1 < h2) ? h1 : h2;
+		int w = (h1 > h2) ? h1 : h2;
+
+		int degrees = 90;
+		if (flip)
+			degrees = -degrees;
 
 		Matrix m1 = new Matrix();
-		m1.postRotate(90);
+
+		if (h1 < h2)
+		{
+			float scale = (float) h2 / (float) h1;
+			m1.postScale(scale, scale);
+		}
+
+		m1.postRotate(degrees);
 		Bitmap leftRotated = Bitmap.createBitmap(leftBmp, 0, 0, h1, h1, m1, true);
 
 		Matrix m2 = new Matrix();
-		m2.postScale(scale, scale);
-		m2.postRotate(90);
+
+		if (h2 < h1)
+		{
+			float scale = (float) h1 / (float) h2;
+			m2.postScale(scale, scale);
+		}
+
+		m2.postRotate(degrees);
 		Bitmap rightRotated = Bitmap.createBitmap(rightBmp, 0, 0, h2, h2, m2, true);
 
 		Bitmap out = Bitmap.createBitmap(w * 2, w, leftBmp.getConfig());

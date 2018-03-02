@@ -318,15 +318,14 @@ public class BluetoothMasterComm
 	private void sendCommand(BluetoothCommands command, byte[] args) throws IOException
 	{
 		Log.d("BluetoothMasterComm", "command: " + command.name() + " started");
-		byte[] bytes = ByteBuffer.wrap(intBuf).putInt(command.ordinal()).array();
-		outs.write(bytes);
+		outs.write((byte) command.ordinal());
 
 		if (args != null)
 			outs.write(args);
 
 		outs.flush();
 
-		int actionInt = readInt();
+		int actionInt = ins.read();
 		BluetoothCommands action = BluetoothCommands.values()[actionInt];
 
 		if (action != command)
