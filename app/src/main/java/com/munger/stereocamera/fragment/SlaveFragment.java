@@ -6,11 +6,21 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.SeekBar;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
+import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
+import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
+import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
+import com.munger.stereocamera.widget.OrientationCtrl;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -25,23 +35,22 @@ public class SlaveFragment extends PreviewFragment
 		View ret = inflater.inflate(R.layout.fragment_slave, null);
 		super.onCreateView(ret);
 
-		zoomBar = ret.findViewById(R.id.seekBar);
-
 		return ret;
 	}
 
 	private BluetoothSlaveComm slaveComm;
 	private byte[] imgBytes;
+	private OrientationCtrl gravityCtrl;
 
-	private SeekBar zoomBar;
+	private long lastSent = 0;
+	private final Object gravityLock = new Object();
+	private boolean sending = false;
+
 
 	@Override
 	protected void updatePreviewParameters()
 	{
 		super.updatePreviewParameters();
-
-		zoomBar.setMax(maxZoom);
-		zoomBar.setProgress(currentZoom);
 	}
 
 	@Override
@@ -49,30 +58,47 @@ public class SlaveFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		zoomBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+		gravityCtrl = new OrientationCtrl();
+		gravityCtrl.setChangeListener(new OrientationCtrl.ChangeListener()
 		{
 			@Override
-			public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+			public void change(float[] values)
 			{
-				currentZoom = i;
+				synchronized (gravityLock)
+				{
+					long diff = System.currentTimeMillis() - lastSent;
 
-				Camera.Parameters parameters = camera.getParameters();
-				parameters.setZoom(i);
-				camera.setParameters(parameters);
-			}
+					if (sending || diff < 200)
+						return;
 
-			@Override
-			public void onStartTrackingTouch(SeekBar seekBar)
-			{
+					sending = true;
+				}
 
-			}
+				ReceiveGravity.Gravity value = new ReceiveGravity.Gravity();
+				value.x = values[0];
+				value.y = values[1];
+				value.z = values[2];
+				SendGravity command = new SendGravity(value);
+				command.setListener(new SlaveCommand.Listener()
+				{
+					@Override
+					public void onStarted()
+					{}
 
-			@Override
-			public void onStopTrackingTouch(SeekBar seekBar)
-			{
-
+					@Override
+					public void onFinished()
+					{
+						synchronized (gravityLock)
+						{
+							lastSent = System.currentTimeMillis();
+							sending = false;
+						}
+					}
+				});
+				slaveComm.sendCommand(command);
 			}
 		});
+		gravityCtrl.start();
 
 		try
 		{
@@ -82,48 +108,53 @@ public class SlaveFragment extends PreviewFragment
 			return;
 		}
 
-		slaveComm.setListener(new BluetoothSlaveComm.CommandListener()
+		slaveComm.addListener(BluetoothCommands.SET_ZOOM, new BluetoothSlaveComm.Listener()
 		{
 			@Override
-			public int onStatus()
+			public void onCommand(SlaveCommand command)
 			{
-				return status;
+				ReceiveZoom zoomCommand = (ReceiveZoom) command;
+				SlaveFragment.this.setZoom(null, zoomCommand.getZoom());
 			}
+		});
 
+		slaveComm.addListener(BluetoothCommands.LATENCY_CHECK, new BluetoothSlaveComm.Listener()
+		{
 			@Override
-			public void onPing()
+			public void onCommand(SlaveCommand command)
 			{
-
-			}
-
-			@Override
-			public byte[] onFireShutter()
-			{
-				return doFireShutter();
-			}
-
-			@Override
-			public void onLatencyCheck()
-			{
+				long now = System.currentTimeMillis();
 				doLatencyCheck();
-			}
+				long then = System.currentTimeMillis();
+				long diff = then - now;
 
+				((GetLatency) command).setLatency(diff);
+			}
+		});
+
+		slaveComm.addListener(BluetoothCommands.FIRE_SHUTTER, new BluetoothSlaveComm.Listener()
+		{
 			@Override
-			public void onFlip()
+			public void onCommand(SlaveCommand command)
+			{
+				byte[] data = doFireShutter();
+				((Shutter) command).setData(data);
+			}
+		});
+
+		slaveComm.addListener(BluetoothCommands.PING, new BluetoothSlaveComm.Listener()
+		{
+			@Override
+			public void onCommand(SlaveCommand command)
+			{}
+		});
+
+		slaveComm.addListener(BluetoothCommands.FLIP, new BluetoothSlaveComm.Listener()
+		{
+			@Override
+			public void onCommand(SlaveCommand command)
 			{
 				doFlip();
-			}
-
-			@Override
-			public float[] getViewAngles()
-			{
-				return new float[] {horizontalAngle, verticalAngle};
-			}
-
-			@Override
-			public void setZoom(float zoom)
-			{
-				SlaveFragment.this.setZoom(null, zoom);
 			}
 		});
 	}
@@ -135,34 +166,57 @@ public class SlaveFragment extends PreviewFragment
 			parameters = camera.getParameters();
 
 		super.setZoom(parameters, zoom);
-
-		zoomBar.setProgress(parameters.getZoom());
 	}
 
+	@Override
+	protected void onZoomUpdated(float zoom)
+	{
+		super.onZoomUpdated(zoom);
+
+		slaveComm.sendCommand(new SendZoom(zoom));
+	}
+
+	private boolean latencyCheckDone = false;
 	private void doLatencyCheck()
 	{
 		final Object lock = new Object();
+		latencyCheckDone = false;
 
-		getLatency(new LatencyListener()
+		Thread t = new Thread(new Runnable() { public void run()
 		{
-			@Override
-			public void triggered()
+			getLatency(0, new LatencyListener()
 			{
-				synchronized (lock)
+				@Override
+				public void triggered()
 				{
-					lock.notify();
+					synchronized (lock)
+					{
+						latencyCheckDone = true;
+						lock.notify();
+					}
 				}
-			}
 
-			@Override
-			public void done()
-			{
-			}
-		});
+				@Override
+				public void done()
+				{}
+
+				public void fail()
+				{
+					synchronized (lock)
+					{
+						latencyCheckDone = true;
+						lock.notify();
+					}
+				}
+			});
+		}});
+		t.setPriority(Thread.MAX_PRIORITY);
+		t.start();
 
 		synchronized (lock)
 		{
-			try{lock.wait(3000);}catch(InterruptedException e){}
+			if (latencyCheckDone == false)
+				try{lock.wait(3000);}catch(InterruptedException e){}
 		}
 	}
 
@@ -191,5 +245,21 @@ public class SlaveFragment extends PreviewFragment
 		}
 
 		return imgBytes;
+	}
+
+	@Override
+	protected void setStatus(int status)
+	{
+		super.setStatus(status);
+
+		if (slaveComm != null)
+			slaveComm.sendCommand(new SendStatus(status));
+	}
+
+	@Override
+	protected void onPreviewStarted()
+	{
+		super.onPreviewStarted();
+		slaveComm.sendCommand(new SendAngleOfView(verticalAngle, horizontalAngle));
 	}
 }

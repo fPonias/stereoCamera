@@ -25,17 +25,12 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/shutter_icon"
                 android:id="@+id/shutter"/>
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/flip_icon"
-                android:id="@+id/flip"/>
         </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <com.munger.stereocamera.orientation.OrientationWidget
+            <com.munger.stereocamera.widget.OrientationWidget
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:id="@+id/horiz_level"/>

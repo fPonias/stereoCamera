@@ -3,7 +3,8 @@ package com.munger.stereocamera;
 import android.app.Application;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.orientation.OrientationCtrl;
+import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.widget.OrientationCtrl;
 
 /**
  * Created by hallmarklabs on 2/28/18.
@@ -22,15 +23,13 @@ public class MyApplication extends Application
 
 	private BluetoothCtrl btCtrl;
 	private OrientationCtrl orientationCtrl;
+	private Preferences prefs;
 
 	@Override
 	public void onCreate()
 	{
 		super.onCreate();
 		instance = this;
-
-		orientationCtrl = new OrientationCtrl();
-		orientationCtrl.start();
 	}
 
 	public void setupBTServer(BluetoothCtrl.SetupListener listener)
@@ -52,6 +51,11 @@ public class MyApplication extends Application
 		return btCtrl;
 	}
 
+	public Preferences getPrefs()
+	{
+		return prefs;
+	}
+
 	public OrientationCtrl getOrientationCtrl()
 	{
 		return orientationCtrl;
@@ -62,6 +66,12 @@ public class MyApplication extends Application
 	public void setCurrentActivity(BaseActivity activity)
 	{
 		currentActivity = activity;
+
+		if (prefs == null)
+		{
+			prefs = new Preferences();
+			prefs.setup();
+		}
 	}
 
 	public BaseActivity getCurrentActivity()

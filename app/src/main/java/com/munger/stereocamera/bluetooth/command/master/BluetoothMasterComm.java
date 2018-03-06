@@ -5,11 +5,14 @@ import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
+import com.munger.stereocamera.bluetooth.command.master.listeners.MasterListener;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -20,14 +23,13 @@ public class BluetoothMasterComm
 {
 	private BluetoothCtrl ctrl;
 	private BluetoothSocket socket;
-	private LinkedList<MasterCommand> tasks = new LinkedList<>();
-	private final Object lock = new Object();
-	private boolean cancelled = false;
 
-	InputStream ins;
-	OutputStream outs;
-	byte[] buffer;
-	static final int BUFFER_SIZE = 4096;
+	public InputStream ins;
+	public OutputStream outs;
+
+	OutputProcessor outputProcessor;
+	InputProcessor inputProcessor;
+
 
 	public BluetoothMasterComm(BluetoothCtrl ctrl)
 	{
@@ -40,80 +42,25 @@ public class BluetoothMasterComm
 			outs = socket.getOutputStream();
 		}
 		catch (IOException e){
-
+			return;
 		}
 
-		buffer = new byte[BUFFER_SIZE];
-
-		Thread t = new Thread(new Runnable() {public void run()
-		{
-			while(!cancelled)
-			{
-				MasterCommand task = null;
-				synchronized (lock)
-				{
-					if (tasks.isEmpty())
-						try{lock.wait();}catch(InterruptedException e){break;}
-
-					if (!tasks.isEmpty())
-						task = tasks.removeFirst();
-				}
-
-				if (task != null)
-				{
-					task.setParent(BluetoothMasterComm.this);
-					task.execute();
-				}
-			}
-		}});
-		t.start();
+		inputProcessor = new InputProcessor(this);
+		inputProcessor.start();
+		outputProcessor = new OutputProcessor(this);
+		outputProcessor.start();
 	}
 
-	public void runCommand(MasterCommand command)
-	{
-		synchronized (lock)
-		{
-			tasks.add(command);
-			lock.notify();
-		}
-	}
-
-	void sendCommand(BluetoothCommands command) throws IOException
-	{
-		sendCommand(command, null);
-	}
-
-	void sendCommand(BluetoothCommands command, byte[] args) throws IOException
-	{
-		Log.d("BluetoothMasterComm", "command: " + command.name() + " started");
-		outs.write((byte) command.ordinal());
-
-		if (args != null)
-			outs.write(args);
-
-		outs.flush();
-
-		int actionInt = ins.read();
-		BluetoothCommands action = BluetoothCommands.values()[actionInt];
-
-		if (action != command)
-		{
-			throw new IOException("incorrect response");
-		}
-	}
 
 	public void cleanUp()
 	{
-		cancelled = true;
-		synchronized (lock)
-		{
-			lock.notify();
-		}
+		inputProcessor.cleanUp();
+		outputProcessor.cleanUp();
 	}
 
 	private byte[] longBuf = new byte[8];
 	private ByteBuffer longBufBuf = ByteBuffer.wrap(longBuf);
-	long readLong() throws IOException
+	public long readLong() throws IOException
 	{
 		int read;
 		do
@@ -126,12 +73,14 @@ public class BluetoothMasterComm
 			throw new IOException("incorrect response");
 		}
 
-		return longBufBuf.getLong(0);
+		long ret = longBufBuf.getLong(0);
+		//Log.d("masterReader", "read command arg: " + ret);
+		return ret;
 	}
 
 	private byte[] intBuf = new byte[4];
 	private ByteBuffer intBufBuf = ByteBuffer.wrap(intBuf);
-	int readInt() throws IOException
+	public int readInt() throws IOException
 	{
 		int read;
 		do
@@ -144,10 +93,12 @@ public class BluetoothMasterComm
 			throw new IOException("incorrect response");
 		}
 
-		return intBufBuf.getInt(0);
+		int ret = intBufBuf.getInt(0);
+		//Log.d("masterReader", "read command arg: " + ret);
+		return ret;
 	}
 
-	float readFloat() throws IOException
+	public float readFloat() throws IOException
 	{
 		int read;
 		do
@@ -160,6 +111,26 @@ public class BluetoothMasterComm
 			throw new IOException("incorrect response");
 		}
 
-		return intBufBuf.getFloat(0);
+		float ret = intBufBuf.getFloat(0);
+		String retStr = ret + "";
+
+		if (retStr.contains("NaN"))
+		{
+			int i = 0;
+			int j = i;
+		}
+
+		//Log.d("masterReader", "read command arg: " + retStr);
+		return ret;
+	}
+
+	public void runCommand(MasterCommand command)
+	{
+		outputProcessor.runCommand(command);
+	}
+
+	public void registerListener(MasterListener listener)
+	{
+		inputProcessor.registerListener(listener);
 	}
 }

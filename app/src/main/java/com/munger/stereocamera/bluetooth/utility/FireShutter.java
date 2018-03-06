@@ -6,7 +6,7 @@ import android.graphics.Matrix;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.Shutter;
+import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
 
 import java.io.ByteArrayOutputStream;
@@ -30,7 +30,7 @@ public class FireShutter
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
 	}
 
-	public void execute(final long localLatency, final long remoteLatency)
+	public void execute(final long delay)
 	{
 		synchronized (lock)
 		{
@@ -40,8 +40,7 @@ public class FireShutter
 			shutterFiring = true;
 		}
 
-		long diff = remoteLatency - localLatency;
-		fireLocal(diff);
+		fireLocal(delay);
 		fireRemote();
 	}
 
@@ -60,6 +59,7 @@ public class FireShutter
 				}
 			});
 		}});
+		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();
 	}
 
@@ -133,6 +133,9 @@ public class FireShutter
 			@Override
 			public void done()
 			{
+				if (localData == null || remoteData == null)
+					return;
+
 				byte[] merged = processData(localData, remoteData, fragment.isFrontFacing());
 				String name = photoFiles.saveNewFile(merged);
 

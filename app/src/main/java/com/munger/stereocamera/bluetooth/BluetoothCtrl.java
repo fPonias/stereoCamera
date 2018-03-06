@@ -45,22 +45,10 @@ public class BluetoothCtrl
 	private BluetoothSlave slave;
 	private BluetoothMaster master;
 
-	public enum Roles
-	{
-		MASTER,
-		SLAVE,
-		NONE
-	};
-
-	private static final String LAST_ROLE_KEY = "lastRole";
-	private static final String LAST_CLIENT_KEY = "lastClient";
 
 	public static int LISTEN_TIMEOUT = 30000;
 	public static int DISCOVER_TIMEOUT = 300000;
 
-	private SharedPreferences preferences;
-	private Roles lastRole = Roles.NONE;
-	private String lastClient = null;
 
 	public static final UUID APP_ID = UUID.fromString("e1dd45ec-c2ac-4a47-8b71-986095f25450");
 
@@ -104,8 +92,6 @@ public class BluetoothCtrl
 		}
 
 		discoverer = new BluetoothDiscoverer(this);
-
-		readPreferences();
 
 		isSetup = true;
 		listener.onSetup();
@@ -170,55 +156,6 @@ public class BluetoothCtrl
 			if (discoverer.isDiscovering())
 				discoverer.cancelDiscover();
 		}
-	}
-
-	private void readPreferences()
-	{
-		preferences = MyApplication.getInstance().getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
-
-		if (preferences.contains(LAST_ROLE_KEY))
-		{
-			int value = preferences.getInt(LAST_ROLE_KEY, -1);
-			lastRole = Roles.values()[value];
-		}
-		else
-		{
-			lastRole = Roles.NONE;
-		}
-
-		if (preferences.contains(LAST_CLIENT_KEY))
-		{
-			String value = preferences.getString(LAST_CLIENT_KEY, null);
-			lastClient = value;
-		}
-		else
-		{
-			lastClient = null;
-		}
-	}
-
-	public Roles getLastRole()
-	{
-		return lastRole;
-	}
-
-	public void setLastRole(Roles role)
-	{
-		lastRole = role;
-
-		preferences.edit().putInt(LAST_ROLE_KEY, role.ordinal()).apply();
-	}
-
-	public String getLastClient()
-	{
-		return lastClient;
-	}
-
-	public void setLastClient(String client)
-	{
-		lastClient = client;
-
-		preferences.edit().putString(LAST_CLIENT_KEY, client).apply();
 	}
 
 	public void cleanUp()

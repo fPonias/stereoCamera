@@ -5,7 +5,8 @@ import android.util.Log;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.GetRemoteLatency;
+import com.munger.stereocamera.bluetooth.command.master.commands.GetRemoteLatency;
+import com.munger.stereocamera.fragment.PreviewFragment;
 
 /**
  * Created by hallmarklabs on 3/2/18.
@@ -15,60 +16,105 @@ public class GetLatency
 {
 	private Listener listener;
 	private BluetoothMasterComm masterComm;
+	private PreviewFragment target;
 
-	public GetLatency(Listener listener, long timeout)
+	public GetLatency(Listener listener, PreviewFragment fragment, long timeout)
 	{
 		this.listener = listener;
+		this.target = fragment;
 		this.timeout = timeout;
 
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
 	}
 
 	private long localLatency;
+	private boolean localDone = false;
 	private long remoteLatency;
+	private boolean remoteDone = false;
 	private final Object latencyLock = new Object();
 	private long timeout;
 
 	public interface Listener
 	{
-		void trigger(ListenerListener listener);
 		void pong(long localLatency, long remoteLatency);
 		void fail();
 	}
 
-	public interface ListenerListener
+	public interface LocalLatencyTrigger
+	{
+		void trigger(long delay, LocalLatencyTriggerListener listener);
+	}
+
+	public interface LocalLatencyTriggerListener
 	{
 		void reply();
 	}
 
-	public void execute()
+	public void execute(long localDelay)
 	{
-		this.listener = listener;
-		this.timeout = timeout;
-
 		localLatency = -1;
 		remoteLatency = -1;
 		Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " called");
 
-		getLocalLatency();
+		getLocalLatency(localDelay);
 		getRemoteLatency();
 		startTimeout();
 	}
 
-	private void getLocalLatency()
-	{
-		final long now = System.currentTimeMillis();
+	private long localNow;
 
-		listener.trigger(new ListenerListener() { public void reply()
+	private PreviewFragment.LatencyListener localListener = new PreviewFragment.LatencyListener()
+	{
+		@Override
+		public void triggered()
 		{
 			synchronized (latencyLock)
 			{
-				localLatency = System.currentTimeMillis() - now;
+				localLatency = System.currentTimeMillis() - localNow;
 			}
 
 			Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " local check success");
-			done();
-		}});
+		}
+
+		@Override
+		public void done()
+		{
+			Log.d("BluetoothMasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " local check finished");
+
+			synchronized (latencyLock)
+			{
+				localDone = true;
+			}
+
+			GetLatency.this.done();
+		}
+
+		@Override
+		public void fail()
+		{
+			synchronized (latencyLock)
+			{
+				localDone = true;
+			}
+
+			GetLatency.this.done();
+		}
+	};
+
+	private void getLocalLatency(final long delay)
+	{
+		Thread t = new Thread(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				try {Thread.sleep(delay); } catch(InterruptedException e){}
+				localNow = System.currentTimeMillis();
+				target.getLatency(delay, localListener);
+			}
+		});
+		t.setPriority(Thread.MAX_PRIORITY);
+		t.start();
 	}
 
 	private void getRemoteLatency()
@@ -81,6 +127,7 @@ public class GetLatency
 				synchronized (latencyLock)
 				{
 					remoteLatency = latency;
+					remoteDone = true;
 				}
 
 				GetLatency.this.done();
@@ -89,6 +136,11 @@ public class GetLatency
 			@Override
 			public void fail()
 			{
+				synchronized (latencyLock)
+				{
+					remoteDone = true;
+				}
+
 				GetLatency.this.fail();
 			}
 		}));
@@ -114,6 +166,9 @@ public class GetLatency
 	{
 		synchronized (latencyLock)
 		{
+			if (!localDone || !remoteDone)
+				return;
+
 			if (finished)
 				return;
 

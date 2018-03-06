@@ -5,8 +5,12 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -18,17 +22,15 @@ import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.Flip;
-import com.munger.stereocamera.bluetooth.command.master.GetAngleOfView;
-import com.munger.stereocamera.bluetooth.command.master.Ping;
-import com.munger.stereocamera.bluetooth.command.master.SetZoom;
+import com.munger.stereocamera.bluetooth.command.master.commands.Flip;
+import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
+import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
+import com.munger.stereocamera.bluetooth.utility.CalculateSync;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
-import com.munger.stereocamera.bluetooth.utility.GetLatency;
 import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
-import com.munger.stereocamera.bluetooth.utility.WaitForReadyStatus;
-import com.munger.stereocamera.orientation.MasterOrientationCtrl;
-import com.munger.stereocamera.orientation.OrientationCtrl;
-import com.munger.stereocamera.orientation.OrientationWidget;
+import com.munger.stereocamera.bluetooth.utility.RemoteState;
+import com.munger.stereocamera.widget.OrientationWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -37,12 +39,13 @@ import com.munger.stereocamera.orientation.OrientationWidget;
 public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
-	private ImageButton flipButton;
 	private ImageView thumbnailView;
 	private OrientationWidget horizIndicator;
 
 	private BluetoothMasterComm masterComm;
-	private MasterOrientationCtrl gravityCtrl;
+	private RemoteState remoteState;
+
+	private long shutterDelay;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -51,62 +54,97 @@ public class MasterFragment extends PreviewFragment
 		super.onCreateView(rootView);
 
 		clickButton = rootView.findViewById(R.id.shutter);
-		flipButton = rootView.findViewById(R.id.flip);
 		thumbnailView = rootView.findViewById(R.id.thumbnail);
 		horizIndicator = rootView.findViewById(R.id.horiz_level);
-
-		MyApplication.getInstance().getOrientationCtrl().setChangeListener(new OrientationCtrl.ChangeListener()
-		{
-			@Override
-			public void change(float[] values)
-			{
-				float zval = values[0] * values[0] + values[1] * values[1];
-				double azrad = Math.atan2(Math.sqrt(zval), values[2]);
-				double az = azrad * 180.0 / Math.PI;
-
-				horizIndicator.setRotation((float) az - 90.0f);
-			}
-		});
 
 		thumbnailView.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
 			openThumbnail();
 		}});
 
+		shutterDelay = (long) MyApplication.getInstance().getPrefs().getShutterDelay();
 		clickButton.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
 			{
-				new FireShutter(MasterFragment.this).execute(localLatency, remoteLatency);
-			}
-		});
-
-		flipButton.setOnClickListener(new View.OnClickListener()
-		{
-			@Override
-			public void onClick(View view)
-			{
-				doFlip();
-				masterComm.runCommand(new Flip(new Flip.Listener()
-				{
-					@Override
-					public void done()
-					{
-					}
-
-					@Override
-					public void fail()
-					{
-					}
-				}));
+				new FireShutter(MasterFragment.this).execute(shutterDelay);
 			}
 		});
 
 		return rootView;
 	}
 
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
 
+		setHasOptionsMenu(true);
+	}
+
+	private MenuItem flipItem;
+	private MenuItem syncItem;
+
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+	{
+		inflater.inflate(R.menu.master_menu, menu);
+
+		flipItem = menu.findItem(R.id.flip);
+		syncItem = menu.findItem(R.id.sync);
+
+		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		{
+			doFlip();
+
+			masterComm.runCommand(new Flip(new Flip.Listener()
+			{
+				@Override
+				public void done()
+				{
+				}
+
+				@Override
+				public void fail()
+				{
+				}
+			}));
+
+			return true;
+		}});
+
+		syncItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		{
+			doSync();
+
+			return true;
+		}});
+	}
+
+	private void doSync()
+	{
+		CalculateSync sync = new CalculateSync(this, new CalculateSync.Listener()
+		{
+			@Override
+			public void result(long localDelay)
+			{
+				MyApplication.getInstance().getPrefs().setShutterDelay(localDelay);
+			}
+
+			@Override
+			public void fail()
+			{}
+		});
+	}
+
+	private void openThumbnail()
+	{
+		BaseActivity act = MyApplication.getInstance().getCurrentActivity();
+		if (act instanceof MainActivity)
+			((MainActivity) act).startThumbnailView();
+	}
 
 	@Override
 	public void onStart()
@@ -114,15 +152,63 @@ public class MasterFragment extends PreviewFragment
 		super.onStart();
 
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+		remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
+		handler = new Handler(Looper.getMainLooper());
+		remoteState.addListener(remoteListener);
+		remoteState.start();
 	}
+
+	private Handler handler;
+	private RemoteState.Listener remoteListener = new RemoteState.Listener()
+	{
+		@Override
+		public void onStatus(int status)
+		{}
+
+		@Override
+		public void onFov(float horiz, float vert)
+		{}
+
+		@Override
+		public void onZoom(float zoom)
+		{
+			MyApplication.getInstance().getPrefs().setRemoteZoom(zoom);
+		}
+
+		@Override
+		public void onGravity(ReceiveGravity.Gravity value)
+		{
+			float zval = value.x * value.x + value.y * value.y;
+			double azrad = Math.atan2(Math.sqrt(zval), value.z);
+			final double az = azrad * 180.0 / Math.PI;
+
+			handler.post(new Runnable() {public void run()
+			{
+				horizIndicator.setRotation2((float) az - 90.0f);
+			}});
+		}
+	};
+
+	private boolean previewAlreadyStarted = false;
 
 	@Override
 	protected void onPreviewStarted()
 	{
 		super.onPreviewStarted();
 
+		if (previewAlreadyStarted)
+			return;
+		else
+			previewAlreadyStarted = true;
+
 		updateThumbnail();
 		onPreviewStarted1();
+	}
+
+	@Override
+	protected void onZoom(int index)
+	{
+		MyApplication.getInstance().getPrefs().setLocalZoom(index);
 	}
 
 	private void updateThumbnail()
@@ -154,9 +240,6 @@ public class MasterFragment extends PreviewFragment
 
 	private void onPreviewStarted1()
 	{
-		if (remoteLatency != -1 && localLatency != -1)
-			return;
-
 		Log.d(getTag(), "pinging slave phone");
 		masterComm.runCommand(new Ping(new Ping.Listener()
 		{
@@ -179,10 +262,10 @@ public class MasterFragment extends PreviewFragment
 
 	private void onPreviewStarted2()
 	{
-		new WaitForReadyStatus(new WaitForReadyStatus.Listener()
+		remoteState.waitOnReadyAsync(3000, new RemoteState.ReadyListener()
 		{
 			@Override
-			public void done(int status)
+			public void done()
 			{
 				onPreviewStarted3();
 			}
@@ -190,56 +273,25 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void fail()
 			{
-				Log.d(getTag(), "wait for ready failed");
-				Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
-				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+				handler.post(new Runnable() {public void run()
+				{
+					Log.d(getTag(), "slave ready failed");
+					Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
+					((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+				}});
 			}
-		}, 3000).execute();
-
+		});
 	}
 
 	private void onPreviewStarted3()
 	{
-		masterComm.runCommand(new GetAngleOfView(new GetAngleOfView.Listener()
-		{
-			@Override
-			public void done(float horiz, float vert)
-			{
-				if (vert > -1.0f && verticalAngle > -1.0f)
-				{
-					float zoom = calculateZoom(horizontalAngle, horiz);
-
-					if (zoom > 1.0f)
-					{
-						setZoom(null, zoom);
-						onPreviewStarted5();
-					}
-					else
-					{
-						zoom = 1.0f / zoom;
-						onPreviewStarted4(zoom);
-					}
-				}
-				else
-					onPreviewStarted5();
-			}
-
-			@Override
-			public void fail()
-			{
-				Log.d(getTag(), "slave viewAngle failed");
-			}
-		}));
-	}
-
-	private void onPreviewStarted4(double zoom)
-	{
-		masterComm.runCommand(new SetZoom((float) zoom, new SetZoom.Listener()
+		float zoom = MyApplication.getInstance().getPrefs().getRemoteZoom();
+		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
 		{
 			@Override
 			public void done()
 			{
-				onPreviewStarted5();
+
 			}
 
 			@Override
@@ -248,92 +300,5 @@ public class MasterFragment extends PreviewFragment
 				Log.d(getTag(), "slave set zoom failed");
 			}
 		}));
-	}
-
-	final private Object lock = new Object();
-	private boolean shutterFiring = false;
-
-	private void onPreviewStarted5()
-	{
-		synchronized (lock)
-		{
-			if (shutterFiring)
-				try{lock.wait();}catch(InterruptedException e){return;}
-
-			shutterFiring = true;
-		}
-
-		new GetLatency(new GetLatency.Listener()
-		{
-			@Override
-			public void trigger(final GetLatency.ListenerListener listener)
-			{
-				getLatency(new LatencyListener()
-				{
-					@Override
-					public void triggered()
-					{
-						listener.reply();
-					}
-
-					@Override
-					public void done()
-					{
-						synchronized (lock)
-						{
-							shutterFiring = false;
-							lock.notify();
-						}
-					}
-				});
-			}
-
-			@Override
-			public void pong(long localLatency, long remoteLatency)
-			{
-				MasterFragment.this.localLatency = localLatency;
-				MasterFragment.this.remoteLatency = remoteLatency;
-			}
-
-			@Override
-			public void fail()
-			{
-				Log.d(getTag(), "slave latency failed");
-				synchronized (lock)
-				{
-					shutterFiring = false;
-					lock.notify();
-				}
-			}
-		}, 3000).execute();
-
-		synchronized (lock)
-		{
-			if (shutterFiring)
-			{
-				try {lock.wait(2000); } catch(InterruptedException e){}
-				shutterFiring = false;
-			}
-		}
-
-		onPreviewStarted6();
-	}
-
-	private void onPreviewStarted6()
-	{
-		gravityCtrl = new MasterOrientationCtrl(horizIndicator);
-		gravityCtrl.start();
-	}
-
-	private long localLatency = -1;
-	private long remoteLatency = -1;
-
-
-
-	private void openThumbnail()
-	{
-		BaseActivity act = MyApplication.getInstance().getCurrentActivity();
-		if (act instanceof MainActivity)
-			((MainActivity) act).startThumbnailView();
 	}
 }

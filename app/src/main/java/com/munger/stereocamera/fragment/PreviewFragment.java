@@ -1,6 +1,7 @@
 package com.munger.stereocamera.fragment;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
@@ -19,6 +20,8 @@ import android.hardware.Camera.Size;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -53,7 +56,14 @@ public class PreviewFragment extends Fragment
 	protected int cameraId;
 	protected Camera camera;
 
-	public int status;
+	protected ScaleGestureDetector scaleDetector;
+
+	private int status;
+
+	protected void setStatus(int status)
+	{
+		this.status = status;
+	}
 
 	public static final int CREATED = 1;
 	public static final int READY = 2;
@@ -61,7 +71,15 @@ public class PreviewFragment extends Fragment
 
 	public PreviewFragment()
 	{
-		status = CREATED;
+		setStatus(CREATED);
+	}
+
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+
+		currentZoom = MyApplication.getInstance().getPrefs().getLocalZoom();
 	}
 
 	protected void onCreateView(View rootView)
@@ -78,6 +96,7 @@ public class PreviewFragment extends Fragment
 		previewView.setLayoutParams(new RelativeLayout.LayoutParams(w, w));
 	}
 
+	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public void onViewCreated(final View view, Bundle savedInstanceState)
 	{
@@ -129,7 +148,117 @@ public class PreviewFragment extends Fragment
 
 			}
 		});
+
+		scaleDetector = new ScaleGestureDetector(MyApplication.getInstance(), new ScaleDetector());
+
+		previewView.setOnTouchListener(new View.OnTouchListener()
+		{
+			@Override
+			public boolean onTouch(View view, MotionEvent motionEvent)
+			{
+				return scaleDetector.onTouchEvent(motionEvent);
+			}
+		});
 	}
+
+	protected void onZoom(int index)
+	{}
+
+	class ScaleDetector implements  ScaleGestureDetector.OnScaleGestureListener
+	{
+		private float zoom;
+		private float startZoom;
+		private int idx;
+		private int idxMax;
+		private List<Integer> zoomList;
+		private Camera.Parameters parameters;
+		private long startTime;
+
+		@Override
+		public boolean onScale(ScaleGestureDetector scaleGestureDetector)
+		{
+			float factor = scaleGestureDetector.getScaleFactor();
+			float delta = startZoom * (factor - 1.0f);
+			float newZoom = zoom + delta;
+			Log.d("zoom", "new zoom: " + newZoom + " factor: " + factor);
+			int newIdx = idx;
+
+			float possibleZoom = zoomList.get(newIdx);
+			float oldDiff = Math.abs(newZoom - possibleZoom);
+			float newDiff;
+			int bestIdx = idx;
+
+			if (factor < 1.0f)
+			{
+				do
+				{
+					newIdx = Math.max(newIdx - 1, 0);
+					possibleZoom = zoomList.get(newIdx);
+					newDiff = Math.abs(newZoom * 100.0f - possibleZoom);
+
+					if (newDiff < oldDiff)
+						bestIdx = newIdx;
+					else
+						break;
+
+					oldDiff = newDiff;
+				} while(newIdx > 0);
+			}
+			else if (factor > 1.0f)
+			{
+				do
+				{
+					newIdx = Math.min(newIdx + 1, idxMax);
+					possibleZoom = zoomList.get(newIdx);
+					newDiff = Math.abs(newZoom * 100.0f - possibleZoom);
+
+					if (newDiff < oldDiff)
+						bestIdx = newIdx;
+					else
+						break;
+
+					oldDiff = newDiff;
+				} while(newIdx < idxMax - 1);
+			}
+
+			if (bestIdx != idx)
+			{
+				Log.d("zoom", "new zoom index: " + bestIdx);
+				parameters.setZoom(bestIdx);
+				camera.setParameters(parameters);
+
+				float myZoom = (float) zoomList.get(bestIdx) / 100.0f;
+				onZoomUpdated(myZoom);
+			}
+
+			zoom = newZoom;
+
+			return true;
+		}
+
+		@Override
+		public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector)
+		{
+			parameters = camera.getParameters();
+			zoomList = parameters.getZoomRatios();
+			idx = parameters.getZoom();
+			idxMax = parameters.getMaxZoom();
+			zoom = (float) zoomList.get(idx) / 100.0f;
+			startZoom = zoom;
+			startTime = System.currentTimeMillis();
+
+			return true;
+		}
+
+		@Override
+		public void onScaleEnd(ScaleGestureDetector scaleGestureDetector)
+		{
+
+		}
+	}
+
+	protected void onZoomUpdated(float zoom)
+	{}
 
 	@Override
 	public void onDestroy()
@@ -386,7 +515,7 @@ public class PreviewFragment extends Fragment
 
 	protected void onPreviewStarted()
 	{
-		status = READY;
+		setStatus(READY);
 	}
 
 	public static void setCameraDisplayOrientation(int cameraId, android.hardware.Camera camera)
@@ -437,7 +566,7 @@ public class PreviewFragment extends Fragment
 
 			listener = null;
 			camera.startPreview();
-			status = READY;
+			setStatus(READY);
 		}
 	};
 
@@ -452,7 +581,7 @@ public class PreviewFragment extends Fragment
 
 	public void fireShutter(ImageListener listener)
 	{
-		status = BUSY;
+		setStatus(BUSY);
 		this.listener = listener;
 		shutterStart = System.currentTimeMillis();
 		camera.takePicture(shutterCallback, null, null, jpegCallback);
@@ -462,30 +591,52 @@ public class PreviewFragment extends Fragment
 	{
 		void triggered();
 		void done();
+		void fail();
 	}
 
-	public void getLatency(final LatencyListener listener)
+	public void getLatency(final long delay, final LatencyListener listener)
 	{
-		camera.takePicture(
-			new Camera.ShutterCallback()
+		setStatus(BUSY);
+		try{Thread.sleep(delay);} catch (InterruptedException e){}
+
+		Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback()
+		{
+			@Override
+			public void onShutter()
 			{
-				@Override
-				public void onShutter()
-				{
-					listener.triggered();
-				}
-			},
-			null, null,
-			new Camera.PictureCallback()
-			{
-				@Override
-				public void onPictureTaken(byte[] bytes, Camera camera)
-				{
-					camera.startPreview();
-					listener.done();
-				}
+				listener.triggered();
 			}
-		);
+		};
+
+		Camera.PictureCallback pictureCallback = new Camera.PictureCallback()
+		{
+			@Override
+			public void onPictureTaken(byte[] bytes, Camera camera)
+			{
+				for (int i = 0; i < 5; i++)
+				{
+					try
+					{
+						camera.startPreview();
+						break;
+					}
+					catch(RuntimeException e){
+						try{Thread.sleep(300);}catch(InterruptedException e1){}
+					}
+				}
+
+				onPreviewStarted();
+				listener.done();
+			}
+		};
+
+		try
+		{
+			camera.takePicture(shutterCallback,null, null, pictureCallback);
+		}
+		catch(RuntimeException e){
+			listener.fail();
+		}
 	}
 
 	public void doFlip()

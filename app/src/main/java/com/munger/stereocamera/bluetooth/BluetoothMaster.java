@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.utility.RemoteState;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -26,6 +27,7 @@ public class BluetoothMaster
 	private BluetoothCtrl server;
 	private BluetoothDevice targetDevice;
 	private BluetoothSocket targetSocket;
+	private RemoteState remoteState;
 	private Thread connectThread;
 	private BluetoothCtrl.ConnectListener connectListener;
 	private final Object lock = new Object();
@@ -104,7 +106,13 @@ public class BluetoothMaster
 		}
 
 		masterComm = new BluetoothMasterComm(server);
+		remoteState = new RemoteState(masterComm);
 		connectListener.onConnected();
+	}
+
+	public RemoteState getRemoteState()
+	{
+		return remoteState;
 	}
 
 	public void cleanUp()

@@ -23,12 +23,9 @@ import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.bluetooth.Preferences;
 
 import java.util.HashMap;
-
-/**
- * Created by hallmarklabs on 2/22/18.
- */
 
 public class ConnectFragment extends Fragment
 {
@@ -60,16 +57,18 @@ public class ConnectFragment extends Fragment
 	{
 		super.onStart();
 
+		prefs = MyApplication.getInstance().getPrefs();
+
 		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
 				btCtrl = MyApplication.getInstance().getBtCtrl();
-				BluetoothCtrl.Roles role = btCtrl.getLastRole();
-				String deviceName = btCtrl.getLastClient();
+				Preferences.Roles role = prefs.getRole();
+				String deviceName = prefs.getClient();
 
-				if (role == BluetoothCtrl.Roles.MASTER)
+				if (role == Preferences.Roles.MASTER)
 				{
 					if (btCtrl.isMasterConnected())
 					{
@@ -79,7 +78,7 @@ public class ConnectFragment extends Fragment
 					BluetoothDevice device = btCtrl.getDiscoverer().getKnownDevice(deviceName);
 					deviceSelected(device);
 				}
-				else if (role == BluetoothCtrl.Roles.SLAVE)
+				else if (role == Preferences.Roles.SLAVE)
 				{
 					listenForMaster();
 				}
@@ -110,6 +109,7 @@ public class ConnectFragment extends Fragment
 	}
 
 	private BluetoothCtrl btCtrl;
+	private Preferences prefs;
 
 	private DiscoverDialog discoverDialog;
 	private HashMap<String, BluetoothDevice> devices;
@@ -208,8 +208,8 @@ public class ConnectFragment extends Fragment
 					if (discoverDialog != null)
 						discoverDialog.dismiss();
 
-					btCtrl.setLastRole(BluetoothCtrl.Roles.MASTER);
-					btCtrl.setLastClient(device.getName());
+					prefs.setRole(Preferences.Roles.MASTER);
+					prefs.setClient(device.getName());
 
 					BaseActivity act = MyApplication.getInstance().getCurrentActivity();
 					if (act instanceof MainActivity)
@@ -254,8 +254,8 @@ public class ConnectFragment extends Fragment
 				listenDialog.setStatus("Connected");
 				listenDialog.dismiss();
 
-				btCtrl.setLastRole(BluetoothCtrl.Roles.SLAVE);
-				btCtrl.setLastClient(null);
+				prefs.setRole(Preferences.Roles.SLAVE);
+				prefs.setClient(null);
 
 				BaseActivity act = MyApplication.getInstance().getCurrentActivity();
 				if (act instanceof MainActivity)

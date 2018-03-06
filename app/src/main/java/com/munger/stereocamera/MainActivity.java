@@ -1,30 +1,22 @@
 package com.munger.stereocamera;
 
-import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.bluetooth.Preferences;
 import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
-
-import java.util.HashMap;
 
 public class MainActivity extends BaseActivity
 {
@@ -140,9 +132,9 @@ public class MainActivity extends BaseActivity
 	{
 		Log.d("stereoCamera", "bluetooh device disconnected " + device.getName());
 
-		BluetoothCtrl btCtrl = MyApplication.getInstance().getBtCtrl();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 
-		if (btCtrl.getLastRole() == BluetoothCtrl.Roles.SLAVE)
+		if (prefs.getRole() == Preferences.Roles.SLAVE)
 		{
 			popSubViews();
 			firstConnect = true;

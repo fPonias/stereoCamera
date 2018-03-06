@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/flip"
+        android:icon="@drawable/flip_icon_white"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_flip"
+        />
+    <item
+        android:id="@+id/swap"
+        android:icon="@drawable/swap_icon_white"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_swap"
+        />
+    <item
+        android:id="@+id/sync"
+        android:icon="@drawable/sync_icon_white"
+        app:showAsAction="never"
+        android:title="@string/menu_sync"/>
+
+</menu>
