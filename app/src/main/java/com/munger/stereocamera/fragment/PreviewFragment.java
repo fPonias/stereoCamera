@@ -52,7 +52,7 @@ public class PreviewFragment extends Fragment
 	private boolean previewStarted = false;
 
 	protected View rootView;
-	private TextureView previewView;
+	protected TextureView previewView;
 	private SurfaceTexture preview;
 	protected int cameraId;
 	protected Camera camera;
@@ -473,6 +473,16 @@ public class PreviewFragment extends Fragment
 		camera.setParameters(parameters);
 	}
 
+	protected void setZoom(Camera.Parameters parameters, int idx)
+	{
+		if (parameters == null)
+			parameters = camera.getParameters();
+
+		currentZoom = Math.max(0, Math.min(idx, maxZoom));
+		parameters.setZoom(idx);
+		camera.setParameters(parameters);
+	}
+
 	protected void zoom(boolean in)
 	{
 		Camera.Parameters parameters = camera.getParameters();
@@ -491,10 +501,15 @@ public class PreviewFragment extends Fragment
 		camera.setParameters(parameters);
 	}
 
-	private void adjustCrop(Camera.Parameters parameters)
+	protected void adjustCrop(Camera.Parameters parameters)
 	{
 		Camera.Size sz = parameters.getPreviewSize();
 		int preWidth = previewView.getMeasuredWidth();
+
+		ViewGroup.LayoutParams params = previewView.getLayoutParams();
+		params.width = preWidth;
+		params.height = preWidth;
+		previewView.setLayoutParams(params);
 
 		float scaleX = (float) sz.width / (float) preWidth;
 

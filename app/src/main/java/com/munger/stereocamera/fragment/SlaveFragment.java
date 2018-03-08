@@ -3,11 +3,14 @@ package com.munger.stereocamera.fragment;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
@@ -41,12 +44,44 @@ public class SlaveFragment extends PreviewFragment
 		View ret = inflater.inflate(R.layout.fragment_slave, null);
 		super.onCreateView(ret);
 
+		controls = ret.findViewById(R.id.controls);
+		zoomSlider = ret.findViewById(R.id.zoom_slider);
+
+		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
+
 		return ret;
+	}
+
+	private class ZoomListener implements SeekBar.OnSeekBarChangeListener
+	{
+		private boolean touched = false;
+
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+		{
+			if (touched)
+				setZoom(null, i);
+		}
+
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar)
+		{
+			touched = true;
+		}
+
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar)
+		{
+			touched = false;
+		}
 	}
 
 	private BluetoothSlaveComm slaveComm;
 	private byte[] imgBytes;
 	private OrientationCtrl gravityCtrl;
+
+	private ViewGroup controls;
+	private SeekBar zoomSlider;
 
 	private long lastSent = 0;
 	private final Object gravityLock = new Object();
@@ -173,12 +208,31 @@ public class SlaveFragment extends PreviewFragment
 	}
 
 	@Override
+	protected void adjustCrop(Camera.Parameters parameters)
+	{
+		super.adjustCrop(parameters);
+
+		DisplayMetrics dp = new DisplayMetrics();
+		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dp);
+		int preWidth = previewView.getMeasuredWidth();
+		int controlHeight = dp.heightPixels - preWidth;
+
+		ViewGroup.LayoutParams params = controls.getLayoutParams();
+		params.height = controlHeight;
+		params.width = dp.widthPixels;
+
+		controls.setLayoutParams(params);
+	}
+
+	@Override
 	protected void setZoom(Camera.Parameters parameters, float zoom)
 	{
 		if (parameters == null)
 			parameters = camera.getParameters();
 
 		super.setZoom(parameters, zoom);
+
+		zoomSlider.setProgress(currentZoom);
 	}
 
 	private boolean latencyCheckDone = false;
@@ -269,5 +323,8 @@ public class SlaveFragment extends PreviewFragment
 	{
 		super.onPreviewStarted();
 		slaveComm.sendCommand(new SendAngleOfView(verticalAngle, horizontalAngle));
+
+		zoomSlider.setMax(maxZoom);
+		zoomSlider.setProgress(currentZoom);
 	}
 }

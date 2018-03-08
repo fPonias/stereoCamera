@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" android:background="@color/white">
     <TextureView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:id="@+id/preview"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
@@ -14,10 +14,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_below="@id/preview"
-        android:layout_marginTop="20dp"
+        android:layout_below="@+id/preview"
+        android:layout_marginTop="0dp"
+        android:layout_alignParentEnd="true"
+        android:paddingTop="20dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:gravity="center"
-        android:background="@color/white">
-
+        android:background="@color/white"
+        android:id="@+id/controls">
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:src="@drawable/zoom_icon"/>
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:id="@+id/zoom_slider"/>
     </LinearLayout>
 </RelativeLayout>

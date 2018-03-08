@@ -7,6 +7,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 
 public class OrientationCtrl implements SensorEventListener
 {
@@ -23,10 +24,7 @@ public class OrientationCtrl implements SensorEventListener
 
 	public void start()
 	{
-		sensor = mgr.getDefaultSensor(Sensor.TYPE_GRAVITY);
-
-		if (sensor == null)
-			sensor = mgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		sensor = mgr.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
 		mgr.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 	}
@@ -66,5 +64,23 @@ public class OrientationCtrl implements SensorEventListener
 	public float[] getValue()
 	{
 		return currentValues;
+	}
+
+	public static double verticalOrientation(float x, float y, float z)
+	{
+		float zval = x * x + y * y;
+		double azrad = Math.atan2(Math.sqrt(zval), z);
+		final double az = azrad * 180.0 / Math.PI;
+
+		return az;
+	}
+
+	public static double horizontalOrientation(float x, float y, float z)
+	{
+		float xval = y * y + z * z;
+		double axrad = Math.atan2(Math.sqrt(xval), x);
+		final double ax = axrad * 180.0 / Math.PI;
+
+		return ax;
 	}
 }

@@ -4,45 +4,51 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <TextureView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:id="@+id/preview"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
         />
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/preview"
+        android:layout_height="300dp"
+        android:layout_below="@+id/preview"
+        android:paddingTop="10dp"
+        android:id="@+id/controls"
         android:orientation="vertical">
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/shutter_icon"
+            android:id="@+id/shutter"/>
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center">
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/shutter_icon"
-                android:id="@+id/shutter"/>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="10dp"
             android:orientation="horizontal">
+            <com.munger.stereocamera.widget.OrientationWidget
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginRight="10dp"
+                android:id="@+id/vert_level"/>
             <com.munger.stereocamera.widget.OrientationWidget
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:id="@+id/horiz_level"/>
         </LinearLayout>
-    </LinearLayout>
-    <ImageView android:layout_width="120dp"
-        android:layout_height="60dp"
-        android:id="@+id/thumbnail"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="10dp"
-        />
+
+        <ImageView android:layout_width="120dp"
+            android:layout_height="60dp"
+            android:id="@+id/thumbnail"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="10dp"
+            android:layout_alignParentTop="true"
+            />
+    </RelativeLayout>
 
 </RelativeLayout>

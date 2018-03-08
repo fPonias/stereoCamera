@@ -2,10 +2,12 @@ package com.munger.stereocamera.fragment;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -15,6 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
@@ -31,6 +35,7 @@ import com.munger.stereocamera.bluetooth.utility.CalculateSync;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
 import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
 import com.munger.stereocamera.bluetooth.utility.RemoteState;
+import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
 
 /**
@@ -41,7 +46,9 @@ public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
 	private ImageView thumbnailView;
-	private OrientationWidget horizIndicator;
+	private OrientationWidget verticalIndicator;
+	private OrientationWidget horizontalIndicator;
+	private ViewGroup controls;
 
 	private BluetoothMasterComm masterComm;
 	private RemoteState remoteState;
@@ -54,9 +61,12 @@ public class MasterFragment extends PreviewFragment
 		rootView = inflater.inflate(R.layout.fragment_master, container, false);
 		super.onCreateView(rootView);
 
+		controls = rootView.findViewById(R.id.controls);
+
 		clickButton = rootView.findViewById(R.id.shutter);
 		thumbnailView = rootView.findViewById(R.id.thumbnail);
-		horizIndicator = rootView.findViewById(R.id.horiz_level);
+		verticalIndicator = rootView.findViewById(R.id.vert_level);
+		horizontalIndicator = rootView.findViewById(R.id.horiz_level);
 
 		thumbnailView.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
@@ -73,7 +83,26 @@ public class MasterFragment extends PreviewFragment
 			}
 		});
 
+		startLocalGravity();
+
 		return rootView;
+	}
+
+	@Override
+	protected void adjustCrop(Camera.Parameters parameters)
+	{
+		super.adjustCrop(parameters);
+
+		DisplayMetrics dp = new DisplayMetrics();
+		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dp);
+		int preWidth = previewView.getMeasuredWidth();
+		int controlHeight = dp.heightPixels - preWidth;
+
+		ViewGroup.LayoutParams params = controls.getLayoutParams();
+		params.height = controlHeight;
+		params.width = dp.widthPixels;
+
+		controls.setLayoutParams(params);
 	}
 
 	@Override
@@ -151,6 +180,25 @@ public class MasterFragment extends PreviewFragment
 			swapItem.setIcon(R.drawable.hand_phone_white_right);
 	}
 
+	private OrientationCtrl orientationCtrl;
+	private void startLocalGravity()
+	{
+		orientationCtrl = new OrientationCtrl();
+		orientationCtrl.setChangeListener(new OrientationCtrl.ChangeListener()
+		{
+			@Override
+			public void change(float[] values)
+			{
+				final double az = OrientationCtrl.verticalOrientation(values[0], values[1], values[2]);
+				verticalIndicator.setRotation((float) az - 90.0f);
+
+				final double ax = OrientationCtrl.horizontalOrientation(values[0], values[1], values[2]);
+				horizontalIndicator.setRotation((float) ax);
+			}
+		});
+		orientationCtrl.start();
+	}
+
 	private void doSync()
 	{
 		CalculateSync sync = new CalculateSync(this, new CalculateSync.Listener()
@@ -207,13 +255,12 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onGravity(ReceiveGravity.Gravity value)
 		{
-			float zval = value.x * value.x + value.y * value.y;
-			double azrad = Math.atan2(Math.sqrt(zval), value.z);
-			final double az = azrad * 180.0 / Math.PI;
-
+			final double az = OrientationCtrl.verticalOrientation(value.x, value.y, value.z);
+			final double ax = OrientationCtrl.horizontalOrientation(value.x, value.y, value.z);
 			handler.post(new Runnable() {public void run()
 			{
-				horizIndicator.setRotation2((float) az - 90.0f);
+				verticalIndicator.setRotation2((float) az - 90.0f);
+				horizontalIndicator.setRotation2((float) ax);
 			}});
 		}
 	};
