@@ -7,6 +7,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 
 public class OrientationCtrl implements SensorEventListener
@@ -68,6 +69,23 @@ public class OrientationCtrl implements SensorEventListener
 
 	public static double verticalOrientation(float x, float y, float z)
 	{
+		return zOrient(x, y, z);
+	}
+
+	public static double horizontalOrientation(PhotoOrientation orientation, float x, float y, float z)
+	{
+		if (orientation == PhotoOrientation.DEG_0)
+			return xOrient(x, y, z);
+		else if (orientation == PhotoOrientation.DEG_90)
+			return -yOrient(x, y, z);
+		else if (orientation == PhotoOrientation.DEG_180)
+			return -xOrient(x, y, z);
+		else
+			return yOrient(x, y, z);
+	}
+
+	public static double zOrient(float x, float y, float z)
+	{
 		float zval = x * x + y * y;
 		double azrad = Math.atan2(Math.sqrt(zval), z);
 		final double az = azrad * 180.0 / Math.PI;
@@ -75,9 +93,18 @@ public class OrientationCtrl implements SensorEventListener
 		return az;
 	}
 
-	public static double horizontalOrientation(float x, float y, float z)
+	public static double yOrient(float x, float y, float z)
 	{
-		float xval = y * y + z * z;
+		float yval = x * x + z * z;
+		double ayrad = Math.atan2(Math.sqrt(yval), y);
+		final double ay = ayrad * 180.0 / Math.PI;
+
+		return ay;
+	}
+
+	public static double xOrient(float x, float y, float z)
+	{
+		float xval = z * z + y * y;
 		double axrad = Math.atan2(Math.sqrt(xval), x);
 		final double ax = axrad * 180.0 / Math.PI;
 

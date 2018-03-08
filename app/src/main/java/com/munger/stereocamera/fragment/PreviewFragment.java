@@ -18,26 +18,20 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.hardware.Camera.Size;
 import android.view.Display;
-import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.RelativeLayout;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 
 import java.io.IOException;
-import java.security.Policy;
 import java.util.List;
 
 /**
@@ -87,18 +81,13 @@ public class PreviewFragment extends Fragment
 		currentZoom = MyApplication.getInstance().getPrefs().getLocalZoom();
 	}
 
+	protected PhotoOrientation orientation;
+
 	protected void onCreateView(View rootView)
 	{
 		this.rootView = rootView;
 		previewView = rootView.findViewById(R.id.preview);
-
-		Display d = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay();
-		DisplayMetrics m = new DisplayMetrics();
-		d.getMetrics(m);
-
-		int w = m.widthPixels;
-
-		previewView.setLayoutParams(new RelativeLayout.LayoutParams(w, w));
+		orientation = getCurrentOrientation();
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
@@ -503,15 +492,24 @@ public class PreviewFragment extends Fragment
 
 	protected void adjustCrop(Camera.Parameters parameters)
 	{
+		if (orientation.isPortait())
+			adjustCropPortrait(parameters);
+		else
+			adjustCropLandscape(parameters);
+	}
+
+	private void adjustCropPortrait(Camera.Parameters parameters)
+	{
 		Camera.Size sz = parameters.getPreviewSize();
-		int preWidth = previewView.getMeasuredWidth();
 
 		ViewGroup.LayoutParams params = previewView.getLayoutParams();
+
+		int preWidth = previewView.getMeasuredWidth();
 		params.width = preWidth;
 		params.height = preWidth;
 		previewView.setLayoutParams(params);
 
-		float scaleX = (float) sz.width / (float) preWidth;
+		float scaleX = (float) sz.width / (float) params.width;
 
 		if (scaleX < 1)
 			scaleX = 1.0f / scaleX;
@@ -521,17 +519,38 @@ public class PreviewFragment extends Fragment
 		previewView.setTransform(m);
 	}
 
-	public PhotoOrientations getCurrentOrientation()
+	private void adjustCropLandscape(Camera.Parameters parameters)
+	{
+		Camera.Size sz = parameters.getPreviewSize();
+
+		ViewGroup.LayoutParams params = previewView.getLayoutParams();
+
+		int preHeight = previewView.getMeasuredHeight();
+		params.width = preHeight;
+		params.height = preHeight;
+		previewView.setLayoutParams(params);
+
+		float scaleY = (float) sz.height / (float) params.height;
+
+		if (scaleY < 1)
+			scaleY = 1.0f / scaleY;
+
+		Matrix m = new Matrix();
+		m.setScale(scaleY, 1);
+		previewView.setTransform(m);
+	}
+
+	public PhotoOrientation getCurrentOrientation()
 	{
 		int rotation = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
 
 		switch (rotation)
 		{
-			case Surface.ROTATION_0: return PhotoOrientations.DEG_0;
-			case Surface.ROTATION_90: return PhotoOrientations.DEG_90;
-			case Surface.ROTATION_180: return PhotoOrientations.DEG_180;
-			case Surface.ROTATION_270: return PhotoOrientations.DEG_270;
-			default: return PhotoOrientations.DEG_0;
+			case Surface.ROTATION_0: return PhotoOrientation.DEG_0;
+			case Surface.ROTATION_90: return PhotoOrientation.DEG_90;
+			case Surface.ROTATION_180: return PhotoOrientation.DEG_180;
+			case Surface.ROTATION_270: return PhotoOrientation.DEG_270;
+			default: return PhotoOrientation.DEG_0;
 		}
 	}
 

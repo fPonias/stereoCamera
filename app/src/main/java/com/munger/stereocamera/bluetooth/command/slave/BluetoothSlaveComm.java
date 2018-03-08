@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by hallmarklabs on 2/23/18.
@@ -78,27 +80,54 @@ public class BluetoothSlaveComm
 	}
 
 	private boolean pingReceived = false;
-	private ArrayList<SlaveCommand> commandBacklog = new ArrayList<>();
+	private boolean isSending = false;
+	private ConcurrentLinkedQueue<SlaveCommand> commandBacklog = new ConcurrentLinkedQueue<>();
+	private final Object lock = new Object();
 
 	public void sendCommand(SlaveCommand command)
 	{
-		if (!pingReceived)
+		synchronized (lock)
 		{
-			if (command.command == BluetoothCommands.PING)
+			if (pingReceived)
 			{
-				pingReceived = true;
-				sendCommand(command);
-
-				for (SlaveCommand cmd: commandBacklog)
-					sendCommand(cmd);
+				commandBacklog.add(command);
 			}
 			else
-				commandBacklog.add(command);
+			{
+				if (command.command != BluetoothCommands.PING)
+				{
+					commandBacklog.add(command);
+					return;
+				}
+				else
+				{
+					command.setComm(this);
+					outputProcessor.sendCommand(command);
+					pingReceived = true;
+				}
+			}
+
+			if (isSending)
+				return;
+
+			isSending = true;
 		}
-		else
+
+		while (!commandBacklog.isEmpty())
 		{
-			command.setComm(this);
-			outputProcessor.sendCommand(command);
+			try
+			{
+				SlaveCommand cmd = commandBacklog.remove();
+				cmd.setComm(this);
+				outputProcessor.sendCommand(cmd);
+			}
+			catch(NoSuchElementException e){}
+
+		}
+
+		synchronized (lock)
+		{
+			isSending = false;
 		}
 	}
 

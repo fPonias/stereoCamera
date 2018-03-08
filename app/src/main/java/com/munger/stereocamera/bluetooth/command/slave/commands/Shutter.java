@@ -1,7 +1,7 @@
 package com.munger.stereocamera.bluetooth.command.slave.commands;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 
 import java.io.IOException;
@@ -20,14 +20,14 @@ public class Shutter extends SlaveCommand
 	}
 
 	private byte[] imgData;
-	private PhotoOrientations orientation = PhotoOrientations.DEG_0;
+	private PhotoOrientation orientation = PhotoOrientation.DEG_0;
 	private float zoom = 1.0f;
 
 	public void setData(byte[] data)
 	{
 		imgData = data;
 	}
-	public void setOrientation(PhotoOrientations orientation)
+	public void setOrientation(PhotoOrientation orientation)
 	{
 		this.orientation = orientation;
 	}

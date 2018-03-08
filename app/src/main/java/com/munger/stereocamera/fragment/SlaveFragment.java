@@ -6,16 +6,13 @@ import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
@@ -23,13 +20,11 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendOrientation;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.widget.OrientationCtrl;
-
-import java.util.List;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -205,6 +200,8 @@ public class SlaveFragment extends PreviewFragment
 			public void onCommand(SlaveCommand command)
 			{}
 		});
+
+		slaveComm.sendCommand(new SendOrientation(orientation));
 	}
 
 	@Override

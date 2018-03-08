@@ -2,9 +2,11 @@ package com.munger.stereocamera.bluetooth.utility;
 
 import android.util.Log;
 
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAngleOfView;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveOrientation;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveStatus;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveZoom;
 import com.munger.stereocamera.fragment.PreviewFragment;
@@ -18,6 +20,7 @@ public class RemoteState
 	public float horizFov;
 	public float vertFov;
 	public ReceiveGravity.Gravity gravity;
+	public PhotoOrientation orientation;
 
 	public static class Listener
 	{
@@ -25,11 +28,13 @@ public class RemoteState
 		public void onZoom(float zoom) {}
 		public void onFov(float horiz, float vert) {}
 		public void onGravity(ReceiveGravity.Gravity gravity) {}
+		public void onOrientation(PhotoOrientation orientation) {}
 	}
 
 	public RemoteState(BluetoothMasterComm comm)
 	{
 		this.comm = comm;
+		orientation = PhotoOrientation.DEG_0;
 	}
 
 	private BluetoothMasterComm comm;
@@ -111,6 +116,21 @@ public class RemoteState
 			@Override
 			public void fail()
 			{}
+		}));
+
+		comm.registerListener(new ReceiveOrientation(new ReceiveOrientation.Listener()
+		{
+			@Override
+			public void fail()
+			{}
+
+			@Override
+			public void done(PhotoOrientation status)
+			{
+				RemoteState.this.orientation = status;
+				for (Listener listener : listeners)
+					listener.onOrientation(status);
+			}
 		}));
 	}
 

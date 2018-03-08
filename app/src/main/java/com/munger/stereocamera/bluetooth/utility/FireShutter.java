@@ -5,7 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 
 import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
@@ -22,7 +22,7 @@ public class FireShutter
 	private static class PhotoStruct
 	{
 		public byte[] data;
-		public PhotoOrientations orientation;
+		public PhotoOrientation orientation;
 		public float zoom;
 	}
 
@@ -101,7 +101,7 @@ public class FireShutter
 		masterComm.runCommand(new Shutter(new Shutter.Listener()
 		{
 			@Override
-			public void onData(PhotoOrientations orientation, float zoom, byte[] data)
+			public void onData(PhotoOrientation orientation, float zoom, byte[] data)
 			{
 				remoteData = new PhotoStruct();
 				remoteData.orientation = orientation;

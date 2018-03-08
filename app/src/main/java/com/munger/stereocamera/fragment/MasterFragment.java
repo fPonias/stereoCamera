@@ -17,8 +17,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
@@ -26,6 +24,7 @@ import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
@@ -58,7 +57,12 @@ public class MasterFragment extends PreviewFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		rootView = inflater.inflate(R.layout.fragment_master, container, false);
+		orientation = getCurrentOrientation();
+		if (orientation.isPortait())
+			rootView = inflater.inflate(R.layout.fragment_master, container, false);
+		else
+			rootView = inflater.inflate(R.layout.fragment_master_horizontal, container, false);
+
 		super.onCreateView(rootView);
 
 		controls = rootView.findViewById(R.id.controls);
@@ -96,11 +100,21 @@ public class MasterFragment extends PreviewFragment
 		DisplayMetrics dp = new DisplayMetrics();
 		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dp);
 		int preWidth = previewView.getMeasuredWidth();
-		int controlHeight = dp.heightPixels - preWidth;
 
 		ViewGroup.LayoutParams params = controls.getLayoutParams();
-		params.height = controlHeight;
-		params.width = dp.widthPixels;
+
+		if (orientation.isPortait())
+		{
+			int controlHeight = dp.heightPixels - preWidth;
+			params.height = controlHeight;
+			params.width = dp.widthPixels;
+		}
+		else
+		{
+			int controlWidth = dp.widthPixels - preWidth;
+			params.height = dp.heightPixels;
+			params.width = controlWidth;
+		}
 
 		controls.setLayoutParams(params);
 	}
@@ -189,10 +203,10 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void change(float[] values)
 			{
-				final double az = OrientationCtrl.verticalOrientation(values[0], values[1], values[2]);
+				double az = OrientationCtrl.verticalOrientation(values[0], values[1], values[2]);
 				verticalIndicator.setRotation((float) az - 90.0f);
 
-				final double ax = OrientationCtrl.horizontalOrientation(values[0], values[1], values[2]);
+				double ax = OrientationCtrl.horizontalOrientation(orientation, values[0], values[1], values[2]);
 				horizontalIndicator.setRotation((float) ax);
 			}
 		});
@@ -256,13 +270,18 @@ public class MasterFragment extends PreviewFragment
 		public void onGravity(ReceiveGravity.Gravity value)
 		{
 			final double az = OrientationCtrl.verticalOrientation(value.x, value.y, value.z);
-			final double ax = OrientationCtrl.horizontalOrientation(value.x, value.y, value.z);
+			final double ax = OrientationCtrl.horizontalOrientation(remoteState.orientation, value.x, value.y, value.z);
+
 			handler.post(new Runnable() {public void run()
 			{
 				verticalIndicator.setRotation2((float) az - 90.0f);
 				horizontalIndicator.setRotation2((float) ax);
 			}});
 		}
+
+		@Override
+		public void onOrientation(PhotoOrientation orientation)
+		{}
 	};
 
 	private boolean previewAlreadyStarted = false;

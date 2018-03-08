@@ -4,7 +4,7 @@ package com.munger.stereocamera.bluetooth.command;
  * Created by hallmarklabs on 3/7/18.
  */
 
-public enum PhotoOrientations
+public enum PhotoOrientation
 {
 	DEG_0,
 	DEG_90,
@@ -32,6 +32,20 @@ public enum PhotoOrientations
 			case DEG_180: return Math.PI;
 			case DEG_270: return 1.5 * Math.PI;
 			default: return 0;
+		}
+	}
+
+	public boolean isPortait()
+	{
+		switch(this)
+		{
+			case DEG_0:
+			case DEG_180:
+				return true;
+			case DEG_90:
+			case DEG_270:
+			default:
+				return false;
 		}
 	}
 }
