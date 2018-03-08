@@ -9,7 +9,7 @@
         />
     <item
         android:id="@+id/swap"
-        android:icon="@drawable/swap_icon_white"
+        android:icon="@drawable/hand_phone_white"
         app:showAsAction="ifRoom"
         android:title="@string/menu_swap"
         />

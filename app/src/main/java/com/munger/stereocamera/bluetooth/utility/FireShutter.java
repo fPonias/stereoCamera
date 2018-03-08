@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
@@ -18,8 +19,15 @@ public class FireShutter
 	private boolean remoteShutterDone = false;
 	private boolean shutterFiring = false;
 
-	private byte[] localData;
-	private byte[] remoteData;
+	private static class PhotoStruct
+	{
+		public byte[] data;
+		public PhotoOrientations orientation;
+		public float zoom;
+	}
+
+	private PhotoStruct localData;
+	private PhotoStruct remoteData;
 
 	private BluetoothMasterComm masterComm;
 	private PreviewFragment fragment;
@@ -46,6 +54,8 @@ public class FireShutter
 
 	private void fireLocal(final long wait)
 	{
+		localData = new PhotoStruct();
+
 		Thread t = new Thread(new Runnable() {public void run()
 		{
 			try { Thread.sleep(wait); } catch(InterruptedException e){}
@@ -58,6 +68,8 @@ public class FireShutter
 					handleLocal(bytes);
 				}
 			});
+			localData.orientation = fragment.getCurrentOrientation();
+			localData.zoom = fragment.getZoomValue();
 		}});
 		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();
@@ -65,7 +77,8 @@ public class FireShutter
 
 	private void handleLocal(byte[] bytes)
 	{
-		localData = bytes;
+		localData.data = bytes;
+
 		boolean doNext = false;
 
 		synchronized (lock)
@@ -88,9 +101,15 @@ public class FireShutter
 		masterComm.runCommand(new Shutter(new Shutter.Listener()
 		{
 			@Override
-			public void onData(byte[] data)
+			public void onData(PhotoOrientations orientation, float zoom, byte[] data)
 			{
-				remoteData = data;
+				remoteData = new PhotoStruct();
+				remoteData.orientation = orientation;
+				remoteData.zoom = zoom;
+				remoteData.data	= data;
+
+				MyApplication.getInstance().getPrefs().setRemoteZoom(zoom);
+
 				boolean doNext = false;
 
 				synchronized (lock)
@@ -125,9 +144,11 @@ public class FireShutter
 		}));
 	}
 
+	private PhotoFiles photoFiles;
+
 	private void done()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles();
+		photoFiles = new PhotoFiles();
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			@Override
@@ -135,6 +156,15 @@ public class FireShutter
 			{
 				if (localData == null || remoteData == null)
 					return;
+
+				boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
+
+				if (!isOnLeft)
+				{
+					PhotoStruct tmp = remoteData;
+					remoteData = localData;
+					localData = tmp;
+				}
 
 				byte[] merged = processData(localData, remoteData, fragment.isFrontFacing());
 				String name = photoFiles.saveNewFile(merged);
@@ -147,65 +177,74 @@ public class FireShutter
 		});
 	}
 
-	private byte[] processData(byte[] left, byte[] right, boolean flip)
+	private byte[] processData(PhotoStruct left, PhotoStruct right, boolean flip)
 	{
-		Bitmap leftBmp = BitmapFactory.decodeByteArray(left, 0, left.length);
-		Bitmap rightBmp = BitmapFactory.decodeByteArray(right, 0, right.length);
-
 		if (flip)
 		{
-			Bitmap tmp = rightBmp;
-			rightBmp = leftBmp;
-			leftBmp = tmp;
+			PhotoStruct tmp = right;
+			right = left;
+			left = tmp;
 		}
 
-		int h1 = leftBmp.getHeight();
-		int w1 = leftBmp.getWidth();
-		int h2 = rightBmp.getHeight();
-		int w2 = rightBmp.getWidth();
+		Bitmap leftBmp = BitmapFactory.decodeByteArray(left.data, 0, left.data.length);
+		BitmapToFile(leftBmp, "left-1.jpg");
+		Bitmap rightBmp = BitmapFactory.decodeByteArray(right.data, 0, right.data.length);
+		int leftWidth = Math.min(leftBmp.getHeight(), leftBmp.getWidth());
+		int leftHeight = Math.max(leftBmp.getHeight(), leftBmp.getWidth());
+		int rightWidth = Math.min(rightBmp.getHeight(), rightBmp.getWidth());
+		int rightHeight = Math.max(rightBmp.getHeight(), rightBmp.getWidth());
+		int targetDim = Math.max(leftWidth, rightWidth);
+		float leftScale = 1.0f;
+		float rightScale = 1.0f;
 
-		int w = (h1 > h2) ? h1 : h2;
+		if (leftWidth < rightWidth)
+			leftScale = (float) rightWidth / (float) leftWidth;
+		else if (leftWidth > rightWidth)
+			rightScale = (float) leftWidth / (float) rightWidth;
 
-		int degrees = 90;
+		double leftRotate = -left.orientation.toDegress() + 90.0f;
+		double rightRotate = -right.orientation.toDegress() + 90.0f;
 		if (flip)
-			degrees = -degrees;
+		{
+			leftRotate = -leftRotate;
+			rightRotate = -rightRotate;
+		}
 
 		Matrix m1 = new Matrix();
+		m1.postRotate((float) leftRotate);
+		m1.postScale(leftScale, leftScale);
+		leftBmp = Bitmap.createBitmap(leftBmp, 0, 0, leftBmp.getWidth(), leftBmp.getHeight(), m1, true);
+		BitmapToFile(leftBmp, "left-1-manip.jpg");
 
-		if (h1 < h2)
-		{
-			float scale = (float) h2 / (float) h1;
-			m1.postScale(scale, scale);
-		}
+		m1 = new Matrix();
+		m1.postRotate((float) rightRotate);
+		m1.postScale(rightScale, rightScale);
+		rightBmp = Bitmap.createBitmap(rightBmp, 0, 0, rightBmp.getWidth(), rightBmp.getHeight(), m1, true);
 
-		m1.postRotate(degrees);
-		Bitmap leftRotated = Bitmap.createBitmap(leftBmp, 0, 0, h1, h1, m1, true);
 
-		Matrix m2 = new Matrix();
+		Bitmap out = Bitmap.createBitmap(targetDim * 2, targetDim, leftBmp.getConfig());
 
-		if (h2 < h1)
-		{
-			float scale = (float) h1 / (float) h2;
-			m2.postScale(scale, scale);
-		}
+		int[] buffer = new int[targetDim * targetDim];
+		leftBmp.getPixels(buffer, 0, targetDim, 0, 0, targetDim, targetDim);
+		out.setPixels(buffer, 0, targetDim, 0, 0, targetDim, targetDim);
+		leftBmp.recycle();
 
-		m2.postRotate(degrees);
-		Bitmap rightRotated = Bitmap.createBitmap(rightBmp, 0, 0, h2, h2, m2, true);
-
-		Bitmap out = Bitmap.createBitmap(w * 2, w, leftBmp.getConfig());
-
-		int[] buffer = new int[w * w];
-		leftRotated.getPixels(buffer, 0, w, 0, 0, w, w);
-		out.setPixels(buffer, 0, w, 0, 0, w, w);
-		leftRotated.recycle();
-
-		rightRotated.getPixels(buffer, 0, w, 0, 0, w, w);
-		out.setPixels(buffer, 0, w, w, 0, w, w);
-		rightRotated.recycle();
+		rightBmp.getPixels(buffer, 0, targetDim, 0, 0, targetDim, targetDim);
+		out.setPixels(buffer, 0, targetDim, targetDim, 0, targetDim, targetDim);
+		rightBmp.recycle();
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		out.compress(Bitmap.CompressFormat.JPEG, 85, baos);
 		byte[] ret = baos.toByteArray();
 		return ret;
+	}
+
+	private void BitmapToFile(Bitmap out, String name)
+	{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		out.compress(Bitmap.CompressFormat.JPEG, 85, baos);
+		byte[] ret = baos.toByteArray();
+
+		photoFiles.saveFile(name, ret);
 	}
 }

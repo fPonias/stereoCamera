@@ -21,9 +21,10 @@ import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.bluetooth.Preferences;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.commands.Flip;
 import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
+import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
 import com.munger.stereocamera.bluetooth.utility.CalculateSync;
@@ -85,6 +86,7 @@ public class MasterFragment extends PreviewFragment
 
 	private MenuItem flipItem;
 	private MenuItem syncItem;
+	private MenuItem swapItem;
 
 
 	@Override
@@ -94,22 +96,26 @@ public class MasterFragment extends PreviewFragment
 
 		flipItem = menu.findItem(R.id.flip);
 		syncItem = menu.findItem(R.id.sync);
+		swapItem = menu.findItem(R.id.swap);
+
+		updateHandPhoneButton();
 
 		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			doFlip();
+			boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+			isFacing = !isFacing;
+			setFacing(isFacing);
+			MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
 
-			masterComm.runCommand(new Flip(new Flip.Listener()
+			masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
 			{
 				@Override
 				public void done()
-				{
-				}
+				{}
 
 				@Override
 				public void fail()
-				{
-				}
+				{}
 			}));
 
 			return true;
@@ -121,6 +127,28 @@ public class MasterFragment extends PreviewFragment
 
 			return true;
 		}});
+
+		swapItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		{
+			Preferences prefs = MyApplication.getInstance().getPrefs();
+			boolean val = !prefs.getIsOnLeft();
+			prefs.setIsOnLeft(val);
+
+			updateHandPhoneButton();
+
+			return true;
+		}});
+	}
+
+	private void updateHandPhoneButton()
+	{
+		Preferences prefs = MyApplication.getInstance().getPrefs();
+		boolean val = prefs.getIsOnLeft();
+
+		if (val)
+			swapItem.setIcon(R.drawable.hand_phone_white);
+		else
+			swapItem.setIcon(R.drawable.hand_phone_white_right);
 	}
 
 	private void doSync()
@@ -137,6 +165,7 @@ public class MasterFragment extends PreviewFragment
 			public void fail()
 			{}
 		});
+		sync.execute();
 	}
 
 	private void openThumbnail()
@@ -162,7 +191,7 @@ public class MasterFragment extends PreviewFragment
 	private RemoteState.Listener remoteListener = new RemoteState.Listener()
 	{
 		@Override
-		public void onStatus(int status)
+		public void onStatus(PreviewFragment.Status status)
 		{}
 
 		@Override
@@ -285,19 +314,41 @@ public class MasterFragment extends PreviewFragment
 
 	private void onPreviewStarted3()
 	{
-		float zoom = MyApplication.getInstance().getPrefs().getRemoteZoom();
-		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
+		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+		setFacing(isFacing);
+
+		masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
 		{
 			@Override
 			public void done()
 			{
-
+				onPreviewStarted4();
 			}
 
 			@Override
 			public void fail()
 			{
 				Log.d(getTag(), "slave set zoom failed");
+			}
+		}));
+	}
+
+	private void onPreviewStarted4()
+	{
+
+		float zoom = MyApplication.getInstance().getPrefs().getRemoteZoom();
+		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
+		{
+			@Override
+			public void done()
+			{
+				Log.d(getTag(), "setup finish");
+			}
+
+			@Override
+			public void fail()
+			{
+				Log.d(getTag(), "slave set facing failed");
 			}
 		}));
 	}

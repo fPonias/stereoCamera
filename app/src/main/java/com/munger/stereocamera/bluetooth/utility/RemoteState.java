@@ -1,5 +1,7 @@
 package com.munger.stereocamera.bluetooth.utility;
 
+import android.util.Log;
+
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAngleOfView;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
 
 public class RemoteState
 {
-	public int status;
+	public PreviewFragment.Status status;
 	public float zoom;
 	public float horizFov;
 	public float vertFov;
@@ -19,7 +21,7 @@ public class RemoteState
 
 	public static class Listener
 	{
-		public void onStatus(int status) {}
+		public void onStatus(PreviewFragment.Status status) {}
 		public void onZoom(float zoom) {}
 		public void onFov(float horiz, float vert) {}
 		public void onGravity(ReceiveGravity.Gravity gravity) {}
@@ -53,7 +55,7 @@ public class RemoteState
 			{}
 
 			@Override
-			public void done(int status)
+			public void done(PreviewFragment.Status status)
 			{
 				RemoteState.this.status = status;
 
@@ -61,6 +63,8 @@ public class RemoteState
 					listener.onStatus(status);
 			}
 		}));
+
+		listeners.add(readyListener);
 
 		comm.registerListener(new ReceiveAngleOfView(new ReceiveAngleOfView.Listener()
 		{
@@ -114,11 +118,12 @@ public class RemoteState
 	private Listener readyListener = new Listener()
 	{
 		@Override
-		public void onStatus(int status)
+		public void onStatus(PreviewFragment.Status status)
 		{
+			Log.d("Remote State", "status " + status.name() + " received");
 			synchronized (lock)
 			{
-				if (RemoteState.this.status == PreviewFragment.READY)
+				if (RemoteState.this.status == PreviewFragment.Status.READY)
 					lock.notify();
 			}
 		}
@@ -126,24 +131,16 @@ public class RemoteState
 
 	public boolean waitOnReady(long timeout)
 	{
-		if (status == PreviewFragment.READY)
+		if (status == PreviewFragment.Status.READY)
 			return true;
-
-		Thread t = new Thread(new Runnable() { public void run()
-		{
-			listeners.add(readyListener);
-		}});
-		t.start();
 
 		synchronized (lock)
 		{
-			if (status != PreviewFragment.READY)
+			if (status != PreviewFragment.Status.READY)
 				try {lock.wait(timeout);} catch(InterruptedException e){}
 		}
 
-		listeners.remove(readyListener);
-
-		return (status == PreviewFragment.READY);
+		return (status == PreviewFragment.Status.READY);
 	}
 
 	public interface ReadyListener
@@ -163,5 +160,6 @@ public class RemoteState
 			else
 				listener.fail();
 		}});
+		t.start();
 	}
 }

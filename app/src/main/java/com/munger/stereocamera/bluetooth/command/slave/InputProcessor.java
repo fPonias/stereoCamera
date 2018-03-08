@@ -3,9 +3,9 @@ package com.munger.stereocamera.bluetooth.command.slave;
 import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
-import com.munger.stereocamera.bluetooth.command.slave.commands.Flip;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Ping;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 
@@ -74,14 +74,14 @@ public class InputProcessor
 
 		switch(currentAction)
 		{
-			case FLIP:
-				command = new Flip(id);
-				break;
 			case PING:
 				command = new Ping(id);
 				break;
 			case SET_ZOOM:
 				command = new ReceiveZoom(id);
+				break;
+			case SET_FACING:
+				command = new ReceiveFacing(id);
 				break;
 			case FIRE_SHUTTER:
 				command = new Shutter(id);

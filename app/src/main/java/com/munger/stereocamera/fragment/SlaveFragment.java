@@ -3,16 +3,20 @@ package com.munger.stereocamera.fragment;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
@@ -21,6 +25,8 @@ import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.widget.OrientationCtrl;
+
+import java.util.List;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -118,6 +124,16 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
+		slaveComm.addListener(BluetoothCommands.SET_FACING, new BluetoothSlaveComm.Listener()
+		{
+			@Override
+			public void onCommand(SlaveCommand command)
+			{
+				ReceiveFacing facingCommand = (ReceiveFacing) command;
+				SlaveFragment.this.setFacing(facingCommand.getFacing());
+			}
+		});
+
 		slaveComm.addListener(BluetoothCommands.LATENCY_CHECK, new BluetoothSlaveComm.Listener()
 		{
 			@Override
@@ -137,8 +153,14 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public void onCommand(SlaveCommand command)
 			{
+
+				Shutter cmd = (Shutter) command;
+
+				cmd.setOrientation(getCurrentOrientation());
+				cmd.setZoom(getZoomValue());
+
 				byte[] data = doFireShutter();
-				((Shutter) command).setData(data);
+				cmd.setData(data);
 			}
 		});
 
@@ -147,15 +169,6 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public void onCommand(SlaveCommand command)
 			{}
-		});
-
-		slaveComm.addListener(BluetoothCommands.FLIP, new BluetoothSlaveComm.Listener()
-		{
-			@Override
-			public void onCommand(SlaveCommand command)
-			{
-				doFlip();
-			}
 		});
 	}
 
@@ -166,14 +179,6 @@ public class SlaveFragment extends PreviewFragment
 			parameters = camera.getParameters();
 
 		super.setZoom(parameters, zoom);
-	}
-
-	@Override
-	protected void onZoomUpdated(float zoom)
-	{
-		super.onZoomUpdated(zoom);
-
-		slaveComm.sendCommand(new SendZoom(zoom));
 	}
 
 	private boolean latencyCheckDone = false;
@@ -248,12 +253,15 @@ public class SlaveFragment extends PreviewFragment
 	}
 
 	@Override
-	protected void setStatus(int status)
+	protected void setStatus(Status status)
 	{
 		super.setStatus(status);
 
 		if (slaveComm != null)
+		{
+			Log.d("Slave", "sending " + status.name() + " status");
 			slaveComm.sendCommand(new SendStatus(status));
+		}
 	}
 
 	@Override

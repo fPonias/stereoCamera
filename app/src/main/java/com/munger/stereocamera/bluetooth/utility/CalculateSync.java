@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 public class CalculateSync
 {
 	private static int MAX_ATTEMPTS = 10;
-	private static long TIMEOUT = 3000;
+	private static long TIMEOUT = 5000;
 
 	private double[] historyInput;
 	private double[] historyActual;
@@ -88,15 +88,21 @@ public class CalculateSync
 		}
 
 		RemoteState remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
-		boolean ready = remoteState.waitOnReady(TIMEOUT);
-
-		if (ready)
+		remoteState.waitOnReadyAsync(TIMEOUT, new RemoteState.ReadyListener()
 		{
-			GetLatency getLatency = new GetLatency(latencyListener, target, TIMEOUT);
-			getLatency.execute(currentInput);
-		}
-		else
-			listener.fail();
+			@Override
+			public void done()
+			{
+				GetLatency getLatency = new GetLatency(latencyListener, target, TIMEOUT);
+				getLatency.execute(currentInput);
+			}
+
+			@Override
+			public void fail()
+			{
+				listener.fail();
+			}
+		});
 	}
 
 	private long calculateResult()

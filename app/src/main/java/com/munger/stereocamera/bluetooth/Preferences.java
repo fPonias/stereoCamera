@@ -24,6 +24,7 @@ public class Preferences
 	private static final String LOCAL_ZOOM_KEY = "localZoom";
 	private static final String REMOTE_ZOOM_KEY = "remoteZoom";
 	private static final String SIDE_KEY = "side";
+	private static final String FACING_KEY = "facing";
 
 	private SharedPreferences preferences;
 
@@ -33,6 +34,7 @@ public class Preferences
 	private int localZoom = 1;
 	private float remoteZoom = 1;
 	private boolean isOnLeft = true;
+	private boolean isFacing = true;
 
 	public void setup()
 	{
@@ -67,6 +69,30 @@ public class Preferences
 		{
 			float value = preferences.getFloat(SHUTTER_DELAY_KEY, 0.0f);
 			shutterDelay = value;
+		}
+
+		if (preferences.contains(LOCAL_ZOOM_KEY))
+		{
+			int value = preferences.getInt(LOCAL_ZOOM_KEY, 0);
+			localZoom = value;
+		}
+
+		if (preferences.contains(REMOTE_ZOOM_KEY))
+		{
+			float value = preferences.getFloat(REMOTE_ZOOM_KEY, 1.0f);
+			remoteZoom = value;
+		}
+
+		if (preferences.contains(SIDE_KEY))
+		{
+			boolean value = preferences.getBoolean(SIDE_KEY, true);
+			isOnLeft = value;
+		}
+
+		if (preferences.contains(FACING_KEY))
+		{
+			boolean value = preferences.getBoolean(FACING_KEY, true);
+			isFacing = value;
 		}
 	}
 
@@ -137,5 +163,16 @@ public class Preferences
 	{
 		isOnLeft = side;
 		preferences.edit().putBoolean(SIDE_KEY, side).apply();
+	}
+
+	public boolean getIsFacing()
+	{
+		return isFacing;
+	}
+
+	public void setIsFacing(boolean facing)
+	{
+		isFacing = facing;
+		preferences.edit().putBoolean(FACING_KEY, facing).apply();
 	}
 }

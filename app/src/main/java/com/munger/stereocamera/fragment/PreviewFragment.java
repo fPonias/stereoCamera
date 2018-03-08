@@ -34,6 +34,7 @@ import android.widget.RelativeLayout;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
 
 import java.io.IOException;
 import java.security.Policy;
@@ -58,20 +59,24 @@ public class PreviewFragment extends Fragment
 
 	protected ScaleGestureDetector scaleDetector;
 
-	private int status;
+	private Status status;
 
-	protected void setStatus(int status)
+	protected void setStatus(Status status)
 	{
 		this.status = status;
 	}
 
-	public static final int CREATED = 1;
-	public static final int READY = 2;
-	public static final int BUSY = 3;
+	public enum Status
+	{
+		NONE,
+		CREATED,
+		READY,
+		BUSY
+	};
 
 	public PreviewFragment()
 	{
-		setStatus(CREATED);
+		setStatus(Status.CREATED);
 	}
 
 	@Override
@@ -295,18 +300,6 @@ public class PreviewFragment extends Fragment
 		else
 		{
 			currentZoom = 0;
-			cameraId = 0;
-			int sz = Camera.getNumberOfCameras();
-			Camera.CameraInfo info = new Camera.CameraInfo();
-			for (int i = 0; i < sz; i++)
-			{
-				Camera.getCameraInfo(i, info);
-				if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-				{
-					cameraId = i;
-					break;
-				}
-			}
 		}
 	}
 
@@ -513,9 +506,33 @@ public class PreviewFragment extends Fragment
 		previewView.setTransform(m);
 	}
 
+	public PhotoOrientations getCurrentOrientation()
+	{
+		int rotation = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
+
+		switch (rotation)
+		{
+			case Surface.ROTATION_0: return PhotoOrientations.DEG_0;
+			case Surface.ROTATION_90: return PhotoOrientations.DEG_90;
+			case Surface.ROTATION_180: return PhotoOrientations.DEG_180;
+			case Surface.ROTATION_270: return PhotoOrientations.DEG_270;
+			default: return PhotoOrientations.DEG_0;
+		}
+	}
+
+	public float getZoomValue()
+	{
+		Camera.Parameters parameters = camera.getParameters();
+		int zoom = parameters.getZoom();
+		List<Integer> zoomList = parameters.getZoomRatios();
+
+		float ret = zoomList.get(zoom);
+		return ret / 100.0f;
+	}
+
 	protected void onPreviewStarted()
 	{
-		setStatus(READY);
+		setStatus(Status.READY);
 	}
 
 	public static void setCameraDisplayOrientation(int cameraId, android.hardware.Camera camera)
@@ -566,7 +583,7 @@ public class PreviewFragment extends Fragment
 
 			listener = null;
 			camera.startPreview();
-			setStatus(READY);
+			setStatus(Status.READY);
 		}
 	};
 
@@ -581,7 +598,7 @@ public class PreviewFragment extends Fragment
 
 	public void fireShutter(ImageListener listener)
 	{
-		setStatus(BUSY);
+		setStatus(Status.BUSY);
 		this.listener = listener;
 		shutterStart = System.currentTimeMillis();
 		camera.takePicture(shutterCallback, null, null, jpegCallback);
@@ -596,7 +613,7 @@ public class PreviewFragment extends Fragment
 
 	public void getLatency(final long delay, final LatencyListener listener)
 	{
-		setStatus(BUSY);
+		setStatus(Status.BUSY);
 		try{Thread.sleep(delay);} catch (InterruptedException e){}
 
 		Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback()
@@ -639,15 +656,37 @@ public class PreviewFragment extends Fragment
 		}
 	}
 
-	public void doFlip()
+	public void setFacing(boolean facing)
 	{
+		if (isFrontFacing() == facing)
+			return;
+
+		cameraId = 0;
+		int targetFace = (facing) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
+
+
+		int sz = Camera.getNumberOfCameras();
+		Camera.CameraInfo info = new Camera.CameraInfo();
+		for (int i = 0; i < sz; i++)
+		{
+			Camera.getCameraInfo(i, info);
+			if (info.facing == targetFace)
+			{
+				cameraId = i;
+				break;
+			}
+		}
+
+		if (camera != null)
+		{
+			camera.stopPreview();
+			camera.release();
+		}
+
 		synchronized (lock)
 		{
 			previewStarted = false;
 		}
-
-		camera.release();
-		cameraId = cameraId == 0 ? 1 : 0;
 
 		startCamera();
 	}

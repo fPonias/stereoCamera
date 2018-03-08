@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth.command.master.commands;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientations;
 
 import java.io.IOException;
 
@@ -28,6 +29,9 @@ public class Shutter extends MasterCommand
 	@Override
 	public void handleResponse() throws IOException
 	{
+		PhotoOrientations orientation = PhotoOrientations.values()[parent.readInt()];
+		float zoom = parent.readFloat();
+
 		int size = parent.readInt();
 		byte[] imgBuffer = new byte[size];
 		int sz = 0;
@@ -39,12 +43,12 @@ public class Shutter extends MasterCommand
 			sz += read;
 		}
 
-		listener.onData(imgBuffer);
+		listener.onData(orientation, zoom, imgBuffer);
 	}
 
 	public interface Listener
 	{
-		void onData(byte[] data);
+		void onData(PhotoOrientations orientation, float zoom, byte[] data);
 		void fail();
 	}
 }
