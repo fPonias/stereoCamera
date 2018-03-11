@@ -149,18 +149,27 @@ public class RemoteState
 		}
 	};
 
-	public boolean waitOnReady(long timeout)
+	public boolean waitOnStatus(PreviewFragment.Status status, long timeout)
 	{
-		if (status == PreviewFragment.Status.READY)
+		if (this.status == status)
 			return true;
 
-		synchronized (lock)
-		{
-			if (status != PreviewFragment.Status.READY)
-				try {lock.wait(timeout);} catch(InterruptedException e){}
-		}
+		long then = System.currentTimeMillis();
+		long diff = 0;
 
-		return (status == PreviewFragment.Status.READY);
+		do
+		{
+			synchronized (lock)
+			{
+				if (this.status != status)
+					try {lock.wait(timeout - diff);} catch(InterruptedException e){}
+			}
+
+			long now = System.currentTimeMillis();
+			diff = now - then;
+		} while (diff < timeout && status != this.status);
+
+		return (status == this.status);
 	}
 
 	public interface ReadyListener
@@ -169,11 +178,11 @@ public class RemoteState
 		void fail();
 	}
 
-	public void waitOnReadyAsync(final long timeout, final ReadyListener listener)
+	public void waitOnStatusAsync(final PreviewFragment.Status status, final long timeout, final ReadyListener listener)
 	{
 		Thread t = new Thread(new Runnable() { public void run()
 		{
-			boolean success = waitOnReady(timeout);
+			boolean success = waitOnStatus(status, timeout);
 
 			if (success)
 				listener.done();

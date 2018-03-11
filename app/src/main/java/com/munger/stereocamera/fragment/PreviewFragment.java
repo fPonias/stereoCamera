@@ -4,54 +4,25 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Matrix;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.hardware.Camera.Size;
-import android.view.Display;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.Surface;
-import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
-
-import java.io.IOException;
-import java.util.List;
-
-/**
- * Created by hallmarklabs on 2/23/18.
- */
+import com.munger.stereocamera.widget.PreviewWidget;
 
 public class PreviewFragment extends Fragment
 {
-	private final Object lock = new Object();
-	private boolean cameraReady = false;
-	private boolean previewReady = false;
-	private boolean previewStarted = false;
-
 	protected View rootView;
-	protected TextureView previewView;
-	private SurfaceTexture preview;
-	protected int cameraId;
-	protected Camera camera;
-
-	protected ScaleGestureDetector scaleDetector;
+	protected PreviewWidget previewView;
 
 	private Status status;
 
@@ -64,6 +35,7 @@ public class PreviewFragment extends Fragment
 	{
 		NONE,
 		CREATED,
+		LISTENING,
 		READY,
 		BUSY
 	};
@@ -77,202 +49,38 @@ public class PreviewFragment extends Fragment
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
-
-		currentZoom = MyApplication.getInstance().getPrefs().getLocalZoom();
 	}
-
-	protected PhotoOrientation orientation;
 
 	protected void onCreateView(View rootView)
 	{
 		this.rootView = rootView;
 		previewView = rootView.findViewById(R.id.preview);
-		orientation = getCurrentOrientation();
+
+		previewView.setListener(previewListener);
 	}
 
 	@SuppressLint("ClickableViewAccessibility")
 	@Override
 	public void onViewCreated(final View view, Bundle savedInstanceState)
 	{
-		preview = previewView.getSurfaceTexture();
-		previewView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener()
-		{
-			@Override
-			public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1)
-			{
-				preview = surfaceTexture;
-				boolean doLoad = false;
-				synchronized (lock)
-				{
-					previewReady = true;
 
-					if (cameraReady)
-						doLoad = true;
-				}
-
-				if (doLoad)
-					startPreview();
-			}
-
-			@Override
-			public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1)
-			{
-
-			}
-
-			@Override
-			public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture)
-			{
-				preview = null;
-				camera.stopPreview();
-				camera.release();
-
-				synchronized (lock)
-				{
-					previewReady = false;
-					previewStarted = false;
-				}
-
-				return true;
-			}
-
-			@Override
-			public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture)
-			{
-
-			}
-		});
-
-		scaleDetector = new ScaleGestureDetector(MyApplication.getInstance(), new ScaleDetector());
-
-		previewView.setOnTouchListener(new View.OnTouchListener()
-		{
-			@Override
-			public boolean onTouch(View view, MotionEvent motionEvent)
-			{
-				return scaleDetector.onTouchEvent(motionEvent);
-			}
-		});
 	}
-
-	protected void onZoom(int index)
-	{}
-
-	class ScaleDetector implements  ScaleGestureDetector.OnScaleGestureListener
-	{
-		private float zoom;
-		private float startZoom;
-		private int idx;
-		private int idxMax;
-		private List<Integer> zoomList;
-		private Camera.Parameters parameters;
-		private long startTime;
-
-		@Override
-		public boolean onScale(ScaleGestureDetector scaleGestureDetector)
-		{
-			float factor = scaleGestureDetector.getScaleFactor();
-			float delta = startZoom * (factor - 1.0f);
-			float newZoom = zoom + delta;
-			Log.d("zoom", "new zoom: " + newZoom + " factor: " + factor);
-			int newIdx = idx;
-
-			float possibleZoom = zoomList.get(newIdx);
-			float oldDiff = Math.abs(newZoom - possibleZoom);
-			float newDiff;
-			int bestIdx = idx;
-
-			if (factor < 1.0f)
-			{
-				do
-				{
-					newIdx = Math.max(newIdx - 1, 0);
-					possibleZoom = zoomList.get(newIdx);
-					newDiff = Math.abs(newZoom * 100.0f - possibleZoom);
-
-					if (newDiff < oldDiff)
-						bestIdx = newIdx;
-					else
-						break;
-
-					oldDiff = newDiff;
-				} while(newIdx > 0);
-			}
-			else if (factor > 1.0f)
-			{
-				do
-				{
-					newIdx = Math.min(newIdx + 1, idxMax);
-					possibleZoom = zoomList.get(newIdx);
-					newDiff = Math.abs(newZoom * 100.0f - possibleZoom);
-
-					if (newDiff < oldDiff)
-						bestIdx = newIdx;
-					else
-						break;
-
-					oldDiff = newDiff;
-				} while(newIdx < idxMax - 1);
-			}
-
-			if (bestIdx != idx)
-			{
-				Log.d("zoom", "new zoom index: " + bestIdx);
-				parameters.setZoom(bestIdx);
-				camera.setParameters(parameters);
-
-				float myZoom = (float) zoomList.get(bestIdx) / 100.0f;
-				onZoomUpdated(myZoom);
-			}
-
-			zoom = newZoom;
-
-			return true;
-		}
-
-		@Override
-		public boolean onScaleBegin(ScaleGestureDetector scaleGestureDetector)
-		{
-			parameters = camera.getParameters();
-			zoomList = parameters.getZoomRatios();
-			idx = parameters.getZoom();
-			idxMax = parameters.getMaxZoom();
-			zoom = (float) zoomList.get(idx) / 100.0f;
-			startZoom = zoom;
-			startTime = System.currentTimeMillis();
-
-			return true;
-		}
-
-		@Override
-		public void onScaleEnd(ScaleGestureDetector scaleGestureDetector)
-		{
-
-		}
-	}
-
-	protected void onZoomUpdated(float zoom)
-	{}
 
 	@Override
 	public void onDestroy()
 	{
 		super.onDestroy();
 
-		camera.release();
-	}
-
-	@Override
-	public void onStart()
-	{
-		super.onStart();
+		previewView.cleanUp();
 	}
 
 	@Override
 	public void onSaveInstanceState(Bundle outState)
 	{
-		outState.putInt("currentZoom", currentZoom);
-		outState.putInt("cameraId", cameraId);
+		outState.putFloat("currentZoom", previewView.getZoom());
+		outState.putBoolean("facing", previewView.getFacing());
+		outState.putInt("status", status.ordinal());
+
 		super.onSaveInstanceState(outState);
 	}
 
@@ -281,22 +89,19 @@ public class PreviewFragment extends Fragment
 	{
 		super.onViewStateRestored(savedInstanceState);
 
-		if (savedInstanceState != null && savedInstanceState.containsKey("cameraId"))
+		if (savedInstanceState != null && savedInstanceState.containsKey("status"))
 		{
-			cameraId = savedInstanceState.getInt("cameraId");
-			currentZoom = savedInstanceState.getInt("currentZoom");
+			Status oldStatus = Status.values()[savedInstanceState.getInt("status")];
+
+			if (oldStatus == Status.BUSY || oldStatus == Status.READY)
+			{
+				previewView.setZoom(savedInstanceState.getFloat("currentZoom"));
+				previewView.setOrientation(getCurrentOrientation());
+				previewView.setAndStartCamera(savedInstanceState.getBoolean("facing"));
+			}
 		}
 		else
-		{
-			currentZoom = 0;
-		}
-	}
-
-	public boolean isFrontFacing()
-	{
-		Camera.CameraInfo info = new Camera.CameraInfo();
-		Camera.getCameraInfo(cameraId, info);
-		return info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
+		{}
 	}
 
 	@Override
@@ -311,233 +116,18 @@ public class PreviewFragment extends Fragment
 				@Override
 				public void onResult(int resultCode, Intent data)
 				{
-					startCamera();
+					previewView.startPreview();
 				}
 			});
 			return;
 		}
 
-		startCamera();
+		previewView.startPreview();
 	}
 
-	private void startCamera()
+	protected void setZoom(float zoom)
 	{
-		camera = Camera.open(cameraId);
-
-		boolean doLoad = false;
-		synchronized (lock)
-		{
-			cameraReady = true;
-
-			if (previewReady)
-				doLoad = true;
-		}
-
-		if (doLoad)
-			startPreview();
-	}
-
-	protected float horizontalAngle = -1.0f;
-	protected float verticalAngle = -1.0f;
-	protected int minZoom = 0;
-	protected int maxZoom = 0;
-
-	private void startPreview()
-	{
-		new Handler(Looper.getMainLooper()).post(new Runnable() {public void run()
-		{
-			synchronized (lock)
-			{
-				if (previewStarted)
-					return;
-
-				previewStarted = true;
-			}
-
-			try
-			{
-				updatePreviewParameters();
-
-				camera.setPreviewTexture(preview);
-			}
-			catch(IOException e){
-				camera.release();
-				return;
-			}
-
-			camera.startPreview();
-			onPreviewStarted();
-		}});
-	}
-
-	protected void updatePreviewParameters()
-	{
-		setCameraDisplayOrientation(cameraId, camera);
-
-		Camera.Parameters parameters = camera.getParameters();
-		horizontalAngle = parameters.getHorizontalViewAngle();
-		verticalAngle = parameters.getVerticalViewAngle();
-		maxZoom = parameters.getMaxZoom();
-		setSizes(parameters);
-		adjustCrop(parameters);
-		parameters.setZoom(currentZoom);
-		camera.setParameters(parameters);
-	}
-
-	protected void setSizes(Camera.Parameters parameters)
-	{
-		float targetRatio = 640.0f / 480.0f;
-
-		List<Size> sizes = parameters.getSupportedPreviewSizes();
-		Size previewSize = getClosestSize(targetRatio, sizes);
-		parameters.setPreviewSize(previewSize.width, previewSize.height);
-
-		sizes = parameters.getSupportedPictureSizes();
-		Size pictureSize = getClosestSize(targetRatio, sizes);
-		parameters.setPictureSize(pictureSize.width, pictureSize.height);
-	}
-
-	private Size getClosestSize(float targetRatio, List<Size> sizes)
-	{
-		Size closestSize = null;
-		float closestDiff = 0.0f;
-
-		for (Size sz : sizes)
-		{
-			float ratio = (float) sz.width / (float) sz.height;
-			float diff = Math.abs(targetRatio - ratio);
-
-			if (closestSize == null || diff < closestDiff)
-			{
-				closestSize = sz;
-				closestDiff = diff;
-			}
-			else if (Math.abs(diff - closestDiff) < 0.05f && sz.width > closestSize.width)
-			{
-				closestSize = sz;
-				closestDiff = diff;
-			}
-		}
-
-		return closestSize;
-	}
-
-	protected float calculateZoom(float localAngle, float remoteAngle)
-	{
-		float ret = remoteAngle / localAngle;
-
-		return ret;
-	}
-
-	protected int currentZoom = 0;
-
-	protected void setZoom(Camera.Parameters parameters, float zoom)
-	{
-		if (parameters == null)
-			parameters = camera.getParameters();
-
-		zoom *= 100.0f;
-
-		int max = parameters.getMaxZoom();
-		List<Integer> zoomList = parameters.getZoomRatios();
-
-		double lastDiff = 0;
-		int idx = -1;
-		int z = zoomList.size();
-
-		for (int i = 0; i < z; i++)
-		{
-			int zv = zoomList.get(i);
-			double diff = Math.abs(zoom - zv);
-
-			if (i == 0 || diff < lastDiff)
-			{
-				lastDiff = diff;
-				idx = i;
-			}
-		}
-
-		currentZoom = idx;
-		parameters.setZoom(idx);
-		camera.setParameters(parameters);
-	}
-
-	protected void setZoom(Camera.Parameters parameters, int idx)
-	{
-		if (parameters == null)
-			parameters = camera.getParameters();
-
-		currentZoom = Math.max(0, Math.min(idx, maxZoom));
-		parameters.setZoom(idx);
-		camera.setParameters(parameters);
-	}
-
-	protected void zoom(boolean in)
-	{
-		Camera.Parameters parameters = camera.getParameters();
-		int max = parameters.getMaxZoom();
-		int zoom = parameters.getZoom();
-		List<Integer> zoomList = parameters.getZoomRatios();
-
-		if (in)
-			zoom = Math.min(zoom + 1, max);
-		else
-			zoom = Math.max(zoom - 1, 0);
-
-		Log.d("PreviewFragment", "zoom set to index " + zoom + " zoom value " + zoomList.get(zoom));
-		currentZoom = zoom;
-		parameters.setZoom(zoom);
-		camera.setParameters(parameters);
-	}
-
-	protected void adjustCrop(Camera.Parameters parameters)
-	{
-		if (orientation.isPortait())
-			adjustCropPortrait(parameters);
-		else
-			adjustCropLandscape(parameters);
-	}
-
-	private void adjustCropPortrait(Camera.Parameters parameters)
-	{
-		Camera.Size sz = parameters.getPreviewSize();
-
-		ViewGroup.LayoutParams params = previewView.getLayoutParams();
-
-		int preWidth = previewView.getMeasuredWidth();
-		params.width = preWidth;
-		params.height = preWidth;
-		previewView.setLayoutParams(params);
-
-		float scaleX = (float) sz.width / (float) params.width;
-
-		if (scaleX < 1)
-			scaleX = 1.0f / scaleX;
-
-		Matrix m = new Matrix();
-		m.setScale(1, scaleX);
-		previewView.setTransform(m);
-	}
-
-	private void adjustCropLandscape(Camera.Parameters parameters)
-	{
-		Camera.Size sz = parameters.getPreviewSize();
-
-		ViewGroup.LayoutParams params = previewView.getLayoutParams();
-
-		int preHeight = previewView.getMeasuredHeight();
-		params.width = preHeight;
-		params.height = preHeight;
-		previewView.setLayoutParams(params);
-
-		float scaleY = (float) sz.height / (float) params.height;
-
-		if (scaleY < 1)
-			scaleY = 1.0f / scaleY;
-
-		Matrix m = new Matrix();
-		m.setScale(scaleY, 1);
-		previewView.setTransform(m);
+		previewView.setZoom(zoom);
 	}
 
 	public PhotoOrientation getCurrentOrientation()
@@ -556,46 +146,41 @@ public class PreviewFragment extends Fragment
 
 	public float getZoomValue()
 	{
-		Camera.Parameters parameters = camera.getParameters();
-		int zoom = parameters.getZoom();
-		List<Integer> zoomList = parameters.getZoomRatios();
-
-		float ret = zoomList.get(zoom);
-		return ret / 100.0f;
+		return previewView.getZoom();
 	}
+
+	protected PreviewWidget.Listener previewListener = new PreviewWidget.Listener()
+	{
+		@Override
+		public void onZoom(float zoom)
+		{
+			onZoomed();
+		}
+
+		@Override
+		public void onPreviewStarted()
+		{
+			PreviewFragment.this.onPreviewStarted();
+		}
+
+		@Override
+		public void onPreviewStopped()
+		{
+			PreviewFragment.this.onPreviewStopped();
+		}
+	};
+
+	protected void onZoomed()
+	{}
 
 	protected void onPreviewStarted()
 	{
 		setStatus(Status.READY);
 	}
 
-	public static void setCameraDisplayOrientation(int cameraId, android.hardware.Camera camera)
+	protected void onPreviewStopped()
 	{
-		Camera.CameraInfo info = new Camera.CameraInfo();
-		Camera.getCameraInfo(cameraId, info);
-		int rotation = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
-		int degrees = 0;
-
-		switch (rotation)
-		{
-			case Surface.ROTATION_0: degrees = 0; break;
-			case Surface.ROTATION_90: degrees = 90; break;
-			case Surface.ROTATION_180: degrees = 180; break;
-			case Surface.ROTATION_270: degrees = 270; break;
-		}
-
-		int result;
-		if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-		{
-			result = (info.orientation + degrees) % 360;
-			result = (360 - result) % 360;  // compensate the mirror
-		}
-		else
-		{  // back-facing
-			result = (info.orientation - degrees + 360) % 360;
-		}
-
-		camera.setDisplayOrientation(result);
+		setStatus(Status.BUSY);
 	}
 
 	private Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback()
@@ -635,7 +220,7 @@ public class PreviewFragment extends Fragment
 		setStatus(Status.BUSY);
 		this.listener = listener;
 		shutterStart = System.currentTimeMillis();
-		camera.takePicture(shutterCallback, null, null, jpegCallback);
+		previewView.getCamera().takePicture(shutterCallback, null, null, jpegCallback);
 	}
 
 	public interface LatencyListener
@@ -683,7 +268,7 @@ public class PreviewFragment extends Fragment
 
 		try
 		{
-			camera.takePicture(shutterCallback,null, null, pictureCallback);
+			previewView.getCamera().takePicture(shutterCallback,null, null, pictureCallback);
 		}
 		catch(RuntimeException e){
 			listener.fail();
@@ -692,36 +277,11 @@ public class PreviewFragment extends Fragment
 
 	public void setFacing(boolean facing)
 	{
-		if (isFrontFacing() == facing)
-			return;
+		previewView.setAndStartCamera(facing);
+	}
 
-		cameraId = 0;
-		int targetFace = (facing) ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
-
-
-		int sz = Camera.getNumberOfCameras();
-		Camera.CameraInfo info = new Camera.CameraInfo();
-		for (int i = 0; i < sz; i++)
-		{
-			Camera.getCameraInfo(i, info);
-			if (info.facing == targetFace)
-			{
-				cameraId = i;
-				break;
-			}
-		}
-
-		if (camera != null)
-		{
-			camera.stopPreview();
-			camera.release();
-		}
-
-		synchronized (lock)
-		{
-			previewStarted = false;
-		}
-
-		startCamera();
+	public boolean getFacing()
+	{
+		return previewView.getFacing();
 	}
 }

@@ -53,6 +53,7 @@ public class MasterFragment extends PreviewFragment
 	private RemoteState remoteState;
 
 	private long shutterDelay;
+	private PhotoOrientation orientation;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -89,34 +90,12 @@ public class MasterFragment extends PreviewFragment
 
 		startLocalGravity();
 
+		Preferences prefs = MyApplication.getInstance().getPrefs();
+		previewView.setOrientation(orientation);
+		previewView.setZoom(prefs.getLocalZoom());
+		previewView.setAndStartCamera(prefs.getIsFacing());
+
 		return rootView;
-	}
-
-	@Override
-	protected void adjustCrop(Camera.Parameters parameters)
-	{
-		super.adjustCrop(parameters);
-
-		DisplayMetrics dp = new DisplayMetrics();
-		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dp);
-		int preWidth = previewView.getMeasuredWidth();
-
-		ViewGroup.LayoutParams params = controls.getLayoutParams();
-
-		if (orientation.isPortait())
-		{
-			int controlHeight = dp.heightPixels - preWidth;
-			params.height = controlHeight;
-			params.width = dp.widthPixels;
-		}
-		else
-		{
-			int controlWidth = dp.widthPixels - preWidth;
-			params.height = dp.heightPixels;
-			params.width = controlWidth;
-		}
-
-		controls.setLayoutParams(params);
 	}
 
 	@Override
@@ -130,6 +109,7 @@ public class MasterFragment extends PreviewFragment
 	private MenuItem flipItem;
 	private MenuItem syncItem;
 	private MenuItem swapItem;
+	private MenuItem debugItem;
 
 
 	@Override
@@ -140,6 +120,7 @@ public class MasterFragment extends PreviewFragment
 		flipItem = menu.findItem(R.id.flip);
 		syncItem = menu.findItem(R.id.sync);
 		swapItem = menu.findItem(R.id.swap);
+		debugItem = menu.findItem(R.id.test);
 
 		updateHandPhoneButton();
 
@@ -178,6 +159,14 @@ public class MasterFragment extends PreviewFragment
 			prefs.setIsOnLeft(val);
 
 			updateHandPhoneButton();
+
+			return true;
+		}});
+
+		debugItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		{
+			FireShutter fs = new FireShutter(MasterFragment.this);
+			fs.testOldData();
 
 			return true;
 		}});
@@ -301,9 +290,10 @@ public class MasterFragment extends PreviewFragment
 	}
 
 	@Override
-	protected void onZoom(int index)
+	protected void onZoomed()
 	{
-		MyApplication.getInstance().getPrefs().setLocalZoom(index);
+		super.onZoomed();
+		MyApplication.getInstance().getPrefs().setLocalZoom(getZoomValue());
 	}
 
 	private void updateThumbnail()
@@ -348,16 +338,14 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void fail()
 			{
-				Log.d(getTag(), "slave ping failed");
-				Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
-				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+				onSetupFailed();
 			}
 		}));
 	}
 
 	private void onPreviewStarted2()
 	{
-		remoteState.waitOnReadyAsync(3000, new RemoteState.ReadyListener()
+		remoteState.waitOnStatusAsync(Status.LISTENING,3000, new RemoteState.ReadyListener()
 		{
 			@Override
 			public void done()
@@ -368,22 +356,15 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void fail()
 			{
-				handler.post(new Runnable() {public void run()
-				{
-					Log.d(getTag(), "slave ready failed");
-					Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
-					((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
-				}});
+				onSetupFailed();
 			}
 		});
 	}
 
 	private void onPreviewStarted3()
 	{
-		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
-		setFacing(isFacing);
-
-		masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
+		float zoom = MyApplication.getInstance().getPrefs().getRemoteZoom();
+		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
 		{
 			@Override
 			public void done()
@@ -394,28 +375,57 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void fail()
 			{
-				Log.d(getTag(), "slave set zoom failed");
+				onSetupFailed();
 			}
 		}));
 	}
 
 	private void onPreviewStarted4()
 	{
+		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+		setFacing(isFacing);
 
-		float zoom = MyApplication.getInstance().getPrefs().getRemoteZoom();
-		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
+		masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
 		{
 			@Override
 			public void done()
 			{
-				Log.d(getTag(), "setup finish");
+				onPreviewStarted5();
 			}
 
 			@Override
 			public void fail()
 			{
-				Log.d(getTag(), "slave set facing failed");
+				onSetupFailed();
 			}
 		}));
+	}
+
+	private void onPreviewStarted5()
+	{
+		remoteState.waitOnStatusAsync(Status.READY, 3000, new RemoteState.ReadyListener()
+		{
+			@Override
+			public void done()
+			{
+				Log.d(getTag(), "slave ready");
+			}
+
+			@Override
+			public void fail()
+			{
+				onSetupFailed();
+			}
+		});
+	}
+
+	private void onSetupFailed()
+	{
+		handler.post(new Runnable() {public void run()
+		{
+			Log.d(getTag(), "slave setup failed");
+			Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
+			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+		}});
 	}
 }

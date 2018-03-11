@@ -31,7 +31,7 @@ public class Preferences
 	private Roles role = Roles.NONE;
 	private String client = null;
 	private double shutterDelay = 0.0;
-	private int localZoom = 1;
+	private float localZoom = 1;
 	private float remoteZoom = 1;
 	private boolean isOnLeft = true;
 	private boolean isFacing = true;
@@ -73,7 +73,7 @@ public class Preferences
 
 		if (preferences.contains(LOCAL_ZOOM_KEY))
 		{
-			int value = preferences.getInt(LOCAL_ZOOM_KEY, 0);
+			float value = preferences.getFloat(LOCAL_ZOOM_KEY, 1.0f);
 			localZoom = value;
 		}
 
@@ -132,15 +132,15 @@ public class Preferences
 		preferences.edit().putFloat(SHUTTER_DELAY_KEY, (float) value).apply();
 	}
 
-	public int getLocalZoom()
+	public float getLocalZoom()
 	{
 		return localZoom;
 	}
 
-	public void setLocalZoom(int index)
+	public void setLocalZoom(float value)
 	{
-		localZoom = index;
-		preferences.edit().putInt(LOCAL_ZOOM_KEY, index).apply();
+		localZoom = value;
+		preferences.edit().putFloat(LOCAL_ZOOM_KEY, value).apply();
 	}
 
 	public float getRemoteZoom()

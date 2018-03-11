@@ -18,5 +18,9 @@
         android:icon="@drawable/sync_icon_white"
         app:showAsAction="never"
         android:title="@string/menu_sync"/>
+    <item
+        android:id="@+id/test"
+        app:showAsAction="never"
+        android:title="Debug!" />
 
 </menu>

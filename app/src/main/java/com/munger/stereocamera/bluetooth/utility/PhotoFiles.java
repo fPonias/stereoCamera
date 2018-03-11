@@ -193,7 +193,7 @@ public class PhotoFiles
 		}
 	}
 
-	private byte[] loadFile(String name)
+	public byte[] loadFile(String name)
 	{
 		byte[] ret = null;
 		try

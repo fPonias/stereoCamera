@@ -13,6 +13,7 @@ import android.widget.SeekBar;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
@@ -24,6 +25,7 @@ import com.munger.stereocamera.bluetooth.command.slave.senders.SendOrientation;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
 import com.munger.stereocamera.widget.OrientationCtrl;
 
 /**
@@ -32,19 +34,27 @@ import com.munger.stereocamera.widget.OrientationCtrl;
 
 public class SlaveFragment extends PreviewFragment
 {
+	PhotoOrientation orientation;
+
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
 	{
-		View ret = inflater.inflate(R.layout.fragment_slave, null);
-		super.onCreateView(ret);
+		orientation = getCurrentOrientation();
+		if (orientation.isPortait())
+			rootView = inflater.inflate(R.layout.fragment_slave, container, false);
+		else
+			rootView = inflater.inflate(R.layout.fragment_slave_horizontal, container, false);
 
-		controls = ret.findViewById(R.id.controls);
-		zoomSlider = ret.findViewById(R.id.zoom_slider);
+		super.onCreateView(rootView);
+
+		controls = rootView.findViewById(R.id.controls);
+		zoomSlider = rootView.findViewById(R.id.zoom_slider);
 
 		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
+		zoomSlider.setMax(300);
 
-		return ret;
+		return rootView;
 	}
 
 	private class ZoomListener implements SeekBar.OnSeekBarChangeListener
@@ -55,7 +65,10 @@ public class SlaveFragment extends PreviewFragment
 		public void onProgressChanged(SeekBar seekBar, int i, boolean b)
 		{
 			if (touched)
-				setZoom(null, i);
+			{
+				float value = seekToValue(seekBar);
+				setZoom(value);
+			}
 		}
 
 		@Override
@@ -68,7 +81,24 @@ public class SlaveFragment extends PreviewFragment
 		public void onStopTrackingTouch(SeekBar seekBar)
 		{
 			touched = false;
+
+			float value = seekToValue(seekBar);
+			slaveComm.sendCommand(new SendZoom(value));
 		}
+	}
+
+	private float seekToValue(SeekBar bar)
+	{
+		int idx = bar.getProgress();
+		float ret = ((float) idx + 100.0f) / 100.0f;
+		return ret;
+	}
+
+	private void setSeek(SeekBar bar, float zoom)
+	{
+		int idx = (int)(zoom * 100.0f - 100.0f);
+		idx = Math.max(0, Math.min(idx, bar.getMax()));
+		bar.setProgress(idx);
 	}
 
 	private BluetoothSlaveComm slaveComm;
@@ -81,13 +111,6 @@ public class SlaveFragment extends PreviewFragment
 	private long lastSent = 0;
 	private final Object gravityLock = new Object();
 	private boolean sending = false;
-
-
-	@Override
-	protected void updatePreviewParameters()
-	{
-		super.updatePreviewParameters();
-	}
 
 	@Override
 	public void onStart()
@@ -150,7 +173,10 @@ public class SlaveFragment extends PreviewFragment
 			public void onCommand(SlaveCommand command)
 			{
 				ReceiveZoom zoomCommand = (ReceiveZoom) command;
-				SlaveFragment.this.setZoom(null, zoomCommand.getZoom());
+				float zoom = zoomCommand.getZoom();
+				SlaveFragment.this.setZoom(zoom);
+
+				setSeek(zoomSlider, zoom);
 			}
 		});
 
@@ -198,40 +224,18 @@ public class SlaveFragment extends PreviewFragment
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
-			{}
+			{
+				if (!pingReceived)
+					setStatus(Status.LISTENING);
+
+				pingReceived = true;
+			}
 		});
 
 		slaveComm.sendCommand(new SendOrientation(orientation));
 	}
 
-	@Override
-	protected void adjustCrop(Camera.Parameters parameters)
-	{
-		super.adjustCrop(parameters);
-
-		DisplayMetrics dp = new DisplayMetrics();
-		getActivity().getWindowManager().getDefaultDisplay().getMetrics(dp);
-		int preWidth = previewView.getMeasuredWidth();
-		int controlHeight = dp.heightPixels - preWidth;
-
-		ViewGroup.LayoutParams params = controls.getLayoutParams();
-		params.height = controlHeight;
-		params.width = dp.widthPixels;
-
-		controls.setLayoutParams(params);
-	}
-
-	@Override
-	protected void setZoom(Camera.Parameters parameters, float zoom)
-	{
-		if (parameters == null)
-			parameters = camera.getParameters();
-
-		super.setZoom(parameters, zoom);
-
-		zoomSlider.setProgress(currentZoom);
-	}
-
+	private boolean pingReceived = false;
 	private boolean latencyCheckDone = false;
 	private void doLatencyCheck()
 	{
@@ -304,6 +308,12 @@ public class SlaveFragment extends PreviewFragment
 	}
 
 	@Override
+	protected void onZoomed()
+	{
+		setSeek(zoomSlider, getZoomValue());
+	}
+
+	@Override
 	protected void setStatus(Status status)
 	{
 		super.setStatus(status);
@@ -313,15 +323,5 @@ public class SlaveFragment extends PreviewFragment
 			Log.d("Slave", "sending " + status.name() + " status");
 			slaveComm.sendCommand(new SendStatus(status));
 		}
-	}
-
-	@Override
-	protected void onPreviewStarted()
-	{
-		super.onPreviewStarted();
-		slaveComm.sendCommand(new SendAngleOfView(verticalAngle, horizontalAngle));
-
-		zoomSlider.setMax(maxZoom);
-		zoomSlider.setProgress(currentZoom);
 	}
 }

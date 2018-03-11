@@ -251,6 +251,9 @@ public class ConnectFragment extends Fragment
 		{
 			handler.post(new Runnable() {public void run()
 			{
+				if (listenDialog == null)
+					return;
+
 				listenDialog.setStatus("Connected");
 				listenDialog.dismiss();
 
@@ -268,6 +271,9 @@ public class ConnectFragment extends Fragment
 		{
 			handler.post(new Runnable() {public void run()
 			{
+				if (listenDialog == null)
+					return;
+
 				listenDialog.dismiss();
 
 				againDialog = new AlertDialog.Builder(getActivity())

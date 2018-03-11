@@ -88,7 +88,7 @@ public class CalculateSync
 		}
 
 		RemoteState remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
-		remoteState.waitOnReadyAsync(TIMEOUT, new RemoteState.ReadyListener()
+		remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, TIMEOUT, new RemoteState.ReadyListener()
 		{
 			@Override
 			public void done()
