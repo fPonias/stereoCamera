@@ -128,7 +128,32 @@ public class ConnectFragment extends Fragment
 
 	}
 
+	private AlertDialog reconnectDialog;
+
 	private void connectClicked2()
+	{
+		if (prefs.getRole() == Preferences.Roles.MASTER)
+		{
+			reconnectDialog = new AlertDialog.Builder(getActivity())
+					.setTitle(R.string.bluetooth_reconnect_title)
+					.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+					{
+						reconnectDialog.dismiss();
+					}})
+					.setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+					{
+						reconnectDialog.dismiss();
+						connectClicked3();
+					}})
+					.create();
+			reconnectDialog.show();
+			return;
+		}
+
+		connectClicked3();
+	}
+
+	private void connectClicked3()
 	{
 		try
 		{
@@ -146,6 +171,17 @@ public class ConnectFragment extends Fragment
 					devices.put(id, device);
 
 					discoverDialog.addDiscovery(id, name);
+				}
+
+				@Override
+				public void onKnown(BluetoothDevice device)
+				{
+					String id = device.getAddress();
+					String name = device.getName();
+
+					devices.put(id, device);
+
+					discoverDialog.addKnown(id, name);
 				}
 			});
 		}
@@ -199,6 +235,10 @@ public class ConnectFragment extends Fragment
 			}
 
 			@Override
+			public void onDiscoverable()
+			{}
+
+			@Override
 			public void onConnected()
 			{
 				handler.post(new Runnable() {public void run()
@@ -219,9 +259,7 @@ public class ConnectFragment extends Fragment
 
 			@Override
 			public void onDisconnected()
-			{
-
-			}
+			{}
 		});
 	}
 
@@ -237,12 +275,13 @@ public class ConnectFragment extends Fragment
 			public void onSetup()
 			{
 				btCtrl = MyApplication.getInstance().getBtCtrl();
-				listenClicked2();
+				listenAndEnableDiscovery();
 			}
 		});
 	}
 
 	private AlertDialog againDialog;
+	private boolean discovering = false;
 
 	private BluetoothCtrl.ConnectListener listenListener = new BluetoothCtrl.ConnectListener()
 	{
@@ -267,11 +306,23 @@ public class ConnectFragment extends Fragment
 		}
 
 		@Override
-		public void onFailed()
+		public void onDiscoverable()
 		{
 			handler.post(new Runnable() {public void run()
 			{
 				if (listenDialog == null)
+					return;
+
+				listenDialog.setStatus("Discoverable");
+			}});
+		}
+
+		@Override
+		public void onFailed()
+		{
+			handler.post(new Runnable() {public void run()
+			{
+				if (listenDialog == null || againDialog != null)
 					return;
 
 				listenDialog.dismiss();
@@ -282,11 +333,17 @@ public class ConnectFragment extends Fragment
 						.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
 						{
 							againDialog.dismiss();
+							againDialog = null;
 						}})
 						.setPositiveButton(R.string.retry_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
 						{
 							againDialog.dismiss();
-							listenForMaster();
+							againDialog = null;
+
+							if (discovering)
+								listenAndEnableDiscovery();
+							else
+								listenForMaster();
 						}})
 						.create();
 				againDialog.show();
@@ -300,8 +357,11 @@ public class ConnectFragment extends Fragment
 		}
 	};
 
-	private void listenClicked2()
+	private void listenAndEnableDiscovery()
 	{
+		discovering = true;
+		btCtrl.listen(true, listenListener);
+
 		listenDialog = new ListenDialog();
 		listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
 		listenDialog.setStatus("Starting Listener");
@@ -313,8 +373,6 @@ public class ConnectFragment extends Fragment
 				btCtrl.cancelListen();
 			}
 		});
-
-		btCtrl.listen(true, listenListener);
 	}
 
 	public void listenForMaster()
@@ -338,6 +396,7 @@ public class ConnectFragment extends Fragment
 				}
 			});
 
+			discovering = false;
 			btCtrl.listen(false, listenListener);
 			listenDialog.setStatus("Listening");
 			}

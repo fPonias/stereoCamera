@@ -100,6 +100,7 @@ public class BluetoothCtrl
 	public interface ConnectListener
 	{
 		void onFailed();
+		void onDiscoverable();
 		void onConnected();
 		void onDisconnected();
 	}

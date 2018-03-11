@@ -122,20 +122,15 @@ public class PreviewWidget extends TextureView
 			{
 				preview = null;
 
-				if (camera != null)
-				{
-					camera.stopPreview();
-					camera.release();
-				}
+				releaseCamera();
 
 				synchronized (lock)
 				{
 					previewReady = false;
-					previewStarted = false;
-
-					if (listener != null)
-						listener.onPreviewStopped();
 				}
+
+				if (listener != null)
+					listener.onPreviewStopped();
 
 				return true;
 			}

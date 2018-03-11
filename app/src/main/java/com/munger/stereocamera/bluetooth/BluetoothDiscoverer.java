@@ -56,8 +56,20 @@ public class BluetoothDiscoverer
 		}
 	}
 
+	private void sendKnown(BluetoothDevice device)
+	{
+		synchronized (lock)
+		{
+			if (discoverListener == null)
+				return;
+
+			discoverListener.onKnown(device);
+		}
+	}
+
 	public interface DiscoverListener
 	{
+		void onKnown(BluetoothDevice device);
 		void onDiscovered(BluetoothDevice device);
 	}
 
@@ -107,7 +119,7 @@ public class BluetoothDiscoverer
 		Set<BluetoothDevice> devices = parent.getAdapter().getBondedDevices();
 		for (BluetoothDevice device : devices)
 		{
-			sendDevice(device);
+			sendKnown(device);
 		}
 	}
 

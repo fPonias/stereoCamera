@@ -47,14 +47,21 @@ public class BluetoothSlave
 	private void startDiscovery()
 	{
 		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-		discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout / 1000);
+		//timeout isn't working ...
+		//discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout);
 
 		MyApplication.getInstance().getCurrentActivity().startActivityForResult(discoverableIntent, new MainActivity.ResultListener()
 		{
 			@Override
 			public void onResult(int resultCode, Intent data)
 			{
-			listen();
+				if (resultCode == 0)
+					listenListener.onFailed();
+				else
+				{
+					listenListener.onDiscoverable();
+					listen();
+				}
 			}
 		});
 	}

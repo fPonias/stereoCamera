@@ -14,6 +14,7 @@ import com.munger.stereocamera.R;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * Created by hallmarklabs on 2/21/18.
@@ -21,6 +22,12 @@ import java.util.LinkedList;
 
 public class DiscoverDialog extends DialogFragment
 {
+	public DiscoverDialog()
+	{
+		knownListCtrl = new DiscoverDialogList(this);
+		discoveredListCtrl = new DiscoverDialogList(this);
+	}
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
@@ -28,11 +35,15 @@ public class DiscoverDialog extends DialogFragment
 	}
 
 	private View view;
-	public TextView titleView;
-	public ViewGroup listView;
+	public ViewGroup knownView;
+	public ViewGroup discoverView;
 	public Button cancelButton;
+	ActionListener listener;
 
-	private boolean cancelled = false;
+	private DiscoverDialogList knownListCtrl;
+	private DiscoverDialogList discoveredListCtrl;
+
+	boolean cancelled = false;
 
 	@Nullable
 	@Override
@@ -40,11 +51,13 @@ public class DiscoverDialog extends DialogFragment
 	{
 		view = inflater.inflate(R.layout.dialog_discover, container, false);
 
-		titleView = view.findViewById(R.id.title);
-		listView = view.findViewById(R.id.discover_list);
-		cancelButton = view.findViewById(R.id.cancel_button);
+		knownView = view.findViewById(R.id.known_list);
+		knownListCtrl.setTarget(knownView);
 
-		titleView.setText(R.string.discover_title);
+		discoverView = view.findViewById(R.id.discover_list);
+		discoveredListCtrl.setTarget(discoverView);
+
+		cancelButton = view.findViewById(R.id.cancel_button);
 
 		cancelButton.setOnClickListener(new View.OnClickListener()
 		{
@@ -59,16 +72,20 @@ public class DiscoverDialog extends DialogFragment
 			}
 		});
 
-		renderUnrendered();
-
 		return view;
 	}
 
-	private class EntryStruct
+	static class EntryStruct
 	{
 		public String id;
 		public String entry;
 		public TextView view;
+
+		public EntryStruct(String id, String entry)
+		{
+			this.id = id;
+			this.entry = entry;
+		}
 
 		@Override
 		public int hashCode()
@@ -77,59 +94,16 @@ public class DiscoverDialog extends DialogFragment
 		}
 	}
 
-	private HashMap<String, EntryStruct> entries = new HashMap<>();
-	private HashMap<View, EntryStruct> views = new HashMap<>();
-	private ActionListener listener;
-
-	private View.OnClickListener entryListener = new View.OnClickListener()
-	{
-		@Override
-		public void onClick(View view)
-		{
-			if (listener == null)
-				return;
-
-			EntryStruct str = views.get(view);
-			listener.selected(str.id);
-		}
-	};
-
-	private LinkedList<EntryStruct> unrenderedItems = new LinkedList<>();
-
 	public void addDiscovery(String id, String entry)
 	{
-		if (cancelled)
-			return;
-
-		if (entries.containsKey(id))
-		{
-			EntryStruct str = entries.get(id);
-			listView.removeView(str.view);
-			views.remove(str.view);
-		}
-
-
-		EntryStruct newstr = new EntryStruct();
-		newstr.id = id;
-		newstr.entry = entry;
-
-		if (listView == null)
-		{
-			unrenderedItems.add(newstr);
-		}
-		else
-		{
-			renderItem(newstr);
-		}
+		discoveredListCtrl.addEntry(id, entry);
 	}
 
-	private void renderUnrendered()
+	private LinkedList<EntryStruct> pendingKnown = new LinkedList<>();
+
+	public void addKnown(String id, String entry)
 	{
-		while (!unrenderedItems.isEmpty())
-		{
-			EntryStruct str = unrenderedItems.removeFirst();
-			renderItem(str);
-		}
+		knownListCtrl.addEntry(id, entry);
 	}
 
 	@Override
@@ -138,22 +112,6 @@ public class DiscoverDialog extends DialogFragment
 		super.onDismiss(dialog);
 
 		cancelled = true;
-	}
-
-	private void renderItem(EntryStruct str)
-	{
-		if (cancelled)
-			return;
-
-		DiscoverDialogItem tv = (DiscoverDialogItem) getLayoutInflater().inflate(R.layout.dialog_discover_item, listView, false);
-		tv.setText(str.entry);
-		tv.setOnClickListener(entryListener);
-
-		str.view = tv;
-		entries.put(str.id, str);
-		views.put(tv, str);
-
-		listView.addView(tv);
 	}
 
 	public interface ActionListener

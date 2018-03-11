@@ -4,6 +4,7 @@
     <string name="listen_button">Listen to master</string>
     <string name="retry_button">Retry</string>
     <string name="cancel_button">Cancel</string>
+    <string name="discover_known_title">Known Bluetooth Devices</string>
     <string name="discover_title">Discovered Bluetooth Devices</string>
     <string name="yes_button">Yes</string>
     <string name="no_button">No</string>
@@ -17,6 +18,7 @@
     <string name="bluetooth_discovery_failed_error">Bluetooth discovery has failed.</string>
     <string name="bluetooth_connect_failed_error">Bluetooth client connection has failed.</string>
     <string name="bluetooth_connect_success">Bluetooth client connection succeeded.</string>
+    <string name="bluetooth_reconnect_title">Attempt connection to previous slave?</string>
     <string name="bluetooth_listen_failed_error">Bluetooth listen has failed.</string>
     <string name="bluetooth_try_again_message">Listen again for incoming connections?</string>
     <string name="bluetooth_communication_failed_error">Failed to communicate with slave camera.</string>
