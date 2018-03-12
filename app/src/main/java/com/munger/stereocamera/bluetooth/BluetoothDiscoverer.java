@@ -142,13 +142,13 @@ public class BluetoothDiscoverer
 		return null;
 	}
 
-	public BluetoothDevice getKnownDevice(String name)
+	public BluetoothDevice getKnownDevice(String id)
 	{
 		Set<BluetoothDevice> devices = parent.getAdapter().getBondedDevices();
 
 		for(BluetoothDevice device : devices)
 		{
-			if (device.getName().equals(name))
+			if (device.getAddress().equals(id))
 				return device;
 		}
 

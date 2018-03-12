@@ -14,6 +14,7 @@ import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.View;
 
 import com.munger.stereocamera.R;
@@ -44,23 +45,37 @@ public class LoadingWidget extends View
 
 	private void setup()
 	{
+		density = Resources.getSystem().getDisplayMetrics().density;
+
 		glasses = getResources().getDrawable(R.drawable.glasses);
 		glow = getResources().getDrawable(R.drawable.glasses_glow);
 		background = new Paint();
 		background.setStyle(Paint.Style.FILL);
 		background.setColor(Color.argb(200, 255, 255 ,255));
 
+		glassesSz = dpToPx(20);
+
 		circlePaint = new Paint();
 		circlePaint.setStyle(Paint.Style.FILL);
 		circlePaint.setColor(Color.rgb(0, 0 , 0));
+
+		circleBigRadius = dpToPx(30);
+		circleSmallRadius = dpToPx(5);
 
 		textPaint = new Paint();
 		textPaint.setStyle(Paint.Style.STROKE);
 		textPaint.setColor(Color.rgb(0, 0, 0));
 		textPaint.setTextAlign(Paint.Align.CENTER);
-		textPaint.setTextSize(50);
+		textPaint.setTextSize(dpToPx(13));
+
+		textOffset = dpToPx(50);
 
 		start();
+	}
+
+	private int dpToPx(float dp)
+	{
+		return (int) (dp * density);
 	}
 
 	private Runnable invalidateRunnable = new Runnable() { public void run()
@@ -105,6 +120,7 @@ public class LoadingWidget extends View
 	}
 
 	private boolean cancelled = true;
+	private float density;
 
 	public void stop()
 	{

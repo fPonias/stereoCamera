@@ -104,6 +104,8 @@ public class PreviewFragment extends Fragment
 
 		showLoading(false);
 		previewView.cleanUp();
+
+		MyApplication.getInstance().getBtCtrl().cleanUp();
 	}
 
 	@Override

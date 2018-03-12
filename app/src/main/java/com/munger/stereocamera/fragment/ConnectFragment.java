@@ -31,10 +31,14 @@ public class ConnectFragment extends Fragment
 {
 	private Handler handler;
 
-	private TextView statusView;
+	private TextView restoreTitle;
+	private TextView discoverTitle;
 	private Button connectButton;
 	private Button listenButton;
+	private Button discoverButton;
+	private Button listenDiscoverButton;
 	private View view;
+
 
 	@Nullable
 	@Override
@@ -56,46 +60,42 @@ public class ConnectFragment extends Fragment
 	public void onStart()
 	{
 		super.onStart();
-
-		prefs = MyApplication.getInstance().getPrefs();
-
-		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
-		{
-			@Override
-			public void onSetup()
-			{
-				btCtrl = MyApplication.getInstance().getBtCtrl();
-				Preferences.Roles role = prefs.getRole();
-				String deviceName = prefs.getClient();
-
-				if (role == Preferences.Roles.MASTER)
-				{
-					if (btCtrl.isMasterConnected())
-					{
-						return;
-					}
-
-					BluetoothDevice device = btCtrl.getDiscoverer().getKnownDevice(deviceName);
-					deviceSelected(device);
-				}
-				else if (role == Preferences.Roles.SLAVE)
-				{
-					listenForMaster();
-				}
-			}
-		});
 	}
 
 	private void findViews()
 	{
-		statusView = view.findViewById(R.id.statusText);
+		discoverTitle = view.findViewById(R.id.discoverTitle);
+		restoreTitle = view.findViewById(R.id.restoreTitle);
+
 		connectButton = view.findViewById(R.id.connectButton);
 		listenButton = view.findViewById(R.id.listenButton);
+		discoverButton = view.findViewById(R.id.discoverButton);
+		listenDiscoverButton = view.findViewById(R.id.listenDiscoverButton);
 	}
 
 	private void setupViews()
 	{
-		statusView.setText("Idle");
+		prefs = MyApplication.getInstance().getPrefs();
+		Preferences.Roles role = prefs.getRole();
+
+		if (role == Preferences.Roles.MASTER)
+		{
+			restoreTitle.setVisibility(View.VISIBLE);
+			listenButton.setVisibility(View.GONE);
+			connectButton.setVisibility(View.VISIBLE);
+		}
+		else if (role == Preferences.Roles.SLAVE)
+		{
+			restoreTitle.setVisibility(View.VISIBLE);
+			listenButton.setVisibility(View.VISIBLE);
+			connectButton.setVisibility(View.GONE);
+		}
+		else
+		{
+			restoreTitle.setVisibility(View.GONE);
+			listenButton.setVisibility(View.GONE);
+			connectButton.setVisibility(View.GONE);
+		}
 
 		connectButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
 		{
@@ -106,6 +106,24 @@ public class ConnectFragment extends Fragment
 		{
 			listenClicked();
 		}});
+
+		discoverButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				discoverClicked();
+			}
+		});
+
+		listenDiscoverButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				listenDiscoverClicked();
+			}
+		});
 	}
 
 	private BluetoothCtrl btCtrl;
@@ -122,38 +140,31 @@ public class ConnectFragment extends Fragment
 			@Override
 			public void onSetup()
 			{
+				btCtrl = MyApplication.getInstance().getBtCtrl();
+				discoverer = MyApplication.getInstance().getBtCtrl().getDiscoverer();
+				String id = prefs.getClient();
+
+				if (id != null && id.length() > 0)
+					deviceSelected(id);
+			}
+		});
+	}
+
+	private void discoverClicked()
+	{
+		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				connectClicked2();
 			}
 		});
 
 	}
 
-	private AlertDialog reconnectDialog;
-
 	private void connectClicked2()
-	{
-		if (prefs.getRole() == Preferences.Roles.MASTER)
-		{
-			reconnectDialog = new AlertDialog.Builder(getActivity())
-					.setTitle(R.string.bluetooth_reconnect_title)
-					.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
-					{
-						reconnectDialog.dismiss();
-					}})
-					.setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
-					{
-						reconnectDialog.dismiss();
-						connectClicked3();
-					}})
-					.create();
-			reconnectDialog.show();
-			return;
-		}
-
-		connectClicked3();
-	}
-
-	private void connectClicked3()
 	{
 		try
 		{
@@ -212,16 +223,48 @@ public class ConnectFragment extends Fragment
 
 	private void deviceSelected(String id)
 	{
-		discoverer.cancelDiscover();
+		if (discoverer != null)
+			discoverer.cancelDiscover();
 
-		BluetoothDevice device = devices.get(id);
+		BluetoothDevice device;
+		if (devices != null && devices.containsKey(id))
+			device = devices.get(id);
+		else
+			device = discoverer.getKnownDevice(id);
+
+		if (device == null)
+			return;
+
 		deviceSelected(device);
 	}
+
+	private AlertDialog connectDialog;
 
 	public void deviceSelected(final BluetoothDevice device)
 	{
 		if (btCtrl == null)
 			btCtrl = MyApplication.getInstance().getBtCtrl();
+
+		handler.post(new Runnable() {public void run()
+		{
+			if (discoverDialog != null)
+				discoverDialog.dismiss();
+
+			if (device == null)
+				return;
+
+			String message = getResources().getString(R.string.bluetooth_connecting_message) + device.getName();
+			connectDialog = new AlertDialog.Builder(getActivity())
+					.setMessage(message)
+					.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+					{
+						connectDialog.dismiss();
+						connectDialog = null;
+						btCtrl.cancelConnect();
+					}})
+					.create();
+			connectDialog.show();
+		}});
 
 		btCtrl.connect(device, new BluetoothCtrl.ConnectListener()
 		{
@@ -230,6 +273,9 @@ public class ConnectFragment extends Fragment
 			{
 				handler.post(new Runnable() {public void run()
 				{
+					if (connectDialog != null)
+						connectDialog.dismiss();
+
 					Toast.makeText(getActivity(), R.string.bluetooth_connect_failed_error, Toast.LENGTH_LONG).show();
 				}});
 			}
@@ -245,11 +291,11 @@ public class ConnectFragment extends Fragment
 				{
 					Toast.makeText(getActivity(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
 
-					if (discoverDialog != null)
-						discoverDialog.dismiss();
+					if (connectDialog != null)
+						connectDialog.dismiss();
 
 					prefs.setRole(Preferences.Roles.MASTER);
-					prefs.setClient(device.getName());
+					prefs.setClient(device.getAddress());
 
 					BaseActivity act = MyApplication.getInstance().getCurrentActivity();
 					if (act instanceof MainActivity)
@@ -268,6 +314,19 @@ public class ConnectFragment extends Fragment
 	private BluetoothSlave listenSlave = null;
 
 	private void listenClicked()
+	{
+		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				btCtrl = MyApplication.getInstance().getBtCtrl();
+				listenForMaster();
+			}
+		});
+	}
+
+	private void listenDiscoverClicked()
 	{
 		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{

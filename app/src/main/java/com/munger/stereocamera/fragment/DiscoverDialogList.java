@@ -63,6 +63,9 @@ public class DiscoverDialogList
 		if (parent.cancelled)
 			return;
 
+		if (entry == null || entry.trim().length() == 0)
+			return;
+
 		if (target == null)
 		{
 			pending.add(new DiscoverDialog.EntryStruct(id, entry));

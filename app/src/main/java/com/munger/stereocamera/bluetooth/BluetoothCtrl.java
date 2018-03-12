@@ -127,6 +127,17 @@ public class BluetoothCtrl
 		}
 	}
 
+	public void cancelConnect()
+	{
+		synchronized (lock)
+		{
+			if (master != null)
+				master.cleanUp();
+
+			master = null;
+		}
+	}
+
 	public void listen(boolean startDiscovery, ConnectListener listener)
 	{
 		cancelListen();
@@ -154,15 +165,24 @@ public class BluetoothCtrl
 	{
 		synchronized (lock)
 		{
-			if (discoverer.isDiscovering())
+			if (discoverer != null && discoverer.isDiscovering())
 				discoverer.cancelDiscover();
 		}
 	}
 
 	public void cleanUp()
 	{
-		discoverer.cleanUp();
-		slave.cleanUp();
+		if (discoverer != null)
+		{
+			discoverer.cleanUp();
+			discoverer = null;
+		}
+
+		if (slave != null)
+		{
+			slave.cleanUp();
+			slave = null;
+		}
 
 		if (master != null)
 		{
