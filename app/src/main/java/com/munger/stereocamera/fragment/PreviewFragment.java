@@ -7,28 +7,57 @@ import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.view.Surface;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.widget.LoadingWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 public class PreviewFragment extends Fragment
 {
 	protected View rootView;
 	protected PreviewWidget previewView;
+	protected Handler handler;
 
 	private Status status;
 
 	protected void setStatus(Status status)
 	{
 		this.status = status;
+
+		switch (status)
+		{
+			case BUSY:
+				setLoadingMessage("Camera busy");
+				showLoading(true);
+				break;
+			case CREATED:
+				setLoadingMessage("Preview created");
+				showLoading(true);
+				break;
+			case LISTENING:
+				setLoadingMessage("Setting up communication");
+				showLoading(true);
+				break;
+			case PROCESSING:
+				setLoadingMessage("Processing photo data");
+				showLoading(true);
+				break;
+			case READY:
+				setLoadingMessage("Ready");
+				showLoading(false);
+				break;
+		}
 	}
 
 	public enum Status
@@ -36,12 +65,14 @@ public class PreviewFragment extends Fragment
 		NONE,
 		CREATED,
 		LISTENING,
+		PROCESSING,
 		READY,
 		BUSY
 	};
 
 	public PreviewFragment()
 	{
+		handler = new Handler(Looper.getMainLooper());
 		setStatus(Status.CREATED);
 	}
 
@@ -71,6 +102,7 @@ public class PreviewFragment extends Fragment
 	{
 		super.onDestroy();
 
+		showLoading(false);
 		previewView.cleanUp();
 	}
 
@@ -92,6 +124,7 @@ public class PreviewFragment extends Fragment
 		if (savedInstanceState != null && savedInstanceState.containsKey("status"))
 		{
 			Status oldStatus = Status.values()[savedInstanceState.getInt("status")];
+			setStatus(oldStatus);
 
 			if (oldStatus == Status.BUSY || oldStatus == Status.READY)
 			{
@@ -202,7 +235,6 @@ public class PreviewFragment extends Fragment
 
 			listener = null;
 			camera.startPreview();
-			setStatus(Status.READY);
 		}
 	};
 
@@ -283,5 +315,55 @@ public class PreviewFragment extends Fragment
 	public boolean getFacing()
 	{
 		return previewView.getFacing();
+	}
+
+	protected LoadingWidget loadingWidget;
+	protected String loadingMessage = "";
+
+	protected void setLoadingMessage(String message)
+	{
+		this.loadingMessage = message;
+
+		if (loadingWidget != null)
+			loadingWidget.setText(message);
+	}
+
+	protected void showLoading(final boolean loading)
+	{
+		if (!(rootView instanceof ViewGroup))
+			return;
+
+		handler.post(new Runnable() { public void run()
+		{
+			ViewGroup root = (ViewGroup) rootView;
+
+			if (loading)
+			{
+				if (loadingWidget == null)
+					loadingWidget = new LoadingWidget(getContext());
+
+				loadingWidget.start();
+				loadingWidget.setText(loadingMessage);
+
+				if (root.indexOfChild(loadingWidget) == -1)
+				{
+					if (loadingWidget.getParent() != null)
+						((ViewGroup)loadingWidget.getParent()).removeView(loadingWidget);
+
+					root.addView(loadingWidget);
+				}
+			}
+			else
+			{
+				if (loadingWidget == null)
+					return;
+
+				if (root.indexOfChild(loadingWidget) > -1)
+				{
+					loadingWidget.stop();
+					root.removeView(loadingWidget);
+				}
+			}
+		}});
 	}
 }

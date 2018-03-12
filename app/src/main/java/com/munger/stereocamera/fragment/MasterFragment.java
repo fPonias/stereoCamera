@@ -79,14 +79,10 @@ public class MasterFragment extends PreviewFragment
 		}});
 
 		shutterDelay = (long) MyApplication.getInstance().getPrefs().getShutterDelay();
-		clickButton.setOnClickListener(new View.OnClickListener()
+		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
-			@Override
-			public void onClick(View view)
-			{
-				new FireShutter(MasterFragment.this).execute(shutterDelay);
-			}
-		});
+			doShutter();
+		}});
 
 		startLocalGravity();
 
@@ -94,6 +90,8 @@ public class MasterFragment extends PreviewFragment
 		previewView.setOrientation(orientation);
 		previewView.setZoom(prefs.getLocalZoom());
 		previewView.setAndStartCamera(prefs.getIsFacing());
+
+		setStatus(Status.CREATED);
 
 		return rootView;
 	}
@@ -126,6 +124,7 @@ public class MasterFragment extends PreviewFragment
 
 		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
+			setStatus(Status.BUSY);
 			boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
 			isFacing = !isFacing;
 			setFacing(isFacing);
@@ -135,11 +134,15 @@ public class MasterFragment extends PreviewFragment
 			{
 				@Override
 				public void done()
-				{}
+				{
+					setStatus(Status.READY);
+				}
 
 				@Override
 				public void fail()
-				{}
+				{
+					setStatus(Status.READY);
+				}
 			}));
 
 			return true;
@@ -172,6 +175,14 @@ public class MasterFragment extends PreviewFragment
 		}});
 	}
 
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+
+		updateThumbnail();
+	}
+
 	private void updateHandPhoneButton()
 	{
 		Preferences prefs = MyApplication.getInstance().getPrefs();
@@ -202,19 +213,48 @@ public class MasterFragment extends PreviewFragment
 		orientationCtrl.start();
 	}
 
+	private void doShutter()
+	{
+		new FireShutter(MasterFragment.this).execute(shutterDelay, new FireShutter.Listener()
+		{
+			@Override
+			public void onProcessing()
+			{
+				setStatus(Status.PROCESSING);
+			}
+
+			@Override
+			public void done(String path)
+			{
+				setStatus(Status.READY);
+				updateThumbnail();
+			}
+
+			@Override
+			public void fail()
+			{
+				setStatus(Status.READY);
+			}
+		});
+	}
+
 	private void doSync()
 	{
+		setStatus(Status.BUSY);
 		CalculateSync sync = new CalculateSync(this, new CalculateSync.Listener()
 		{
 			@Override
 			public void result(long localDelay)
 			{
 				MyApplication.getInstance().getPrefs().setShutterDelay(localDelay);
+				setStatus(Status.READY);
 			}
 
 			@Override
 			public void fail()
-			{}
+			{
+				setStatus(Status.READY);
+			}
 		});
 		sync.execute();
 	}
@@ -284,6 +324,9 @@ public class MasterFragment extends PreviewFragment
 			return;
 		else
 			previewAlreadyStarted = true;
+
+
+		setStatus(Status.LISTENING);
 
 		updateThumbnail();
 		onPreviewStarted1();
@@ -403,17 +446,19 @@ public class MasterFragment extends PreviewFragment
 
 	private void onPreviewStarted5()
 	{
-		remoteState.waitOnStatusAsync(Status.READY, 3000, new RemoteState.ReadyListener()
+		remoteState.waitOnStatusAsync(Status.READY, 6000, new RemoteState.ReadyListener()
 		{
 			@Override
 			public void done()
 			{
 				Log.d(getTag(), "slave ready");
+				setStatus(Status.READY);
 			}
 
 			@Override
 			public void fail()
 			{
+				Log.d(getTag(), "slave ready timed out");
 				onSetupFailed();
 			}
 		});

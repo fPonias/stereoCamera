@@ -11,6 +11,7 @@ import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 public class FireShutter
 {
@@ -38,13 +39,23 @@ public class FireShutter
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
 	}
 
-	public void execute(final long delay)
+	public interface Listener
+	{
+		void onProcessing();
+		void done(String path);
+		void fail();
+	}
+
+	private Listener listener;
+
+	public void execute(final long delay, final Listener listener)
 	{
 		synchronized (lock)
 		{
 			if (shutterFiring)
 				return;
 
+			this.listener = listener;
 			shutterFiring = true;
 		}
 
@@ -148,6 +159,7 @@ public class FireShutter
 
 	private void done()
 	{
+		listener.onProcessing();
 		photoFiles = new PhotoFiles();
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
@@ -155,7 +167,10 @@ public class FireShutter
 			public void done()
 			{
 				if (localData == null || remoteData == null)
+				{
+					listener.fail();
 					return;
+				}
 
 				boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
 
@@ -173,6 +188,8 @@ public class FireShutter
 
 				byte[] merged = processData(localData, remoteData, fragment.getFacing());
 				name = photoFiles.saveNewFile(merged);
+
+				listener.done(photoFiles.getFilePath(name));
 			}
 		});
 	}
