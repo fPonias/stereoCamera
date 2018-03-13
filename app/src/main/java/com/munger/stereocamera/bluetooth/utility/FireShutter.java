@@ -1,10 +1,14 @@
 package com.munger.stereocamera.bluetooth.utility;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
@@ -78,6 +82,10 @@ public class FireShutter
 				{
 					handleLocal(bytes);
 				}
+
+				@Override
+				public void onFinished()
+				{}
 			});
 			localData.orientation = fragment.getCurrentOrientation();
 			localData.zoom = fragment.getZoomValue();
@@ -191,6 +199,19 @@ public class FireShutter
 
 				listener.done(photoFiles.getFilePath(name));
 			}
+
+			@Override
+			public void fail()
+			{
+				final AlertDialog dialog = new AlertDialog.Builder(fragment.getContext())
+						.setMessage(R.string.thumbnail_filesystem_error)
+						.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							dialogInterface.dismiss();
+						}})
+						.create();
+				dialog.show();
+			}
 		});
 	}
 
@@ -213,6 +234,12 @@ public class FireShutter
 
 				byte[] merged = processData(localData, remoteData, fragment.getFacing());
 				String name = photoFiles.saveNewFile(merged);
+			}
+
+			@Override
+			public void fail()
+			{
+
 			}
 		});
 	}

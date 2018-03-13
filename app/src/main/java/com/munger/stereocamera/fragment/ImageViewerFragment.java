@@ -150,6 +150,11 @@ public class ImageViewerFragment extends Fragment
 				adapter = new ImagePagerAdapter(getFragmentManager(), photoFiles);
 				pager.setAdapter(adapter);
 			}
+
+			@Override
+			public void fail()
+			{
+			}
 		});
 	}
 

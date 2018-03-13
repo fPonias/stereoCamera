@@ -24,6 +24,7 @@ import com.munger.stereocamera.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.widget.ThumbnailWidget;
 
 import java.util.HashMap;
 
@@ -37,6 +38,7 @@ public class ConnectFragment extends Fragment
 	private Button listenButton;
 	private Button discoverButton;
 	private Button listenDiscoverButton;
+	private ThumbnailWidget thumbnail;
 	private View view;
 
 
@@ -62,6 +64,13 @@ public class ConnectFragment extends Fragment
 		super.onStart();
 	}
 
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+		thumbnail.update();
+	}
+
 	private void findViews()
 	{
 		discoverTitle = view.findViewById(R.id.discoverTitle);
@@ -71,6 +80,8 @@ public class ConnectFragment extends Fragment
 		listenButton = view.findViewById(R.id.listenButton);
 		discoverButton = view.findViewById(R.id.discoverButton);
 		listenDiscoverButton = view.findViewById(R.id.listenDiscoverButton);
+
+		thumbnail = view.findViewById(R.id.thumbnail);
 	}
 
 	private void setupViews()
@@ -124,6 +135,12 @@ public class ConnectFragment extends Fragment
 				listenDiscoverClicked();
 			}
 		});
+
+		thumbnail.update();
+		thumbnail.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
+		{
+			thumbnailClicked();
+		}});
 	}
 
 	private BluetoothCtrl btCtrl;
@@ -226,11 +243,12 @@ public class ConnectFragment extends Fragment
 		if (discoverer != null)
 			discoverer.cancelDiscover();
 
+
 		BluetoothDevice device;
 		if (devices != null && devices.containsKey(id))
 			device = devices.get(id);
 		else
-			device = discoverer.getKnownDevice(id);
+			device = btCtrl.getKnownDevice(id);
 
 		if (device == null)
 			return;
@@ -474,5 +492,12 @@ public class ConnectFragment extends Fragment
 			deviceSelected(device);
 			}
 		});
+	}
+
+	private void thumbnailClicked()
+	{
+		BaseActivity act = MyApplication.getInstance().getCurrentActivity();
+		if (act instanceof MainActivity)
+			((MainActivity) act).startThumbnailView();
 	}
 }

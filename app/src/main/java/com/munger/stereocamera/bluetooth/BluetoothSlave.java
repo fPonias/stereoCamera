@@ -50,7 +50,7 @@ public class BluetoothSlave
 		//timeout isn't working ...
 		//discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout);
 
-		MyApplication.getInstance().getCurrentActivity().startActivityForResult(discoverableIntent, new MainActivity.ResultListener()
+		MyApplication.getInstance().getCurrentActivity().startActivityForResult(discoverableIntent, new MainActivity.ActivityResultListener()
 		{
 			@Override
 			public void onResult(int resultCode, Intent data)

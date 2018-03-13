@@ -123,38 +123,6 @@ public class BluetoothDiscoverer
 		}
 	}
 
-	public Set<BluetoothDevice> getKnownDevices()
-	{
-		Set<BluetoothDevice> devices = parent.getAdapter().getBondedDevices();
-		return devices;
-	}
-
-	public BluetoothDevice getKnownDeviceByAddress(String address)
-	{
-		Set<BluetoothDevice> devices = parent.getAdapter().getBondedDevices();
-
-		for(BluetoothDevice device : devices)
-		{
-			if (device.getAddress().equals(address))
-				return device;
-		}
-
-		return null;
-	}
-
-	public BluetoothDevice getKnownDevice(String id)
-	{
-		Set<BluetoothDevice> devices = parent.getAdapter().getBondedDevices();
-
-		for(BluetoothDevice device : devices)
-		{
-			if (device.getAddress().equals(id))
-				return device;
-		}
-
-		return null;
-	}
-
 	public void cancelDiscover()
 	{
 		parent.getAdapter().cancelDiscovery();

@@ -1,6 +1,8 @@
 package com.munger.stereocamera;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.Fragment;
@@ -11,12 +13,25 @@ import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
+import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.bluetooth.BluetoothMaster;
+import com.munger.stereocamera.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
+import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
+import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
+import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendDisconnect;
 import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
+import com.munger.stereocamera.bluetooth.utility.RemoteState;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
+import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
+
+import java.util.List;
 
 public class MainActivity extends BaseActivity
 {
@@ -53,8 +68,46 @@ public class MainActivity extends BaseActivity
 	protected void onStart()
 	{
 		super.onStart();
+
+		FragmentManager ft =getSupportFragmentManager();
+		backStackListener = new BackStackListener(ft);
 	}
 
+	private class BackStackListener implements FragmentManager.OnBackStackChangedListener
+	{
+		public FragmentManager fragmentManager;
+		public int lastCount;
+
+		public BackStackListener(FragmentManager fm)
+		{
+			fragmentManager = fm;
+			lastCount = 0;
+
+			fragmentManager.addOnBackStackChangedListener(this);
+		}
+
+		public void onBackStackChanged()
+		{
+			int newCount = fragmentManager.getBackStackEntryCount();
+
+			if (newCount == 0 && lastCount > 0)
+			{
+				if (masterFragment != null)
+					sendMasterDisconnect();
+				if (slaveFragment != null)
+					sendSlaveDisconnect();
+
+				BluetoothCtrl ctrl = MyApplication.getInstance().getBtCtrl();
+
+				if (ctrl != null)
+					ctrl.cleanUp();
+			}
+
+			lastCount = newCount;
+		}
+	}
+
+	private BackStackListener backStackListener;
 	private Fragment currentFragment;
 	private MasterFragment masterFragment;
 	private SlaveFragment slaveFragment;
@@ -99,6 +152,19 @@ public class MainActivity extends BaseActivity
 				ft.replace(android.R.id.content, imgViewFragment, imgViewFragment.getTag());
 				ft.commit();
 			}
+
+			@Override
+			public void fail()
+			{
+				final AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+						.setMessage(R.string.thumbnail_filesystem_error)
+						.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							dialogInterface.dismiss();
+						}})
+						.create();
+				dialog.show();
+			}
 		});
 	}
 
@@ -119,6 +185,46 @@ public class MainActivity extends BaseActivity
 	{
 		FragmentManager mgr = getSupportFragmentManager();
 		mgr.popBackStack();
+
+		List<Fragment> frags = mgr.getFragments();
+	}
+
+	private void sendMasterDisconnect()
+	{
+		BluetoothCtrl ctrl = MyApplication.getInstance().getBtCtrl();
+		if (ctrl == null)
+			return;
+
+		BluetoothMaster master = ctrl.getMaster();
+		if (master == null)
+			return;
+
+		BluetoothMasterComm comm = master.getComm();
+		if (comm == null)
+			return;
+
+		comm.runCommand(new Disconnect());
+
+		master.cleanUp();
+	}
+
+	private void sendSlaveDisconnect()
+	{
+		BluetoothCtrl ctrl = MyApplication.getInstance().getBtCtrl();
+		if (ctrl == null)
+			return;
+
+		BluetoothSlave slave = ctrl.getSlave();
+		if (slave == null)
+			return;
+
+		BluetoothSlaveComm comm = slave.getComm();
+		if (comm == null)
+			return;
+
+		comm.sendCommand(new SendDisconnect());
+
+		slave.cleanUp();
 	}
 
 	private boolean firstConnect = true;

@@ -36,6 +36,7 @@ import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
 import com.munger.stereocamera.bluetooth.utility.RemoteState;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
+import com.munger.stereocamera.widget.ThumbnailWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -44,7 +45,7 @@ import com.munger.stereocamera.widget.OrientationWidget;
 public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
-	private ImageView thumbnailView;
+	private ThumbnailWidget thumbnailView;
 	private OrientationWidget verticalIndicator;
 	private OrientationWidget horizontalIndicator;
 	private ViewGroup controls;
@@ -180,7 +181,7 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onResume();
 
-		updateThumbnail();
+		thumbnailView.update();
 	}
 
 	private void updateHandPhoneButton()
@@ -227,7 +228,7 @@ public class MasterFragment extends PreviewFragment
 			public void done(String path)
 			{
 				setStatus(Status.READY);
-				updateThumbnail();
+				thumbnailView.update();
 			}
 
 			@Override
@@ -311,6 +312,12 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onOrientation(PhotoOrientation orientation)
 		{}
+
+		@Override
+		public void onDisconnect()
+		{
+			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+		}
 	};
 
 	private boolean previewAlreadyStarted = false;
@@ -328,7 +335,7 @@ public class MasterFragment extends PreviewFragment
 
 		setStatus(Status.LISTENING);
 
-		updateThumbnail();
+		thumbnailView.update();
 		onPreviewStarted1();
 	}
 
@@ -337,33 +344,6 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onZoomed();
 		MyApplication.getInstance().getPrefs().setLocalZoom(getZoomValue());
-	}
-
-	private void updateThumbnail()
-	{
-		final PhotoFiles photoFiles = new PhotoFiles();
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
-				{
-					String max = photoFiles.getNewestFile().getPath();
-
-					if (max == null)
-					{
-						thumbnailView.setImageDrawable(null);
-						return;
-					}
-					else
-					{
-						Bitmap bmp = BitmapFactory.decodeFile(photoFiles.getFilePath(max));
-						thumbnailView.setImageBitmap(bmp);
-					}
-				}});
-			}
-		});
 	}
 
 	private void onPreviewStarted1()

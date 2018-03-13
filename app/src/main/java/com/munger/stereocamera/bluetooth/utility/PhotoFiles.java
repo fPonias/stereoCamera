@@ -31,18 +31,22 @@ public class PhotoFiles
 	public interface Listener
 	{
 		void done();
+		void fail();
 	}
 
 	public void checkPermissions(final Listener listener)
 	{
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, new MainActivity.ResultListener()
+			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.WRITE_EXTERNAL_STORAGE, new MainActivity.PermissionResultListener()
 			{
 				@Override
-				public void onResult(int resultCode, Intent data)
+				public void onResult(int resultCode)
 				{
-					listener.done();
+					if (resultCode != -1)
+						listener.done();
+					else
+						listener.fail();
 				}
 			});
 			return;
@@ -62,6 +66,12 @@ public class PhotoFiles
 			{
 				targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
 				listener.done();
+			}
+
+			@Override
+			public void fail()
+			{
+				listener.fail();
 			}
 		});
 	}

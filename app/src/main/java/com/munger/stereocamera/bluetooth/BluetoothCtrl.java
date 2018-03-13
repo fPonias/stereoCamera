@@ -67,7 +67,7 @@ public class BluetoothCtrl
 		if (!adapter.isEnabled())
 		{
 			Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			a.startActivityForResult(i, new MainActivity.ResultListener()
+			a.startActivityForResult(i, new MainActivity.ActivityResultListener()
 			{
 				@Override
 				public void onResult(int resultCode, Intent data)
@@ -80,10 +80,10 @@ public class BluetoothCtrl
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(parent, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
 		{
-			a.requestPermissionForResult(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, new MainActivity.ResultListener()
+			a.requestPermissionForResult(Manifest.permission.ACCESS_COARSE_LOCATION, new MainActivity.PermissionResultListener()
 			{
 				@Override
-				public void onResult(int resultCode, Intent data)
+				public void onResult(int resultCode)
 				{
 					setup(listener);
 				}
@@ -223,4 +223,37 @@ public class BluetoothCtrl
 
 	public static class BluetoothNotSupportedException extends Exception {}
 	public static class BluetoothDiscoveryFailedException extends Exception {}
+
+
+	public Set<BluetoothDevice> getKnownDevices()
+	{
+		Set<BluetoothDevice> devices = getAdapter().getBondedDevices();
+		return devices;
+	}
+
+	public BluetoothDevice getKnownDeviceByAddress(String address)
+	{
+		Set<BluetoothDevice> devices = getAdapter().getBondedDevices();
+
+		for(BluetoothDevice device : devices)
+		{
+			if (device.getAddress().equals(address))
+				return device;
+		}
+
+		return null;
+	}
+
+	public BluetoothDevice getKnownDevice(String id)
+	{
+		Set<BluetoothDevice> devices = getAdapter().getBondedDevices();
+
+		for(BluetoothDevice device : devices)
+		{
+			if (device.getAddress().equals(id))
+				return device;
+		}
+
+		return null;
+	}
 }

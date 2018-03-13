@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
@@ -232,6 +233,11 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
+		slaveComm.addListener(BluetoothCommands.DISCONNECT, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		{
+			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+		}});
+
 		slaveComm.sendCommand(new SendOrientation(orientation));
 	}
 
@@ -295,6 +301,12 @@ public class SlaveFragment extends PreviewFragment
 					imgBytes = bytes;
 					lock.notify();
 				}
+			}
+
+			@Override
+			public void onFinished()
+			{
+				setStatus(Status.READY);
 			}
 		});
 

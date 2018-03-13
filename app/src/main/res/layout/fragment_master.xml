@@ -16,6 +16,7 @@
         android:layout_below="@+id/preview"
         android:paddingTop="10dp"
         android:id="@+id/controls"
+        android:background="@color/white"
         android:orientation="vertical">
         <ImageButton
             android:layout_width="50dp"
@@ -31,18 +32,41 @@
             android:layout_alignParentEnd="true"
             android:layout_marginEnd="10dp"
             android:orientation="horizontal">
-            <com.munger.stereocamera.widget.OrientationWidget
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_marginRight="10dp"
-                android:id="@+id/vert_level"/>
-            <com.munger.stereocamera.widget.OrientationWidget
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:id="@+id/horiz_level"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal">
+                <com.munger.stereocamera.widget.OrientationWidget
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginEnd="10dp"
+                    android:id="@+id/vert_level"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tilt_sensor_label"
+                    android:textAlignment="center"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal">
+                <com.munger.stereocamera.widget.OrientationWidget
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:id="@+id/horiz_level"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/level_sensor_label"
+                    android:textAlignment="center"/>
+            </LinearLayout>
         </LinearLayout>
 
-        <ImageView android:layout_width="120dp"
+        <com.munger.stereocamera.widget.ThumbnailWidget
+            android:layout_width="120dp"
             android:layout_height="60dp"
             android:id="@+id/thumbnail"
             android:layout_alignParentStart="true"

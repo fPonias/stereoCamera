@@ -104,8 +104,6 @@ public class PreviewFragment extends Fragment
 
 		showLoading(false);
 		previewView.cleanUp();
-
-		MyApplication.getInstance().getBtCtrl().cleanUp();
 	}
 
 	@Override
@@ -146,10 +144,10 @@ public class PreviewFragment extends Fragment
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(new String[]{Manifest.permission.CAMERA}, new MainActivity.ResultListener()
+			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
 			{
 				@Override
-				public void onResult(int resultCode, Intent data)
+				public void onResult(int resultCode)
 				{
 					previewView.startPreview();
 				}
@@ -235,14 +233,17 @@ public class PreviewFragment extends Fragment
 			if (listener != null)
 				listener.onImage(bytes);
 
-			listener = null;
 			camera.startPreview();
+			listener.onFinished();
+
+			listener = null;
 		}
 	};
 
 	public interface ImageListener
 	{
 		void onImage(byte[] bytes);
+		void onFinished();
 	}
 
 	protected ImageListener listener;

@@ -12,12 +12,16 @@
     <string name="discover_title">Discovered Bluetooth Devices</string>
     <string name="yes_button">Yes</string>
     <string name="no_button">No</string>
+    <string name="ok_button">Okay</string>
+    <string name="tilt_sensor_label">Tilt</string>
+    <string name="level_sensor_label">Level</string>
 
     <string name="menu_zoom">Zoom</string>
     <string name="menu_flip">Flip</string>
     <string name="menu_sync">Sync Latency</string>
     <string name="menu_swap">Swap Sides</string>
 
+    <string name="thumbnail_filesystem_error">Stereocamera is unable to access the filesystem.</string>
     <string name="bluetooth_unsupported_error">Bluetooth is not supported on this device.</string>
     <string name="bluetooth_discovery_failed_error">Bluetooth discovery has failed.</string>
     <string name="bluetooth_connecting_message">Attempting bluetooth client connection to </string>

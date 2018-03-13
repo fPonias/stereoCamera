@@ -5,6 +5,7 @@ import android.util.Log;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAngleOfView;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveDisconnect;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveOrientation;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveStatus;
@@ -29,6 +30,7 @@ public class RemoteState
 		public void onFov(float horiz, float vert) {}
 		public void onGravity(ReceiveGravity.Gravity gravity) {}
 		public void onOrientation(PhotoOrientation orientation) {}
+		public void onDisconnect() {}
 	}
 
 	public RemoteState(BluetoothMasterComm comm)
@@ -130,6 +132,16 @@ public class RemoteState
 				RemoteState.this.orientation = status;
 				for (Listener listener : listeners)
 					listener.onOrientation(status);
+			}
+		}));
+
+		comm.registerListener(new ReceiveDisconnect(new ReceiveDisconnect.Listener()
+		{
+			@Override
+			public void received()
+			{
+				for (Listener listener : listeners)
+					listener.onDisconnect();
 			}
 		}));
 	}
