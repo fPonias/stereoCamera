@@ -2,6 +2,7 @@ package com.munger.stereocamera.fragment;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
@@ -342,6 +343,10 @@ public class PreviewFragment extends Fragment
 
 			if (loading)
 			{
+				Context c = getContext();
+				if (c == null)
+					return;
+
 				if (loadingWidget == null)
 					loadingWidget = new LoadingWidget(getContext());
 

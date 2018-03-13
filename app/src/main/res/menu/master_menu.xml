@@ -19,8 +19,14 @@
         app:showAsAction="never"
         android:title="@string/menu_sync"/>
     <item
+        android:id="@+id/gallery"
+        app:showAsAction="never"
+        android:title="@string/menu_gallery"
+        />
+   <item
         android:id="@+id/test"
         app:showAsAction="never"
+        android:visible="false"
         android:title="Debug!" />
 
 </menu>

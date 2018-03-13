@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
@@ -30,6 +31,7 @@ import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
 import com.munger.stereocamera.bluetooth.utility.CalculateSync;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
 import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
@@ -45,9 +47,9 @@ import com.munger.stereocamera.widget.ThumbnailWidget;
 public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
-	private ThumbnailWidget thumbnailView;
 	private OrientationWidget verticalIndicator;
 	private OrientationWidget horizontalIndicator;
+	private SeekBar zoomSlider;
 	private ViewGroup controls;
 
 	private BluetoothMasterComm masterComm;
@@ -70,14 +72,13 @@ public class MasterFragment extends PreviewFragment
 		controls = rootView.findViewById(R.id.controls);
 
 		clickButton = rootView.findViewById(R.id.shutter);
-		thumbnailView = rootView.findViewById(R.id.thumbnail);
 		verticalIndicator = rootView.findViewById(R.id.vert_level);
 		horizontalIndicator = rootView.findViewById(R.id.horiz_level);
 
-		thumbnailView.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
-		{
-			openThumbnail();
-		}});
+		zoomSlider = rootView.findViewById(R.id.zoom_slider);
+
+		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
+		zoomSlider.setMax(300);
 
 		shutterDelay = (long) MyApplication.getInstance().getPrefs().getShutterDelay();
 		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
@@ -97,6 +98,49 @@ public class MasterFragment extends PreviewFragment
 		return rootView;
 	}
 
+	private class ZoomListener implements SeekBar.OnSeekBarChangeListener
+	{
+		private boolean touched = false;
+
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int i, boolean b)
+		{
+			if (touched)
+			{
+				float value = seekToValue(seekBar);
+				setZoom(value);
+			}
+		}
+
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar)
+		{
+			touched = true;
+		}
+
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar)
+		{
+			touched = false;
+
+			float value = seekToValue(seekBar);
+		}
+	}
+
+	private float seekToValue(SeekBar bar)
+	{
+		int idx = bar.getProgress();
+		float ret = ((float) idx + 100.0f) / 100.0f;
+		return ret;
+	}
+
+	private void setSeek(SeekBar bar, float zoom)
+	{
+		int idx = (int)(zoom * 100.0f - 100.0f);
+		idx = Math.max(0, Math.min(idx, bar.getMax()));
+		bar.setProgress(idx);
+	}
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
@@ -109,6 +153,7 @@ public class MasterFragment extends PreviewFragment
 	private MenuItem syncItem;
 	private MenuItem swapItem;
 	private MenuItem debugItem;
+	private MenuItem galleryItem;
 
 
 	@Override
@@ -120,6 +165,7 @@ public class MasterFragment extends PreviewFragment
 		syncItem = menu.findItem(R.id.sync);
 		swapItem = menu.findItem(R.id.swap);
 		debugItem = menu.findItem(R.id.test);
+		galleryItem = menu.findItem(R.id.gallery);
 
 		updateHandPhoneButton();
 
@@ -174,14 +220,18 @@ public class MasterFragment extends PreviewFragment
 
 			return true;
 		}});
+
+		galleryItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		{
+			openThumbnail();
+			return true;
+		}});
 	}
 
 	@Override
 	public void onResume()
 	{
 		super.onResume();
-
-		thumbnailView.update();
 	}
 
 	private void updateHandPhoneButton()
@@ -228,7 +278,6 @@ public class MasterFragment extends PreviewFragment
 			public void done(String path)
 			{
 				setStatus(Status.READY);
-				thumbnailView.update();
 			}
 
 			@Override
@@ -335,7 +384,6 @@ public class MasterFragment extends PreviewFragment
 
 		setStatus(Status.LISTENING);
 
-		thumbnailView.update();
 		onPreviewStarted1();
 	}
 
