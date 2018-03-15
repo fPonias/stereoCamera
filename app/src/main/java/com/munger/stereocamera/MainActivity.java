@@ -19,16 +19,12 @@ import com.munger.stereocamera.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.bluetooth.Preferences;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
-import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
-import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendDisconnect;
-import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
-import com.munger.stereocamera.bluetooth.utility.RemoteState;
+import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
-import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
 
 import java.util.List;

@@ -1,13 +1,9 @@
 package com.munger.stereocamera.fragment;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.hardware.Camera;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -31,14 +26,11 @@ import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
 import com.munger.stereocamera.bluetooth.utility.CalculateSync;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
-import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
 import com.munger.stereocamera.bluetooth.utility.RemoteState;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
-import com.munger.stereocamera.widget.ThumbnailWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.

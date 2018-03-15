@@ -2,6 +2,7 @@ package com.munger.stereocamera.bluetooth.utility;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.fragment.PreviewFragment;
+import com.munger.stereocamera.utility.LinearRegression;
 
 import java.io.File;
 import java.io.FileInputStream;

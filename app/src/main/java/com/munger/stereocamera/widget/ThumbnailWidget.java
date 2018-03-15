@@ -8,7 +8,7 @@ import android.os.Looper;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
-import com.munger.stereocamera.bluetooth.utility.PhotoFiles;
+import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
 

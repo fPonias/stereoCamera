@@ -1,4 +1,4 @@
-package com.munger.stereocamera.bluetooth.utility;
+package com.munger.stereocamera.utility;
 
 /******************************************************************************
  *  Compilation:  javac LinearRegression.java
