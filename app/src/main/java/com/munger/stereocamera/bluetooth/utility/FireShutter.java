@@ -24,8 +24,8 @@ public class FireShutter
 	private boolean remoteShutterDone = false;
 	private boolean shutterFiring = false;
 
-	private PhotoProcessor.PhotoStruct localData;
-	private PhotoProcessor.PhotoStruct remoteData;
+	private PhotoStruct localData;
+	private PhotoStruct remoteData;
 
 	private BluetoothMasterComm masterComm;
 	private PreviewFragment fragment;
@@ -34,6 +34,13 @@ public class FireShutter
 	{
 		this.fragment = fragment;
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+	}
+
+	private static class PhotoStruct
+	{
+		public byte[] data;
+		public PhotoOrientation orientation;
+		public float zoom;
 	}
 
 	public interface Listener
@@ -62,7 +69,7 @@ public class FireShutter
 
 	private void fireLocal(final long wait)
 	{
-		localData = new PhotoProcessor.PhotoStruct();
+		localData = new PhotoStruct();
 
 		Thread t = new Thread(new Runnable() {public void run()
 		{
@@ -115,7 +122,7 @@ public class FireShutter
 			@Override
 			public void onData(PhotoOrientation orientation, float zoom, byte[] data)
 			{
-				remoteData = new PhotoProcessor.PhotoStruct();
+				remoteData = new PhotoStruct();
 				remoteData.orientation = orientation;
 				remoteData.zoom = zoom;
 				remoteData.data	= data;
@@ -177,7 +184,7 @@ public class FireShutter
 
 				if (!isOnLeft)
 				{
-					PhotoProcessor.PhotoStruct tmp = remoteData;
+					PhotoStruct tmp = remoteData;
 					remoteData = localData;
 					localData = tmp;
 				}
@@ -187,9 +194,9 @@ public class FireShutter
 				name = "right.jpg";
 				photoFiles.saveFile(name, remoteData.data);
 
-				PhotoProcessor proc = new PhotoProcessor();
-				byte[] merged = proc.processData(localData, remoteData, fragment.getFacing());
-				name = photoFiles.saveNewFile(merged);
+				PhotoProcessor proc = new PhotoProcessor(fragment.getContext());
+				//byte[] merged = proc.processData(localData, remoteData, fragment.getFacing());
+				//name = photoFiles.saveNewFile(merged);
 
 				listener.done(photoFiles.getFilePath(name));
 			}

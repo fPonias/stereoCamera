@@ -58,7 +58,9 @@ public class ThumbnailWidget extends AppCompatImageView
 					else
 					{
 						String max = newest.getPath();
-						Bitmap bmp = BitmapFactory.decodeFile(photoFiles.getFilePath(max));
+						BitmapFactory.Options options = new BitmapFactory.Options();
+						options.inSampleSize = 8;
+						Bitmap bmp = BitmapFactory.decodeFile(photoFiles.getFilePath(max), options);
 						setImageBitmap(bmp);
 					}
 				}});

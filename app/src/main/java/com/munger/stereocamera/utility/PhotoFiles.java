@@ -3,6 +3,7 @@ package com.munger.stereocamera.utility;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Environment;
@@ -177,6 +178,40 @@ public class PhotoFiles
 		return false;
 	}
 
+	public String saveNewBitmap(Bitmap bmp)
+	{
+		int max = getNewestId();
+		max++;
+
+		String localName = max + ".jpg";
+		saveBitmap(localName, bmp);
+		return localName;
+	}
+
+	public void saveBitmap(String name, Bitmap bmp)
+	{
+		FileOutputStream fos = null;
+		try
+		{
+			File f = new File(targetDir, name);
+			fos = new FileOutputStream(f);
+			bmp.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+
+			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{f.getPath()}, null, null);
+		}
+		catch(IOException e){
+
+		}
+		finally{
+			try
+			{
+				if (fos != null)
+					fos.close();
+			}
+			catch(IOException e){}
+		}
+	}
+
 	public String saveNewFile(byte[] data)
 	{
 		int max = getNewestId();
@@ -189,10 +224,11 @@ public class PhotoFiles
 
 	public void saveFile(String name, byte[] data)
 	{
+		FileOutputStream fos = null;
 		try
 		{
 			File f = new File(targetDir, name);
-			FileOutputStream fos = new FileOutputStream(f);
+			fos = new FileOutputStream(f);
 			fos.write(data);
 			fos.close();
 
@@ -200,6 +236,14 @@ public class PhotoFiles
 		}
 		catch(IOException e){
 
+		}
+		finally{
+			try
+			{
+				if (fos != null)
+					fos.close();
+			}
+			catch(IOException e){}
 		}
 	}
 

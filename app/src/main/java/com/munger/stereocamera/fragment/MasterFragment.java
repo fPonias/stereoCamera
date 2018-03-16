@@ -29,6 +29,7 @@ import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
 import com.munger.stereocamera.bluetooth.utility.CalculateSync;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
 import com.munger.stereocamera.bluetooth.utility.RemoteState;
+import com.munger.stereocamera.utility.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
 
@@ -207,11 +208,12 @@ public class MasterFragment extends PreviewFragment
 
 		debugItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			FireShutter fs = new FireShutter(MasterFragment.this);
-			fs.testOldData();
+			PhotoProcessor proc = new PhotoProcessor(getContext());
+			proc.testOldData();
 
 			return true;
 		}});
+		debugItem.setVisible(true);
 
 		galleryItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{

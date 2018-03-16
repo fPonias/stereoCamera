@@ -1,13 +1,30 @@
 package com.munger.stereocamera.utility;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.os.Environment;
+import android.provider.ContactsContract;
 
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.IntBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.HashMap;
+
 
 /**
  * Created by hallmarklabs on 3/14/18.
@@ -15,17 +32,20 @@ import java.io.ByteArrayOutputStream;
 
 public class PhotoProcessor
 {
-	public static class PhotoStruct
+	static
 	{
-		public byte[] data;
-		public PhotoOrientation orientation;
-		public float zoom;
+		System.loadLibrary("native-lib");
 	}
-	
+
 	private PhotoFiles photoFiles;
-	private PhotoStruct localData;
-	private PhotoStruct remoteData;
-	
+	private Context context;
+
+	public PhotoProcessor(Context context)
+	{
+		this.context = context;
+		initN(context.getCacheDir().getPath());
+	}
+
 	public void testOldData()
 	{
 		photoFiles = new PhotoFiles();
@@ -34,17 +54,14 @@ public class PhotoProcessor
 			@Override
 			public void done()
 			{
-				localData = new PhotoStruct();
-				localData.data = photoFiles.loadFile("left.jpg");
-				localData.orientation = PhotoOrientation.DEG_0;
-				localData.zoom = 1.0f;
-				remoteData = new PhotoStruct();
-				remoteData.data = photoFiles.loadFile("right.jpg");
-				remoteData.orientation = PhotoOrientation.DEG_0;
-				remoteData.zoom = 1.27f;
+				byte[] data = photoFiles.loadFile("left.jpg");
+				setData(false, data, PhotoOrientation.DEG_0, 1.0f);
+				data = photoFiles.loadFile("right.jpg");
+				setData(true, data, PhotoOrientation.DEG_0, 1.0f);
 
-				byte[] merged = processData(localData, remoteData, true);
-				String name = photoFiles.saveNewFile(merged);
+				Bitmap merged = processData(false);
+
+				String name = photoFiles.saveNewBitmap(merged);
 			}
 
 			@Override
@@ -55,106 +72,170 @@ public class PhotoProcessor
 		});
 	}
 
-	public byte[] processData(PhotoStruct left, PhotoStruct right, boolean flip)
+	public void setData(boolean isRight, byte[] data, PhotoOrientation orientation, float zoom)
 	{
-		if (flip)
+		Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+		String path = saveBitmapToCache(bmp, orientation, zoom);
+		setImageN(isRight, path, orientation.ordinal(), zoom, bmp.getWidth(), bmp.getHeight());
+		bmp.recycle();
+
+	}
+
+	private String saveBitmapToCache(Bitmap bmp, PhotoOrientation orientation, float zoom)
+	{
+		String outputPath = null;
+		FileOutputStream fos = null;
+
+		try
 		{
-			PhotoStruct tmp = right;
-			right = left;
-			left = tmp;
+			File out = getRandomFile();
+			fos = new FileOutputStream(out);
+			writeBitmap(fos, bmp);
+
+			fos.flush();
+			outputPath = out.getPath();
+		}
+		catch(IOException e){
+
+		}
+		finally{
+			try
+			{
+				if (fos != null)
+					fos.close();
+			}
+			catch(IOException e){}
 		}
 
-		Bitmap leftBmp = BitmapFactory.decodeByteArray(left.data, 0, left.data.length);
-		leftBmp = squareBitmap(left, leftBmp);
-		leftBmp = rotateBitmap(left, leftBmp, flip);
-		leftBmp = zoomBitmap(left, leftBmp);
-
-		Bitmap rightBmp = BitmapFactory.decodeByteArray(right.data, 0, right.data.length);
-		rightBmp = squareBitmap(right, rightBmp);
-		rightBmp = rotateBitmap(right, rightBmp, flip);
-		rightBmp = zoomBitmap(right, rightBmp);
-
-		leftBmp = matchBitmap(leftBmp, rightBmp);
-		Bitmap out = combineBitmaps(leftBmp, rightBmp);
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		out.compress(Bitmap.CompressFormat.JPEG, 85, baos);
-		byte[] ret = baos.toByteArray();
-		out.recycle();
-		return ret;
+		return outputPath;
 	}
 
-	private Bitmap squareBitmap(PhotoStruct data, Bitmap intermediate)
+	private File getRandomFile()
 	{
-		int w = intermediate.getWidth();
-		int h = intermediate.getHeight();
-		int target = Math.min(w, h);
-		int margin = (Math.max(w, h) - target) / 2;
+		File f = context.getCacheDir();
+		File out = null;
+		String path = f.getPath() + "/";
 
-		Bitmap ret = Bitmap.createBitmap(intermediate, margin, 0, target, target);
-		return ret;
-	}
-
-	private Bitmap rotateBitmap(PhotoStruct data, Bitmap intermediate, boolean flip)
-	{
-		double rotate = -data.orientation.toDegress() + 90.0f;
-		if (flip)
-			rotate = -rotate;
-		int w = intermediate.getWidth();
-		int h = intermediate.getHeight();
-
-		Matrix m1 = new Matrix();
-		m1.postRotate((float) rotate);
-		Bitmap rot = Bitmap.createBitmap(intermediate, 0, 0, w, h, m1, true);
-		intermediate.recycle();
-		return rot;
-	}
-
-	private Bitmap zoomBitmap(PhotoStruct data, Bitmap intermediate)
-	{
-		if(data.zoom == 1.0f)
-			return intermediate;
-
-		int w = intermediate.getWidth();
-		int h = intermediate.getHeight();
-		float newW = w * data.zoom;
-		float newH = h * data.zoom;
-		float marginLeft = (newW  - (float) w) / 2.0f;
-		float marginTop = (newH - (float) h) / 2.0f;
-
-		Matrix m1 = new Matrix();
-		m1.postScale(data.zoom, data.zoom);
-
-		Bitmap scaled = Bitmap.createBitmap(intermediate, 0, 0, w, h, m1, true);
-		Bitmap cropped = Bitmap.createBitmap(scaled, (int) marginLeft, (int) marginTop, w, h);
-		intermediate.recycle();
-		scaled.recycle();
-		return cropped;
-	}
-
-	private Bitmap matchBitmap(Bitmap mutate, Bitmap source)
-	{
-		int target = source.getWidth();
-		Bitmap ret = Bitmap.createScaledBitmap(mutate, target, target, false);
-		mutate.recycle();
-		return ret;
-	}
-
-	private Bitmap combineBitmaps(Bitmap leftBmp, Bitmap rightBmp)
-	{
-		int targetDim = leftBmp.getWidth();
-		Bitmap out = Bitmap.createBitmap(targetDim * 2, targetDim, leftBmp.getConfig());
-
-		int[] buffer = new int[targetDim * targetDim];
-		leftBmp.getPixels(buffer, 0, targetDim, 0, 0, targetDim, targetDim);
-		out.setPixels(buffer, 0, targetDim, 0, 0, targetDim, targetDim);
-
-		rightBmp.getPixels(buffer, 0, targetDim, 0, 0, targetDim, targetDim);
-		out.setPixels(buffer, 0, targetDim, targetDim, 0, targetDim, targetDim);
-
-		leftBmp.recycle();
-		rightBmp.recycle();
+		do
+		{
+			int id = (int) ((double) Integer.MAX_VALUE * Math.random());
+			out = new File(path + id);
+		} while (out.exists());
 
 		return out;
 	}
+
+	private void writeBitmap(FileOutputStream fos, Bitmap bmp) throws IOException
+	{
+		int w = bmp.getWidth();
+		int h = bmp.getHeight();
+		int[] buffer = new int[w];
+		ByteBuffer bb = ByteBuffer.allocate(w * 4);
+
+		for (int y = 0; y < h; y++)
+		{
+			bmp.getPixels(buffer, 0, w, 0, y, w, 1);
+
+			bb.rewind();
+			IntBuffer ibuf = bb.asIntBuffer();
+			ibuf.put(buffer);
+
+			fos.write(bb.array());
+		}
+	}
+
+	public Bitmap processData(boolean flip)
+	{
+		processN(true, flip);
+		int sz = getProcessedDimension();
+		String path = getProcessedPathN();
+		Bitmap ret = readBitmap(path, sz);
+
+		cleanUpN();
+
+		return ret;
+	}
+
+	private Bitmap readBitmap(String path, int dim)
+	{
+		int totalSz = dim * 2 * dim;
+		int[] data = new int[totalSz];
+
+		FileInputStream fis = null;
+		try
+		{
+			File f = new File(path);
+			fis = new FileInputStream(f);
+
+			byte[] buffer = new byte[dim * 2 * 4];
+			ByteBuffer bb = ByteBuffer.wrap(buffer);
+			int total = 0;
+			int read = 1;
+			while (read > 0 && total < totalSz)
+			{
+				read = fis.read(buffer);
+				int iRead = read / 4;
+				for (int i = 0; i < iRead; i++)
+					data[total + i] = bb.getInt(i * 4);
+
+				total += iRead;
+			}
+		}
+		catch(IOException e){
+			int i = 0;
+			int j = i;
+		}
+		finally{
+			try
+			{
+				if (fis != null)
+					fis.close();
+			}
+			catch(IOException e) {}
+		}
+
+		Bitmap bmp = Bitmap.createBitmap(data, dim * 2, dim, Bitmap.Config.ARGB_8888);
+		return bmp;
+	}
+
+	/**
+	 * initialize native code to write temp data to the cachePath and create temporary variables needed for processing.
+	 * @param cachePath
+	 */
+	private native void initN(String cachePath);
+
+	/**
+	 * Send raw data to the native code
+	 * @param isRight left or right?
+	 * @param path path to pixel data
+	 * @param orientation number of times to rotation the image clockwise by 90 degrees
+	 * @param zoom digital "zoom" factor starting at 1.0f
+	 * @param width the width of the bitmap
+	 * @param height the height of the bitmap
+	 */
+	private native void setImageN(boolean isRight, String path, int orientation, float zoom, int width, int height);
+
+	/**
+	 * process all data and combine to a composite image without crashing the phone due to memory errors
+	 * @param growToMaxDim true the smaller resolution side will be grown to match, otherwise shrink it
+	 * @param flip was the image taken with the rear or front facing camera?
+	 */
+	private native void processN(boolean growToMaxDim, boolean flip);
+
+	/**
+	 * get the path to the final processed bitmap data
+	 * @return
+	 */
+	private native String getProcessedPathN();
+
+	/**
+	 * get the final dimension of the processed data.  Returned value is the height of the image and half the width.
+	 * @return
+	 */
+	private native int getProcessedDimension();
+
+	/**
+	 * free any leftover malloced data or java references
+	 */
+	private native void cleanUpN();
 }
