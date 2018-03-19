@@ -24,7 +24,6 @@ import com.munger.stereocamera.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.bluetooth.Preferences;
-import com.munger.stereocamera.utility.PhotoProcessor;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
 import java.util.HashMap;
@@ -63,14 +62,6 @@ public class ConnectFragment extends Fragment
 	public void onStart()
 	{
 		super.onStart();
-
-		Thread t = new Thread(new Runnable() {public void run()
-		{
-			try{Thread.sleep(2000);}catch(InterruptedException e){}
-			PhotoProcessor proc = new PhotoProcessor(getContext());
-			proc.testOldData();
-		}});
-		t.start();
 	}
 
 	@Override

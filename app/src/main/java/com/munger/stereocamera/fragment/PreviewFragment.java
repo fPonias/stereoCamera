@@ -77,6 +77,8 @@ public class PreviewFragment extends Fragment
 		setStatus(Status.CREATED);
 	}
 
+
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{

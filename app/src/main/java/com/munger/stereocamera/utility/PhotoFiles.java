@@ -1,6 +1,7 @@
 package com.munger.stereocamera.utility;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -28,9 +29,11 @@ import java.util.ArrayList;
 
 public class PhotoFiles
 {
-	public PhotoFiles()
-	{
+	private Context context;
 
+	public PhotoFiles(Context context)
+	{
+		this.context = context;
 	}
 
 	public interface Listener
@@ -182,50 +185,6 @@ public class PhotoFiles
 		return false;
 	}
 
-	public String saveNewBitmap(Bitmap bmp)
-	{
-		int max = getNewestId();
-		max++;
-
-		String localName = max + ".jpg";
-		saveBitmap(localName, bmp);
-		return localName;
-	}
-
-	public void saveBitmap(String name, Bitmap bmp)
-	{
-		FileOutputStream fos = null;
-		try
-		{
-			File f = new File(targetDir, name);
-			fos = new FileOutputStream(f);
-			bmp.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-
-			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{f.getPath()}, null, null);
-		}
-		catch(IOException e){
-
-		}
-		finally{
-			try
-			{
-				if (fos != null)
-					fos.close();
-			}
-			catch(IOException e){}
-		}
-	}
-
-	public String saveNewFile(byte[] data)
-	{
-		int max = getNewestId();
-		max++;
-
-		String localName = max + ".jpg";
-		saveFile(localName, data);
-		return localName;
-	}
-
 	public String saveNewFile(File source)
 	{
 		int max = getNewestId();
@@ -307,29 +266,48 @@ public class PhotoFiles
 		}
 	}
 
-	public byte[] loadFile(String name)
+	public String saveDataToCache(byte[] data)
 	{
-		byte[] ret = null;
+		String outputPath = null;
+		FileOutputStream fos = null;
+
 		try
 		{
-			File f = new File(targetDir, name);
-			FileInputStream fis = new FileInputStream(f);
+			File out = getRandomFile();
+			fos = new FileOutputStream(out);
 
-			int sz = (int) f.length();
-			ret = new byte[sz];
+			fos.write(data);
 
-			int read = 0;
-			int total = 0;
-			while (total < sz)
-			{
-				read = fis.read(ret, total, sz - total);
-				total += read;
-			}
+			fos.flush();
+			outputPath = out.getPath();
 		}
 		catch(IOException e){
 
 		}
+		finally{
+			try
+			{
+				if (fos != null)
+					fos.close();
+			}
+			catch(IOException e){}
+		}
 
-		return ret;
+		return outputPath;
+	}
+
+	public File getRandomFile()
+	{
+		File f = context.getCacheDir();
+		File out = null;
+		String path = f.getPath() + "/";
+
+		do
+		{
+			int id = (int) ((double) Integer.MAX_VALUE * Math.random());
+			out = new File(path + id);
+		} while (out.exists());
+
+		return out;
 	}
 }

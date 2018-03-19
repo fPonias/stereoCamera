@@ -131,7 +131,7 @@ public class ImageViewerFragment extends Fragment
 
 	private void updateAdapter()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles();
+		final PhotoFiles photoFiles = new PhotoFiles(getContext());
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			@Override

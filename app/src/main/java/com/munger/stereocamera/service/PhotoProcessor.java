@@ -1,30 +1,11 @@
-package com.munger.stereocamera.utility;
+package com.munger.stereocamera.service;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.os.Environment;
-import android.provider.ContactsContract;
 
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
-import com.munger.stereocamera.bluetooth.utility.FireShutter;
+import com.munger.stereocamera.utility.PhotoFiles;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
 
 
 /**
@@ -44,12 +25,12 @@ public class PhotoProcessor
 	public PhotoProcessor(Context context)
 	{
 		this.context = context;
+		photoFiles = new PhotoFiles(context);
 		initN(context.getCacheDir().getPath());
 	}
 
 	public void testOldData()
 	{
-		photoFiles = new PhotoFiles();
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			@Override
@@ -76,58 +57,18 @@ public class PhotoProcessor
 
 	public void setData(boolean isRight, byte[] data, PhotoOrientation orientation, float zoom)
 	{
-		String path = saveDataToCache(data);
+		String path = photoFiles.saveDataToCache(data);
 		setImageN(isRight, path, orientation.ordinal(), zoom);
 	}
 
-	private String saveDataToCache(byte[] data)
+	public void setData(boolean isRight, String path, PhotoOrientation orientation, float zoom)
 	{
-		String outputPath = null;
-		FileOutputStream fos = null;
-
-		try
-		{
-			File out = getRandomFile();
-			fos = new FileOutputStream(out);
-
-			fos.write(data);
-
-			fos.flush();
-			outputPath = out.getPath();
-		}
-		catch(IOException e){
-
-		}
-		finally{
-			try
-			{
-				if (fos != null)
-					fos.close();
-			}
-			catch(IOException e){}
-		}
-
-		return outputPath;
-	}
-
-	private File getRandomFile()
-	{
-		File f = context.getCacheDir();
-		File out = null;
-		String path = f.getPath() + "/";
-
-		do
-		{
-			int id = (int) ((double) Integer.MAX_VALUE * Math.random());
-			out = new File(path + id);
-		} while (out.exists());
-
-		return out;
+		setImageN(isRight, path, orientation.ordinal(), zoom);
 	}
 
 	public String processData(boolean flip)
 	{
-		File out = getRandomFile();
+		File out = photoFiles.getRandomFile();
 		processN(true, flip, out.getPath());
 
 		if (!out.exists() || out.length() == 0)
@@ -136,10 +77,9 @@ public class PhotoProcessor
 			return null;
 		}
 
-		String savedPath = photoFiles.saveNewFile(out);
 		cleanUpN();
 
-		return savedPath;
+		return out.getPath();
 	}
 
 	/**

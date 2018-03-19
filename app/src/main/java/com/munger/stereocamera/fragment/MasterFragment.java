@@ -29,7 +29,7 @@ import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
 import com.munger.stereocamera.bluetooth.utility.CalculateSync;
 import com.munger.stereocamera.bluetooth.utility.FireShutter;
 import com.munger.stereocamera.bluetooth.utility.RemoteState;
-import com.munger.stereocamera.utility.PhotoProcessor;
+import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
 
@@ -269,7 +269,7 @@ public class MasterFragment extends PreviewFragment
 			}
 
 			@Override
-			public void done(String path)
+			public void done()
 			{
 				setStatus(Status.READY);
 			}

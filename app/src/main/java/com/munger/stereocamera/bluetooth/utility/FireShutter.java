@@ -2,20 +2,16 @@ package com.munger.stereocamera.bluetooth.utility;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
+import android.content.Intent;
 
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
-import com.munger.stereocamera.utility.PhotoProcessor;
-
-import java.io.ByteArrayOutputStream;
 
 public class FireShutter
 {
@@ -24,8 +20,8 @@ public class FireShutter
 	private boolean remoteShutterDone = false;
 	private boolean shutterFiring = false;
 
-	private PhotoStruct localData;
-	private PhotoStruct remoteData;
+	private PhotoProcessorService.PhotoArgument localData;
+	private PhotoProcessorService.PhotoArgument remoteData;
 
 	private BluetoothMasterComm masterComm;
 	private PreviewFragment fragment;
@@ -34,19 +30,13 @@ public class FireShutter
 	{
 		this.fragment = fragment;
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
-	}
-
-	private static class PhotoStruct
-	{
-		public byte[] data;
-		public PhotoOrientation orientation;
-		public float zoom;
+		photoFiles = new PhotoFiles(fragment.getContext());
 	}
 
 	public interface Listener
 	{
 		void onProcessing();
-		void done(String path);
+		void done();
 		void fail();
 	}
 
@@ -69,7 +59,7 @@ public class FireShutter
 
 	private void fireLocal(final long wait)
 	{
-		localData = new PhotoStruct();
+		localData = new PhotoProcessorService.PhotoArgument();
 
 		Thread t = new Thread(new Runnable() {public void run()
 		{
@@ -96,7 +86,8 @@ public class FireShutter
 
 	private void handleLocal(byte[] bytes)
 	{
-		localData.data = bytes;
+		String localPath = photoFiles.saveDataToCache(bytes);
+		localData.jpegPath = localPath;
 
 		boolean doNext = false;
 
@@ -122,10 +113,12 @@ public class FireShutter
 			@Override
 			public void onData(PhotoOrientation orientation, float zoom, byte[] data)
 			{
-				remoteData = new PhotoStruct();
+				remoteData = new PhotoProcessorService.PhotoArgument();
 				remoteData.orientation = orientation;
 				remoteData.zoom = zoom;
-				remoteData.data	= data;
+
+				String remotePath = photoFiles.saveDataToCache(data);
+				remoteData.jpegPath = remotePath;
 
 				MyApplication.getInstance().getPrefs().setRemoteZoom(zoom);
 
@@ -168,7 +161,7 @@ public class FireShutter
 	private void done()
 	{
 		listener.onProcessing();
-		photoFiles = new PhotoFiles();
+		photoFiles = new PhotoFiles(fragment.getContext());
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			@Override
@@ -184,21 +177,19 @@ public class FireShutter
 
 				if (!isOnLeft)
 				{
-					PhotoStruct tmp = remoteData;
+					PhotoProcessorService.PhotoArgument tmp = remoteData;
 					remoteData = localData;
 					localData = tmp;
 				}
 
-				String name = "left.jpg";
-				photoFiles.saveFile(name, localData.data);
-				name = "right.jpg";
-				photoFiles.saveFile(name, remoteData.data);
+				Intent i = new Intent(MyApplication.getInstance(), PhotoProcessorService.class);
+				i.putExtra(PhotoProcessorService.FLIP_ARG, fragment.getFacing());
+				i.putExtra(PhotoProcessorService.LEFT_PHOTO_ARG, localData);
+				i.putExtra(PhotoProcessorService.RIGHT_PHOTO_ARG, remoteData);
 
-				PhotoProcessor proc = new PhotoProcessor(fragment.getContext());
-				//byte[] merged = proc.processData(localData, remoteData, fragment.getFacing());
-				//name = photoFiles.saveNewFile(merged);
+				MyApplication.getInstance().startService(i);
 
-				listener.done(photoFiles.getFilePath(name));
+				listener.done();
 			}
 
 			@Override
@@ -215,14 +206,4 @@ public class FireShutter
 			}
 		});
 	}
-
-	private void BitmapToFile(Bitmap out, String name)
-	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		out.compress(Bitmap.CompressFormat.JPEG, 85, baos);
-		byte[] ret = baos.toByteArray();
-
-		photoFiles.saveFile(name, ret);
-	}
-
 }

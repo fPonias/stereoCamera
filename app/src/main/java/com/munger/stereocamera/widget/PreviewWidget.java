@@ -1,6 +1,8 @@
 package com.munger.stereocamera.widget;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -13,6 +15,7 @@ import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -27,6 +30,7 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.WindowManager;
 
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 
@@ -304,8 +308,21 @@ public class PreviewWidget extends TextureView
 
 	}
 
-	public void setAndStartCamera(boolean facing)
+	public void setAndStartCamera(final boolean facing)
 	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+		{
+			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
+			{
+				@Override
+				public void onResult(int resultCode)
+				{
+					setAndStartCamera(facing);
+				}
+			});
+			return;
+		}
+
 		this.facing = facing;
 		if (camera != null && isFrontFacing() == facing)
 			return;

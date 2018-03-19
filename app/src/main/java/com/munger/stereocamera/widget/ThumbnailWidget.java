@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
@@ -40,9 +41,34 @@ public class ThumbnailWidget extends AppCompatImageView
 		update();
 	}
 
+	private MyApplication.Listener appListener = new MyApplication.Listener()
+	{
+		@Override
+		public void onNewPhoto(String path)
+		{
+			update();
+		}
+	};
+
+	@Override
+	protected void onDetachedFromWindow()
+	{
+		super.onDetachedFromWindow();
+
+		MyApplication.getInstance().addListener(appListener);
+	}
+
+	@Override
+	protected void onAttachedToWindow()
+	{
+		super.onAttachedToWindow();
+
+		MyApplication.getInstance().removeListener(appListener);
+	}
+
 	public void update()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles();
+		final PhotoFiles photoFiles = new PhotoFiles(getContext());
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			public void done()

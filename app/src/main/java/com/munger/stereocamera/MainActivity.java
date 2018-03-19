@@ -133,7 +133,7 @@ public class MainActivity extends BaseActivity
 
 	public void startThumbnailView()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles();
+		final PhotoFiles photoFiles = new PhotoFiles(this);
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			@Override
