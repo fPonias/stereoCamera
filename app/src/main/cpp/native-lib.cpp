@@ -1,8 +1,10 @@
 #include <jni.h>
 #include <stdio.h>
 #include <string.h>
-#include "jpegCtrl.h"
+#include <stdlib.h>
+#include <time.h>
 
+#include "jpegCtrl.h"
 #include "com_munger_stereocamera_utility_PhotoProcessor.h"
 #include "util.h"
 #include "CompositeImage.h"
@@ -25,6 +27,7 @@ const char* getStringFromNative(JNIEnv* env, jstring jstr)
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_utility_PhotoProcessor_initN
         (JNIEnv * env, jobject jthis, jstring jcachePath)
 {
+    srand(time(NULL));
     cachePath = getStringFromNative(env, jcachePath);
     image = new CompositeImage();
 }

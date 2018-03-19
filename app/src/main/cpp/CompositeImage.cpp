@@ -26,9 +26,10 @@ void CompositeImage::straightCopy(Image* target, size_t offset)
     Pixel buffer[dim];
     Pixel* buf_ptr = &(buffer[0]);
     size_t jsampSz = sizeof(Pixel);
+    offset *= jsampSz;
 
-    size_t idx = 0;
-    Pixel* data_ptr = data;
+    size_t idx;
+    Pixel* data_ptr;
 
     for (size_t dstRow = 0; dstRow < rows; dstRow++)
     {
@@ -57,6 +58,7 @@ void CompositeImage::scaledCopy(Image* target, size_t offset)
     size_t dim = (size_t) target->getTargetDim();
     Pixel buffer[dim];
     size_t jsampSz = sizeof(Pixel);
+    offset *= jsampSz;
 
     float ratio = (float) targetDim / (float) dim;
     size_t srcRow = 0;

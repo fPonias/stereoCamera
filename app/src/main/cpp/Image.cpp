@@ -63,7 +63,6 @@ void Image::setCachePath(const char* cachePath)
     this->cachepath = new char[psz + 1];
     strcpy(this->cachepath, cachePath);
 
-    srand(time(NULL));
     long r = random();
 
     Util::getPath(cachePath, r, "-raw", &rawpath);
@@ -73,6 +72,7 @@ void Image::setCachePath(const char* cachePath)
 void Image::calcTargetDim()
 {
     targetDim = (long) fminl(width, height);
+    targetDim /= zoom;
 }
 
 Pixel* Image::process()
@@ -104,7 +104,6 @@ Pixel* Image::process()
 
         for (long x = xMin; x < xMax; x++)
         {
-            orientation = 3;
             switch (orientation)
             {
                 case 0:
@@ -112,12 +111,12 @@ Pixel* Image::process()
                     dstY = x - margin - zoomMargin;
                     break;
                 case 1:
-                    dstX = unzoomedTarget - x - margin - zoomMargin;
+                    dstX = unzoomedTarget - x + margin - zoomMargin;
                     dstY = unzoomedTarget - y - zoomMargin;
                     break;
                 case 2:
                     dstX = y - zoomMargin;
-                    dstY = unzoomedTarget - x - margin - zoomMargin;
+                    dstY = unzoomedTarget - x + margin - zoomMargin;
                     break;
                 case 3:
                 default:
