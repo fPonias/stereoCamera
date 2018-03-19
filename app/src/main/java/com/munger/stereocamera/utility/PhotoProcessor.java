@@ -55,6 +55,7 @@ public class PhotoProcessor
 			@Override
 			public void done()
 			{
+				/*
 				//String path = photoFiles.getFilePath("left.jpg");
 				String path = "/data/local/tmp/left.jpg";
 				setImageN(false, path, PhotoOrientation.DEG_90.ordinal(), 1.5f);
@@ -62,7 +63,7 @@ public class PhotoProcessor
 				path = "/data/local/tmp/left.jpg";
 				setImageN(true, path, PhotoOrientation.DEG_180.ordinal(), 1.5f);
 
-				String result = processData(false);
+				String result = processData(false);*/
 			}
 
 			@Override
