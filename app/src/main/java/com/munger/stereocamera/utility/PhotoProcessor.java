@@ -22,6 +22,7 @@ import java.nio.IntBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 
@@ -54,14 +55,14 @@ public class PhotoProcessor
 			@Override
 			public void done()
 			{
-				byte[] data = photoFiles.loadFile("left.jpg");
-				setData(false, data, PhotoOrientation.DEG_0, 1.0f);
-				data = photoFiles.loadFile("right.jpg");
-				setData(true, data, PhotoOrientation.DEG_0, 1.0f);
+				//String path = photoFiles.getFilePath("left.jpg");
+				String path = "/data/local/tmp/left.jpg";
+				setImageN(false, path, PhotoOrientation.DEG_0.ordinal(), 1.0f);
+				//path = photoFiles.getFilePath("right.jpg");
+				path = "/data/local/tmp/left.jpg";
+				setImageN(true, path, PhotoOrientation.DEG_0.ordinal(), 1.0f);
 
-				Bitmap merged = processData(false);
-
-				String name = photoFiles.saveNewBitmap(merged);
+				String result = processData(false);
 			}
 
 			@Override
@@ -74,14 +75,11 @@ public class PhotoProcessor
 
 	public void setData(boolean isRight, byte[] data, PhotoOrientation orientation, float zoom)
 	{
-		Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-		String path = saveBitmapToCache(bmp, orientation, zoom);
-		setImageN(isRight, path, orientation.ordinal(), zoom, bmp.getWidth(), bmp.getHeight());
-		bmp.recycle();
-
+		String path = saveDataToCache(data);
+		setImageN(isRight, path, orientation.ordinal(), zoom);
 	}
 
-	private String saveBitmapToCache(Bitmap bmp, PhotoOrientation orientation, float zoom)
+	private String saveDataToCache(byte[] data)
 	{
 		String outputPath = null;
 		FileOutputStream fos = null;
@@ -90,7 +88,8 @@ public class PhotoProcessor
 		{
 			File out = getRandomFile();
 			fos = new FileOutputStream(out);
-			writeBitmap(fos, bmp);
+
+			fos.write(data);
 
 			fos.flush();
 			outputPath = out.getPath();
@@ -125,82 +124,26 @@ public class PhotoProcessor
 		return out;
 	}
 
-	private void writeBitmap(FileOutputStream fos, Bitmap bmp) throws IOException
+	public String processData(boolean flip)
 	{
-		int w = bmp.getWidth();
-		int h = bmp.getHeight();
-		int[] buffer = new int[w];
-		ByteBuffer bb = ByteBuffer.allocate(w * 4);
+		File out = getRandomFile();
+		processN(true, flip, out.getPath());
 
-		for (int y = 0; y < h; y++)
+		if (!out.exists() || out.length() == 0)
 		{
-			bmp.getPixels(buffer, 0, w, 0, y, w, 1);
-
-			bb.rewind();
-			IntBuffer ibuf = bb.asIntBuffer();
-			ibuf.put(buffer);
-
-			fos.write(bb.array());
+			cleanUpN();
+			return null;
 		}
-	}
 
-	public Bitmap processData(boolean flip)
-	{
-		processN(true, flip);
-		int sz = getProcessedDimension();
-		String path = getProcessedPathN();
-		Bitmap ret = readBitmap(path, sz);
-
+		String savedPath = photoFiles.saveNewFile(out);
 		cleanUpN();
 
-		return ret;
-	}
-
-	private Bitmap readBitmap(String path, int dim)
-	{
-		int totalSz = dim * 2 * dim;
-		int[] data = new int[totalSz];
-
-		FileInputStream fis = null;
-		try
-		{
-			File f = new File(path);
-			fis = new FileInputStream(f);
-
-			byte[] buffer = new byte[dim * 2 * 4];
-			ByteBuffer bb = ByteBuffer.wrap(buffer);
-			int total = 0;
-			int read = 1;
-			while (read > 0 && total < totalSz)
-			{
-				read = fis.read(buffer);
-				int iRead = read / 4;
-				for (int i = 0; i < iRead; i++)
-					data[total + i] = bb.getInt(i * 4);
-
-				total += iRead;
-			}
-		}
-		catch(IOException e){
-			int i = 0;
-			int j = i;
-		}
-		finally{
-			try
-			{
-				if (fis != null)
-					fis.close();
-			}
-			catch(IOException e) {}
-		}
-
-		Bitmap bmp = Bitmap.createBitmap(data, dim * 2, dim, Bitmap.Config.ARGB_8888);
-		return bmp;
+		return savedPath;
 	}
 
 	/**
-	 * initialize native code to write temp data to the cachePath and create temporary variables needed for processing.
-	 * @param cachePath
+	 * init the native engine
+	 * @param cachePath folder to store temporary data
 	 */
 	private native void initN(String cachePath);
 
@@ -210,29 +153,16 @@ public class PhotoProcessor
 	 * @param path path to pixel data
 	 * @param orientation number of times to rotation the image clockwise by 90 degrees
 	 * @param zoom digital "zoom" factor starting at 1.0f
-	 * @param width the width of the bitmap
-	 * @param height the height of the bitmap
 	 */
-	private native void setImageN(boolean isRight, String path, int orientation, float zoom, int width, int height);
+	private native void setImageN(boolean isRight, String path, int orientation, float zoom);
 
 	/**
 	 * process all data and combine to a composite image without crashing the phone due to memory errors
 	 * @param growToMaxDim true the smaller resolution side will be grown to match, otherwise shrink it
 	 * @param flip was the image taken with the rear or front facing camera?
+	 * @param targetPath the path to save the final image to
 	 */
-	private native void processN(boolean growToMaxDim, boolean flip);
-
-	/**
-	 * get the path to the final processed bitmap data
-	 * @return
-	 */
-	private native String getProcessedPathN();
-
-	/**
-	 * get the final dimension of the processed data.  Returned value is the height of the image and half the width.
-	 * @return
-	 */
-	private native int getProcessedDimension();
+	private native void processN(boolean growToMaxDim, boolean flip, String targetPath);
 
 	/**
 	 * free any leftover malloced data or java references

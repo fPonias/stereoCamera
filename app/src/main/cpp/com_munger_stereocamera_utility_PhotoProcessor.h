@@ -18,34 +18,18 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_utility_PhotoProcessor_initN
 /*
  * Class:     com_munger_stereocamera_utility_PhotoProcessor
  * Method:    setImageN
- * Signature: (ZLjava/lang/String;IFII)V
+ * Signature: (ZLjava/lang/String;IF)V
  */
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_utility_PhotoProcessor_setImageN
-  (JNIEnv *, jobject, jboolean, jstring, jint, jfloat, jint, jint);
+  (JNIEnv *, jobject, jboolean, jstring, jint, jfloat);
 
 /*
  * Class:     com_munger_stereocamera_utility_PhotoProcessor
  * Method:    processN
- * Signature: (ZZ)V
+ * Signature: (ZZLjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_utility_PhotoProcessor_processN
-  (JNIEnv *, jobject, jboolean, jboolean);
-
-/*
- * Class:     com_munger_stereocamera_utility_PhotoProcessor
- * Method:    getProcessedPathN
- * Signature: ()Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_com_munger_stereocamera_utility_PhotoProcessor_getProcessedPathN
-  (JNIEnv *, jobject);
-
-/*
- * Class:     com_munger_stereocamera_utility_PhotoProcessor
- * Method:    getProcessedDimension
- * Signature: ()I
- */
-JNIEXPORT jint JNICALL Java_com_munger_stereocamera_utility_PhotoProcessor_getProcessedDimension
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jboolean, jboolean, jstring);
 
 /*
  * Class:     com_munger_stereocamera_utility_PhotoProcessor

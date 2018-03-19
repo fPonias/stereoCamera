@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Environment;
@@ -16,6 +17,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 
 /**
@@ -220,6 +224,62 @@ public class PhotoFiles
 		String localName = max + ".jpg";
 		saveFile(localName, data);
 		return localName;
+	}
+
+	public String saveNewFile(File source)
+	{
+		int max = getNewestId();
+		max++;
+
+		String localName = max + ".jpg";
+		File dest = new File(targetDir, localName);
+		FileInputStream fis = null;
+		FileOutputStream fos = null;
+		int total = 0;
+		int read = 1;
+
+		try
+		{
+			fis = new FileInputStream(source);
+			fos = new FileOutputStream(dest);
+
+			byte[] buffer = new byte[4096];
+			long sz = source.length();
+
+			while (total < sz && read > 0)
+			{
+				read = fis.read(buffer);
+
+				if (read > 0)
+				{
+					fos.write(buffer, 0, read);
+					total += read;
+				}
+			}
+		}
+		catch(IOException e){
+			dest = null;
+		}
+		finally{
+			try
+			{
+				if (fis != null)
+					fis.close();
+			}
+			catch(IOException e){}
+
+			try
+			{
+				if (fos != null)
+					fos.close();
+			}
+			catch(IOException e){}
+		}
+
+		if (dest != null)
+			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{dest.getPath()}, null, null);
+
+		return dest.getPath();
 	}
 
 	public void saveFile(String name, byte[] data)
