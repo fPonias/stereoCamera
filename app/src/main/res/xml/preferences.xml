@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="pref_overlay"
+        android:title="@string/pref_overlay"
+        android:summary="@string/pref_overlay_desc"
+        android:entries="@array/overlay_names"
+        android:entryValues="@array/overlay_values"
+        android:defaultValue="1"
+    />
+    <CheckBoxPreference
+        android:key="pref_sync"
+        android:title="@string/pref_sync"
+        android:summary="@string/pref_sync_desc"
+        android:defaultValue="false"/>
+
+</PreferenceScreen>

@@ -19,6 +19,7 @@ import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
@@ -28,6 +29,7 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
 import com.munger.stereocamera.widget.OrientationCtrl;
+import com.munger.stereocamera.widget.PreviewOverlayWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -54,6 +56,8 @@ public class SlaveFragment extends PreviewFragment
 
 		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
 		zoomSlider.setMax(300);
+
+		overlayWidget = rootView.findViewById(R.id.previewOverlay);
 
 		return rootView;
 	}
@@ -102,12 +106,18 @@ public class SlaveFragment extends PreviewFragment
 		bar.setProgress(idx);
 	}
 
+	private void setOverlay(PreviewOverlayWidget.Type type)
+	{
+		overlayWidget.setType(type);
+	}
+
 	private BluetoothSlaveComm slaveComm;
 	private byte[] imgBytes;
 	private OrientationCtrl gravityCtrl;
 
 	private ViewGroup controls;
 	private SeekBar zoomSlider;
+	private PreviewOverlayWidget overlayWidget;
 
 	private long lastSent = 0;
 	private final Object gravityLock = new Object();
@@ -190,6 +200,12 @@ public class SlaveFragment extends PreviewFragment
 				SlaveFragment.this.setFacing(facingCommand.getFacing());
 			}
 		});
+
+		slaveComm.addListener(BluetoothCommands.SET_OVERLAY, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		{
+			ReceiveOverlay cmd = (ReceiveOverlay) command;
+			SlaveFragment.this.setOverlay(cmd.getType());
+		}});
 
 		slaveComm.addListener(BluetoothCommands.LATENCY_CHECK, new BluetoothSlaveComm.Listener()
 		{

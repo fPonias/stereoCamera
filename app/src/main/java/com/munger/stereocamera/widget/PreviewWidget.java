@@ -351,30 +351,6 @@ public class PreviewWidget extends TextureView
 
 	private Pair getCameraResolution(int camNum, Camera camera)
 	{
-		/*
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-		{
-			SizeF size = new SizeF(0,0);
-			CameraManager manager = (CameraManager) getContext().getSystemService(Context.CAMERA_SERVICE);
-			try
-			{
-				String[] cameraIds = manager.getCameraIdList();
-				if (cameraIds.length > camNum)
-				{
-					CameraCharacteristics character = manager.getCameraCharacteristics(cameraIds[camNum]);
-					size = character.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
-					Pair ret = new Pair();
-					ret.w = size.getWidth();
-					ret.h = size.getHeight();
-					return ret;
-				}
-			}
-			catch (CameraAccessException e){
-
-			}
-		}
-		*/
-
 		Camera.Parameters params = camera.getParameters();
 		float focalLength = params.getFocalLength();
 		float horizontalViewAngle = params.getHorizontalViewAngle();

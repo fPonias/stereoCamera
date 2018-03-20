@@ -3,13 +3,15 @@ package com.munger.stereocamera.widget;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.TextureView;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 /**
  * Created by hallmarklabs on 3/8/18.
  */
 
-public class SquareLayout extends RelativeLayout
+public class SquareLayout extends ViewGroup
 {
 	public SquareLayout(Context context)
 	{
@@ -29,7 +31,14 @@ public class SquareLayout extends RelativeLayout
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b)
 	{
-		super.onLayout(changed, l, t, r, b);
+		int sz = getChildCount();
+		for (int i = 0; i < sz; i++)
+		{
+			View child = getChildAt(i);
+
+			child.layout(l,t,r,b);
+			child.requestLayout();
+		}
 	}
 
 	@Override

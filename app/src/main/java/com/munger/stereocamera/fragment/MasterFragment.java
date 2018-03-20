@@ -1,9 +1,11 @@
 package com.munger.stereocamera.fragment;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -24,6 +26,7 @@ import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
+import com.munger.stereocamera.bluetooth.command.master.commands.SetOverlay;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
 import com.munger.stereocamera.bluetooth.utility.CalculateSync;
@@ -32,6 +35,7 @@ import com.munger.stereocamera.bluetooth.utility.RemoteState;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
+import com.munger.stereocamera.widget.PreviewOverlayWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -44,6 +48,7 @@ public class MasterFragment extends PreviewFragment
 	private OrientationWidget horizontalIndicator;
 	private SeekBar zoomSlider;
 	private ViewGroup controls;
+	private PreviewOverlayWidget overlayWidget;
 
 	private BluetoothMasterComm masterComm;
 	private RemoteState remoteState;
@@ -72,6 +77,9 @@ public class MasterFragment extends PreviewFragment
 
 		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
 		zoomSlider.setMax(300);
+
+		overlayWidget = rootView.findViewById(R.id.previewOverlay);
+		updateOverlayFromPrefs();
 
 		shutterDelay = (long) MyApplication.getInstance().getPrefs().getShutterDelay();
 		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
@@ -143,10 +151,10 @@ public class MasterFragment extends PreviewFragment
 	}
 
 	private MenuItem flipItem;
-	private MenuItem syncItem;
 	private MenuItem swapItem;
 	private MenuItem debugItem;
 	private MenuItem galleryItem;
+	private MenuItem prefsItem;
 
 
 	@Override
@@ -155,10 +163,10 @@ public class MasterFragment extends PreviewFragment
 		inflater.inflate(R.menu.master_menu, menu);
 
 		flipItem = menu.findItem(R.id.flip);
-		syncItem = menu.findItem(R.id.sync);
 		swapItem = menu.findItem(R.id.swap);
 		debugItem = menu.findItem(R.id.test);
 		galleryItem = menu.findItem(R.id.gallery);
+		prefsItem = menu.findItem(R.id.prefs);
 
 		updateHandPhoneButton();
 
@@ -188,13 +196,6 @@ public class MasterFragment extends PreviewFragment
 			return true;
 		}});
 
-		syncItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
-		{
-			doSync();
-
-			return true;
-		}});
-
 		swapItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
 			Preferences prefs = MyApplication.getInstance().getPrefs();
@@ -220,12 +221,40 @@ public class MasterFragment extends PreviewFragment
 			openThumbnail();
 			return true;
 		}});
+
+		prefsItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		{
+			((MainActivity) getActivity()).openSettings();
+			return true;
+		}});
 	}
 
 	@Override
 	public void onResume()
 	{
 		super.onResume();
+
+		if (overlayWidget == null)
+			return;
+
+		updateOverlayFromPrefs();
+	}
+
+	private void updateOverlayFromPrefs()
+	{
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+		String overlayType = sharedPref.getString("pref_overlay", "1");
+		int overlayIdx = Integer.parseInt(overlayType);
+		PreviewOverlayWidget.Type otype = PreviewOverlayWidget.Type.values()[overlayIdx];
+		setOverlayType(otype);
+	}
+
+	private void setOverlayType(PreviewOverlayWidget.Type type)
+	{
+		overlayWidget.setType(type);
+
+		if (remoteState != null && remoteState.status == Status.READY && masterComm != null)
+			masterComm.runCommand(new SetOverlay(type));
 	}
 
 	private void updateHandPhoneButton()
@@ -320,6 +349,7 @@ public class MasterFragment extends PreviewFragment
 		handler = new Handler(Looper.getMainLooper());
 		remoteState.addListener(remoteListener);
 		remoteState.start();
+
 	}
 
 	private Handler handler;
@@ -468,6 +498,9 @@ public class MasterFragment extends PreviewFragment
 
 	private void onPreviewStarted5()
 	{
+		PreviewOverlayWidget.Type type = overlayWidget.getType();
+		masterComm.runCommand(new SetOverlay(type));
+
 		remoteState.waitOnStatusAsync(Status.READY, 6000, new RemoteState.ReadyListener()
 		{
 			@Override
@@ -475,6 +508,14 @@ public class MasterFragment extends PreviewFragment
 			{
 				Log.d(getTag(), "slave ready");
 				setStatus(Status.READY);
+
+				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+				boolean runSync = sharedPref.getBoolean("pref_sync", false);
+
+				if (runSync)
+					doSync();
+
+				sharedPref.edit().putBoolean("pref_sync", false).apply();
 			}
 
 			@Override

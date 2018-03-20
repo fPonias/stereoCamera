@@ -21,6 +21,7 @@ import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendDisconnect;
+import com.munger.stereocamera.fragment.SettingsFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
@@ -103,11 +104,21 @@ public class MainActivity extends BaseActivity
 		}
 	}
 
+	public void openSettings()
+	{
+		settingsFragment = new SettingsFragment();
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.addToBackStack("preview");
+		ft.replace(android.R.id.content, settingsFragment, settingsFragment.getTag());
+		ft.commit();
+	}
+
 	private BackStackListener backStackListener;
 	private Fragment currentFragment;
 	private MasterFragment masterFragment;
 	private SlaveFragment slaveFragment;
 	private ImageViewerFragment imgViewFragment;
+	private SettingsFragment settingsFragment;
 
 	public void startMasterView()
 	{

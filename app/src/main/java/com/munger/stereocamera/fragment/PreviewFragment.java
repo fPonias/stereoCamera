@@ -22,6 +22,7 @@ import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.widget.LoadingWidget;
+import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 public class PreviewFragment extends Fragment
