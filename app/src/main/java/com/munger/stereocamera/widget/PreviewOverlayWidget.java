@@ -5,13 +5,13 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
 import com.munger.stereocamera.R;
 
-import java.util.logging.Handler;
 
 /**
  * Created by hallmarklabs on 3/19/18.
@@ -61,10 +61,14 @@ public class PreviewOverlayWidget extends View
 	public void setType(Type type)
 	{
 		this.type = type;
-		getHandler().post(new Runnable() { public void run()
+		Handler h = getHandler();
+		if (h != null)
 		{
-			invalidate();
-		}});
+			h.post(new Runnable() { public void run()
+			{
+				invalidate();
+			}});
+		}
 	}
 
 	public int getColor()

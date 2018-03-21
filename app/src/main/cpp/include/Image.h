@@ -36,6 +36,7 @@ public:
     const char* getProcPath();
 
     int getOrientation();
+    void setOrientation(int orient);
     float getZoom();
     long getWidth();
     long getHeight();

@@ -127,8 +127,23 @@ Image* CompositeImage::getImage(Side side)
     return (side == LEFT) ? &left : &right;
 }
 
-void CompositeImage::combineImages(bool growToMaxDim, const char* path)
+void CompositeImage::combineImages(bool growToMaxDim, bool flip, const char* path)
 {
+    if (flip)
+    {
+        Image tmp = left;
+        left = right;
+        right = tmp;
+
+        int lorient = left.getOrientation();
+        lorient = (lorient + 2) % 4;
+        left.setOrientation(lorient);
+
+        int rorient = right.getOrientation();
+        rorient = (rorient + 2) % 4;
+        right.setOrientation(rorient);
+    }
+
     left.processJpeg();
     right.processJpeg();
 

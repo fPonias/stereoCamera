@@ -31,6 +31,9 @@ public class SquareLayout extends ViewGroup
 	@Override
 	protected void onLayout(boolean changed, int l, int t, int r, int b)
 	{
+		if (!changed)
+			return;
+
 		int sz = getChildCount();
 		for (int i = 0; i < sz; i++)
 		{

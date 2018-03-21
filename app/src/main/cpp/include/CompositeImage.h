@@ -31,7 +31,7 @@ public:
     ~CompositeImage();
 
     Image* getImage(Side side);
-    void combineImages(bool growToMaxDim, const char* path);
+    void combineImages(bool growToMaxDim, bool flip, const char* path);
 };
 
 #endif //STEREOCAMERA_COMPOSITEIMAGE_H

@@ -6,19 +6,31 @@
     android:orientation="horizontal"
     android:background="@color/white">
 
-    <com.munger.stereocamera.widget.PreviewWidget
-        android:layout_width="300dp"
+    <com.munger.stereocamera.widget.SquareLayout
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/preview"
         android:layout_alignParentTop="true"
         android:layout_alignParentStart="true"
-        />
+        android:id="@+id/previewContainer">
+
+        <com.munger.stereocamera.widget.PreviewWidget
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/preview"
+            />
+        <com.munger.stereocamera.widget.PreviewOverlayWidget
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/previewOverlay"
+            type="crosshairs"
+            color="@color/white"/>
+    </com.munger.stereocamera.widget.SquareLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:layout_toEndOf="@+id/preview"
+        android:layout_toEndOf="@+id/previewContainer"
         android:layout_marginTop="0dp"
         android:paddingStart="20dp"
         android:paddingEnd="10dp"

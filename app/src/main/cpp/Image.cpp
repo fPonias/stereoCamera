@@ -29,6 +29,12 @@ int Image::getOrientation()
     return orientation;
 }
 
+void Image::setOrientation(int orient)
+{
+    orient %= 4;
+    orientation = orient;
+}
+
 float Image::getZoom()
 {
     return zoom;

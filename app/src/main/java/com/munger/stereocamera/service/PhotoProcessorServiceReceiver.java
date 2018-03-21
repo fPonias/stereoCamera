@@ -68,5 +68,13 @@ public class PhotoProcessorServiceReceiver extends BroadcastReceiver
 		String newPath = photoFiles.saveNewFile(fl);
 
 		listener.onPhoto(newPath);
+
+
+
+
+
+
+
+
 	}
 }

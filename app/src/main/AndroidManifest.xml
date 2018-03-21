@@ -28,7 +28,6 @@
         </receiver>
 
         <service android:name=".service.PhotoProcessorService"
-            android:process="com.munger.stereocamera.PhotoProcessor"
         />
     </application>
     

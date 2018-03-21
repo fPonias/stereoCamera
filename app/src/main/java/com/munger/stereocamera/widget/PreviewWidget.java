@@ -202,6 +202,7 @@ public class PreviewWidget extends TextureView
 			{
 				SurfaceTexture texture = PreviewWidget.this.getSurfaceTexture();
 				camera.setPreviewTexture(texture);
+				updateTransform();
 			}
 			catch(IOException e){
 				camera.release();
@@ -397,7 +398,13 @@ public class PreviewWidget extends TextureView
 		dims.w = getMeasuredWidth();
 
 		if (dims.h == 0 || dims.w == 0)
-			return;
+		{
+			dims.h = getBottom() - getTop();
+			dims.w = getRight() - getLeft();
+
+			if (dims.h == 0 || dims.w == 0)
+				return;
+		}
 
 		getHandler().post(new Runnable() { public void run()
 		{
