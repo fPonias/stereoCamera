@@ -3,13 +3,18 @@ package com.munger.stereocamera;
 import android.app.Application;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.commands.SendProcessedPhoto;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.service.PhotoProcessorServiceReceiver;
+import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -44,12 +49,52 @@ public class MyApplication extends Application
 			@Override
 			public void onPhoto(String path)
 			{
-				for (Listener listener : listeners)
-					listener.onNewPhoto(path);
+				handleProcessedPhoto(path);
 			}
 		});
 		LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
 	}
+
+	private PhotoFiles photoFiles = null;
+
+	private void handleProcessedPhoto(final String path)
+	{
+		if (photoFiles == null)
+			photoFiles = new PhotoFiles(this);
+
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		{
+			@Override
+			public void done()
+			{
+				handlePhotoProcessed2(path);
+			}
+
+			@Override
+			public void fail()
+			{
+
+			}
+		});
+	}
+
+	private void handlePhotoProcessed2(String path)
+	{
+		File fl = new File(path);
+		String newPath = photoFiles.saveNewFile(fl);
+
+		Toast.makeText(MyApplication.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
+
+		if (btCtrl != null && btCtrl.getMaster() != null && btCtrl.getMaster().getComm() != null)
+		{
+			BluetoothMasterComm comm = btCtrl.getMaster().getComm();
+			comm.runCommand(new SendProcessedPhoto(newPath));
+		}
+
+		for (Listener listener : listeners)
+			listener.onNewPhoto(newPath);
+	}
+
 
 	public void setupBTServer(BluetoothCtrl.SetupListener listener)
 	{

@@ -41,4 +41,6 @@
 
     <string name="delete_confirm_title">Confirm</string>
     <string name="delete_confirm_message">Delete the selected image?</string>
+
+    <string name="new_photo_available">Your photo has successfully been processed.</string>
 </resources>

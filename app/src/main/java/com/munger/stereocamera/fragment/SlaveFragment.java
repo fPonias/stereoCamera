@@ -2,6 +2,8 @@ package com.munger.stereocamera.fragment;
 
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -9,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
@@ -20,6 +23,7 @@ import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
@@ -28,6 +32,7 @@ import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
+import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 
@@ -254,6 +259,12 @@ public class SlaveFragment extends PreviewFragment
 			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 		}});
 
+		slaveComm.addListener(BluetoothCommands.SEND_PROCESSED_PHOTO, new BluetoothSlaveComm.Listener() {public void onCommand(SlaveCommand command)
+		{
+			ReceiveProcessedPhoto cmd = (ReceiveProcessedPhoto) command;
+			saveProcessedPhoto(cmd.getData());
+		}});
+
 		slaveComm.sendCommand(new SendOrientation(orientation));
 	}
 
@@ -351,5 +362,51 @@ public class SlaveFragment extends PreviewFragment
 			Log.d("Slave", "sending " + status.name() + " status");
 			slaveComm.sendCommand(new SendStatus(status));
 		}
+	}
+
+	PhotoFiles photoFiles = null;
+	Handler handler = null;
+
+	private void saveProcessedPhoto(final byte[] data)
+	{
+		if (photoFiles == null)
+			 photoFiles = new PhotoFiles(getContext());
+
+		photoFiles.checkPermissions(new PhotoFiles.Listener()
+		{
+			@Override
+			public void done()
+			{
+				saveProcessedPhoto2(data);
+			}
+
+			@Override
+			public void fail()
+			{}
+		});
+	}
+
+	private void saveProcessedPhoto2(final byte[] data)
+	{
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		{
+			@Override
+			public void done()
+			{
+				photoFiles.saveNewFile(data);
+
+				if (handler == null)
+					handler = new Handler(Looper.getMainLooper());
+
+				handler.post(new Runnable() { public void run()
+				{
+					Toast.makeText(getContext(), R.string.new_photo_available, Toast.LENGTH_LONG).show();
+				}});
+			}
+
+			@Override
+			public void fail()
+			{}
+		});
 	}
 }

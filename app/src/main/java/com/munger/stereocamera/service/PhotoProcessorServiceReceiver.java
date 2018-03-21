@@ -3,7 +3,9 @@ package com.munger.stereocamera.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.widget.Toast;
 
+import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
@@ -16,6 +18,7 @@ public class PhotoProcessorServiceReceiver extends BroadcastReceiver
 {
 	private PhotoFiles photoFiles = null;
 	private Listener listener;
+	private Context context;
 
 	public PhotoProcessorServiceReceiver(Listener listener)
 	{
@@ -30,6 +33,8 @@ public class PhotoProcessorServiceReceiver extends BroadcastReceiver
 	@Override
 	public void onReceive(Context context, Intent intent)
 	{
+		this.context = context;
+
 		if (photoFiles == null)
 		{
 			photoFiles = new PhotoFiles(context);
@@ -40,41 +45,8 @@ public class PhotoProcessorServiceReceiver extends BroadcastReceiver
 		if (action.equals(PhotoProcessorService.BROADCAST_PROCESSED_ACTION))
 		{
 			String path = intent.getStringExtra(PhotoProcessorService.EXTENDED_DATA_PATH);
-			handlePhotoProcessed(path);
+			listener.onPhoto(path);
+
 		}
-	}
-
-	private void handlePhotoProcessed(final String path)
-	{
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				handlePhotoProcessed2(path);
-			}
-
-			@Override
-			public void fail()
-			{
-
-			}
-		});
-	}
-
-	private void handlePhotoProcessed2(String path)
-	{
-		File fl = new File(path);
-		String newPath = photoFiles.saveNewFile(fl);
-
-		listener.onPhoto(newPath);
-
-
-
-
-
-
-
-
 	}
 }

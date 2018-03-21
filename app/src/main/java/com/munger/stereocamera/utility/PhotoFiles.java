@@ -241,6 +241,16 @@ public class PhotoFiles
 		return dest.getPath();
 	}
 
+	public void saveNewFile(byte[] data)
+	{
+		int max = getNewestId();
+		max++;
+
+		String localName = max + ".jpg";
+
+		saveFile(localName, data);
+	}
+
 	public void saveFile(String name, byte[] data)
 	{
 		FileOutputStream fos = null;

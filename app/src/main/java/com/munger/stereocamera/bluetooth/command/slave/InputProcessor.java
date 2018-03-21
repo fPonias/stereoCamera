@@ -7,6 +7,7 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 
@@ -92,6 +93,9 @@ public class InputProcessor
 				break;
 			case SET_OVERLAY:
 				command = new ReceiveOverlay(id);
+				break;
+			case SEND_PROCESSED_PHOTO:
+				command = new ReceiveProcessedPhoto(id);
 				break;
 			default:
 				Log.d("bluetoothSlaveComm", "unknown command " + currentAction.name());
