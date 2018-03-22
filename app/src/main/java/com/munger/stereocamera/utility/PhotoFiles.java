@@ -13,15 +13,19 @@ import android.support.v4.content.ContextCompat;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.R;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Created by hallmarklabs on 3/2/18.
@@ -73,6 +77,12 @@ public class PhotoFiles
 			public void done()
 			{
 				targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+				String subPath = targetDir.getPath() + "/" + context.getResources().getString(R.string.app_name);
+				targetDir = new File(subPath);
+
+				if (!targetDir.exists())
+					targetDir.mkdirs();
+
 				listener.done();
 			}
 
@@ -134,7 +144,46 @@ public class PhotoFiles
 			return null;
 	}
 
-	public ArrayList<String> getFiles()
+	private class FileComparator implements Comparator<String>
+	{
+		@Override
+		public int compare(String o1, String o2)
+		{
+			int num1 = getFileNumber(o1);
+			int num2 = getFileNumber(o2);
+
+			return num2 - num1;
+		}
+
+		private int getFileNumber(String file)
+		{
+			String[] parts = file.split("/");
+
+			if (parts.length == 0)
+				return Integer.MAX_VALUE;
+
+			String numStrPart = parts[parts.length - 1];
+			int end = numStrPart.indexOf('.');
+
+			if (end == -1)
+				return Integer.MAX_VALUE;
+
+			String numStr = numStrPart.substring(0, end);
+
+			try
+			{
+				int ret = Integer.parseInt(numStr);
+				return ret;
+			}
+			catch(NumberFormatException e){
+				return Integer.MAX_VALUE;
+			}
+		}
+	}
+
+	private FileComparator comparator = new FileComparator();
+
+	public String[] getFiles()
 	{
 		ArrayList<String> ret = new ArrayList<>();
 		String[] files = targetDir.list();
@@ -148,7 +197,14 @@ public class PhotoFiles
 			}
 		}
 
-		return ret;
+		int sz = ret.size();
+		String[] arr = new String[sz];
+		for (int i = 0; i < sz; i++)
+			arr[i] = ret.get(i);
+
+		Arrays.sort(arr, comparator);
+
+		return arr;
 	}
 
 	public boolean hasFiles()

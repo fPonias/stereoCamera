@@ -1,5 +1,6 @@
 package com.munger.stereocamera.fragment;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -24,7 +25,7 @@ public class ListenDialog extends DialogFragment
 	}
 
 	private View view;
-	public TextView statusView;
+	public TextView messageView;
 	public Button cancelButton;
 
 	private boolean cancelled = false;
@@ -39,10 +40,11 @@ public class ListenDialog extends DialogFragment
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
 	{
 		view = inflater.inflate(R.layout.dialog_listen, container, false);
-		statusView = view.findViewById(R.id.dialog_status);
+		messageView = view.findViewById(R.id.dialog_message);
 		cancelButton = view.findViewById(R.id.cancel_button);
 
-		statusView.setText(statusString);
+		getDialog().setTitle(statusString);
+		messageView.setText(messageString);
 
 		cancelButton.setOnClickListener(new View.OnClickListener()
 		{
@@ -75,12 +77,23 @@ public class ListenDialog extends DialogFragment
 	}
 
 	private String statusString = "";
+	private String messageString = "";
 
 	public void setStatus(String status)
 	{
 		statusString = status;
 
-		if (statusView != null)
-			statusView.setText(status);
+		Dialog d = getDialog();
+
+		if (d != null)
+			d.setTitle(status);
+	}
+
+	public void setMessage(String message)
+	{
+		messageString = message;
+
+		if (messageView != null)
+			messageView.setText(messageString);
 	}
 }

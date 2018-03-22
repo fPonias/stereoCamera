@@ -21,7 +21,7 @@ import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
@@ -36,6 +36,9 @@ import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.ThumbnailWidget;
+
+import java.util.Set;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -49,6 +52,7 @@ public class MasterFragment extends PreviewFragment
 	private SeekBar zoomSlider;
 	private ViewGroup controls;
 	private PreviewOverlayWidget overlayWidget;
+	private ThumbnailWidget thumbnailWidget;
 
 	private BluetoothMasterComm masterComm;
 	private RemoteState remoteState;
@@ -81,7 +85,6 @@ public class MasterFragment extends PreviewFragment
 		overlayWidget = rootView.findViewById(R.id.previewOverlay);
 		updateOverlayFromPrefs();
 
-		shutterDelay = (long) MyApplication.getInstance().getPrefs().getShutterDelay();
 		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
 			doShutter();
@@ -91,8 +94,13 @@ public class MasterFragment extends PreviewFragment
 
 		Preferences prefs = MyApplication.getInstance().getPrefs();
 		previewView.setOrientation(orientation);
-		previewView.setZoom(prefs.getLocalZoom());
 		previewView.setAndStartCamera(prefs.getIsFacing());
+
+		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
+		thumbnailWidget.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
+		{
+			openThumbnail();
+		}});
 
 		setStatus(Status.CREATED);
 
@@ -147,6 +155,9 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onCreate(savedInstanceState);
 
+		if (savedInstanceState != null && savedInstanceState.containsKey("previewAlreadyStarted"))
+			previewAlreadyStarted = savedInstanceState.getBoolean("previewAlreadyStarted");
+
 		setHasOptionsMenu(true);
 	}
 
@@ -172,26 +183,7 @@ public class MasterFragment extends PreviewFragment
 
 		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			setStatus(Status.BUSY);
-			boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
-			isFacing = !isFacing;
-			setFacing(isFacing);
-			MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
-
-			masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
-			{
-				@Override
-				public void done()
-				{
-					setStatus(Status.READY);
-				}
-
-				@Override
-				public void fail()
-				{
-					setStatus(Status.READY);
-				}
-			}));
+			onFlip();
 
 			return true;
 		}});
@@ -227,6 +219,86 @@ public class MasterFragment extends PreviewFragment
 			((MainActivity) getActivity()).openSettings();
 			return true;
 		}});
+	}
+
+	private void onFlip()
+	{
+		setStatus(Status.BUSY);
+		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+		isFacing = !isFacing;
+		setCamera(isFacing, new SetCameraListener()
+		{
+			@Override
+			public void done()
+			{
+				setStatus(Status.READY);
+			}
+
+			@Override
+			public void fail()
+			{
+				setStatus(Status.READY);
+			}
+		});
+	}
+
+	private interface SetCameraListener
+	{
+		void done();
+		void fail();
+	}
+
+	private void setCamera(boolean isFacing, final SetCameraListener listener)
+	{
+		setFacing(isFacing);
+		MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
+
+		masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
+		{
+			@Override
+			public void done()
+			{
+				setCamera2(listener);
+			}
+
+			@Override
+			public void fail()
+			{
+				listener.fail();
+			}
+		}));
+	}
+
+	private void setCamera2(final SetCameraListener listener)
+	{
+		String cameraId = getCameraId();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
+		float localZoom = prefs.getLocalZoom(cameraId);
+		setZoom(localZoom);
+
+		float zoom = prefs.getRemoteZoom(cameraId);
+		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
+		{
+			@Override
+			public void done()
+			{
+				listener.done();
+			}
+
+			@Override
+			public void fail()
+			{
+				listener.fail();
+			}
+		}));
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState)
+	{
+		outState.putBoolean("previewAlreadyStarted", previewAlreadyStarted);
+
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override
@@ -319,7 +391,7 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void result(long localDelay)
 			{
-				MyApplication.getInstance().getPrefs().setShutterDelay(localDelay);
+				MyApplication.getInstance().getPrefs().setShutterDelay(getCameraId(), localDelay);
 				setStatus(Status.READY);
 			}
 
@@ -366,7 +438,7 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onZoom(float zoom)
 		{
-			MyApplication.getInstance().getPrefs().setRemoteZoom(zoom);
+			MyApplication.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
 		}
 
 		@Override
@@ -415,7 +487,9 @@ public class MasterFragment extends PreviewFragment
 	protected void onZoomed()
 	{
 		super.onZoomed();
-		MyApplication.getInstance().getPrefs().setLocalZoom(getZoomValue());
+		String camId = getCameraId();
+		float zoom = getZoomValue();
+		MyApplication.getInstance().getPrefs().setLocalZoom(camId, zoom);
 	}
 
 	private void onPreviewStarted1()
@@ -458,8 +532,8 @@ public class MasterFragment extends PreviewFragment
 
 	private void onPreviewStarted3()
 	{
-		float zoom = MyApplication.getInstance().getPrefs().getRemoteZoom();
-		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
+		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+		setCamera(isFacing, new SetCameraListener()
 		{
 			@Override
 			public void done()
@@ -472,31 +546,10 @@ public class MasterFragment extends PreviewFragment
 			{
 				onSetupFailed();
 			}
-		}));
+		});
 	}
 
 	private void onPreviewStarted4()
-	{
-		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
-		setFacing(isFacing);
-
-		masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
-		{
-			@Override
-			public void done()
-			{
-				onPreviewStarted5();
-			}
-
-			@Override
-			public void fail()
-			{
-				onSetupFailed();
-			}
-		}));
-	}
-
-	private void onPreviewStarted5()
 	{
 		PreviewOverlayWidget.Type type = overlayWidget.getType();
 		masterComm.runCommand(new SetOverlay(type));

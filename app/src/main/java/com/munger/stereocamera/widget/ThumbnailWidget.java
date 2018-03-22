@@ -55,7 +55,7 @@ public class ThumbnailWidget extends AppCompatImageView
 	{
 		super.onDetachedFromWindow();
 
-		MyApplication.getInstance().addListener(appListener);
+		MyApplication.getInstance().removeListener(appListener);
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class ThumbnailWidget extends AppCompatImageView
 	{
 		super.onAttachedToWindow();
 
-		MyApplication.getInstance().removeListener(appListener);
+		MyApplication.getInstance().addListener(appListener);
 	}
 
 	public void update()
@@ -85,7 +85,7 @@ public class ThumbnailWidget extends AppCompatImageView
 					{
 						String max = newest.getPath();
 						BitmapFactory.Options options = new BitmapFactory.Options();
-						options.inSampleSize = 8;
+						options.inSampleSize = 16;
 						Bitmap bmp = BitmapFactory.decodeFile(photoFiles.getFilePath(max), options);
 						setImageBitmap(bmp);
 					}

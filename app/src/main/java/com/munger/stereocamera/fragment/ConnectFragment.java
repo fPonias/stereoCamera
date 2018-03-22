@@ -23,7 +23,7 @@ import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
-import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
 import java.util.HashMap;
@@ -150,6 +150,9 @@ public class ConnectFragment extends Fragment
 	private HashMap<String, BluetoothDevice> devices;
 	private BluetoothDiscoverer discoverer;
 
+	private static int CONNECT_RETRIES = 2;
+	private static long CONNECT_RETRY_WAIT = 1500;
+
 	private void connectClicked()
 	{
 		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
@@ -162,7 +165,7 @@ public class ConnectFragment extends Fragment
 				String id = prefs.getClient();
 
 				if (id != null && id.length() > 0)
-					deviceSelected(id);
+					deviceSelected(id, CONNECT_RETRIES);
 			}
 		});
 	}
@@ -231,14 +234,14 @@ public class ConnectFragment extends Fragment
 			@Override
 			public void selected(String id)
 			{
-				deviceSelected(id);
+				deviceSelected(id, 0);
 			}
 		});
 	}
 
 	private BluetoothMaster master;
 
-	private void deviceSelected(String id)
+	private void deviceSelected(String id, int retries)
 	{
 		if (discoverer != null)
 			discoverer.cancelDiscover();
@@ -253,12 +256,12 @@ public class ConnectFragment extends Fragment
 		if (device == null)
 			return;
 
-		deviceSelected(device);
+		deviceSelected(device, retries);
 	}
 
 	private AlertDialog connectDialog;
 
-	public void deviceSelected(final BluetoothDevice device)
+	public void deviceSelected(final BluetoothDevice device, final int retries)
 	{
 		if (btCtrl == null)
 			btCtrl = MyApplication.getInstance().getBtCtrl();
@@ -284,11 +287,23 @@ public class ConnectFragment extends Fragment
 			connectDialog.show();
 		}});
 
+		deviceSelected2(device, retries);
+	}
+
+	private void deviceSelected2(final BluetoothDevice device, final int retries)
+	{
 		btCtrl.connect(device, new BluetoothCtrl.ConnectListener()
 		{
 			@Override
 			public void onFailed()
 			{
+				if (retries > 0)
+				{
+					try{Thread.sleep(CONNECT_RETRY_WAIT);} catch(InterruptedException e){return;}
+					deviceSelected2(device, retries - 1);
+					return;
+				}
+
 				handler.post(new Runnable() {public void run()
 				{
 					if (connectDialog != null)
@@ -372,6 +387,7 @@ public class ConnectFragment extends Fragment
 
 				listenDialog.setStatus("Connected");
 				listenDialog.dismiss();
+				listenDialog = null;
 
 				prefs.setRole(Preferences.Roles.SLAVE);
 				prefs.setClient(null);
@@ -442,12 +458,14 @@ public class ConnectFragment extends Fragment
 		listenDialog = new ListenDialog();
 		listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
 		listenDialog.setStatus("Starting Listener");
+		listenDialog.setMessage(getString(R.string.bluetooth_listen_message));
 		listenDialog.setListener(new ListenDialog.ActionListener()
 		{
 			@Override
 			public void cancelled()
 			{
 				btCtrl.cancelListen();
+				listenDialog = null;
 			}
 		});
 	}
@@ -464,32 +482,20 @@ public class ConnectFragment extends Fragment
 			listenDialog = new ListenDialog();
 			listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
 			listenDialog.setStatus("Starting Listener");
+			listenDialog.setMessage(getString(R.string.bluetooth_listen_message));
 			listenDialog.setListener(new ListenDialog.ActionListener()
 			{
 				@Override
 				public void cancelled()
 				{
 					btCtrl.cancelListen();
+					listenDialog = null;
 				}
 			});
 
 			discovering = false;
 			btCtrl.listen(false, listenListener);
 			listenDialog.setStatus("Listening");
-			}
-		});
-	}
-
-	public void slaveConnected(final BluetoothDevice device)
-	{
-		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
-		{
-			@Override
-			public void onSetup()
-			{
-			btCtrl = MyApplication.getInstance().getBtCtrl();
-
-			deviceSelected(device);
 			}
 		});
 	}

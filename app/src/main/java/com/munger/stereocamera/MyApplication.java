@@ -6,7 +6,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.SendProcessedPhoto;
 import com.munger.stereocamera.service.PhotoProcessorService;

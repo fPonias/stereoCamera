@@ -120,7 +120,7 @@ public class FireShutter
 				String remotePath = photoFiles.saveDataToCache(data);
 				remoteData.jpegPath = remotePath;
 
-				MyApplication.getInstance().getPrefs().setRemoteZoom(zoom);
+				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), zoom);
 
 				boolean doNext = false;
 

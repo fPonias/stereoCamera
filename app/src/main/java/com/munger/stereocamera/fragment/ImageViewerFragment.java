@@ -99,9 +99,9 @@ public class ImageViewerFragment extends Fragment
 	private void deleteCurrent2()
 	{
 		int idx = pager.getCurrentItem();
-		ArrayList<String> list = adapter.getData();
-		int sz = list.size();
-		String selectedPath = list.get(idx);
+		String[] list = adapter.getData();
+		int sz = list.length;
+		String selectedPath = list[idx];
 
 		File f = new File(selectedPath);
 
@@ -150,9 +150,9 @@ public class ImageViewerFragment extends Fragment
 
 	public static class ImagePagerAdapter extends FragmentStatePagerAdapter
 	{
-		private ArrayList<String> files;
+		private String[] files;
 
-		public ArrayList<String> getData()
+		public String[] getData()
 		{
 			return files;
 		}
@@ -170,7 +170,7 @@ public class ImageViewerFragment extends Fragment
 			Fragment ret = new ImagePage();
 			Bundle args = new Bundle();
 
-			String arg = files.get(position);
+			String arg = files[position];
 			args.putString("file", arg);
 			ret.setArguments(args);
 
@@ -181,10 +181,10 @@ public class ImageViewerFragment extends Fragment
 		public int getItemPosition(Object object)
 		{
 			ImagePage page = (ImagePage) object;
-			int sz = files.size();
+			int sz = files.length;
 			for (int i = 0; i < sz; i++)
 			{
-				String item = files.get(i);
+				String item = files[i];
 
 				if (item.equals(page.path))
 					return POSITION_UNCHANGED;
@@ -195,14 +195,22 @@ public class ImageViewerFragment extends Fragment
 
 		public void deleteItem(int position)
 		{
-			files.remove(position);
+			int sz = files.length;
+			String[] newFiles = new String[sz];
+
+			for (int i = 0; i < position; i++)
+				newFiles[i] = files[i];
+
+			for (int i = position + 1; i < sz; i++)
+				newFiles[i - 1] = files[i];
+
 			notifyDataSetChanged();
 		}
 
 		@Override
 		public int getCount()
 		{
-			return files.size();
+			return files.length;
 		}
 
 		@Override
@@ -236,7 +244,19 @@ public class ImageViewerFragment extends Fragment
 		{
 			super.onStart();
 
-			Bitmap bmp = BitmapFactory.decodeFile(path);
+			File fl = new File(path);
+			long sz = fl.length();
+			Bitmap bmp;
+
+			if (sz <= 600000) //jpegs bigger than .5 MB are likely to be too large to render
+				bmp = BitmapFactory.decodeFile(path);
+			else
+			{
+				BitmapFactory.Options options = new BitmapFactory.Options();
+				options.inSampleSize = 2;
+				bmp = BitmapFactory.decodeFile(path, options);
+			}
+
 			thumbnailView.setImageBitmap(bmp);
 		}
 	}

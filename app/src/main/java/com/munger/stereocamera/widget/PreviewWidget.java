@@ -174,6 +174,7 @@ public class PreviewWidget extends TextureView
 		currentParameters = this.camera.getParameters();
 
 		Pair p = getCameraResolution(cameraId, camera);
+		setupTexture(camera);
 
 		String tag = "stereoCamera";
 		Log.d(tag, "camera " + cameraId + " selected");
@@ -184,6 +185,41 @@ public class PreviewWidget extends TextureView
 
 		updateTransform();
 		startPreview();
+	}
+
+	private void setupTexture(Camera camera)
+	{
+		List<Camera.Size> presizes = currentParameters.getSupportedPreviewSizes();
+		List<Camera.Size> picsizes = currentParameters.getSupportedPictureSizes();
+		Camera.Size picSize = picsizes.get(0);
+
+		float ratio = (float) picSize.width / (float) picSize.height;
+
+		float closestDiff = 1000000;
+		int closestIdx = -1;
+		int sz = presizes.size();
+		for (int i = 0; i < sz; i++)
+		{
+			Camera.Size preSize = presizes.get(i);
+			float picRatio = (float) preSize.width / (float) preSize.height;
+			float diff = Math.abs(picRatio - ratio);
+
+			if (i == 0 || diff < closestDiff)
+			{
+				closestIdx = i;
+				closestDiff = diff;
+			}
+		}
+
+		Camera.Size preSize = presizes.get(closestIdx);
+		currentParameters.setPreviewSize(preSize.width, preSize.height);
+		currentParameters.setPictureSize(picSize.width, picSize.height);
+		SurfaceTexture text = getSurfaceTexture();
+
+		if (text != null)
+			text.setDefaultBufferSize(preSize.width, preSize.height);
+
+		camera.setParameters(currentParameters);
 	}
 
 	public void startPreview()
@@ -202,6 +238,7 @@ public class PreviewWidget extends TextureView
 			{
 				SurfaceTexture texture = PreviewWidget.this.getSurfaceTexture();
 				camera.setPreviewTexture(texture);
+				setupTexture(camera);
 				updateTransform();
 			}
 			catch(IOException e){
@@ -375,6 +412,11 @@ public class PreviewWidget extends TextureView
 		return camera;
 	}
 
+	public String getCameraId()
+	{
+		return Integer.toString(cameraId);
+	}
+
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh)
 	{
@@ -406,12 +448,16 @@ public class PreviewWidget extends TextureView
 				return;
 		}
 
-		getHandler().post(new Runnable() { public void run()
+		Handler h = getHandler();
+		if (h == null)
+			return;
+
+		h.post(new Runnable() { public void run()
 		{
 			Matrix transform = new Matrix();
 			cameraRotate(transform, dims);
-			zoomPreview(transform, dims);
 			cameraDistort(transform, dims);
+			zoomPreview(transform, dims);
 
 			setTransform(transform);
 		}});
@@ -430,7 +476,7 @@ public class PreviewWidget extends TextureView
 
 	private void cameraDistort(Matrix transform, Pair d)
 	{
-		Camera.Size sz = currentParameters.getPictureSize();
+		Camera.Size sz = currentParameters.getPreviewSize();
 		float ratio = (float) sz.height / (float) sz.width;
 
 		if (ratio < 1.0f)

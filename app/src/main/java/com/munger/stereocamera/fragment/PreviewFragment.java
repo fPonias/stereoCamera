@@ -307,7 +307,7 @@ public class PreviewFragment extends Fragment
 
 		try
 		{
-			previewView.getCamera().takePicture(shutterCallback,null, null, pictureCallback);
+			previewView.getCamera().takePicture(shutterCallback,null, null , pictureCallback);
 		}
 		catch(RuntimeException e){
 			listener.fail();
@@ -322,6 +322,11 @@ public class PreviewFragment extends Fragment
 	public boolean getFacing()
 	{
 		return previewView.getFacing();
+	}
+
+	public String getCameraId()
+	{
+		return previewView.getCameraId();
 	}
 
 	protected LoadingWidget loadingWidget;

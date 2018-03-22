@@ -16,7 +16,7 @@ import android.widget.FrameLayout;
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
-import com.munger.stereocamera.bluetooth.Preferences;
+import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
@@ -245,17 +245,15 @@ public class MainActivity extends BaseActivity
 	{
 		Log.d("stereoCamera", "bluetooh device disconnected " + device.getName());
 
-		Preferences prefs = MyApplication.getInstance().getPrefs();
+		popSubViews();
+		firstConnect = true;
+	}
 
-		if (prefs.getRole() == Preferences.Roles.SLAVE)
-		{
-			popSubViews();
-			firstConnect = true;
-		}
-		else
-		{
-			popSubViews();
-			firstConnect = true;
-		}
+	@Override
+	protected void onUserLeaveHint()
+	{
+		super.onUserLeaveHint();
+		popSubViews();
+		firstConnect = true;
 	}
 }
