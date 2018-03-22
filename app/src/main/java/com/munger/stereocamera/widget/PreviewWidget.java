@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -15,6 +17,7 @@ import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.ContactsContract;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -33,7 +36,9 @@ import android.view.WindowManager;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.utility.PhotoFiles;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -57,7 +62,7 @@ public class PreviewWidget extends TextureView
 
 	private int cameraId;
 	private Camera camera;
-	private float zoom;
+	private float zoom = 1.0f;
 	private PhotoOrientation orientation;
 	private boolean facing;
 	private Camera.Parameters currentParameters = null;
@@ -298,6 +303,7 @@ public class PreviewWidget extends TextureView
 
 	public void setZoom(float zoom)
 	{
+		zoom = Math.max(1.0f, zoom);
 		this.zoom = zoom;
 		updateTransform();
 
@@ -476,6 +482,10 @@ public class PreviewWidget extends TextureView
 
 	private void cameraDistort(Matrix transform, Pair d)
 	{
+		if (currentParameters == null)
+			return;
+
+
 		Camera.Size sz = currentParameters.getPreviewSize();
 		float ratio = (float) sz.height / (float) sz.width;
 
@@ -552,5 +562,26 @@ public class PreviewWidget extends TextureView
 		public void onScaleEnd(ScaleGestureDetector scaleGestureDetector)
 		{
 		}
+	}
+
+	public byte[] getPreviewFrame()
+	{
+		if (currentParameters == null)
+			return null;
+
+		Camera.Size sz = currentParameters.getPreviewSize();
+		float ratio = (float) sz.width / (float) sz.height;
+
+		int targetH = 256;
+		int targetW = (int) ((float) targetH * ratio);
+
+		Bitmap bmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
+		getBitmap(bmp);
+
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		bmp.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+		final byte[] ret = baos.toByteArray();
+
+		return ret;
 	}
 }

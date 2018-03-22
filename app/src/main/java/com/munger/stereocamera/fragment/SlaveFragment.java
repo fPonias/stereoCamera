@@ -28,13 +28,16 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendOrientation;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendPreviewFrame;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
+import com.munger.stereocamera.bluetooth.utility.PreviewSender;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.ZoomWidget;
 
 /**
  * Created by hallmarklabs on 2/22/18.
@@ -48,7 +51,18 @@ public class SlaveFragment extends PreviewFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
 	{
-		orientation = getCurrentOrientation();
+		int type = 0;
+		float zoom = 1.0f;
+
+		if (savedInstanceState != null)
+		{
+			type = savedInstanceState.getInt("previewType", 0);
+			zoom = savedInstanceState.getFloat("zoom", 1.0f);
+		}
+
+		PreviewOverlayWidget.Type overlayType = PreviewOverlayWidget.Type.values()[type];
+
+				orientation = getCurrentOrientation();
 		if (orientation.isPortait())
 			rootView = inflater.inflate(R.layout.fragment_slave, container, false);
 		else
@@ -58,11 +72,17 @@ public class SlaveFragment extends PreviewFragment
 
 		controls = rootView.findViewById(R.id.controls);
 		zoomSlider = rootView.findViewById(R.id.zoom_slider);
-
-		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
-		zoomSlider.setMax(300);
+		zoomSlider.setListener(new ZoomWidget.Listener() { public void onChange(float value)
+		{
+			setZoom(value);
+		}});
+		zoomSlider.set(zoom);
+		setZoom(zoom);
 
 		overlayWidget = rootView.findViewById(R.id.previewOverlay);
+		overlayWidget.setType(overlayType);
+
+		previewSender = new PreviewSender();
 
 		return rootView;
 	}
@@ -113,6 +133,11 @@ public class SlaveFragment extends PreviewFragment
 
 	private void setOverlay(PreviewOverlayWidget.Type type)
 	{
+		if (type == PreviewOverlayWidget.Type.Ghost)
+			previewSender.start();
+		else
+			previewSender.cancel();
+
 		overlayWidget.setType(type);
 	}
 
@@ -121,8 +146,9 @@ public class SlaveFragment extends PreviewFragment
 	private OrientationCtrl gravityCtrl;
 
 	private ViewGroup controls;
-	private SeekBar zoomSlider;
+	private ZoomWidget zoomSlider;
 	private PreviewOverlayWidget overlayWidget;
+	private PreviewSender previewSender;
 
 	private long lastSent = 0;
 	private final Object gravityLock = new Object();
@@ -191,8 +217,7 @@ public class SlaveFragment extends PreviewFragment
 				ReceiveZoom zoomCommand = (ReceiveZoom) command;
 				float zoom = zoomCommand.getZoom();
 				SlaveFragment.this.setZoom(zoom);
-
-				setSeek(zoomSlider, zoom);
+				zoomSlider.set(zoom);
 			}
 		});
 
@@ -235,7 +260,7 @@ public class SlaveFragment extends PreviewFragment
 				Shutter cmd = (Shutter) command;
 
 				cmd.setOrientation(getCurrentOrientation());
-				cmd.setZoom(getZoomValue());
+				cmd.setZoom(zoomSlider.get());
 
 				byte[] data = doFireShutter();
 				cmd.setData(data);
@@ -266,6 +291,26 @@ public class SlaveFragment extends PreviewFragment
 		}});
 
 		slaveComm.sendCommand(new SendOrientation(orientation));
+
+		previewSender.setPreviewWidget(previewView);
+		previewSender.setSlaveComm(slaveComm);
+	}
+
+	@Override
+	public void onPause()
+	{
+		super.onPause();
+
+		previewSender.cancel();
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState)
+	{
+		super.onSaveInstanceState(outState);
+
+		outState.putInt("previewType", overlayWidget.getType().ordinal());
+		outState.putFloat("zoom", zoomSlider.get());
 	}
 
 	private boolean pingReceived = false;
@@ -347,12 +392,6 @@ public class SlaveFragment extends PreviewFragment
 	}
 
 	@Override
-	protected void onZoomed()
-	{
-		setSeek(zoomSlider, getZoomValue());
-	}
-
-	@Override
 	protected void setStatus(Status status)
 	{
 		super.setStatus(status);
@@ -409,4 +448,17 @@ public class SlaveFragment extends PreviewFragment
 			{}
 		});
 	}
+
+	@Override
+	protected void onPreviewStarted()
+	{
+		super.onPreviewStarted();
+
+		if (overlayWidget.getType() == PreviewOverlayWidget.Type.Ghost)
+			previewSender.start();
+	}
+
+
+
+
 }

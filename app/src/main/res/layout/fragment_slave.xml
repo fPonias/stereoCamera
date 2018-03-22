@@ -27,7 +27,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_below="@+id/previewContainer"
         android:layout_marginTop="0dp"
         android:layout_alignParentEnd="true"
@@ -37,14 +37,11 @@
         android:gravity="center"
         android:background="@color/white"
         android:id="@+id/controls">
-        <ImageView
+        <com.munger.stereocamera.widget.ZoomWidget
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:src="@drawable/zoom_icon"/>
-        <SeekBar
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:id="@+id/zoom_slider"/>
+            android:background="@color/white"
+            android:id="@+id/zoom_slider"
+            />
     </LinearLayout>
 </RelativeLayout>

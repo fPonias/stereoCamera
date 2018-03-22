@@ -5,11 +5,13 @@
         <item>1</item>
         <item>2</item>
         <item>3</item>
+        <item>4</item>
     </string-array>
     <string-array name="overlay_names">
         <item>None</item>
         <item>Crosshairs</item>
         <item>Thirds</item>
         <item>Fourths</item>
+        <item>Ghost</item>
     </string-array>
 </resources>

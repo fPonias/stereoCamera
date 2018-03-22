@@ -8,6 +8,7 @@ import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAngleOf
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveDisconnect;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveOrientation;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceivePreviewFrame;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveStatus;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveZoom;
 import com.munger.stereocamera.fragment.PreviewFragment;
@@ -31,6 +32,7 @@ public class RemoteState
 		public void onGravity(ReceiveGravity.Gravity gravity) {}
 		public void onOrientation(PhotoOrientation orientation) {}
 		public void onDisconnect() {}
+		public void onPreviewFrame(byte[] data, float zoom) {}
 	}
 
 	public RemoteState(BluetoothMasterComm comm)
@@ -142,6 +144,20 @@ public class RemoteState
 			{
 				for (Listener listener : listeners)
 					listener.onDisconnect();
+			}
+		}));
+
+		comm.registerListener(new ReceivePreviewFrame(new ReceivePreviewFrame.Listener()
+		{
+			@Override
+			public void fail()
+			{}
+
+			@Override
+			public void done(byte[] data, float zoom)
+			{
+				for (Listener listener : listeners)
+					listener.onPreviewFrame(data, zoom);
 			}
 		}));
 	}

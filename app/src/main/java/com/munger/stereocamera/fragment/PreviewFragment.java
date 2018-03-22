@@ -181,17 +181,12 @@ public class PreviewFragment extends Fragment
 		}
 	}
 
-	public float getZoomValue()
-	{
-		return previewView.getZoom();
-	}
-
 	protected PreviewWidget.Listener previewListener = new PreviewWidget.Listener()
 	{
 		@Override
 		public void onZoom(float zoom)
 		{
-			onZoomed();
+
 		}
 
 		@Override
@@ -207,8 +202,6 @@ public class PreviewFragment extends Fragment
 		}
 	};
 
-	protected void onZoomed()
-	{}
 
 	protected void onPreviewStarted()
 	{

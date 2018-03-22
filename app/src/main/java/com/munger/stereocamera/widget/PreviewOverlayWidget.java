@@ -46,7 +46,8 @@ public class PreviewOverlayWidget extends View
 		None,
 		Crosshairs,
 		Thirds,
-		Fourths
+		Fourths,
+		Ghost
 	};
 
 	private Type type = Type.None;
@@ -123,6 +124,7 @@ public class PreviewOverlayWidget extends View
 		switch(type)
 		{
 			case None:
+			case Ghost:
 				break;
 			case Crosshairs:
 				drawCrosshairs(canvas);

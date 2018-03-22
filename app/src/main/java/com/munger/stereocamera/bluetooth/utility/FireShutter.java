@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
@@ -24,9 +25,9 @@ public class FireShutter
 	private PhotoProcessorService.PhotoArgument remoteData;
 
 	private BluetoothMasterComm masterComm;
-	private PreviewFragment fragment;
+	private MasterFragment fragment;
 
-	public FireShutter(PreviewFragment fragment)
+	public FireShutter(MasterFragment fragment)
 	{
 		this.fragment = fragment;
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
@@ -78,7 +79,7 @@ public class FireShutter
 				{}
 			});
 			localData.orientation = fragment.getCurrentOrientation();
-			localData.zoom = fragment.getZoomValue();
+			localData.zoom = fragment.getZoom();
 		}});
 		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();

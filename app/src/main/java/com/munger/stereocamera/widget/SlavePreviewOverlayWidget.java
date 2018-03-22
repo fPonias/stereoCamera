@@ -1,0 +1,166 @@
+package com.munger.stereocamera.widget;
+
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.AttributeSet;
+import android.view.View;
+import android.widget.ImageView;
+
+public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppCompatImageView
+{
+	public SlavePreviewOverlayWidget(Context context)
+	{
+		super(context);
+		init();
+	}
+
+	public SlavePreviewOverlayWidget(Context context, AttributeSet attrs)
+	{
+		super(context, attrs);
+		init();
+	}
+
+	public SlavePreviewOverlayWidget(Context context, AttributeSet attrs, int defStyleAttr)
+	{
+		super(context, attrs, defStyleAttr);
+		init();
+	}
+
+	private void init()
+	{
+		setImageBitmap(null);
+		setRotation(90);
+		setScaleType(ImageView.ScaleType.CENTER_CROP);
+		setAlpha(0.5f);
+	}
+
+	public void cancel()
+	{
+		synchronized (lock)
+		{
+			cancelled = true;
+			lock.notify();
+
+			if (runThread != null)
+				try {lock.wait(250);} catch (InterruptedException e){}
+		}
+	}
+
+	public boolean isRunning()
+	{
+		synchronized (lock)
+		{
+			return (!cancelled && runThread != null);
+		}
+	}
+
+	private float zoom = 0f;
+	private long lastFrameReceived = 0;
+	private long hideTimeout = 1500;
+
+	public void render(byte[] data, float zoom)
+	{
+		lastFrameReceived = System.currentTimeMillis();
+
+		if (this.zoom != zoom)
+		{
+			this.zoom = zoom;
+			setScaleX(zoom);
+			setScaleY(zoom);
+		}
+
+		synchronized (lock)
+		{
+			if (isRendering || cancelled)
+				return;
+		}
+
+		previewBmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+		synchronized (lock)
+		{
+			lock.notify();
+		}
+	}
+
+	private final Object lock = new Object();
+	private Bitmap previewBmp;
+	private boolean isRendering = false;
+	private boolean cancelled = false;
+	private Thread runThread = null;
+
+	private Runnable previewUpdater = new Runnable() { public void run()
+	{
+		long now = System.currentTimeMillis();
+		long diff = now - lastFrameReceived;
+
+		if (diff > hideTimeout)
+		{
+			setVisibility(View.GONE);
+			return;
+		}
+		else
+		{
+			setVisibility(View.VISIBLE);
+		}
+
+		setImageBitmap(previewBmp);
+	}};
+
+	private Runnable process = new Runnable() { public void run()
+	{
+		lastFrameReceived = System.currentTimeMillis();
+		Handler h = new Handler(Looper.getMainLooper());
+		previewBmp = null;
+
+		h.post(previewUpdater);
+
+		while (!cancelled)
+		{
+			synchronized (lock)
+			{
+				try {lock.wait(hideTimeout);} catch(InterruptedException e){break;}
+
+				if (cancelled)
+					break;
+
+				isRendering = true;
+			}
+
+			h.post(previewUpdater);
+
+			synchronized (lock)
+			{
+				isRendering = false;
+
+				if (System.currentTimeMillis() - lastFrameReceived > hideTimeout)
+				{
+					break;
+				}
+			}
+		}
+
+		synchronized (lock)
+		{
+			cancelled = true;
+			runThread = null;
+			lock.notify();
+		}
+	}};
+
+	public void start()
+	{
+		synchronized (lock)
+		{
+			if (runThread != null)
+				return;
+
+			cancelled = false;
+			runThread = new Thread(process);
+			runThread.start();
+		}
+	}
+}

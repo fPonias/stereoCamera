@@ -1,6 +1,8 @@
 package com.munger.stereocamera.fragment;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -36,7 +39,9 @@ import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
 import com.munger.stereocamera.widget.ThumbnailWidget;
+import com.munger.stereocamera.widget.ZoomWidget;
 
 import java.util.Set;
 
@@ -49,10 +54,11 @@ public class MasterFragment extends PreviewFragment
 	private ImageButton clickButton;
 	private OrientationWidget verticalIndicator;
 	private OrientationWidget horizontalIndicator;
-	private SeekBar zoomSlider;
 	private ViewGroup controls;
 	private PreviewOverlayWidget overlayWidget;
 	private ThumbnailWidget thumbnailWidget;
+	private SlavePreviewOverlayWidget slavePreview;
+	private ZoomWidget zoomSlider;
 
 	private BluetoothMasterComm masterComm;
 	private RemoteState remoteState;
@@ -78,9 +84,10 @@ public class MasterFragment extends PreviewFragment
 		horizontalIndicator = rootView.findViewById(R.id.horiz_level);
 
 		zoomSlider = rootView.findViewById(R.id.zoom_slider);
-
-		zoomSlider.setOnSeekBarChangeListener(new ZoomListener());
-		zoomSlider.setMax(300);
+		zoomSlider.setListener(new ZoomWidget.Listener() {public void onChange(float value)
+		{
+			setZoom(value);
+		}});
 
 		overlayWidget = rootView.findViewById(R.id.previewOverlay);
 		updateOverlayFromPrefs();
@@ -96,6 +103,8 @@ public class MasterFragment extends PreviewFragment
 		previewView.setOrientation(orientation);
 		previewView.setAndStartCamera(prefs.getIsFacing());
 
+		slavePreview = rootView.findViewById(R.id.slavePreview);
+
 		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
 		thumbnailWidget.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
 		{
@@ -105,49 +114,6 @@ public class MasterFragment extends PreviewFragment
 		setStatus(Status.CREATED);
 
 		return rootView;
-	}
-
-	private class ZoomListener implements SeekBar.OnSeekBarChangeListener
-	{
-		private boolean touched = false;
-
-		@Override
-		public void onProgressChanged(SeekBar seekBar, int i, boolean b)
-		{
-			if (touched)
-			{
-				float value = seekToValue(seekBar);
-				setZoom(value);
-			}
-		}
-
-		@Override
-		public void onStartTrackingTouch(SeekBar seekBar)
-		{
-			touched = true;
-		}
-
-		@Override
-		public void onStopTrackingTouch(SeekBar seekBar)
-		{
-			touched = false;
-
-			float value = seekToValue(seekBar);
-		}
-	}
-
-	private float seekToValue(SeekBar bar)
-	{
-		int idx = bar.getProgress();
-		float ret = ((float) idx + 100.0f) / 100.0f;
-		return ret;
-	}
-
-	private void setSeek(SeekBar bar, float zoom)
-	{
-		int idx = (int)(zoom * 100.0f - 100.0f);
-		idx = Math.max(0, Math.min(idx, bar.getMax()));
-		bar.setProgress(idx);
 	}
 
 	@Override
@@ -294,11 +260,31 @@ public class MasterFragment extends PreviewFragment
 	}
 
 	@Override
+	protected void setZoom(float zoom)
+	{
+		super.setZoom(zoom);
+		zoomSlider.set(zoom);
+	}
+
+	public float getZoom()
+	{
+		return zoomSlider.get();
+	}
+
+	@Override
 	public void onSaveInstanceState(Bundle outState)
 	{
 		outState.putBoolean("previewAlreadyStarted", previewAlreadyStarted);
 
 		super.onSaveInstanceState(outState);
+	}
+
+	@Override
+	public void onPause()
+	{
+		super.onPause();
+
+		slavePreview.cancel();
 	}
 
 	@Override
@@ -323,6 +309,14 @@ public class MasterFragment extends PreviewFragment
 
 	private void setOverlayType(PreviewOverlayWidget.Type type)
 	{
+		if (slavePreview != null)
+		{
+			if (type == PreviewOverlayWidget.Type.Ghost)
+				slavePreview.start();
+			else
+				slavePreview.cancel();
+		}
+
 		overlayWidget.setType(type);
 
 		if (remoteState != null && remoteState.status == Status.READY && masterComm != null)
@@ -428,14 +422,6 @@ public class MasterFragment extends PreviewFragment
 	private RemoteState.Listener remoteListener = new RemoteState.Listener()
 	{
 		@Override
-		public void onStatus(PreviewFragment.Status status)
-		{}
-
-		@Override
-		public void onFov(float horiz, float vert)
-		{}
-
-		@Override
 		public void onZoom(float zoom)
 		{
 			MyApplication.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
@@ -455,13 +441,18 @@ public class MasterFragment extends PreviewFragment
 		}
 
 		@Override
-		public void onOrientation(PhotoOrientation orientation)
-		{}
-
-		@Override
 		public void onDisconnect()
 		{
 			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+		}
+
+		@Override
+		public void onPreviewFrame(byte[] data, float zoom)
+		{
+			if (!slavePreview.isRunning() && overlayWidget.getType() == PreviewOverlayWidget.Type.Ghost)
+				slavePreview.start();
+
+			slavePreview.render(data, zoom);
 		}
 	};
 
@@ -481,15 +472,6 @@ public class MasterFragment extends PreviewFragment
 		setStatus(Status.LISTENING);
 
 		onPreviewStarted1();
-	}
-
-	@Override
-	protected void onZoomed()
-	{
-		super.onZoomed();
-		String camId = getCameraId();
-		float zoom = getZoomValue();
-		MyApplication.getInstance().getPrefs().setLocalZoom(camId, zoom);
 	}
 
 	private void onPreviewStarted1()
@@ -589,4 +571,6 @@ public class MasterFragment extends PreviewFragment
 			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 		}});
 	}
+
+
 }
