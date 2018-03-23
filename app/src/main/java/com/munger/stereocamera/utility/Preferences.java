@@ -201,7 +201,7 @@ public class Preferences
 	public void setRemoteZoom(String cameraId, float value)
 	{
 		cameraPrefs prefs = cameras.get(cameraId);
-		String key = prefs.getKey(CameraKeysEnum.LOCAL_ZOOM_KEY);
+		String key = prefs.getKey(CameraKeysEnum.REMOTE_ZOOM_KEY);
 
 		prefs.remoteZoom = value;
 

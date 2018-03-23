@@ -31,7 +31,7 @@ public class PreviewFragment extends Fragment
 	protected PreviewWidget previewView;
 	protected Handler handler;
 
-	private Status status;
+	protected Status status;
 
 	protected void setStatus(Status status)
 	{

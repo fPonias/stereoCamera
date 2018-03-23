@@ -80,6 +80,8 @@ public class FireShutter
 			});
 			localData.orientation = fragment.getCurrentOrientation();
 			localData.zoom = fragment.getZoom();
+
+			MyApplication.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
 		}});
 		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();

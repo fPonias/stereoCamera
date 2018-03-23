@@ -32,9 +32,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.utility.PhotoFiles;
 
@@ -389,8 +391,18 @@ public class PreviewWidget extends TextureView
 			}
 		}
 
-		Camera camera = Camera.open(cameraId);
-		setCamera(camera);
+		try
+		{
+			Camera camera = Camera.open(cameraId);
+			setCamera(camera);
+		}
+		catch(RuntimeException e){
+			new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
+			{
+				Toast.makeText(getContext(), R.string.camera_open_error, Toast.LENGTH_LONG).show();
+				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+			}});
+		}
 	}
 
 	private Pair getCameraResolution(int camNum, Camera camera)

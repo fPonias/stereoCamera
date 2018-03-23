@@ -46,7 +46,22 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 
 			if (runThread != null)
 				try {lock.wait(250);} catch (InterruptedException e){}
+
+			if (currentBmp != null)
+			{
+				setImageBitmap(null);
+				//currentBmp.recycle();
+				currentBmp = null;
+			}
+
+			if (nextBmp != null)
+			{
+				//nextBmp.recycle();
+				nextBmp = null;
+			}
 		}
+
+		setVisibility(View.GONE);
 	}
 
 	public boolean isRunning()
@@ -78,16 +93,25 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 				return;
 		}
 
-		previewBmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+		Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+		Bitmap lastBmp = null;
 
 		synchronized (lock)
 		{
+			if (nextBmp != currentBmp)
+				lastBmp = nextBmp;
+
+			nextBmp = bmp;
 			lock.notify();
 		}
+
+		if (lastBmp != null && lastBmp != currentBmp)
+			lastBmp.recycle();
 	}
 
 	private final Object lock = new Object();
-	private Bitmap previewBmp;
+	private Bitmap nextBmp;
+	private Bitmap currentBmp;
 	private boolean isRendering = false;
 	private boolean cancelled = false;
 	private Thread runThread = null;
@@ -107,14 +131,30 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 			setVisibility(View.VISIBLE);
 		}
 
-		setImageBitmap(previewBmp);
+		Bitmap lastBmp = null;
+
+		synchronized (lock)
+		{
+			if (nextBmp != null && !nextBmp.isRecycled())
+			{
+				if (currentBmp != null)
+					lastBmp = currentBmp;
+
+				currentBmp = nextBmp;
+			}
+		}
+
+
+		setImageBitmap(currentBmp);
+		if (lastBmp != null && lastBmp != currentBmp)
+			lastBmp.recycle();
 	}};
 
 	private Runnable process = new Runnable() { public void run()
 	{
 		lastFrameReceived = System.currentTimeMillis();
 		Handler h = new Handler(Looper.getMainLooper());
-		previewBmp = null;
+		nextBmp = null;
 
 		h.post(previewUpdater);
 

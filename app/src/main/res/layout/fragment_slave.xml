@@ -38,7 +38,7 @@
         android:background="@color/white"
         android:id="@+id/controls">
         <com.munger.stereocamera.widget.ZoomWidget
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
             android:id="@+id/zoom_slider"

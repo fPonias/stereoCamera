@@ -336,9 +336,11 @@ public class ImageViewerFragment extends Fragment
 		File f = new File(selectedPath);
 
 		if (f.exists())
-		{}	//f.delete();
+			f.delete();
 
 		adapter.deleteItem(idx);
+
+		updateLabel(idx);
 
 		if (sz == 1)
 		{

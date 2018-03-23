@@ -309,7 +309,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void setOverlayType(PreviewOverlayWidget.Type type)
 	{
-		if (slavePreview != null)
+		if (slavePreview != null && status == Status.READY)
 		{
 			if (type == PreviewOverlayWidget.Type.Ghost)
 				slavePreview.start();
@@ -321,6 +321,20 @@ public class MasterFragment extends PreviewFragment
 
 		if (remoteState != null && remoteState.status == Status.READY && masterComm != null)
 			masterComm.runCommand(new SetOverlay(type));
+	}
+
+	@Override
+	protected void setStatus(Status status)
+	{
+		super.setStatus(status);
+
+		if (slavePreview != null)
+		{
+			if (status == Status.READY && overlayWidget.getType() == PreviewOverlayWidget.Type.Ghost && !slavePreview.isRunning())
+				slavePreview.start();
+			else if (status != Status.READY && slavePreview.isRunning())
+				slavePreview.cancel();
+		}
 	}
 
 	private void updateHandPhoneButton()
@@ -355,6 +369,8 @@ public class MasterFragment extends PreviewFragment
 
 	private void doShutter()
 	{
+		setStatus(Status.BUSY);
+
 		new FireShutter(MasterFragment.this).execute(shutterDelay, new FireShutter.Listener()
 		{
 			@Override
@@ -449,9 +465,6 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onPreviewFrame(byte[] data, float zoom)
 		{
-			if (!slavePreview.isRunning() && overlayWidget.getType() == PreviewOverlayWidget.Type.Ghost)
-				slavePreview.start();
-
 			slavePreview.render(data, zoom);
 		}
 	};
