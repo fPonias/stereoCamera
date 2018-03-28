@@ -17,6 +17,14 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_initN
 
 /*
  * Class:     com_munger_stereocamera_service_PhotoProcessor
+ * Method:    setProcessorType
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setProcessorType
+  (JNIEnv *, jobject, jint);
+
+/*
+ * Class:     com_munger_stereocamera_service_PhotoProcessor
  * Method:    setImageN
  * Signature: (ZLjava/lang/String;IF)V
  */

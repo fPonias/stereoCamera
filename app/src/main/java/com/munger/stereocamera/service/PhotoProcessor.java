@@ -1,16 +1,13 @@
 package com.munger.stereocamera.service;
 
 import android.content.Context;
+import android.content.Intent;
 
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
-
-
-/**
- * Created by hallmarklabs on 3/14/18.
- */
 
 public class PhotoProcessor
 {
@@ -22,11 +19,12 @@ public class PhotoProcessor
 	private PhotoFiles photoFiles;
 	private Context context;
 
-	public PhotoProcessor(Context context)
+	public PhotoProcessor(Context context, CompositeImageType type)
 	{
 		this.context = context;
 		photoFiles = new PhotoFiles(context);
 		initN(context.getCacheDir().getPath());
+		setProcessorType(type.ordinal());
 	}
 
 	public void testOldData()
@@ -36,15 +34,22 @@ public class PhotoProcessor
 			@Override
 			public void done()
 			{
-				/*
-				//String path = photoFiles.getFilePath("left.jpg");
-				String path = "/data/local/tmp/left.jpg";
-				setImageN(false, path, PhotoOrientation.DEG_90.ordinal(), 1.5f);
-				//path = photoFiles.getFilePath("right.jpg");
-				path = "/data/local/tmp/left.jpg";
-				setImageN(true, path, PhotoOrientation.DEG_180.ordinal(), 1.5f);
+				Thread t = new Thread(new Runnable() { public void run()
+				{
+					PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
+					localData.jpegPath = "/data/local/tmp/left.jpg";
+					localData.orientation = PhotoOrientation.DEG_90;
+					localData.zoom = 1.5f;
 
-				String result = processData(false);*/
+					PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
+					remoteData.jpegPath = "/data/local/tmp/left.jpg";
+					remoteData.orientation = PhotoOrientation.DEG_180;
+					remoteData.zoom = 1.0f;
+
+					Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, CompositeImageType.SPLIT);
+					MyApplication.getInstance().startService(i);
+				}});
+				t.start();
 			}
 
 			@Override
@@ -87,6 +92,20 @@ public class PhotoProcessor
 	 * @param cachePath folder to store temporary data
 	 */
 	private native void initN(String cachePath);
+
+	//mirror enum of data type in CompositeImage.h
+	public enum CompositeImageType
+	{
+		SPLIT,
+		GREEN_MAGENTA,
+		RED_BLUE
+	};
+
+	/**
+	 * set the type of image to produce
+	 * @param type ordinal value of CompositeImageType
+	 */
+	private native void setProcessorType(int type);
 
 	/**
 	 * Send raw data to the native code

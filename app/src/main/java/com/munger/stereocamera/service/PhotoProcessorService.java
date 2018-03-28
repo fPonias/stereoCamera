@@ -8,10 +8,22 @@ import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 
 public class PhotoProcessorService extends IntentService
 {
+	public static Intent getIntent(PhotoArgument local, PhotoArgument remote, boolean flip, PhotoProcessor.CompositeImageType type)
+	{
+		Intent i = new Intent(MyApplication.getInstance(), PhotoProcessorService.class);
+		i.putExtra(PhotoProcessorService.FLIP_ARG, flip);
+		i.putExtra(PhotoProcessorService.TYPE_ARG, type);
+		i.putExtra(PhotoProcessorService.LEFT_PHOTO_ARG, local);
+		i.putExtra(PhotoProcessorService.RIGHT_PHOTO_ARG, remote);
+
+		return i;
+	}
+
 	public static class PhotoArgument implements Parcelable
 	{
 		public static Parcelable.Creator<PhotoArgument> CREATOR = new Creator<PhotoArgument>()
@@ -61,6 +73,7 @@ public class PhotoProcessorService extends IntentService
 	public static String LEFT_PHOTO_ARG = "leftPhoto";
 	public static String RIGHT_PHOTO_ARG = "rightPhoto";
 	public static String FLIP_ARG = "flip";
+	public static String TYPE_ARG = "type";
 
 	public static String BROADCAST_PROCESSED_ACTION = "com.munger.stereocamera.PROCESSED";
 	public static String EXTENDED_DATA_PATH = "com.munger.stereocamera.PATH";
@@ -78,6 +91,7 @@ public class PhotoProcessorService extends IntentService
 	private PhotoArgument left;
 	private PhotoArgument right;
 	private boolean flip;
+	private PhotoProcessor.CompositeImageType type;
 
 	@Override
 	protected void onHandleIntent(@Nullable Intent intent)
@@ -86,7 +100,7 @@ public class PhotoProcessorService extends IntentService
 			return;
 
 
-		PhotoProcessor proc = new PhotoProcessor(this);
+		PhotoProcessor proc = new PhotoProcessor(this, type);
 
 		proc.setData(false, left.jpegPath, left.orientation, left.zoom);
 		proc.setData(true, right.jpegPath, right.orientation, right.zoom);
@@ -119,6 +133,11 @@ public class PhotoProcessorService extends IntentService
 			flip = false;
 		else
 			flip = b.getBoolean(FLIP_ARG);
+
+		if (!b.containsKey(TYPE_ARG))
+			type = PhotoProcessor.CompositeImageType.SPLIT;
+		else
+			type = (PhotoProcessor.CompositeImageType) b.get(TYPE_ARG);
 
 		left = b.getParcelable(LEFT_PHOTO_ARG);
 		right = b.getParcelable(RIGHT_PHOTO_ARG);

@@ -6,6 +6,7 @@ import android.content.Intent;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.fragment.MasterFragment;
+import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
@@ -185,11 +186,7 @@ public class FireShutter
 					localData = tmp;
 				}
 
-				Intent i = new Intent(MyApplication.getInstance(), PhotoProcessorService.class);
-				i.putExtra(PhotoProcessorService.FLIP_ARG, fragment.getFacing());
-				i.putExtra(PhotoProcessorService.LEFT_PHOTO_ARG, localData);
-				i.putExtra(PhotoProcessorService.RIGHT_PHOTO_ARG, remoteData);
-
+				Intent i = PhotoProcessorService.getIntent(localData, remoteData, fragment.getFacing(), PhotoProcessor.CompositeImageType.SPLIT);
 				MyApplication.getInstance().startService(i);
 
 				listener.done();

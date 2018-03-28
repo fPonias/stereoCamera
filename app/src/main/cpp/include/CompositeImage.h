@@ -13,25 +13,24 @@ enum Side
     RIGHT
 };
 
+enum CompositeImageType
+{
+    SPLIT,
+    GREEN_MAGENTA,
+    RED_BLUE
+};
+
 class CompositeImage
 {
-private:
-    size_t targetDim;
-
+protected:
     Image left;
     Image right;
-    Pixel* data;
-
-    void straightCopy(Image* target, size_t offset);
-    void scaledCopy(Image* target, size_t offset);
-    void copyTmp(Image* target, size_t offset);
-    void saveFinal(const char* path);
 public:
-    CompositeImage();
-    ~CompositeImage();
-
-    Image* getImage(Side side);
-    void combineImages(bool growToMaxDim, bool flip, const char* path);
+    virtual ~CompositeImage() {};
+    Image* getImage(Side side) { return (side == LEFT) ? &left : &right; }
+    virtual void copyTmp(Image* target, Side side) = 0;
+    virtual void combineImages(bool growToMaxDim, bool flip, const char* path) = 0;
+    virtual CompositeImageType getType() = 0;
 };
 
 #endif //STEREOCAMERA_COMPOSITEIMAGE_H

@@ -1,24 +1,18 @@
 //
-// Created by hallmarklabs on 3/17/18.
+// Created by hallmarklabs on 3/23/18.
 //
 
-#include "CompositeImage.h"
-#include <stdio.h>
+#include "GreenMagentaCompositeImage.h"
+#include "jpegCtrl.h"
 #include <memory.h>
 #include <math.h>
 
-CompositeImage::CompositeImage()
-{
-    data = 0;
-}
+const Pixel GreenMagentaCompositeImage::LEFT_MASK = {0, 0xff, 0};
+const Pixel GreenMagentaCompositeImage::RIGHT_MASK = {0xff, 0, 0xff};
 
-CompositeImage::~CompositeImage()
+void GreenMagentaCompositeImage::straightCopy(Image* target, const Pixel* mask)
 {
-}
-
-void CompositeImage::straightCopy(Image* target, size_t offset)
-{
-    size_t rowWidth = (size_t) targetDim * 2;
+    size_t rowWidth = (size_t) targetDim;
     FILE* file = fopen(target->getProcPath(), "rb");
 
     size_t rows = (size_t) target->getTargetDim();
@@ -26,7 +20,10 @@ void CompositeImage::straightCopy(Image* target, size_t offset)
     Pixel buffer[dim];
     Pixel* buf_ptr = &(buffer[0]);
     size_t jsampSz = sizeof(Pixel);
-    offset *= jsampSz;
+
+    char* maskChar = (char*) mask;
+    char* bufChar;
+    char* dataChar;
 
     size_t idx;
     Pixel* data_ptr;
@@ -41,24 +38,38 @@ void CompositeImage::straightCopy(Image* target, size_t offset)
             return;
         }
 
-        idx = dstRow * rowWidth + (offset);
+        idx = dstRow * rowWidth;
         data_ptr = data + idx;
 
-        memcpy(data_ptr, buf_ptr, dim * jsampSz);
+        for (size_t x = 0; x < dim; x++)
+        {
+            bufChar = (char*) (buf_ptr + x);
+            dataChar = (char*) (data_ptr + x);
+            maskChar = (char*) mask;
+
+            for (size_t z = 0; z < jsampSz; z++)
+            {
+                *dataChar = *dataChar | (*maskChar & *bufChar);
+                dataChar++;
+                maskChar++;
+                bufChar++;
+            }
+        }
     }
 
     fclose(file);
+
 }
 
-void CompositeImage::scaledCopy(Image* target, size_t offset)
+void GreenMagentaCompositeImage::scaledCopy(Image* target, const Pixel* mask)
 {
-    size_t rowWidth = (size_t) targetDim * 2;
+    size_t rowWidth = (size_t) targetDim;
     FILE* file = fopen(target->getProcPath(), "rb");
 
+    size_t rows = (size_t) target->getTargetDim();
     size_t dim = (size_t) target->getTargetDim();
     Pixel buffer[dim];
     size_t jsampSz = sizeof(Pixel);
-    offset *= jsampSz;
 
     float ratio = (float) targetDim / (float) dim;
     size_t srcRow = 0;
@@ -69,12 +80,16 @@ void CompositeImage::scaledCopy(Image* target, size_t offset)
     size_t idx = 0;
     Pixel* data_ptr = data;
     Pixel* buf_ptr = 0;
+    char* bufChar = 0;
+    char* dataChar = 0;
+    char* maskChar = 0;
     size_t read;
 
 
-    for (size_t dstRow = 0; dstRow < targetDim; dstRow++)
+    for (size_t dstRow = 0; dstRow < rows; dstRow++)
     {
-        size_t newRow = (size_t) fmax(0, fmin(lround(dstRow / ratio), dim - 1));
+        double newRowD = (double) dstRow / ratio;
+        size_t newRow = (size_t) fmax(0, fmin(newRowD, (double) dim - 1.0));
         if (first || newRow > srcRow)
         {
             first = false;
@@ -88,46 +103,63 @@ void CompositeImage::scaledCopy(Image* target, size_t offset)
             }
         }
 
-        idx = dstRow * rowWidth + (offset);
+        idx = dstRow * rowWidth;
 
         for (dstCol = 0; dstCol < targetDim; dstCol++)
         {
             srcCol = (size_t) fmax(0, fmin(lround(dstCol / ratio), dim - 1));
             data_ptr = data + idx + dstCol;
+            dataChar = (char*) data_ptr;
             buf_ptr = buffer + srcCol;
+            bufChar = (char*) buf_ptr;
+            maskChar = (char*) mask;
 
-            memcpy(data_ptr, buf_ptr, jsampSz);
+            for (size_t z = 0; z < jsampSz; z++)
+            {
+                *dataChar = *dataChar | (*maskChar & *bufChar);
+                dataChar++;
+                maskChar++;
+                bufChar++;
+            }
         }
     }
 
     fclose(file);
 }
 
-void CompositeImage::copyTmp(Image* target, size_t offset)
-{
-    float ratio = (float) targetDim / (float) target->getTargetDim();
-    if (ratio > 0.995f && ratio < 1.005f)
-        straightCopy(target, offset);
-    else
-        scaledCopy(target, offset);
-}
-
-void CompositeImage::saveFinal(const char* path)
+void GreenMagentaCompositeImage::saveFinal(const char* path)
 {
     JpegCtrl::ImageData imgData;
     imgData.height = (JDIMENSION) targetDim;
-    imgData.width = (JDIMENSION) (2 * targetDim);
+    imgData.width = (JDIMENSION) (targetDim);
     imgData.data = data;
 
     JpegCtrl::write_JPEG_file(path, 85, &imgData);
 }
 
-Image* CompositeImage::getImage(Side side)
+GreenMagentaCompositeImage::GreenMagentaCompositeImage()
 {
-    return (side == LEFT) ? &left : &right;
+
 }
 
-void CompositeImage::combineImages(bool growToMaxDim, bool flip, const char* path)
+GreenMagentaCompositeImage::~GreenMagentaCompositeImage()
+{
+
+}
+
+void GreenMagentaCompositeImage::copyTmp(Image *target, Side side)
+{
+    const Pixel* mask = (side == LEFT) ? &LEFT_MASK : &RIGHT_MASK;
+    float ratio = (float) targetDim / (float) target->getTargetDim();
+    double diff = fabs(1.0f - ratio);
+
+    if (diff < 0.005)
+        straightCopy(target, mask);
+    else
+        scaledCopy(target, mask);
+}
+
+void GreenMagentaCompositeImage::combineImages(bool growToMaxDim, bool flip, const char* path)
 {
     if (flip)
     {
@@ -154,12 +186,12 @@ void CompositeImage::combineImages(bool growToMaxDim, bool flip, const char* pat
     else
         targetDim = (leftDim < rightDim) ? leftDim : rightDim;
 
-    size_t sz = targetDim * 2 * targetDim;
+    size_t sz = targetDim * targetDim;
     data = new Pixel[sz];
     bzero(data, sz * sizeof(Pixel));
 
-    copyTmp(&left, 0);
-    copyTmp(&right, (size_t) targetDim);
+    copyTmp(&left, LEFT);
+    copyTmp(&right, RIGHT);
 
     saveFinal(path);
 

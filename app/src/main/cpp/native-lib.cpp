@@ -7,7 +7,8 @@
 #include "jpegCtrl.h"
 #include "com_munger_stereocamera_service_PhotoProcessor.h"
 #include "util.h"
-#include "CompositeImage.h"
+#include "SplitCompositeImage.h"
+#include "GreenMagentaCompositeImage.h"
 #include "Image.h"
 
 CompositeImage* image;
@@ -29,7 +30,29 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_initN
 {
     srand(time(NULL));
     cachePath = getStringFromNative(env, jcachePath);
-    image = new CompositeImage();
+    image = 0;
+}
+
+JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setProcessorType
+        (JNIEnv * env, jobject jthis, jint jtype)
+{
+    if (image != 0)
+    {
+        delete image;
+        image = 0;
+    }
+
+    CompositeImageType type = (CompositeImageType) jtype;
+    switch (type)
+    {
+        case SPLIT:
+        default:
+            image = new SplitCompositeImage();
+            break;
+        case GREEN_MAGENTA:
+            image = new GreenMagentaCompositeImage();
+            break;
+    }
 }
 
 /*

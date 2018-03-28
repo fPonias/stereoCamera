@@ -167,7 +167,7 @@ public class MasterFragment extends PreviewFragment
 
 		debugItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			PhotoProcessor proc = new PhotoProcessor(getContext());
+			PhotoProcessor proc = new PhotoProcessor(getContext(), PhotoProcessor.CompositeImageType.SPLIT);
 			proc.testOldData();
 
 			return true;

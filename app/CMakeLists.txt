@@ -7,7 +7,8 @@ add_library( native-lib
              src/main/cpp/util.cpp
              src/main/cpp/jpegCtrl.cpp
              src/main/cpp/Image.cpp
-             src/main/cpp/CompositeImage.cpp
+             src/main/cpp/SplitCompositeImage.cpp
+             src/main/cpp/GreenMagentaCompositeImage.cpp
              src/main/cpp/native-lib.cpp
 
              #including libjpeg in our native-lib as I couldn't figure out how to link to it without getting a runtime crash

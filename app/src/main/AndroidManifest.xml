@@ -27,9 +27,9 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".service.PhotoProcessorService"
-            android:process="com.munger.stereocamera.processor"
-        />
+        <service android:name=".service.PhotoProcessorService" />
+            <!--android:process="com.munger.stereocamera.processor"
+        />-->
     </application>
     
     <uses-permission android:name="android.permission.BLUETOOTH" />
