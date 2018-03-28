@@ -8,6 +8,8 @@ add_library( native-lib
              src/main/cpp/jpegCtrl.cpp
              src/main/cpp/Image.cpp
              src/main/cpp/SplitCompositeImage.cpp
+             src/main/cpp/AnaglyphCompositeImage.cpp
+             src/main/cpp/RedCyanCompositeImage.cpp
              src/main/cpp/GreenMagentaCompositeImage.cpp
              src/main/cpp/native-lib.cpp
 

@@ -9,6 +9,7 @@
 #include "util.h"
 #include "SplitCompositeImage.h"
 #include "GreenMagentaCompositeImage.h"
+#include "RedCyanCompositeImage.h"
 #include "Image.h"
 
 CompositeImage* image;
@@ -51,6 +52,9 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setPr
             break;
         case GREEN_MAGENTA:
             image = new GreenMagentaCompositeImage();
+            break;
+        case RED_CYAN:
+            image = new RedCyanCompositeImage();
             break;
     }
 }

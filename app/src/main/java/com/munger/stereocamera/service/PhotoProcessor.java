@@ -98,7 +98,7 @@ public class PhotoProcessor
 	{
 		SPLIT,
 		GREEN_MAGENTA,
-		RED_BLUE
+		RED_CYAN
 	};
 
 	/**

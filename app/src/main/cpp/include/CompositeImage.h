@@ -17,7 +17,7 @@ enum CompositeImageType
 {
     SPLIT,
     GREEN_MAGENTA,
-    RED_BLUE
+    RED_CYAN
 };
 
 class CompositeImage
