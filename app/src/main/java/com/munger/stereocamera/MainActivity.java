@@ -39,6 +39,7 @@ public class MainActivity extends BaseActivity
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
+		setTheme(R.style.AppTheme);
 		super.onCreate(savedInstanceState);
 
 		View root = getLayoutInflater().inflate(R.layout.activity_main, null);
