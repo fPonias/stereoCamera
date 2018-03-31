@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
@@ -8,15 +9,32 @@ import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
+import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
+import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
+import com.munger.stereocamera.bluetooth.utility.TimedCommand;
 
 import java.io.IOException;
 
 public class BluetoothSlave
 {
-	public BluetoothSlave(BluetoothCtrl server, boolean doDiscovery, long timeout, BluetoothCtrl.ConnectListener listener)
+	public BluetoothSlave(BluetoothCtrl server)
 	{
 		this.server = server;
+	}
+
+	public void start(boolean doDiscovery, long timeout, BluetoothCtrl.ConnectListener listener)
+	{
+		synchronized (lock)
+		{
+			if (listenThread != null)
+			{
+				cleanUp();
+			}
+		}
+
 		this.timeout = timeout;
 		listenListener = listener;
 
@@ -66,24 +84,77 @@ public class BluetoothSlave
 		});
 	}
 
+	public void clearListener()
+	{
+		synchronized (listenLock)
+		{
+			listenListener = new BluetoothCtrl.ConnectListener()
+			{
+				public void onFailed() {}
+				public void onDiscoverable() {}
+				public void onConnected() {}
+				public void onDisconnected() {}
+			};
+		}
+	}
+
+	private String getTag() { return "Bluetooth Slave";}
+
 	private void startListener()
 	{
 		listen();
 	}
 
+	private Thread listenThread = null;
+	private Thread cancelThread = null;
+	private final Object listenLock = new Object();
+
 	private void listen()
 	{
-		Thread listenThread = new Thread(new Runnable() { public void run()
+		synchronized (listenLock)
 		{
-			doListen();
-		}});
-		listenThread.start();
+			if (listenThread != null)
+				return;
 
-		Thread cancelThread = new Thread(new Runnable() { public void run()
-		{
-			try {Thread.sleep(timeout);} catch(InterruptedException e){}
-			doCancel();
-		}});
+			listenThread = new Thread(new Runnable() { public void run()
+			{
+				doListen();
+
+				synchronized (listenLock)
+				{
+					listenThread = null;
+					cancelThread = null;
+					listenLock.notify();
+				}
+			}});
+
+			cancelThread = new Thread(new Runnable() { public void run()
+			{
+				boolean runCancel = false;
+
+				synchronized (listenLock)
+				{
+					try {listenLock.wait(timeout);} catch(InterruptedException e){}
+
+					Log.d(MyApplication.BT_SERVICE_NAME, "checking bluetooth cancel");
+					runCancel = (cancelThread != null);
+
+					listenThread = null;
+					cancelThread = null;
+				}
+
+				if (runCancel)
+				{
+					Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket, cancelling");
+					doCancel();
+				}
+				else
+					Log.d(MyApplication.BT_SERVICE_NAME, "no bluetooth cancel");
+
+			}});
+		}
+
+		listenThread.start();
 		cancelThread.start();
 	}
 
@@ -105,29 +176,40 @@ public class BluetoothSlave
 		}
 	}
 
+	private BluetoothDevice lastConnected = null;
+
+	public BluetoothDevice getLastConnected()
+	{
+		return lastConnected;
+	}
+
+	public void clearLastConnected()
+	{
+		lastConnected = null;
+	}
+
 	private void doListen()
 	{
 		try
 		{
+			Log.d(getTag(), "starting server socket");
 			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MyApplication.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
+
+			lastConnected = null;
+
+			Log.d(getTag(), "starting bluetooth socket");
 			socket = serverSocket.accept();
+			Log.d(getTag(), "bluetooth socket connected?");
 			synchronized (lock)
 			{
 				if (isCancelled)
 				{
-					if (socket != null && serverSocket != null)
-					{
-						try
-						{
-							serverSocket.close();
-						}
-						catch(IOException e){}
-
-						socket = null;
-						serverSocket = null;
-					}
+					Log.d(getTag(), "bluetooth socket not connected");
+					cleanUp();
 				}
 			}
+
+			cleanUpServerSocket();
 		}
 		catch(IOException e){
 			Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket");
@@ -143,14 +225,25 @@ public class BluetoothSlave
 
 		if (socket != null)
 		{
+			Log.d(getTag(), "bluetooth socket connected");
+			lastConnected = socket.getRemoteDevice();
 			slaveComm = new BluetoothSlaveComm(server);
 			listenListener.onConnected();
 		}
 		else
 		{
-			socket = null;
+			Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket");
+			cleanUp();
 			listenListener.onFailed();
 		}
+	}
+
+	public boolean isConnected()
+	{
+		if (slaveComm != null)
+			return true;
+		else
+			return false;
 	}
 
 	public void cleanUp()
@@ -163,16 +256,40 @@ public class BluetoothSlave
 			isCancelled = true;
 		}
 
+		if (slaveComm != null)
+		{
+			slaveComm.cleanUp();
+			slaveComm = null;
+		}
+
+		if (socket != null)
+		{
+			try
+			{
+				socket.close();
+			}
+			catch(IOException e){}
+
+			socket = null;
+		}
+
+		cleanUpServerSocket();
+	}
+
+	private void cleanUpServerSocket()
+	{
+		if (serverSocket == null)
+			return;
+
 		try
 		{
-			if (serverSocket != null)
-				serverSocket.close();
+			serverSocket.close();
 		}
-		catch(IOException e){
+		catch (IOException e)
+		{
 			Log.d(MyApplication.BT_SERVICE_NAME, "failed to close bluetooth socket");
 		}
 
-		if (slaveComm != null)
-			slaveComm.cleanUp();
+		serverSocket = null;
 	}
 }

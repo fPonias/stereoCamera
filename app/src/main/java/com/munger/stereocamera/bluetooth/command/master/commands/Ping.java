@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth.command.master.commands;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
@@ -10,23 +11,10 @@ import java.io.IOException;
 
 public class Ping extends MasterCommand
 {
-	private Listener listener;
-
-	public Ping(Listener listener)
-	{
-		this.listener = listener;
-	}
-
 	@Override
 	public BluetoothCommands getCommand()
 	{
 		return BluetoothCommands.PING;
-	}
-
-	@Override
-	public void onExecuteFail()
-	{
-		listener.fail();
 	}
 
 	private long then;
@@ -38,17 +26,25 @@ public class Ping extends MasterCommand
 	}
 
 	@Override
-	public void handleResponse() throws IOException
+	public MasterIncoming getResponse()
 	{
-		long now = System.currentTimeMillis();
-		long diff = now - then;
-
-		listener.pong(diff);
+		return new Response(id);
 	}
 
-	public interface Listener
+	public class Response extends MasterIncoming
 	{
-		void pong(long diff);
-		void fail();
+		public long latency;
+
+		public Response(int id)
+		{
+			super(BluetoothCommands.PING, id);
+		}
+
+		@Override
+		public void readResponse() throws IOException
+		{
+			long now = System.currentTimeMillis();
+			latency = now - then;
+		}
 	}
 }

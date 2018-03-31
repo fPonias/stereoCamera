@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth.command.master.listeners;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
@@ -8,32 +9,18 @@ import java.io.IOException;
  * Created by hallmarklabs on 3/5/18.
  */
 
-public class ReceiveZoom extends MasterListener
+public class ReceiveZoom extends MasterIncoming
 {
-	public interface Listener
-	{
-		void done(float zoom);
-		void fail();
-	}
+	public float zoom;
 
-	private Listener listener;
-
-	public ReceiveZoom(Listener listener)
+	public ReceiveZoom()
 	{
-		super(BluetoothCommands.RECEIVE_ZOOM);
-		this.listener = listener;
+		super(BluetoothCommands.RECEIVE_ZOOM, -1);
 	}
 
 	@Override
-	public void handleResponse() throws IOException
+	public void readResponse() throws IOException
 	{
-		float value = parent.readFloat();
-		listener.done(value);
-	}
-
-	@Override
-	public void onFail()
-	{
-		listener.fail();
+		zoom = parent.readFloat();
 	}
 }

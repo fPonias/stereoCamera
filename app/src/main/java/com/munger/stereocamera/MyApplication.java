@@ -1,11 +1,17 @@
 package com.munger.stereocamera;
 
 import android.app.Application;
+import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.bluetooth.BluetoothMaster;
+import com.munger.stereocamera.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.utility.InteractiveReceiver;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.SendProcessedPhoto;
@@ -35,7 +41,8 @@ public class MyApplication extends Application
 	private BluetoothCtrl btCtrl;
 	private OrientationCtrl orientationCtrl;
 	private Preferences prefs;
-	private PhotoProcessorServiceReceiver receiver;
+	private PhotoProcessorServiceReceiver photoReceiver;
+	private InteractiveReceiver interactiveReceiver;
 
 	@Override
 	public void onCreate()
@@ -44,7 +51,7 @@ public class MyApplication extends Application
 		instance = this;
 
 		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
-		receiver = new PhotoProcessorServiceReceiver(new PhotoProcessorServiceReceiver.Listener()
+		photoReceiver = new PhotoProcessorServiceReceiver(new PhotoProcessorServiceReceiver.Listener()
 		{
 			@Override
 			public void onPhoto(String path)
@@ -52,7 +59,34 @@ public class MyApplication extends Application
 				handleProcessedPhoto(path);
 			}
 		});
-		LocalBroadcastManager.getInstance(this).registerReceiver(receiver, filter);
+		LocalBroadcastManager.getInstance(this).registerReceiver(photoReceiver, filter);
+
+
+		interactiveReceiver = new InteractiveReceiver();
+		interactiveReceiver.addListener(new InteractiveReceiver.Listener()
+		{
+			@Override
+			public void screenChanged(boolean isOn)
+			{
+				for (Listener listener : listeners)
+					listener.onScreenChanged(isOn);
+			}
+		});
+
+		filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+		registerReceiver(interactiveReceiver, filter);
+
+		filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+		registerReceiver(interactiveReceiver, filter);
+	}
+
+	@Override
+	public void onTerminate()
+	{
+		unregisterReceiver(interactiveReceiver);
+		LocalBroadcastManager.getInstance(this).unregisterReceiver(photoReceiver);
+
+		super.onTerminate();
 	}
 
 	private PhotoFiles photoFiles = null;
@@ -88,7 +122,7 @@ public class MyApplication extends Application
 		if (btCtrl != null && btCtrl.getMaster() != null && btCtrl.getMaster().getComm() != null)
 		{
 			BluetoothMasterComm comm = btCtrl.getMaster().getComm();
-			comm.runCommand(new SendProcessedPhoto(newPath));
+			comm.runCommand(new SendProcessedPhoto(newPath), null);
 		}
 
 		for (Listener listener : listeners)
@@ -143,9 +177,11 @@ public class MyApplication extends Application
 		return currentActivity;
 	}
 
-	public interface Listener
+	public static class Listener
 	{
-		void onNewPhoto(String path);
+		public void onNewPhoto(String path) {}
+		public void onScreenChanged(boolean isOn) {}
+		public void onBluetoothChanged(boolean isConnected, BluetoothDevice device) {}
 	}
 
 	private ArrayList<Listener> listeners = new ArrayList<>();
@@ -158,5 +194,51 @@ public class MyApplication extends Application
 	public void removeListener(Listener listener)
 	{
 		listeners.remove(listener);
+	}
+
+	public void handleDisconnection()
+	{
+		for (Listener listener : listeners)
+			listener.onBluetoothChanged(false, null);
+	}
+
+	public boolean isMasterConnected()
+	{
+		if (btCtrl == null)
+			return false;
+
+		BluetoothMaster master = btCtrl.getMaster();
+
+		if (master == null)
+			return false;
+
+		return master.isConnected();
+	}
+
+	public boolean isSlaveConnected()
+	{
+		if (btCtrl == null)
+			return false;
+
+		BluetoothSlave slave = btCtrl.getSlave();
+
+		if (slave == null)
+			return false;
+
+		return slave.isConnected();
+	}
+
+	public void cleanUpConnections()
+	{
+		if (btCtrl == null)
+			return;
+
+		BluetoothMaster btmaster = btCtrl.getMaster();
+		if (btmaster != null && isMasterConnected())
+			btmaster.cleanUp();
+
+		BluetoothSlave btslave = btCtrl.getSlave();
+		if (btslave != null && isSlaveConnected())
+			btslave.cleanUp();
 	}
 }

@@ -3,10 +3,10 @@ package com.munger.stereocamera.bluetooth.command.master;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
-import com.munger.stereocamera.bluetooth.command.master.listeners.MasterListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,17 +15,13 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-/**
- * Created by hallmarklabs on 2/23/18.
- */
-
 public class BluetoothMasterComm
 {
 	private BluetoothCtrl ctrl;
 	private BluetoothSocket socket;
 
-	public InputStream ins;
-	public OutputStream outs;
+	private InputStream ins;
+	private OutputStream outs;
 
 	OutputProcessor outputProcessor;
 	InputProcessor inputProcessor;
@@ -51,86 +47,151 @@ public class BluetoothMasterComm
 		outputProcessor.start();
 	}
 
+	private String getTag() {return "Bluetooth Master Communicator";}
 
 	public void cleanUp()
 	{
 		inputProcessor.cleanUp();
 		outputProcessor.cleanUp();
+
+		try
+		{
+			outs.close();
+		}
+		catch(IOException e){}
+
+		try
+		{
+			ins.close();
+		}
+		catch(IOException e){}
 	}
 
-	private byte[] longBuf = new byte[8];
-	private ByteBuffer longBufBuf = ByteBuffer.wrap(longBuf);
+	public void waitForData() throws IOException
+	{
+		while(socket.isConnected())
+		{
+			try
+			{
+				if (ins == null)
+					throw new IOException("wait for data failed on master socket");
+
+				if (ins.available() > 0)
+					return;
+
+				try{Thread.sleep(20); } catch(InterruptedException e){}
+			}
+			catch(IOException e){
+				if (!socket.isConnected())
+					Log.d(getTag(), "bluetooth socket is closed");
+
+				Log.d(getTag(), "socket closed while waiting for input");
+				MyApplication.getInstance().handleDisconnection();
+
+				throw(e);
+			}
+		}
+	}
+
 	public long readLong() throws IOException
 	{
-		int read;
-		do
-		{
-			read = ins.read(longBuf, 0, 8);
-		} while (read == 0);
-
-		if (read < 8)
-		{
-			throw new IOException("incorrect response");
-		}
-
-		long ret = longBufBuf.getLong(0);
-		//Log.d("masterReader", "read command arg: " + ret);
-		return ret;
+		byte[] data = readBytes(8);
+		ByteBuffer bb = ByteBuffer.wrap(data);
+		return bb.getLong(0);
 	}
 
-	private byte[] intBuf = new byte[4];
-	private ByteBuffer intBufBuf = ByteBuffer.wrap(intBuf);
 	public int readInt() throws IOException
 	{
-		int read;
-		do
-		{
-			read = ins.read(intBuf, 0, 4);
-		} while (read == 0);
-
-		if (read < 4)
-		{
-			throw new IOException("incorrect response");
-		}
-
-		int ret = intBufBuf.getInt(0);
-		//Log.d("masterReader", "read command arg: " + ret);
-		return ret;
+		byte[] data = readBytes(4);
+		ByteBuffer bb = ByteBuffer.wrap(data);
+		return bb.getInt(0);
 	}
 
 	public float readFloat() throws IOException
 	{
-		int read;
-		do
-		{
-			read = ins.read(intBuf, 0, 4);
-		} while (read == 0);
-
-		if (read < 4)
-		{
-			throw new IOException("incorrect response");
-		}
-
-		float ret = intBufBuf.getFloat(0);
-		String retStr = ret + "";
-
-		if (retStr.contains("NaN"))
-		{
-			int i = 0;
-			int j = i;
-		}
-
-		//Log.d("masterReader", "read command arg: " + retStr);
-		return ret;
+		byte[] data = readBytes(4);
+		ByteBuffer bb = ByteBuffer.wrap(data);
+		return bb.getFloat(0);
 	}
 
-	public void runCommand(MasterCommand command)
+	public byte readByte() throws IOException
 	{
-		outputProcessor.runCommand(command);
+		byte[] data = readBytes(1);
+		return data[0];
 	}
 
-	public void registerListener(MasterListener listener)
+	public byte[] readBytes(int sz) throws IOException
 	{
-		inputProcessor.registerListener(listener);
+		byte[] data = new byte[sz];
+
+		try
+		{
+			int total = 0;
+			int read = 1;
+			while (read > 0 && total < sz)
+			{
+				if (ins == null)
+					throw new IOException("failed master socket read");
+
+				read = ins.read(data, total, sz - total);
+				total += read;
+			}
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d(getTag(), "bluetooth socket is closed");
+
+			Log.d(getTag(), "failed to read " + sz + "bytes from the master socket");
+			MyApplication.getInstance().handleDisconnection();
+
+			throw(e);
+		}
+
+		return data;
+	}
+
+	public void writeBytes(byte[] array) throws IOException
+	{
+		try
+		{
+			if (outs == null)
+				throw new IOException("failed master socket write");
+
+			outs.write(array);
+			outs.flush();
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d(getTag(), "bluetooth socket is closed");
+
+			Log.d(getTag(), "failed to write " + array.length + "bytes to the master socket");
+			MyApplication.getInstance().handleDisconnection();
+			throw(e);
+		}
+	}
+
+	public static class CommandArg
+	{
+		public MasterCommand command;
+		public SlaveListener listener;
+	}
+
+	public void runCommand(MasterCommand command, SlaveListener listener)
+	{
+		CommandArg arg = new CommandArg();
+		arg.command = command;
+		arg.listener = listener;
+		outputProcessor.runCommand(arg);
+	}
+
+	public static abstract class SlaveListener
+	{
+		public abstract void onResponse(MasterIncoming response);
+		public void onFail() {}
+	}
+
+	public void registerListener(BluetoothCommands command, SlaveListener listener)
+	{
+		inputProcessor.registerListener(command, listener);
 	}
 }

@@ -20,6 +20,6 @@ public class SendOrientation extends SlaveCommand
 	@Override
 	public void send() throws IOException
 	{
-		comm.outs.write(orientation.ordinal());
+		comm.putByte((byte) orientation.ordinal());
 	}
 }

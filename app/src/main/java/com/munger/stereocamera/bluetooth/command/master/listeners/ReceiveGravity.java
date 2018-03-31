@@ -1,35 +1,28 @@
 package com.munger.stereocamera.bluetooth.command.master.listeners;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
 
-public class ReceiveGravity extends MasterListener
+public class ReceiveGravity extends MasterIncoming
 {
-	private Listener listener;
+	public Gravity gravity;
 
-	public ReceiveGravity(Listener listener)
+	public ReceiveGravity()
 	{
-		super(BluetoothCommands.RECEIVE_GRAVITY);
-		this.listener = listener;
+		super(BluetoothCommands.RECEIVE_GRAVITY, -1);
 	}
 
 	@Override
-	public void handleResponse() throws IOException
+	public void readResponse() throws IOException
 	{
 		Gravity ret = new Gravity();
 		ret.x = parent.readFloat();
 		ret.y = parent.readFloat();
 		ret.z = parent.readFloat();
-
-		listener.done(ret);
-	}
-
-	@Override
-	public void onFail()
-	{
-		listener.fail();
+		gravity = ret;
 	}
 
 	public static class Gravity
@@ -37,11 +30,5 @@ public class ReceiveGravity extends MasterListener
 		public float x;
 		public float y;
 		public float z;
-	}
-
-	public interface Listener
-	{
-		void done(Gravity value);
-		void fail();
 	}
 }

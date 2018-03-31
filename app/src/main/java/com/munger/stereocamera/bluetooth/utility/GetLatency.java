@@ -5,6 +5,7 @@ import android.util.Log;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.bluetooth.command.master.commands.GetRemoteLatency;
 import com.munger.stereocamera.fragment.PreviewFragment;
 
@@ -119,14 +120,15 @@ public class GetLatency
 
 	private void getRemoteLatency()
 	{
-		masterComm.runCommand(new GetRemoteLatency(new GetRemoteLatency.Listener()
+		masterComm.runCommand(new GetRemoteLatency(), new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void done(long latency)
+			public void onResponse(MasterIncoming response)
 			{
+				GetRemoteLatency.Response r = (GetRemoteLatency.Response) response;
 				synchronized (latencyLock)
 				{
-					remoteLatency = latency;
+					remoteLatency = r.latency;
 					remoteDone = true;
 				}
 
@@ -134,7 +136,7 @@ public class GetLatency
 			}
 
 			@Override
-			public void fail()
+			public void onFail()
 			{
 				synchronized (latencyLock)
 				{
@@ -143,7 +145,7 @@ public class GetLatency
 
 				GetLatency.this.fail();
 			}
-		}));
+		});
 	}
 
 	private void startTimeout()

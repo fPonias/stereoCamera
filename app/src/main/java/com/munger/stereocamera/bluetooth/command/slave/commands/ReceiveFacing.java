@@ -28,7 +28,7 @@ public class ReceiveFacing extends SlaveCommand
 	@Override
 	protected void readArguments() throws IOException
 	{
-		byte arg = (byte) comm.ins.read();
+		byte arg = comm.getByte();
 		facing = (arg == 0) ? false : true;
 	}
 }

@@ -4,22 +4,18 @@ import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
-import com.munger.stereocamera.bluetooth.command.master.listeners.MasterListener;
+import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommandFactory;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-
-/**
- * Created by hallmarklabs on 3/6/18.
- */
 
 public class InputProcessor
 {
 	private BluetoothMasterComm parent;
 	private boolean cancelled = false;
 	private final Object lock = new Object();
-	private HashMap<BluetoothCommands, MasterListener> slaveListeners = new HashMap<>();
+	private HashMap<BluetoothCommands, BluetoothMasterComm.SlaveListener> slaveListeners = new HashMap<>();
 	private Thread slaveProcessor;
 
 	public InputProcessor(BluetoothMasterComm parent)
@@ -48,12 +44,6 @@ public class InputProcessor
 		public int id;
 	}
 
-	public void registerListener(MasterListener listener)
-	{
-		listener.setParent(parent);
-		slaveListeners.put(listener.getCommand(), listener);
-	}
-
 	public void start()
 	{
 		slaveProcessor = new Thread(new Runnable() { public void run() { runSlaveProcessor();} });
@@ -66,7 +56,15 @@ public class InputProcessor
 
 		while(!cancelled)
 		{
-			commandStruct str = readCommand();
+			commandStruct str;
+			try
+			{
+				str = readCommand();
+			}
+			catch(IOException e){
+				cleanUp();
+				break;
+			}
 
 			synchronized (lock)
 			{
@@ -81,75 +79,76 @@ public class InputProcessor
 		}
 	}
 
-	private commandStruct readCommand()
+	private commandStruct readCommand() throws IOException
 	{
-		try
-		{
-			int read = parent.ins.read(readBuf);
+		parent.waitForData();
 
-			if (read == 0)
-				return null;
+		commandStruct ret = new commandStruct();
 
-			commandStruct ret = new commandStruct();
-			//Log.d("masterReader", "read command: " + readBuf[0]);
-			ret.command = BluetoothCommands.values()[readBuf[0]];
-			//Log.d("masterReader", "read command: " + ret.command.name());
-			ret.id = readBuffer.getInt(1);
-			//Log.d("masterReader", "read command id: " + ret.id);
+		byte commandIdx = parent.readByte();
+		ret.command = BluetoothCommands.values()[commandIdx];
+		ret.id = parent.readInt();
 
-			return ret;
-		}
-		catch(IOException e){
-			//handle system failure
-			return null;
-		}
+		return ret;
 	}
 
-	HashMap<Integer, MasterCommand> pendingCommands;
+	HashMap<Integer, BluetoothMasterComm.CommandArg> pendingCommands;
 
 	private void handleResponse(commandStruct str)
 	{
+		MasterCommand command;
+		BluetoothMasterComm.SlaveListener listener;
+
 		if (!pendingCommands.containsKey(str.id))
 		{
-			//handle command failure
-			return;
+			command = MasterCommandFactory.get(str.command, str.id);
+			listener = null;
 		}
-
-		MasterCommand ret = pendingCommands.remove(str.id);
-
-		if (ret.getCommand() != str.command)
+		else
 		{
-			//handle mismatched response failure
-			return;
+			BluetoothMasterComm.CommandArg arg = pendingCommands.remove(str.id);
+			command = arg.command;
+			listener = arg.listener;
 		}
+
+		MasterIncoming response = null;
 
 		try
 		{
-			ret.handleResponse();
+			response = command.getResponse();
+			response.setParent(parent);
+			response.readResponse();
 		}
 		catch (IOException e){
-			ret.onExecuteFail();
-			return;
 		}
+
+		if (listener != null)
+			listener.onResponse(response);
+	}
+
+	public void registerListener(BluetoothCommands command, BluetoothMasterComm.SlaveListener listener)
+	{
+		slaveListeners.put(command, listener);
 	}
 
 	private void handleSlaveCommand(commandStruct str)
 	{
-		if (!slaveListeners.containsKey(str.command))
-		{
-			//handle missing handler failure
-			return;
-		}
-
-		MasterListener listener = slaveListeners.get(str.command);
+		MasterIncoming response = null;
 
 		try
 		{
-			listener.handleResponse();
+			response = InputProcessorFactory.getCommand(str.command);
+			response.setParent(parent);
+			response.readResponse();
 		}
 		catch(IOException e){
-			listener.onFail();
-			return;
+
+		}
+
+		if (slaveListeners.containsKey(str.command))
+		{
+			BluetoothMasterComm.SlaveListener listener = slaveListeners.get(str.command);
+			listener.onResponse(response);
 		}
 	}
 }

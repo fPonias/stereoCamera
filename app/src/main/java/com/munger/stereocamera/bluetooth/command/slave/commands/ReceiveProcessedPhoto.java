@@ -30,14 +30,6 @@ public class ReceiveProcessedPhoto extends SlaveCommand
 	protected void readArguments() throws IOException
 	{
 		sz = comm.getInt();
-		data = new byte[sz];
-
-		int total = 0;
-		int read = 1;
-		while (read > 0 && total < sz)
-		{
-			read = comm.ins.read(data, total, sz - total);
-			total += read;
-		}
+		data = comm.getData(sz);
 	}
 }

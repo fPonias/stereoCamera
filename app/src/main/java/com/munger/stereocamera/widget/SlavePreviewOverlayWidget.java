@@ -61,7 +61,11 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 			}
 		}
 
-		setVisibility(View.GONE);
+		Handler h = new Handler(Looper.getMainLooper());
+		h.post(new Runnable() { public void run()
+		{
+			setVisibility(View.GONE);
+		}});
 	}
 
 	public boolean isRunning()

@@ -23,6 +23,6 @@ public class SendPreviewFrame extends SlaveCommand
 	{
 		comm.putFloat(zoom);
 		comm.putInt(data.length);
-		comm.outs.write(data);
+		comm.putData(data);
 	}
 }

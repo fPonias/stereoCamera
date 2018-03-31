@@ -41,21 +41,16 @@ public class SlaveCommand
 		this.listener = listener;
 	}
 
-	private ByteBuffer bb = ByteBuffer.allocate(5);
-
 	public void doSend() throws IOException
 	{
 		if (listener != null)
 			listener.onStarted();
 
 		//Log.d("bluetooth slave", "writing command " + command.name());
-		bb.put(0, (byte) command.ordinal());
-		bb.putInt(1, id);
-		comm.outs.write(bb.array(), 0, 5);
+		comm.putByte((byte) command.ordinal());
+		comm.putInt(id);
 
 		send();
-
-		comm.outs.flush();
 
 		if (listener != null)
 			listener.onFinished();

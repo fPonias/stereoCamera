@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth.command.master.commands;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
@@ -10,10 +11,9 @@ import java.io.IOException;
 
 public class SetFacing extends MasterCommand
 {
-	public SetFacing(boolean facing, Listener listener)
+	public SetFacing(boolean facing)
 	{
 		this.facing = facing;
-		this.listener = listener;
 	}
 
 	@Override
@@ -22,26 +22,7 @@ public class SetFacing extends MasterCommand
 		return BluetoothCommands.SET_FACING;
 	}
 
-	public interface Listener
-	{
-		void done();
-		void fail();
-	}
-
-	private Listener listener;
 	private boolean facing;
-
-	@Override
-	public void onExecuteFail()
-	{
-		listener.fail();
-	}
-
-	@Override
-	public void handleResponse() throws IOException
-	{
-		listener.done();
-	}
 
 	@Override
 	public byte[] getArguments()

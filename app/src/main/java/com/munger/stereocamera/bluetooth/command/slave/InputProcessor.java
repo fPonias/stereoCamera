@@ -3,8 +3,11 @@ package com.munger.stereocamera.bluetooth.command.slave;
 import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.slave.commands.Handshake;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveConnectionPause;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Ping;
+import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveDisconnect;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
@@ -65,7 +68,7 @@ public class InputProcessor
 
 	private void commandListener() throws IOException
 	{
-		int actionInt = parent.ins.read();
+		byte actionInt = parent.getByte();
 		BluetoothCommands currentAction = BluetoothCommands.values()[actionInt];
 		int id = parent.getInt();
 
@@ -78,6 +81,9 @@ public class InputProcessor
 		{
 			case PING:
 				command = new Ping(id);
+				break;
+			case HANDSHAKE:
+				command = new Handshake(id);
 				break;
 			case SET_ZOOM:
 				command = new ReceiveZoom(id);
@@ -96,6 +102,12 @@ public class InputProcessor
 				break;
 			case SEND_PROCESSED_PHOTO:
 				command = new ReceiveProcessedPhoto(id);
+				break;
+			case CONNECTION_PAUSE:
+				command = new ReceiveConnectionPause(id);
+				break;
+			case DISCONNECT:
+				command = new ReceiveDisconnect(id);
 				break;
 			default:
 				Log.d("bluetoothSlaveComm", "unknown command " + currentAction.name());

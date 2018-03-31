@@ -4,19 +4,13 @@ import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 
 import java.nio.ByteBuffer;
 
-/**
- * Created by hallmarklabs on 3/2/18.
- */
-
 public class SetZoom extends MasterCommand
 {
-	private Listener listener;
 	private float zoom;
 
-	public SetZoom(float zoom, Listener listener)
+	public SetZoom(float zoom)
 	{
 		this.zoom = zoom;
-		this.listener = listener;
 	}
 
 	@Override
@@ -32,23 +26,5 @@ public class SetZoom extends MasterCommand
 		bb.putFloat(zoom);
 
 		return bb.array();
-	}
-
-	@Override
-	public void onExecuteFail()
-	{
-		listener.fail();
-	}
-
-	@Override
-	public void handleResponse()
-	{
-		listener.done();
-	}
-
-	public interface Listener
-	{
-		void done();
-		void fail();
 	}
 }

@@ -45,13 +45,11 @@ public class Shutter extends SlaveCommand
 		if (imgData != null)
 		{
 			comm.putInt(imgData.length);
-			comm.outs.write(imgData);
+			comm.putData(imgData);
 		}
 		else
 		{
 			comm.putInt(0);
 		}
-
-		comm.outs.flush();
 	}
 }

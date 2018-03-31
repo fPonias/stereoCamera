@@ -3,6 +3,7 @@ package com.munger.stereocamera.bluetooth.command.master.commands;
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,47 +36,59 @@ public class SendProcessedPhoto extends MasterCommand
 	{}
 
 	@Override
-	public void handleResponse() throws IOException
-	{}
-
-	@Override
-	public byte[] getArguments()
+	public MasterIncoming getResponse()
 	{
-		RandomAccessFile raf = null;
-		FileChannel ch = null;
-		ByteBuffer bb = null;
-		byte[] ret = null;
-		try
+		return new Response(id);
+	}
+
+	public class Response extends MasterIncoming
+	{
+		public byte[] data;
+
+		public Response(int id)
 		{
-			raf = new RandomAccessFile(path, "r");
-			ch = raf.getChannel();
-
-			int sz = (int) ch.size();
-			bb = ByteBuffer.allocate(4 + sz);
-			bb.putInt(sz);
-
-			ch.read(bb);
-			ret = bb.array();
+			super(BluetoothCommands.SEND_PROCESSED_PHOTO, id);
 		}
-		catch(IOException e){
-			ret = new byte[0];
-		}
-		finally{
+
+		@Override
+		public void readResponse() throws IOException
+		{
+			RandomAccessFile raf = null;
+			FileChannel ch = null;
+			ByteBuffer bb = null;
+			byte[] ret = null;
 			try
 			{
-				if (ch != null)
-					ch.close();
-			}
-			catch(IOException e){}
+				raf = new RandomAccessFile(path, "r");
+				ch = raf.getChannel();
 
-			try
-			{
-				if (raf != null)
-					raf.close();
+				int sz = (int) ch.size();
+				bb = ByteBuffer.allocate(4 + sz);
+				bb.putInt(sz);
+
+				ch.read(bb);
+				ret = bb.array();
 			}
-			catch(IOException e){}
+			catch(IOException e){
+				ret = new byte[0];
+			}
+			finally{
+				try
+				{
+					if (ch != null)
+						ch.close();
+				}
+				catch(IOException e){}
+
+				try
+				{
+					if (raf != null)
+						raf.close();
+				}
+				catch(IOException e){}
+			}
+
+			data = ret;
 		}
-
-		return ret;
 	}
 }

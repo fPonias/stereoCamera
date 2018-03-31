@@ -109,22 +109,11 @@ public class BluetoothCtrl
 	{
 		synchronized (lock)
 		{
-			if (master != null)
-				master.cleanUp();
-		}
-
-		master = new BluetoothMaster(this, device, listener);
-	}
-
-	public boolean isMasterConnected()
-	{
-		synchronized (lock)
-		{
 			if (master == null)
-				return false;
-
-			return master.isConnected();
+				master = new BluetoothMaster(this);
 		}
+
+		master.connect(device, listener);
 	}
 
 	public void cancelConnect()
@@ -140,8 +129,13 @@ public class BluetoothCtrl
 
 	public void listen(boolean startDiscovery, ConnectListener listener)
 	{
-		cancelListen();
-		slave = new BluetoothSlave(this, startDiscovery, LISTEN_TIMEOUT, listener);
+		synchronized (lock)
+		{
+			if (slave == null)
+				slave = new BluetoothSlave(this);
+		}
+
+		slave.start(startDiscovery, LISTEN_TIMEOUT, listener);
 	}
 
 	public void cancelListen()
@@ -150,8 +144,6 @@ public class BluetoothCtrl
 		{
 			if (slave != null)
 				slave.cleanUp();
-
-			slave = null;
 		}
 	}
 

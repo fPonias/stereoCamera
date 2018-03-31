@@ -2,9 +2,12 @@ package com.munger.stereocamera.bluetooth.utility;
 
 import android.util.Log;
 
+import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAngleOfView;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveConnectionPause;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveDisconnect;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveOrientation;
@@ -31,6 +34,7 @@ public class RemoteState
 		public void onFov(float horiz, float vert) {}
 		public void onGravity(ReceiveGravity.Gravity gravity) {}
 		public void onOrientation(PhotoOrientation orientation) {}
+		public void onConnectionPause() {}
 		public void onDisconnect() {}
 		public void onPreviewFrame(byte[] data, float zoom) {}
 	}
@@ -43,123 +47,156 @@ public class RemoteState
 
 	private BluetoothMasterComm comm;
 	private ArrayList<Listener> listeners = new ArrayList<>();
+	private final Object listenerLock = new Object();
 
 	public void addListener(Listener listener)
 	{
-		listeners.add(listener);
+		synchronized (listenerLock)
+		{
+			if (!listeners.contains(listener))
+				listeners.add(listener);
+		}
 	}
 
 	public void removeListener(Listener listener)
 	{
-		if (listeners.contains(listener))
-			listeners.remove(listener);
+		synchronized (listenerLock)
+		{
+			if (listeners.contains(listener))
+				listeners.remove(listener);
+		}
 	}
 
 	public void start()
 	{
-		comm.registerListener(new ReceiveStatus(new ReceiveStatus.Listener()
+		comm.registerListener(BluetoothCommands.RECEIVE_STATUS, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void fail()
-			{}
-
-			@Override
-			public void done(PreviewFragment.Status status)
+			public void onResponse(MasterIncoming response)
 			{
-				RemoteState.this.status = status;
+				ReceiveStatus r = (ReceiveStatus) response;
+				RemoteState.this.status = r.status;
 
-				for(Listener listener : listeners)
-					listener.onStatus(status);
+				synchronized (lock)
+				{
+					lock.notify();
+				}
+
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onStatus(r.status);
+				}
 			}
-		}));
+		});
 
 		listeners.add(readyListener);
 
-		comm.registerListener(new ReceiveAngleOfView(new ReceiveAngleOfView.Listener()
+		comm.registerListener(BluetoothCommands.RECEIVE_ANGLE_OF_VIEW, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void done(float horiz, float vert)
+			public void onResponse(MasterIncoming response)
 			{
-				RemoteState.this.horizFov = horiz;
-				RemoteState.this.vertFov = vert;
+				ReceiveAngleOfView r = (ReceiveAngleOfView) response;
+				RemoteState.this.horizFov = r.x;
+				RemoteState.this.vertFov = r.y;
 
-				for(Listener listener : listeners)
-					listener.onFov(horiz, vert);
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onFov(r.x, r.y);
+				}
 			}
+		});
 
-			@Override
-			public void fail()
-			{}
-		}));
-
-		comm.registerListener(new ReceiveGravity(new ReceiveGravity.Listener()
+		comm.registerListener(BluetoothCommands.RECEIVE_GRAVITY, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void done(ReceiveGravity.Gravity value)
+			public void onResponse(MasterIncoming response)
 			{
-				gravity = value;
-				for(Listener listener : listeners)
-					listener.onGravity(gravity);
+				ReceiveGravity r = (ReceiveGravity) response;
+				gravity = r.gravity;
+
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onGravity(gravity);
+				}
 			}
+		});
 
-			@Override
-			public void fail()
-			{}
-		}));
-
-		comm.registerListener(new ReceiveZoom(new ReceiveZoom.Listener()
+		comm.registerListener(BluetoothCommands.RECEIVE_ZOOM, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void done(float zoom)
+			public void onResponse(MasterIncoming response)
 			{
-				RemoteState.this.zoom = zoom;
-				for(Listener listener : listeners)
-					listener.onZoom(zoom);
+				ReceiveZoom r = (ReceiveZoom) response;
+				RemoteState.this.zoom = r.zoom;
+
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onZoom(r.zoom);
+				}
 			}
+		});
 
-			@Override
-			public void fail()
-			{}
-		}));
-
-		comm.registerListener(new ReceiveOrientation(new ReceiveOrientation.Listener()
+		comm.registerListener(BluetoothCommands.RECEIVE_ORIENTATION, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void fail()
-			{}
-
-			@Override
-			public void done(PhotoOrientation status)
+			public void onResponse(MasterIncoming response)
 			{
-				RemoteState.this.orientation = status;
-				for (Listener listener : listeners)
-					listener.onOrientation(status);
-			}
-		}));
+				ReceiveOrientation r = (ReceiveOrientation) response;
+				RemoteState.this.orientation = r.orientation;
 
-		comm.registerListener(new ReceiveDisconnect(new ReceiveDisconnect.Listener()
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onOrientation(r.orientation);
+				}
+			}
+		});
+
+		comm.registerListener(BluetoothCommands.RECEIVE_CONNECTION_PAUSE, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void received()
+			public void onResponse(MasterIncoming response)
 			{
-				for (Listener listener : listeners)
-					listener.onDisconnect();
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onConnectionPause();
+				}
 			}
-		}));
+		});
 
-		comm.registerListener(new ReceivePreviewFrame(new ReceivePreviewFrame.Listener()
+		comm.registerListener(BluetoothCommands.RECEIVE_DISCONNECT, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void fail()
-			{}
-
-			@Override
-			public void done(byte[] data, float zoom)
+			public void onResponse(MasterIncoming response)
 			{
-				for (Listener listener : listeners)
-					listener.onPreviewFrame(data, zoom);
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onDisconnect();
+				}
 			}
-		}));
+		});
+
+		comm.registerListener(BluetoothCommands.RECEIVE_PREVIEW_FRAME, new BluetoothMasterComm.SlaveListener()
+		{
+			@Override
+			public void onResponse(MasterIncoming response)
+			{
+				ReceivePreviewFrame r = (ReceivePreviewFrame) response;
+
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onPreviewFrame(r.data, r.zoom);
+				}
+			}
+		});
 	}
 
 	private final Object lock = new Object();
@@ -179,7 +216,12 @@ public class RemoteState
 
 	public boolean waitOnStatus(PreviewFragment.Status status, long timeout)
 	{
-		if (this.status == status)
+		return waitOnStatus(new PreviewFragment.Status[] {status}, timeout);
+	}
+
+	public boolean waitOnStatus(PreviewFragment.Status[] statuss, long timeout)
+	{
+		if (isPresent(this.status, statuss))
 			return true;
 
 		long then = System.currentTimeMillis();
@@ -189,15 +231,26 @@ public class RemoteState
 		{
 			synchronized (lock)
 			{
-				if (this.status != status)
+				if (!isPresent(status, statuss))
 					try {lock.wait(timeout - diff);} catch(InterruptedException e){}
 			}
 
 			long now = System.currentTimeMillis();
 			diff = now - then;
-		} while (diff < timeout && status != this.status);
+		} while (diff < timeout && !isPresent(this.status, statuss));
 
-		return (status == this.status);
+		return (isPresent(status, statuss));
+	}
+
+	private boolean isPresent(PreviewFragment.Status status, PreviewFragment.Status[] statuss)
+	{
+		for (PreviewFragment.Status st : statuss)
+		{
+			if (status == st)
+				return true;
+		}
+
+		return false;
 	}
 
 	public interface ReadyListener
@@ -208,9 +261,14 @@ public class RemoteState
 
 	public void waitOnStatusAsync(final PreviewFragment.Status status, final long timeout, final ReadyListener listener)
 	{
+		waitOnStatusAsync(new PreviewFragment.Status[] { status }, timeout, listener);
+	}
+
+	public void waitOnStatusAsync(final PreviewFragment.Status[] statuss, final long timeout, final ReadyListener listener)
+	{
 		Thread t = new Thread(new Runnable() { public void run()
 		{
-			boolean success = waitOnStatus(status, timeout);
+			boolean success = waitOnStatus(statuss, timeout);
 
 			if (success)
 				listener.done();

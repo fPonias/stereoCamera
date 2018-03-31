@@ -27,8 +27,8 @@ public class BluetoothSlaveComm
 {
 	private BluetoothCtrl ctrl;
 	private BluetoothSocket socket;
-	public InputStream ins;
-	public OutputStream outs;
+	private InputStream ins;
+	private OutputStream outs;
 
 	private CommandProcessor commandProcessor;
 	private InputProcessor inputProcessor;
@@ -41,11 +41,25 @@ public class BluetoothSlaveComm
 
 		try
 		{
+			if (socket == null)
+				throw new IOException("bluetooth slave socket open failed");
+
 			ins = socket.getInputStream();
 			outs = socket.getOutputStream();
 		}
 		catch (IOException e){
+			try
+			{
+				if (ins != null)
+					ins.close();
+			}catch(NullPointerException|IOException e1){}
+			try
+			{
+				if (outs != null)
+					outs.close();
+			}catch(NullPointerException|IOException e1){}
 
+			return;
 		}
 
 		outputProcessor = new OutputProcessor();
@@ -58,6 +72,20 @@ public class BluetoothSlaveComm
 
 	public void cleanUp()
 	{
+		try
+		{
+			if (ins != null)
+				ins.close();
+		}catch(NullPointerException|IOException e1){}
+		try
+		{
+			if (outs != null)
+				outs.close();
+		}catch(NullPointerException|IOException e1){}
+
+		ins = null;
+		outs = null;
+
 		inputProcessor.cleanUp();
 		commandProcessor.cleanUp();
 		outputProcessor.cleanUp();
@@ -131,53 +159,101 @@ public class BluetoothSlaveComm
 		}
 	}
 
+	private String getTag() {return "Bluetooth Slave Comm";}
 
-	private byte[] intbuf = new byte[4];
-	ByteBuffer intbb = ByteBuffer.wrap(intbuf);
+	public byte getByte() throws IOException
+	{
+		byte[] data = getData(1);
+		return data[0];
+	}
+
+	public void putByte(byte b) throws IOException
+	{
+		putData(new byte[] {b});
+	}
+
 	public int getInt() throws IOException
 	{
-		int read = ins.read(intbuf);
-
-		if (read < 4)
-			throw new IOException ();
-
-		return intbb.getInt(0);
+		byte[] data = getData(4);
+		ByteBuffer bb = ByteBuffer.wrap(data);
+		return bb.getInt(0);
 	}
 
 	public float getFloat() throws IOException
 	{
-		int read = ins.read(intbuf);
-
-		if (read < 4)
-			throw new IOException();
-
-		return intbb.getFloat(0);
+		byte[] data = getData(4);
+		ByteBuffer bb = ByteBuffer.wrap(data);
+		return bb.getFloat(0);
 	}
 
-	ByteBuffer ointbb = ByteBuffer.allocate(4);
-
+	private ByteBuffer ointbb = ByteBuffer.allocate(4);
 	public void putInt(int val) throws IOException
 	{
-		//Log.d("bluetooth slave", "writing int " + val);
 		ointbb.putInt(0, val);
-		outs.write(ointbb.array());
-		outs.flush();
+		putData(ointbb.array());
 	}
 
 	public void putFloat(float val) throws IOException
 	{
-		//Log.d("bluetooth slave", "writing float " + val);
 		ointbb.putFloat(0, val);
-		outs.write(ointbb.array());
-		outs.flush();
+		putData(ointbb.array());
 	}
 
-	ByteBuffer olongbb = ByteBuffer.allocate(8);
+	private ByteBuffer olongbb = ByteBuffer.allocate(8);
 	public void putLong(long val) throws IOException
 	{
-		//Log.d("bluetooth slave", "writing long " + val);
 		olongbb.putLong(0, val);
-		outs.write(olongbb.array());
-		outs.flush();
+		putData(olongbb.array());
+	}
+
+	public void putData(byte[] arr) throws IOException
+	{
+		try
+		{
+			if (outs == null)
+				throw new IOException("slave socket write error");
+
+			outs.write(arr);
+			outs.flush();
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d(getTag(), "slave socket no longer open");
+
+			Log.d(getTag(), "slave failed to send array of size " + arr.length);
+
+			MyApplication.getInstance().handleDisconnection();
+			throw e;
+		}
+	}
+
+	public byte[] getData(int sz) throws IOException
+	{
+		try
+		{
+			byte[] ret = new byte[sz];
+			int total = 0;
+			int read = 1;
+
+			while (read > 0 && total < sz)
+			{
+				if (ins == null)
+					throw new IOException("slave socket read error");
+
+				read = ins.read(ret, total, sz - total);
+				total += read;
+			}
+
+			return ret;
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d(getTag(), "slave socket no longer open");
+
+			Log.d(getTag(), "slave failed to read array of size " + sz);
+
+			MyApplication.getInstance().handleDisconnection();
+			throw e;
+		}
 	}
 }

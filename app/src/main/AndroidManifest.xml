@@ -19,17 +19,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name="com.munger.stereocamera.bluetooth.BluetoothReceiver">
-            <intent-filter>
-                <action android:name="android.bluetooth.device.action.ACL_CONNECTED" />
-                <action android:name="android.bluetooth.device.action.ACL_DISCONNECT_REQ" />
-                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED" />
-            </intent-filter>
-        </receiver>
-
-        <service android:name=".service.PhotoProcessorService" />
-            <!--android:process="com.munger.stereocamera.processor"
-        />-->
+        <service android:name=".service.PhotoProcessorService"
+            android:process="com.munger.stereocamera.processor"
+        />
     </application>
     
     <uses-permission android:name="android.permission.BLUETOOTH" />

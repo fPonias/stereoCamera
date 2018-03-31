@@ -6,13 +6,13 @@ import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import java.io.IOException;
 
 /**
- * Created by hallmarklabs on 3/28/18.
+ * Created by hallmarklabs on 3/12/18.
  */
 
-public class ReceiveDisconnect extends MasterIncoming
+public class ReceiveConnectionPause extends MasterIncoming
 {
-	public ReceiveDisconnect()
+	public ReceiveConnectionPause()
 	{
-		super(BluetoothCommands.RECEIVE_DISCONNECT, -1);
+		super(BluetoothCommands.RECEIVE_CONNECTION_PAUSE, -1);
 	}
 }

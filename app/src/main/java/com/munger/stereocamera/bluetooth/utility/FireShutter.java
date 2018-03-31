@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 
 import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.service.PhotoProcessorService;
@@ -112,19 +113,20 @@ public class FireShutter
 
 	private void fireRemote()
 	{
-		masterComm.runCommand(new Shutter(new Shutter.Listener()
+		masterComm.runCommand(new Shutter(), new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void onData(PhotoOrientation orientation, float zoom, byte[] data)
+			public void onResponse(MasterIncoming response)
 			{
+				Shutter.Response r = (Shutter.Response) response;
 				remoteData = new PhotoProcessorService.PhotoArgument();
-				remoteData.orientation = orientation;
-				remoteData.zoom = zoom;
+				remoteData.orientation = r.orientation;
+				remoteData.zoom = r.zoom;
 
-				String remotePath = photoFiles.saveDataToCache(data);
+				String remotePath = photoFiles.saveDataToCache(r.data);
 				remoteData.jpegPath = remotePath;
 
-				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), zoom);
+				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
 
 				boolean doNext = false;
 
@@ -141,7 +143,7 @@ public class FireShutter
 			}
 
 			@Override
-			public void fail()
+			public void onFail()
 			{
 				remoteData = null;
 				boolean doNext = false;
@@ -157,7 +159,7 @@ public class FireShutter
 				if (doNext)
 					done();
 			}
-		}));
+		});
 	}
 
 	private PhotoFiles photoFiles;

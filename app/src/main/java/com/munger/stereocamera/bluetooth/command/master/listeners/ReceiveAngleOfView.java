@@ -1,41 +1,24 @@
 package com.munger.stereocamera.bluetooth.command.master.listeners;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
-public class ReceiveAngleOfView extends MasterListener
+public class ReceiveAngleOfView extends MasterIncoming
 {
-	public ReceiveAngleOfView(Listener listener)
-	{
-		super(BluetoothCommands.RECEIVE_ANGLE_OF_VIEW);
-		this.listener = listener;
-	}
+	public float x;
+	public float y;
 
-	private Listener listener;
-
-	public interface Listener
+	public ReceiveAngleOfView()
 	{
-		void done(float horiz, float vert);
-		void fail();
+		super(BluetoothCommands.RECEIVE_ANGLE_OF_VIEW, -1);
 	}
 
 	@Override
-	public void handleResponse() throws IOException
+	public void readResponse() throws IOException
 	{
-		float[] ret = new float[2];
-
-		for (int i = 0; i < 2; i++)
-		{
-			ret[i] = parent.readFloat();
-		}
-
-		listener.done(ret[0], ret[1]);
-	}
-
-	@Override
-	public void onFail()
-	{
-		listener.fail();
+		x = parent.readFloat();
+		y = parent.readFloat();
 	}
 }

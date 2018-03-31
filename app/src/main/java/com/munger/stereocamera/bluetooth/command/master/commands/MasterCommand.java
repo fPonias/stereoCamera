@@ -4,8 +4,13 @@ import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.NoSuchElementException;
 
 /**
  * Created by hallmarklabs on 3/2/18.
@@ -13,6 +18,8 @@ import java.io.IOException;
 
 public abstract class MasterCommand
 {
+	MasterCommand() {}
+
 	protected BluetoothMasterComm parent;
 	protected int id;
 
@@ -40,6 +47,14 @@ public abstract class MasterCommand
 	public void onStart()
 	{}
 
-	public abstract void onExecuteFail();
-	public abstract void handleResponse() throws IOException;
+	public void onExecuteFail() {}
+	public MasterIncoming getResponse()
+	{
+		if (response == null)
+			response = new MasterIncoming(getCommand(), id);
+
+		return response;
+	}
+
+	public MasterIncoming response;
 }

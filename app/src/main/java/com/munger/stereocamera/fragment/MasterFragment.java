@@ -1,8 +1,8 @@
 package com.munger.stereocamera.fragment;
 
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -16,14 +16,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
+import com.munger.stereocamera.bluetooth.command.master.commands.ConnectionPause;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
@@ -43,28 +43,24 @@ import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
-import java.util.Set;
-
-/**
- * Created by hallmarklabs on 2/22/18.
- */
-
 public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
 	private OrientationWidget verticalIndicator;
 	private OrientationWidget horizontalIndicator;
 	private ViewGroup controls;
-	private PreviewOverlayWidget overlayWidget;
+	PreviewOverlayWidget overlayWidget;
 	private ThumbnailWidget thumbnailWidget;
-	private SlavePreviewOverlayWidget slavePreview;
+	SlavePreviewOverlayWidget slavePreview;
 	private ZoomWidget zoomSlider;
 
-	private BluetoothMasterComm masterComm;
-	private RemoteState remoteState;
+	BluetoothMasterComm masterComm;
+	RemoteState remoteState;
 
 	private long shutterDelay;
 	private PhotoOrientation orientation;
+
+	private MyApplication.Listener appListener;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -101,7 +97,6 @@ public class MasterFragment extends PreviewFragment
 
 		Preferences prefs = MyApplication.getInstance().getPrefs();
 		previewView.setOrientation(orientation);
-		previewView.setAndStartCamera(prefs.getIsFacing());
 
 		slavePreview = rootView.findViewById(R.id.slavePreview);
 
@@ -121,10 +116,39 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onCreate(savedInstanceState);
 
-		if (savedInstanceState != null && savedInstanceState.containsKey("previewAlreadyStarted"))
-			previewAlreadyStarted = savedInstanceState.getBoolean("previewAlreadyStarted");
-
 		setHasOptionsMenu(true);
+
+		appListener = new MyApplication.Listener()
+		{
+			@Override
+			public void onScreenChanged(boolean isOn)
+			{
+				if (isOn)
+					return;
+
+				pauseConnection();
+			}
+
+			@Override
+			public void onBluetoothChanged(boolean isConnected, BluetoothDevice device)
+			{
+				if (!isConnected)
+				{
+					disconnect();
+				}
+			}
+		};
+		MyApplication.getInstance().addListener(appListener);
+
+		masterHandshake = new MasterHandshake(this);
+	}
+
+	@Override
+	public void onDestroy()
+	{
+		super.onDestroy();
+
+		MyApplication.getInstance().removeListener(appListener);
 	}
 
 	private MenuItem flipItem;
@@ -208,31 +232,25 @@ public class MasterFragment extends PreviewFragment
 		});
 	}
 
-	private interface SetCameraListener
+	interface SetCameraListener
 	{
 		void done();
 		void fail();
 	}
 
-	private void setCamera(boolean isFacing, final SetCameraListener listener)
+	void setCamera(boolean isFacing, final SetCameraListener listener)
 	{
 		setFacing(isFacing);
 		MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
 
-		masterComm.runCommand(new SetFacing(isFacing, new SetFacing.Listener()
+		masterComm.runCommand(new SetFacing(isFacing), new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void done()
+			public void onResponse(MasterIncoming response)
 			{
 				setCamera2(listener);
 			}
-
-			@Override
-			public void fail()
-			{
-				listener.fail();
-			}
-		}));
+		});
 	}
 
 	private void setCamera2(final SetCameraListener listener)
@@ -243,20 +261,14 @@ public class MasterFragment extends PreviewFragment
 		setZoom(localZoom);
 
 		float zoom = prefs.getRemoteZoom(cameraId);
-		masterComm.runCommand(new SetZoom(zoom, new SetZoom.Listener()
+		masterComm.runCommand(new SetZoom(zoom), new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
-			public void done()
+			public void onResponse(MasterIncoming response)
 			{
 				listener.done();
 			}
-
-			@Override
-			public void fail()
-			{
-				listener.fail();
-			}
-		}));
+		});
 	}
 
 	@Override
@@ -272,30 +284,53 @@ public class MasterFragment extends PreviewFragment
 	}
 
 	@Override
-	public void onSaveInstanceState(Bundle outState)
-	{
-		outState.putBoolean("previewAlreadyStarted", previewAlreadyStarted);
-
-		super.onSaveInstanceState(outState);
-	}
-
-	@Override
 	public void onPause()
 	{
 		super.onPause();
+		pause();
+	}
 
-		slavePreview.cancel();
+	public void pause()
+	{
+		resumed = false;
+		pauseConnection();
 	}
 
 	@Override
 	public void onResume()
 	{
 		super.onResume();
+		resumed = true;
 
 		if (overlayWidget == null)
 			return;
 
 		updateOverlayFromPrefs();
+		resumeConnection();
+	}
+
+	private void pauseConnection()
+	{
+		slavePreview.cancel();
+		previewView.stopPreview();
+
+		if ((status == Status.READY || status == Status.BUSY) && (remoteState.status == Status.READY || remoteState.status == Status.BUSY))
+			masterComm.runCommand(new ConnectionPause(), null);
+
+		setStatus(Status.CREATED);
+	}
+
+	private void disconnect()
+	{
+		pauseConnection();
+		MyApplication.getInstance().cleanUpConnections();
+		MainActivity act = (MainActivity) MyApplication.getInstance().getCurrentActivity();
+		act.popSubViews();
+	}
+
+	private void resumeConnection()
+	{
+		handshake();
 	}
 
 	private void updateOverlayFromPrefs()
@@ -320,7 +355,7 @@ public class MasterFragment extends PreviewFragment
 		overlayWidget.setType(type);
 
 		if (remoteState != null && remoteState.status == Status.READY && masterComm != null)
-			masterComm.runCommand(new SetOverlay(type));
+			masterComm.runCommand(new SetOverlay(type), null);
 	}
 
 	@Override
@@ -427,11 +462,20 @@ public class MasterFragment extends PreviewFragment
 		super.onStart();
 
 		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
-		remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
 		handler = new Handler(Looper.getMainLooper());
+
+		remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
 		remoteState.addListener(remoteListener);
 		remoteState.start();
 
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+
+		remoteState.removeListener(remoteListener);
 	}
 
 	private Handler handler;
@@ -457,9 +501,15 @@ public class MasterFragment extends PreviewFragment
 		}
 
 		@Override
+		public void onConnectionPause()
+		{
+			pauseConnection();
+		}
+
+		@Override
 		public void onDisconnect()
 		{
-			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+			disconnect();
 		}
 
 		@Override
@@ -467,123 +517,78 @@ public class MasterFragment extends PreviewFragment
 		{
 			slavePreview.render(data, zoom);
 		}
-	};
 
-	private boolean previewAlreadyStarted = false;
+		@Override
+		public void onStatus(Status status)
+		{
+			if (status == Status.RESUMED && resumed)
+			{
+				if (!(MasterFragment.this.status == Status.CREATED || MasterFragment.this.status == Status.LISTENING))
+				{
+					handshake();
+				}
+				else
+				{
+					pauseConnection();
+					handshake();
+				}
+			}
+		}
+	};
 
 	@Override
 	protected void onPreviewStarted()
 	{
 		super.onPreviewStarted();
 
-		if (previewAlreadyStarted)
-			return;
-		else
-			previewAlreadyStarted = true;
-
-
-		setStatus(Status.LISTENING);
-
-		onPreviewStarted1();
+		startPreview();
 	}
 
-	private void onPreviewStarted1()
+	private boolean resumed = false;
+
+	private MasterHandshake masterHandshake;
+
+	private void handshake()
 	{
-		Log.d(getTag(), "pinging slave phone");
-		masterComm.runCommand(new Ping(new Ping.Listener()
+		masterHandshake.start(new MasterHandshake.Listener()
 		{
 			@Override
-			public void pong(long diff)
+			public void success()
 			{
-				Log.d(getTag(), "pinged slave phone for " + diff + " ms");
-				onPreviewStarted2();
+				handshakeSuccess();
 			}
 
 			@Override
 			public void fail()
 			{
-				onSetupFailed();
-			}
-		}));
-	}
-
-	private void onPreviewStarted2()
-	{
-		remoteState.waitOnStatusAsync(Status.LISTENING,3000, new RemoteState.ReadyListener()
-		{
-			@Override
-			public void done()
-			{
-				onPreviewStarted3();
-			}
-
-			@Override
-			public void fail()
-			{
-				onSetupFailed();
+				handshakeFail();
 			}
 		});
 	}
 
-	private void onPreviewStarted3()
+	private void handshakeSuccess()
 	{
-		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
-		setCamera(isFacing, new SetCameraListener()
-		{
-			@Override
-			public void done()
-			{
-				onPreviewStarted4();
-			}
+		Log.d(getTag(), "slave ready");
+		setStatus(PreviewFragment.Status.READY);
 
-			@Override
-			public void fail()
-			{
-				onSetupFailed();
-			}
-		});
+		Context c = MyApplication.getInstance();
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
+		boolean runSync = sharedPref.getBoolean("pref_sync", false);
+
+		if (runSync)
+			doSync();
+
+		sharedPref.edit().putBoolean("pref_sync", false).apply();
 	}
 
-	private void onPreviewStarted4()
-	{
-		PreviewOverlayWidget.Type type = overlayWidget.getType();
-		masterComm.runCommand(new SetOverlay(type));
-
-		remoteState.waitOnStatusAsync(Status.READY, 6000, new RemoteState.ReadyListener()
-		{
-			@Override
-			public void done()
-			{
-				Log.d(getTag(), "slave ready");
-				setStatus(Status.READY);
-
-				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
-				boolean runSync = sharedPref.getBoolean("pref_sync", false);
-
-				if (runSync)
-					doSync();
-
-				sharedPref.edit().putBoolean("pref_sync", false).apply();
-			}
-
-			@Override
-			public void fail()
-			{
-				Log.d(getTag(), "slave ready timed out");
-				onSetupFailed();
-			}
-		});
-	}
-
-	private void onSetupFailed()
+	private void handshakeFail()
 	{
 		handler.post(new Runnable() {public void run()
 		{
 			Log.d(getTag(), "slave setup failed");
 			Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
+			pauseConnection();
 			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 		}});
 	}
-
-
 }

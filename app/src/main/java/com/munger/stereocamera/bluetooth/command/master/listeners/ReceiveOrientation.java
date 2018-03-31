@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.fragment.PreviewFragment;
 
 import java.io.IOException;
@@ -12,33 +13,18 @@ import java.io.IOException;
  * Created by hallmarklabs on 3/8/18.
  */
 
-public class ReceiveOrientation extends MasterListener
+public class ReceiveOrientation extends MasterIncoming
 {
-	private Listener listener;
+	public PhotoOrientation orientation;
 
-	public ReceiveOrientation(Listener listener)
+	public ReceiveOrientation()
 	{
-		super(BluetoothCommands.RECEIVE_ORIENTATION);
-		this.listener = listener;
+		super(BluetoothCommands.RECEIVE_ORIENTATION, -1);
 	}
 
-	@Override
-	public void handleResponse() throws IOException
+	public void readResponse() throws IOException
 	{
-		int ret = parent.ins.read();
-		PhotoOrientation orientation = PhotoOrientation.values()[ret];
-		listener.done(orientation);
-	}
-
-	@Override
-	public void onFail()
-	{
-		listener.fail();
-	}
-
-	public interface Listener
-	{
-		void fail();
-		void done(PhotoOrientation status);
+		byte ret = parent.readByte();
+		orientation = PhotoOrientation.values()[ret];
 	}
 }

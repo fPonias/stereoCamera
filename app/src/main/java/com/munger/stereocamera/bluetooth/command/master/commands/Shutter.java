@@ -2,16 +2,15 @@ package com.munger.stereocamera.bluetooth.command.master.commands;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
 public class Shutter extends MasterCommand
 {
-	private Listener listener;
-
-	public Shutter(Listener listener)
+	public Shutter()
 	{
-		this.listener = listener;
+
 	}
 
 	@Override
@@ -21,34 +20,30 @@ public class Shutter extends MasterCommand
 	}
 
 	@Override
-	public void onExecuteFail()
+	public MasterIncoming getResponse()
 	{
-		listener.fail();
+		return new Response(id);
 	}
 
-	@Override
-	public void handleResponse() throws IOException
+	public class Response extends MasterIncoming
 	{
-		PhotoOrientation orientation = PhotoOrientation.values()[parent.readInt()];
-		float zoom = parent.readFloat();
+		public float zoom;
+		public PhotoOrientation orientation;
+		public byte[] data;
 
-		int size = parent.readInt();
-		byte[] imgBuffer = new byte[size];
-		int sz = 0;
-
-		int read;
-		while (sz < size)
+		public Response(int id)
 		{
-			read = parent.ins.read(imgBuffer, sz, size - sz);
-			sz += read;
+			super(BluetoothCommands.FIRE_SHUTTER, id);
 		}
 
-		listener.onData(orientation, zoom, imgBuffer);
-	}
+		@Override
+		public void readResponse() throws IOException
+		{
+			orientation = PhotoOrientation.values()[parent.readInt()];
+			zoom = parent.readFloat();
 
-	public interface Listener
-	{
-		void onData(PhotoOrientation orientation, float zoom, byte[] data);
-		void fail();
+			int size = parent.readInt();
+			data = parent.readBytes(size);
+		}
 	}
 }

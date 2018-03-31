@@ -1,7 +1,6 @@
 package com.munger.stereocamera;
 
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
@@ -9,18 +8,19 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendDisconnect;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
+import com.munger.stereocamera.bluetooth.command.master.commands.ConnectionPause;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendDisconnect;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendConnectionPause;
 import com.munger.stereocamera.fragment.SettingsFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.fragment.ConnectFragment;
@@ -59,6 +59,7 @@ public class MainActivity extends BaseActivity
 		setContentView(frame);
 
 		handler = new Handler(Looper.getMainLooper());
+
 	}
 
 	@Override
@@ -66,8 +67,60 @@ public class MainActivity extends BaseActivity
 	{
 		super.onStart();
 
-		FragmentManager ft =getSupportFragmentManager();
+		FragmentManager ft = getSupportFragmentManager();
 		backStackListener = new BackStackListener(ft);
+		ft.addOnBackStackChangedListener(backStackListener);
+	}
+
+	private Preferences prefs;
+
+	@Override
+	protected void onResume()
+	{
+		super.onResume();
+
+		reconnect();
+	}
+
+	public void reconnect()
+	{
+		prefs = MyApplication.getInstance().getPrefs();
+		Preferences.Roles role = prefs.getRole();
+
+		BluetoothCtrl btCtrl = MyApplication.getInstance().getBtCtrl();
+		if (btCtrl != null && btCtrl.getIsSetup())
+		{
+			if (role == Preferences.Roles.MASTER)
+			{
+				BluetoothMaster btMaster = btCtrl.getMaster();
+				if (btMaster != null && btMaster.isConnected())
+				{
+					startMasterView();
+					return;
+				}
+			}
+			else
+			{
+				BluetoothSlave btSlave = btCtrl.getSlave();
+				if (btSlave != null && btSlave.isConnected())
+				{
+					startSlaveView();
+					return;
+				}
+			}
+		}
+
+		if (connectFragment != null)
+		{
+			if (role == Preferences.Roles.MASTER)
+			{
+				connectFragment.connect();
+			}
+			else if (role == Preferences.Roles.SLAVE)
+			{
+				connectFragment.listen();
+			}
+		}
 	}
 
 	private class BackStackListener implements FragmentManager.OnBackStackChangedListener
@@ -94,13 +147,13 @@ public class MainActivity extends BaseActivity
 				if (slaveFragment != null)
 					sendSlaveDisconnect();
 
-				BluetoothCtrl ctrl = MyApplication.getInstance().getBtCtrl();
-
-				if (ctrl != null)
-					ctrl.cleanUp();
+				slaveFragment = null;
+				masterFragment = null;
+				currentFragment = connectFragment;
 			}
 
 			lastCount = newCount;
+
 		}
 	}
 
@@ -122,6 +175,9 @@ public class MainActivity extends BaseActivity
 
 	public void startMasterView()
 	{
+		if (masterFragment != null && currentFragment == masterFragment)
+			return;
+
 		masterFragment = new MasterFragment();
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 		ft.addToBackStack("connect");
@@ -133,6 +189,9 @@ public class MainActivity extends BaseActivity
 
 	public void startSlaveView()
 	{
+		if (slaveFragment != null && currentFragment == slaveFragment)
+			return;
+
 		slaveFragment = new SlaveFragment();
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 		ft.addToBackStack("connect");
@@ -210,9 +269,7 @@ public class MainActivity extends BaseActivity
 		if (comm == null)
 			return;
 
-		comm.runCommand(new Disconnect());
-
-		master.cleanUp();
+		comm.runCommand(new Disconnect(), null);
 	}
 
 	private void sendSlaveDisconnect()
@@ -230,30 +287,18 @@ public class MainActivity extends BaseActivity
 			return;
 
 		comm.sendCommand(new SendDisconnect());
-
-		slave.cleanUp();
 	}
 
 	private boolean firstConnect = true;
-
-	public void handleNewConnection(BluetoothDevice device)
-	{
-		Log.d("stereoCamera", "bluetooh device connected " + device.getName());
-	}
-
-	public void handleDisconnection(BluetoothDevice device)
-	{
-		Log.d("stereoCamera", "bluetooh device disconnected " + device.getName());
-
-		popSubViews();
-		firstConnect = true;
-	}
 
 	@Override
 	protected void onUserLeaveHint()
 	{
 		super.onUserLeaveHint();
-		popSubViews();
-		firstConnect = true;
+
+		if (currentFragment instanceof MasterFragment)
+		{
+			((MasterFragment) currentFragment).pause();
+		}
 	}
 }

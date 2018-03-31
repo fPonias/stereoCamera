@@ -1,6 +1,7 @@
 package com.munger.stereocamera.bluetooth.command.master.commands;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 
 import java.io.IOException;
 
@@ -10,12 +11,8 @@ import java.io.IOException;
 
 public class GetRemoteLatency extends MasterCommand
 {
-	public Listener listener;
-
-	public GetRemoteLatency(Listener listener)
-	{
-		this.listener = listener;
-	}
+	public GetRemoteLatency()
+	{}
 
 	@Override
 	public BluetoothCommands getCommand()
@@ -24,21 +21,24 @@ public class GetRemoteLatency extends MasterCommand
 	}
 
 	@Override
-	public void onExecuteFail()
+	public MasterIncoming getResponse()
 	{
-		listener.fail();
+		return new Response(id);
 	}
 
-	@Override
-	public void handleResponse() throws IOException
+	public static class Response extends MasterIncoming
 	{
-		long ret = parent.readLong();
-		listener.done(ret);
-	}
+		public long latency;
 
-	public interface Listener
-	{
-		void done(long latency);
-		void fail();
+		public Response(int id)
+		{
+			super(BluetoothCommands.LATENCY_CHECK, id);
+		}
+
+		@Override
+		public void readResponse() throws IOException
+		{
+			latency = parent.readLong();
+		}
 	}
 }

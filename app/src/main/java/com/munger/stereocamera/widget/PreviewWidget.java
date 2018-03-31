@@ -132,16 +132,12 @@ public class PreviewWidget extends TextureView
 			public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture)
 			{
 				preview = null;
-
-				releaseCamera();
-
 				synchronized (lock)
 				{
 					previewReady = false;
 				}
 
-				if (listener != null)
-					listener.onPreviewStopped();
+				stopPreview();
 
 				return true;
 			}
@@ -175,9 +171,9 @@ public class PreviewWidget extends TextureView
 		synchronized (lock)
 		{
 			previewStarted = false;
+			this.camera = camera;
 		}
 
-		this.camera = camera;
 		currentParameters = this.camera.getParameters();
 
 		Pair p = getCameraResolution(cameraId, camera);
@@ -231,25 +227,27 @@ public class PreviewWidget extends TextureView
 
 	public void startPreview()
 	{
-		synchronized (lock)
-		{
-			if (camera == null || !previewReady || previewStarted)
-				return;
-
-			previewStarted = true;
-		}
-
 		new Handler(Looper.getMainLooper()).post(new Runnable() {public void run()
 		{
 			try
 			{
 				SurfaceTexture texture = PreviewWidget.this.getSurfaceTexture();
+
+				synchronized (lock)
+				{
+					if (camera == null || !previewReady || previewStarted)
+						return;
+
+					previewStarted = true;
+				}
+
 				camera.setPreviewTexture(texture);
 				setupTexture(camera);
 				updateTransform();
 			}
 			catch(IOException e){
 				camera.release();
+				camera = null;
 				return;
 			}
 
@@ -258,6 +256,23 @@ public class PreviewWidget extends TextureView
 			if (listener != null)
 				listener.onPreviewStarted();
 		}});
+	}
+
+	public void stopPreview()
+	{
+		if (camera == null)
+			return;
+
+		releaseCamera();
+		camera = null;
+
+		synchronized (lock)
+		{
+			previewStarted = false;
+		}
+
+		if (listener != null)
+			listener.onPreviewStopped();
 	}
 
 	private int getCameraRotation()
@@ -348,8 +363,6 @@ public class PreviewWidget extends TextureView
 			camera = null;
 			currentParameters = null;
 			previewStarted = false;
-
-			camera = null;
 		}
 
 	}
@@ -391,17 +404,33 @@ public class PreviewWidget extends TextureView
 			}
 		}
 
-		try
+		int tryLimit = 3;
+		for (int tries = 0; tries < tryLimit; tries++)
 		{
-			Camera camera = Camera.open(cameraId);
-			setCamera(camera);
-		}
-		catch(RuntimeException e){
-			new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
+			try
 			{
-				Toast.makeText(getContext(), R.string.camera_open_error, Toast.LENGTH_LONG).show();
-				((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
-			}});
+				Camera camera = Camera.open(cameraId);
+				setCamera(camera);
+				break;
+			}
+			catch (RuntimeException e)
+			{
+				if (tries < tryLimit - 1)
+				{
+					try {Thread.sleep(500);} catch(InterruptedException e1){}
+				}
+				else
+				{
+					new Handler(Looper.getMainLooper()).post(new Runnable()
+					{
+						public void run()
+						{
+							Toast.makeText(getContext(), R.string.camera_open_error, Toast.LENGTH_LONG).show();
+							((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+						}
+					});
+				}
+			}
 		}
 	}
 

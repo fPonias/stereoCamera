@@ -43,7 +43,6 @@ public class ThumbnailWidget extends AppCompatImageView
 
 	private MyApplication.Listener appListener = new MyApplication.Listener()
 	{
-		@Override
 		public void onNewPhoto(String path)
 		{
 			update();

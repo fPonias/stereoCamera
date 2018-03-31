@@ -110,12 +110,12 @@ public class ConnectFragment extends Fragment
 
 		connectButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
 		{
-			connectClicked();
+			connect();
 		}});
 
 		listenButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
 		{
-			listenClicked();
+			listen();
 		}});
 
 		discoverButton.setOnClickListener(new View.OnClickListener()
@@ -153,7 +153,7 @@ public class ConnectFragment extends Fragment
 	private static int CONNECT_RETRIES = 2;
 	private static long CONNECT_RETRY_WAIT = 1500;
 
-	private void connectClicked()
+	public void connect()
 	{
 		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
@@ -343,10 +343,10 @@ public class ConnectFragment extends Fragment
 	}
 
 
-	private ListenDialog listenDialog = null;
+	private AlertDialog listenDialog = null;
 	private BluetoothSlave listenSlave = null;
 
-	private void listenClicked()
+	public void listen()
 	{
 		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
 		{
@@ -385,7 +385,7 @@ public class ConnectFragment extends Fragment
 				if (listenDialog == null)
 					return;
 
-				listenDialog.setStatus("Connected");
+				//listenDialog.setStatus("Connected");
 				listenDialog.dismiss();
 				listenDialog = null;
 
@@ -406,7 +406,7 @@ public class ConnectFragment extends Fragment
 				if (listenDialog == null)
 					return;
 
-				listenDialog.setStatus("Discoverable");
+				//listenDialog.setStatus("Discoverable");
 			}});
 		}
 
@@ -419,6 +419,7 @@ public class ConnectFragment extends Fragment
 					return;
 
 				listenDialog.dismiss();
+				listenDialog = null;
 
 				againDialog = new AlertDialog.Builder(getActivity())
 						.setTitle(R.string.bluetooth_listen_failed_error)
@@ -455,49 +456,39 @@ public class ConnectFragment extends Fragment
 		discovering = true;
 		btCtrl.listen(true, listenListener);
 
-		listenDialog = new ListenDialog();
-		listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
-		listenDialog.setStatus("Starting Listener");
-		listenDialog.setMessage(getString(R.string.bluetooth_listen_message));
-		listenDialog.setListener(new ListenDialog.ActionListener()
-		{
-			@Override
-			public void cancelled()
-			{
-				btCtrl.cancelListen();
-				listenDialog = null;
-			}
-		});
+		showListenDialog();
 	}
 
 	public void listenForMaster()
 	{
-		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		MyApplication.getInstance().setupBTServer(new BluetoothCtrl.SetupListener() { public void onSetup()
 		{
-			@Override
-			public void onSetup()
-			{
 			btCtrl = MyApplication.getInstance().getBtCtrl();
 
-			listenDialog = new ListenDialog();
-			listenDialog.show(getActivity().getSupportFragmentManager(), "listenDialog");
-			listenDialog.setStatus("Starting Listener");
-			listenDialog.setMessage(getString(R.string.bluetooth_listen_message));
-			listenDialog.setListener(new ListenDialog.ActionListener()
-			{
-				@Override
-				public void cancelled()
-				{
-					btCtrl.cancelListen();
-					listenDialog = null;
-				}
-			});
+			showListenDialog();
 
 			discovering = false;
 			btCtrl.listen(false, listenListener);
-			listenDialog.setStatus("Listening");
-			}
-		});
+		}});
+	}
+
+	private void showListenDialog()
+	{
+		if (listenDialog != null)
+			return;
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		listenDialog = builder
+				.setTitle("Listening")
+				.setMessage(getString(R.string.bluetooth_listen_message))
+				.setCancelable(true)
+				.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int i)
+				{
+					btCtrl.cancelListen();
+					listenDialog = null;
+				}})
+				.create();
+		listenDialog.show();
 	}
 
 	private void thumbnailClicked()

@@ -26,14 +26,6 @@ public class SetOverlay extends MasterCommand
 	}
 
 	@Override
-	public void onExecuteFail()
-	{}
-
-	@Override
-	public void handleResponse() throws IOException
-	{}
-
-	@Override
 	public byte[] getArguments()
 	{
 		ByteBuffer bb = ByteBuffer.allocate(4);

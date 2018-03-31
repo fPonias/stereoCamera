@@ -4,7 +4,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
+import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
+import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.utility.RemoteState;
+import com.munger.stereocamera.bluetooth.utility.TimedCommand;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -15,13 +18,9 @@ import java.net.ConnectException;
 
 public class BluetoothMaster
 {
-	public BluetoothMaster(BluetoothCtrl parent, BluetoothDevice device, BluetoothCtrl.ConnectListener listener)
+	public BluetoothMaster(BluetoothCtrl parent)
 	{
 		this.server = parent;
-		this.connectListener = listener;
-		this.targetDevice = device;
-
-		connect();
 	}
 
 	private BluetoothCtrl server;
@@ -51,16 +50,29 @@ public class BluetoothMaster
 			if (connectListener == null)
 				return false;
 
+			if (targetSocket == null)
+				return false;
+
 			return targetSocket.isConnected();
 
 		}
 	}
 
-	private void connect()
+	public void connect(BluetoothDevice device, BluetoothCtrl.ConnectListener listener)
 	{
+		if (targetDevice != null && targetSocket != null)
+		{
+			if (!targetDevice.getAddress().equals(device.getAddress()))
+				cleanUp();
+		}
+
+		this.connectListener = listener;
+		this.targetDevice = device;
+
 		connectThread = new Thread(new Runnable() { public void run()
 		{
 			connect2();
+			connectThread = null;
 		}});
 		connectThread.start();
 	}
@@ -73,13 +85,16 @@ public class BluetoothMaster
 
 			targetSocket.connect();
 		}
-		catch(ConnectException ce)
+		catch (ConnectException ce)
 		{
 			try
 			{
 				targetSocket.close();
+				targetSocket = null;
 			}
-			catch(IOException e){}
+			catch (IOException e)
+			{
+			}
 
 			synchronized (lock)
 			{
@@ -89,7 +104,8 @@ public class BluetoothMaster
 				return;
 			}
 		}
-		catch(IOException e){
+		catch (IOException e)
+		{
 			synchronized (lock)
 			{
 				if (connectListener != null)
@@ -107,6 +123,7 @@ public class BluetoothMaster
 
 		masterComm = new BluetoothMasterComm(server);
 		remoteState = new RemoteState(masterComm);
+
 		connectListener.onConnected();
 	}
 
@@ -119,10 +136,17 @@ public class BluetoothMaster
 	{
 		try
 		{
-			targetSocket.close();
-
 			if (masterComm != null)
+			{
 				masterComm.cleanUp();
+				masterComm = null;
+			}
+
+			if (targetSocket != null)
+			{
+				targetSocket.close();
+				targetSocket = null;
+			}
 		}
 		catch(IOException e){}
 

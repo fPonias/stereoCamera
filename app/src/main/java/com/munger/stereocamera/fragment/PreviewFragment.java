@@ -44,6 +44,7 @@ public class PreviewFragment extends Fragment
 				showLoading(true);
 				break;
 			case CREATED:
+			case RESUMED:
 				setLoadingMessage("Preview created");
 				showLoading(true);
 				break;
@@ -66,6 +67,7 @@ public class PreviewFragment extends Fragment
 	{
 		NONE,
 		CREATED,
+		RESUMED,
 		LISTENING,
 		PROCESSING,
 		READY,
@@ -102,11 +104,19 @@ public class PreviewFragment extends Fragment
 	}
 
 	@Override
+	public void onPause()
+	{
+		super.onPause();
+
+		showLoading(false);
+		previewView.stopPreview();
+	}
+
+	@Override
 	public void onDestroy()
 	{
 		super.onDestroy();
 
-		showLoading(false);
 		previewView.cleanUp();
 	}
 
@@ -141,11 +151,8 @@ public class PreviewFragment extends Fragment
 		{}
 	}
 
-	@Override
-	public void onResume()
+	protected void startPreview()
 	{
-		super.onResume();
-
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
 			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
@@ -160,6 +167,11 @@ public class PreviewFragment extends Fragment
 		}
 
 		previewView.startPreview();
+	}
+
+	protected void stopPreview()
+	{
+		previewView.stopPreview();
 	}
 
 	protected void setZoom(float zoom)

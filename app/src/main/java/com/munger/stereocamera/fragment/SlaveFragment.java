@@ -1,11 +1,10 @@
 package com.munger.stereocamera.fragment;
 
-import android.hardware.Camera;
+import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,10 +24,9 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendAngleOfView;
+import com.munger.stereocamera.bluetooth.command.slave.senders.SendConnectionPause;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendOrientation;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendPreviewFrame;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
@@ -38,10 +36,6 @@ import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
-
-/**
- * Created by hallmarklabs on 2/22/18.
- */
 
 public class SlaveFragment extends PreviewFragment
 {
@@ -165,47 +159,17 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public void change(float[] values)
 			{
-				synchronized (gravityLock)
-				{
-					long diff = System.currentTimeMillis() - lastSent;
-
-					if (sending || diff < 200)
-						return;
-
-					sending = true;
-				}
-
-				ReceiveGravity.Gravity value = new ReceiveGravity.Gravity();
-				value.x = values[0];
-				value.y = values[1];
-				value.z = values[2];
-				SendGravity command = new SendGravity(value);
-				command.setListener(new SlaveCommand.Listener()
-				{
-					@Override
-					public void onStarted()
-					{}
-
-					@Override
-					public void onFinished()
-					{
-						synchronized (gravityLock)
-						{
-							lastSent = System.currentTimeMillis();
-							sending = false;
-						}
-					}
-				});
-				slaveComm.sendCommand(command);
+				gravityLoop(values);
 			}
 		});
 		gravityCtrl.start();
 
-		try
+		slaveComm = MyApplication.getInstance().getBtCtrl().getSlave().getComm();
+
+		if (slaveComm == null)
 		{
-			slaveComm = MyApplication.getInstance().getBtCtrl().getSlave().getComm();
-		}
-		catch (NullPointerException e){
+			Toast.makeText(getActivity(), R.string.bluetooth_master_communication_failed_error, Toast.LENGTH_LONG).show();
+			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
 			return;
 		}
 
@@ -267,21 +231,31 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.PING, new BluetoothSlaveComm.Listener()
+		slaveComm.addListener(BluetoothCommands.HANDSHAKE, new BluetoothSlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
 			{
-				if (!pingReceived)
-					setStatus(Status.LISTENING);
+				cancelConnection();
 
-				pingReceived = true;
+				synchronized (pingLock)
+				{
+					pingReceived = true;
+					pingLock.notify();
+				}
+
+				setStatus(Status.LISTENING);
 			}
 		});
 
+		slaveComm.addListener(BluetoothCommands.CONNECTION_PAUSE, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		{
+			cancelConnection();
+		}});
+
 		slaveComm.addListener(BluetoothCommands.DISCONNECT, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
-			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+			disconnect();
 		}});
 
 		slaveComm.addListener(BluetoothCommands.SEND_PROCESSED_PHOTO, new BluetoothSlaveComm.Listener() {public void onCommand(SlaveCommand command)
@@ -296,12 +270,106 @@ public class SlaveFragment extends PreviewFragment
 		previewSender.setSlaveComm(slaveComm);
 	}
 
+	private void gravityLoop(float[] values)
+	{
+		synchronized (gravityLock)
+		{
+			long diff = System.currentTimeMillis() - lastSent;
+
+			if (sending || diff < 200)
+				return;
+
+			sending = true;
+		}
+
+		ReceiveGravity.Gravity value = new ReceiveGravity.Gravity();
+		value.x = values[0];
+		value.y = values[1];
+		value.z = values[2];
+		SendGravity command = new SendGravity(value);
+		command.setListener(new SlaveCommand.Listener()
+		{
+			@Override
+			public void onStarted()
+			{}
+
+			@Override
+			public void onFinished()
+			{
+				synchronized (gravityLock)
+				{
+					lastSent = System.currentTimeMillis();
+					sending = false;
+				}
+			}
+		});
+
+		if (slaveComm != null)
+			slaveComm.sendCommand(command);
+	}
+
+	private MyApplication.Listener appListener;
+	private boolean previewAlreadyStarted;
+
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState != null && savedInstanceState.containsKey("previewAlreadyStarted"))
+			previewAlreadyStarted = savedInstanceState.getBoolean("previewAlreadyStarted");
+
+		setHasOptionsMenu(true);
+
+		appListener = new MyApplication.Listener()
+		{
+			@Override
+			public void onScreenChanged(boolean isOn)
+			{
+				if (isOn)
+					return;
+
+				cancelConnection();
+			}
+
+			@Override
+			public void onBluetoothChanged(boolean isConnected, BluetoothDevice device)
+			{
+				if (!isConnected)
+				{
+					disconnect();
+				}
+			}
+		};
+		MyApplication.getInstance().addListener(appListener);
+	}
+
+	@Override
+	public void onDestroy()
+	{
+		super.onDestroy();
+
+		MyApplication.getInstance().removeListener(appListener);
+	}
+
 	@Override
 	public void onPause()
 	{
 		super.onPause();
+		pause();
+	}
 
-		previewSender.cancel();
+	public void pause()
+	{
+		cancelConnection();
+	}
+
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+
+		setStatus(Status.RESUMED);
 	}
 
 	@Override
@@ -313,6 +381,28 @@ public class SlaveFragment extends PreviewFragment
 		outState.putFloat("zoom", zoomSlider.get());
 	}
 
+	private void cancelConnection()
+	{
+		pingReceived = false;
+		previewSender.cancel();
+		stopPreview();
+
+		if (status == Status.READY || status == Status.BUSY)
+			slaveComm.sendCommand(new SendConnectionPause());
+
+		setStatus(Status.CREATED);
+	}
+
+	private void disconnect()
+	{
+		cancelConnection();
+		MyApplication.getInstance().cleanUpConnections();
+		MainActivity act = (MainActivity) MyApplication.getInstance().getCurrentActivity();
+		act.popSubViews();
+	}
+
+	private static final long PING_TIMEOUT = 1000;
+	private final Object pingLock = new Object();
 	private boolean pingReceived = false;
 	private boolean latencyCheckDone = false;
 	private void doLatencyCheck()
