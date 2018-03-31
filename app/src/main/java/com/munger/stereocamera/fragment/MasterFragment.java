@@ -196,7 +196,7 @@ public class MasterFragment extends PreviewFragment
 
 			return true;
 		}});
-		debugItem.setVisible(true);
+		debugItem.setVisible(false);
 
 		galleryItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{

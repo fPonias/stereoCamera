@@ -1,8 +1,12 @@
 package com.munger.stereocamera.bluetooth.utility;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.support.v4.util.ArraySet;
+import android.support.v7.preference.PreferenceManager;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
@@ -15,6 +19,10 @@ import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 public class FireShutter
 {
@@ -188,8 +196,35 @@ public class FireShutter
 					localData = tmp;
 				}
 
-				Intent i = PhotoProcessorService.getIntent(localData, remoteData, fragment.getFacing(), PhotoProcessor.CompositeImageType.SPLIT);
-				MyApplication.getInstance().startService(i);
+				Context c = MyApplication.getInstance();
+				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
+
+				ArraySet<String> defaults = new ArraySet<>();
+				defaults.add("split");
+				Set<String> formats = sharedPref.getStringSet("pref_formats", defaults);
+
+				Iterator<String> iter = formats.iterator();
+				while(iter.hasNext())
+				{
+					String key = iter.next();
+					PhotoProcessor.CompositeImageType type;
+					switch(key)
+					{
+						case "split":
+						default:
+							type = PhotoProcessor.CompositeImageType.SPLIT;
+							break;
+						case "red blue":
+							type = PhotoProcessor.CompositeImageType.RED_CYAN;
+							break;
+						case "green mag":
+							type = PhotoProcessor.CompositeImageType.GREEN_MAGENTA;
+							break;
+					}
+
+					Intent i = PhotoProcessorService.getIntent(localData, remoteData, fragment.getFacing(), type);
+					MyApplication.getInstance().startService(i);
+				}
 
 				listener.done();
 			}

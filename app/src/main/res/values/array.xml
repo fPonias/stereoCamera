@@ -14,4 +14,17 @@
         <item>Fourths</item>
         <item>Ghost</item>
     </string-array>
+    <string-array name="format_type_values">
+        <item>split</item>
+        <item>red blue</item>
+        <item>green mag</item>
+    </string-array>
+    <string-array name="format_type_names">
+        <item>Split Image</item>
+        <item>Red Cyan Anaglyph</item>
+        <item>Green Magenta Anaglyph</item>
+    </string-array>
+    <string-array name="format_type_default">
+        <item>split</item>
+    </string-array>
 </resources>
