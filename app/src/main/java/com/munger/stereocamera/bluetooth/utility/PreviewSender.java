@@ -2,6 +2,7 @@ package com.munger.stereocamera.bluetooth.utility;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendPreviewFrame;
@@ -55,30 +56,41 @@ public class PreviewSender
 				try {lock.wait(FRAME_RATE);} catch(InterruptedException e){return;}
 
 				if (cancelled)
-					return;
+					break;
 			}
 
 			h.post(getFrame);
 		}
+
+		synchronized (lock)
+		{
+			senderThread = null;
+		}
 	}};
 
-	private Thread t;
+	private String getLogTag(){return "preview sender";}
+
+	private Thread senderThread;
 
 	public void start()
 	{
+		Log.d(getLogTag(), "starting preview sender");
 		synchronized (lock)
 		{
-			if (t != null)
+			if (senderThread != null)
 				return;
 
-			t = new Thread(frameLoop);
+			cancelled = false;
+			senderThread = new Thread(frameLoop);
 		}
 
-		t.start();
+		senderThread.start();
+		Log.d(getLogTag(), "started preview sender");
 	}
 
 	public void cancel()
 	{
+		Log.d(getLogTag(), "cancelling preview sender");
 		synchronized (lock)
 		{
 			cancelled = true;

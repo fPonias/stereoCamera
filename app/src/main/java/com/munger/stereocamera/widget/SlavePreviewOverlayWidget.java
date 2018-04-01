@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -37,8 +38,11 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 		setAlpha(0.5f);
 	}
 
+	private String getLogTag() { return "slave preview overlay"; }
+
 	public void cancel()
 	{
+		Log.d(getLogTag(), "cancelling slave overlay");
 		synchronized (lock)
 		{
 			cancelled = true;
@@ -49,22 +53,21 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 
 			if (currentBmp != null)
 			{
-				setImageBitmap(null);
-				//currentBmp.recycle();
 				currentBmp = null;
 			}
 
 			if (nextBmp != null)
 			{
-				//nextBmp.recycle();
 				nextBmp = null;
 			}
 		}
 
+		Log.d(getLogTag(), "slave overlay cancelled");
 		Handler h = new Handler(Looper.getMainLooper());
 		h.post(new Runnable() { public void run()
 		{
 			setVisibility(View.GONE);
+			setImageBitmap(null);
 		}});
 	}
 
@@ -197,6 +200,7 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 
 	public void start()
 	{
+		Log.d(getLogTag(), "starting slave overlay");
 		synchronized (lock)
 		{
 			if (runThread != null)
@@ -206,5 +210,6 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 			runThread = new Thread(process);
 			runThread.start();
 		}
+		Log.d(getLogTag(), "slave overlay started");
 	}
 }

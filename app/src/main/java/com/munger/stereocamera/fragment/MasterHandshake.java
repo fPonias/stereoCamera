@@ -212,7 +212,6 @@ public class MasterHandshake
 		{
 			boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
 			target.startPreview();
-			target.slavePreview.start();
 			target.setCamera(isFacing, new MasterFragment.SetCameraListener()
 			{
 				@Override
@@ -232,7 +231,7 @@ public class MasterHandshake
 
 	private Step overlayStep = new Step("overlay") { public void execute(final StepListener listener)
 		{
-			PreviewOverlayWidget.Type type = target.overlayWidget.getType();
+			final PreviewOverlayWidget.Type type = target.overlayWidget.getType();
 			target.masterComm.runCommand(new SetOverlay(type), null);
 
 			target.remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, READY_STATUS_TIMEOUT, new RemoteState.ReadyListener()
@@ -240,6 +239,9 @@ public class MasterHandshake
 				@Override
 				public void done()
 				{
+					if (type == PreviewOverlayWidget.Type.Ghost)
+						target.slavePreview.start();
+
 					listener.success();
 				}
 
