@@ -24,10 +24,12 @@ import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.bluetooth.command.master.commands.ConnectionPause;
+import com.munger.stereocamera.bluetooth.command.master.commands.AudioSyncStart;
+import com.munger.stereocamera.bluetooth.utility.FireAudioShutter;
+import com.munger.stereocamera.utility.AudioSync;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
 import com.munger.stereocamera.bluetooth.command.master.commands.SetOverlay;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
@@ -90,7 +92,7 @@ public class MasterFragment extends PreviewFragment
 
 		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
-			doShutter();
+			startAudioTrigger();
 		}});
 
 		startLocalGravity();
@@ -370,6 +372,15 @@ public class MasterFragment extends PreviewFragment
 			else if (status != Status.READY && slavePreview.isRunning())
 				slavePreview.cancel();
 		}
+
+		if (handler == null)
+			handler = new Handler(Looper.getMainLooper());
+
+		handler.post(new Runnable() { public void run()
+		{
+			if (clickButton != null)
+				clickButton.setEnabled(true);
+		}});
 	}
 
 	private void updateHandPhoneButton()
@@ -402,8 +413,49 @@ public class MasterFragment extends PreviewFragment
 		orientationCtrl.start();
 	}
 
-	private void doShutter()
+	private void startAudioTrigger()
 	{
+		if (status != Status.READY)
+			return;
+
+		clickButton.setEnabled(false);
+
+		setStatus(Status.BUSY);
+
+		short shThresh = getThreshold();
+		audioAmbientAnalysis.stop();
+		audioAmbientAnalysis.reset();
+		new FireAudioShutter(MasterFragment.this).execute(shThresh, new FireShutter.Listener()
+		{
+			@Override
+			public void onProcessing()
+			{
+				setStatus(Status.PROCESSING);
+			}
+
+			@Override
+			public void done()
+			{
+				setStatus(Status.READY);
+				audioAmbientAnalysis.execute();
+			}
+
+			@Override
+			public void fail()
+			{
+				setStatus(Status.READY);
+				audioAmbientAnalysis.execute();
+			}
+		});
+	}
+
+	private void startDelayTrigger()
+	{
+		if (status != Status.READY)
+			return;
+
+		clickButton.setEnabled(false);
+
 		setStatus(Status.BUSY);
 
 		new FireShutter(MasterFragment.this).execute(shutterDelay, new FireShutter.Listener()

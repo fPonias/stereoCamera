@@ -13,6 +13,7 @@ import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +22,8 @@ import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.utility.AudioAmbientAnalysis;
+import com.munger.stereocamera.utility.AudioAnalyser;
 import com.munger.stereocamera.widget.LoadingWidget;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
@@ -80,12 +83,28 @@ public class PreviewFragment extends Fragment
 		setStatus(Status.CREATED);
 	}
 
+	public String getLTag() {return getClass().getName();}
 
+	protected AudioAmbientAnalysis audioAmbientAnalysis;
+
+	protected short getThreshold()
+	{
+		long avg = audioAmbientAnalysis.getMean();
+		long stdDev = audioAmbientAnalysis.getStdDev();
+		long min = 400;
+		long threshold = avg + 3 * stdDev;
+		threshold = Math.max(min, threshold);
+		short shThresh = (short) Math.min(Short.MAX_VALUE, threshold);
+
+		return shThresh;
+	}
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		audioAmbientAnalysis = new AudioAmbientAnalysis();
 	}
 
 	protected void onCreateView(View rootView)
@@ -96,13 +115,6 @@ public class PreviewFragment extends Fragment
 		previewView.setListener(previewListener);
 	}
 
-	@SuppressLint("ClickableViewAccessibility")
-	@Override
-	public void onViewCreated(final View view, Bundle savedInstanceState)
-	{
-
-	}
-
 	@Override
 	public void onPause()
 	{
@@ -110,14 +122,25 @@ public class PreviewFragment extends Fragment
 
 		showLoading(false);
 		previewView.stopPreview();
+		audioAmbientAnalysis.stop();
+		audioAmbientAnalysis.reset();
+	}
+
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+
+		audioAmbientAnalysis.execute();
 	}
 
 	@Override
 	public void onDestroy()
 	{
-		super.onDestroy();
+		if (previewView != null)
+			previewView.cleanUp();
 
-		previewView.cleanUp();
+		super.onDestroy();
 	}
 
 	@Override

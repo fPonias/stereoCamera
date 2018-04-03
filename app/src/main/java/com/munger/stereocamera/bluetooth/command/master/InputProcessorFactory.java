@@ -3,6 +3,7 @@ package com.munger.stereocamera.bluetooth.command.master;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAngleOfView;
+import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveAudioSyncTriggered;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveConnectionPause;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveDisconnect;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
@@ -34,6 +35,7 @@ public class InputProcessorFactory
 		classMap.put(BluetoothCommands.RECEIVE_PREVIEW_FRAME, ReceivePreviewFrame.class);
 		classMap.put(BluetoothCommands.RECEIVE_STATUS, ReceiveStatus.class);
 		classMap.put(BluetoothCommands.RECEIVE_ZOOM, ReceiveZoom.class);
+		classMap.put(BluetoothCommands.RECEIVE_AUDIO_SYNC_TRIGGERED, ReceiveAudioSyncTriggered.class);
 	}
 
 	public static MasterIncoming getCommand(BluetoothCommands command)

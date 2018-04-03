@@ -3,6 +3,7 @@ package com.munger.stereocamera.bluetooth.command.slave;
 import android.util.Log;
 
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
+import com.munger.stereocamera.bluetooth.command.slave.commands.AudioSyncTriggered;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Handshake;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveConnectionPause;
 import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
@@ -13,6 +14,7 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
+import com.munger.stereocamera.bluetooth.command.slave.commands.AudioSyncStart;
 
 import java.io.IOException;
 
@@ -93,6 +95,12 @@ public class InputProcessor
 				break;
 			case FIRE_SHUTTER:
 				command = new Shutter(id);
+				break;
+			case AUDIO_SYNC_START:
+				command = new AudioSyncStart(id);
+				break;
+			case AUDIO_SYNC_TRIGGERED:
+				command = new AudioSyncTriggered(id);
 				break;
 			case LATENCY_CHECK:
 				command = new GetLatency(id);

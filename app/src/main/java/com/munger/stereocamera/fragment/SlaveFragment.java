@@ -24,6 +24,7 @@ import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
 import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
+import com.munger.stereocamera.bluetooth.command.slave.commands.AudioSyncStart;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendConnectionPause;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendOrientation;
@@ -31,7 +32,9 @@ import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
 import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
 import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
 import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
+import com.munger.stereocamera.bluetooth.utility.FireSlaveShutter;
 import com.munger.stereocamera.bluetooth.utility.PreviewSender;
+import com.munger.stereocamera.utility.AudioSync;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
@@ -136,7 +139,6 @@ public class SlaveFragment extends PreviewFragment
 	}
 
 	private BluetoothSlaveComm slaveComm;
-	private byte[] imgBytes;
 	private OrientationCtrl gravityCtrl;
 
 	private ViewGroup controls;
@@ -220,14 +222,36 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public void onCommand(SlaveCommand command)
 			{
-
 				Shutter cmd = (Shutter) command;
 
 				cmd.setOrientation(getCurrentOrientation());
 				cmd.setZoom(zoomSlider.get());
 
-				byte[] data = doFireShutter();
+				FireSlaveShutter shutter = new FireSlaveShutter(SlaveFragment.this);
+				byte[] data = shutter.doFireShutter();
 				cmd.setData(data);
+			}
+		});
+
+		slaveComm.addListener(BluetoothCommands.AUDIO_SYNC_START, new BluetoothSlaveComm.Listener()
+		{
+			@Override
+			public void onCommand(SlaveCommand command)
+			{
+				final AudioSyncStart cmd = (AudioSyncStart) command;
+
+				cmd.setOrientation(getCurrentOrientation());
+				cmd.setZoom(zoomSlider.get());
+
+				short threshold = getThreshold();
+				audioAmbientAnalysis.stop();
+				audioAmbientAnalysis.reset();
+				FireSlaveShutter shutter = new FireSlaveShutter(SlaveFragment.this);
+				byte[] data = shutter.executeByAudioSync(cmd.id, threshold);
+				cmd.setData(data);
+
+				audioAmbientAnalysis.execute();
+				setStatus(Status.READY);
 			}
 		});
 
@@ -446,39 +470,6 @@ public class SlaveFragment extends PreviewFragment
 			if (latencyCheckDone == false)
 				try{lock.wait(3000);}catch(InterruptedException e){}
 		}
-	}
-
-	private byte[] doFireShutter()
-	{
-		final Object lock = new Object();
-		imgBytes = null;
-
-		fireShutter(new ImageListener()
-		{
-			@Override
-			public void onImage(byte[] bytes)
-			{
-				synchronized (lock)
-				{
-					imgBytes = bytes;
-					lock.notify();
-				}
-			}
-
-			@Override
-			public void onFinished()
-			{
-				setStatus(Status.READY);
-			}
-		});
-
-		synchronized (lock)
-		{
-			if (imgBytes == null)
-				try{lock.wait(2000);}catch(InterruptedException e){}
-		}
-
-		return imgBytes;
 	}
 
 	@Override

@@ -44,7 +44,6 @@
         android:layout_below="@+id/previewContainer"
         android:paddingTop="10dp"
         android:id="@+id/controls"
-        android:orientation="horizontal"
     >
         <com.munger.stereocamera.widget.ZoomWidget
             android:layout_width="wrap_content"

@@ -2,12 +2,14 @@ package com.munger.stereocamera.fragment;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +25,9 @@ import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.utility.AudioSync;
 import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.widget.AudioSyncWidget;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
 import java.util.HashMap;

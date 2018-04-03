@@ -18,6 +18,7 @@ import com.munger.stereocamera.bluetooth.command.master.commands.SendProcessedPh
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.service.PhotoProcessorServiceReceiver;
 import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.widget.AudioSource;
 import com.munger.stereocamera.widget.OrientationCtrl;
 
 import java.io.File;
@@ -43,6 +44,7 @@ public class MyApplication extends Application
 	private Preferences prefs;
 	private PhotoProcessorServiceReceiver photoReceiver;
 	private InteractiveReceiver interactiveReceiver;
+	private AudioSource audioSource;
 
 	@Override
 	public void onCreate()
@@ -78,6 +80,9 @@ public class MyApplication extends Application
 
 		filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
 		registerReceiver(interactiveReceiver, filter);
+
+		audioSource = new AudioSource(this);
+		audioSource.start();
 	}
 
 	@Override
@@ -86,7 +91,14 @@ public class MyApplication extends Application
 		unregisterReceiver(interactiveReceiver);
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(photoReceiver);
 
+		audioSource.stop();
+
 		super.onTerminate();
+	}
+
+	public AudioSource getAudioSource()
+	{
+		return audioSource;
 	}
 
 	private PhotoFiles photoFiles = null;

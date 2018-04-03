@@ -22,6 +22,7 @@ public class MasterCommandFactory
 		classMap.put(BluetoothCommands.SET_OVERLAY, SetOverlay.class);
 		classMap.put(BluetoothCommands.SET_ZOOM, SetZoom.class);
 		classMap.put(BluetoothCommands.FIRE_SHUTTER, Shutter.class);
+		classMap.put(BluetoothCommands.AUDIO_SYNC_START, AudioSyncStart.class);
 		classMap.put(BluetoothCommands.HANDSHAKE, Handshake.class);
 	}
 
