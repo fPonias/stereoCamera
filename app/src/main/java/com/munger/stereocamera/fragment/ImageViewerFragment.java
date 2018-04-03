@@ -1,6 +1,7 @@
 package com.munger.stereocamera.fragment;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
@@ -33,6 +34,8 @@ import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 
 
 public class ImageViewerFragment extends Fragment
@@ -196,13 +199,16 @@ public class ImageViewerFragment extends Fragment
 	private Runnable togglePlaybackLoop = new Runnable() { public void run()
 	{
 		int sz = adapter.getCount();
+		int i = pager.getCurrentItem();
 
-		int i = 0;
-		playbackUpdateRunnable.doScroll(0, false);
+		if (i == sz - 1)
+		{
+			i = 0;
+			playbackUpdateRunnable.doScroll(i, true);
+		}
+
 		while (isPlaying && i < sz)
 		{
-			playbackUpdateRunnable.doScroll(i, true);
-
 			synchronized (lock)
 			{
 				try { lock.wait(PLAYBACK_DELAY); } catch (InterruptedException e) {break;}
@@ -212,6 +218,8 @@ public class ImageViewerFragment extends Fragment
 			}
 
 			i++;
+			if (i < sz)
+				playbackUpdateRunnable.doScroll(i, true);
 		}
 
 		synchronized (lock)
@@ -384,6 +392,8 @@ public class ImageViewerFragment extends Fragment
 	public static class ImagePagerAdapter extends FragmentStatePagerAdapter
 	{
 		private String[] files;
+		private HashMap<Integer, ImagePage> pages = new HashMap<>();
+		private final Object lock = new Object();
 
 		public String[] getData()
 		{
@@ -397,10 +407,39 @@ public class ImageViewerFragment extends Fragment
 			files = pf.getFiles();
 		}
 
-		@Override
-		public Fragment getItem(int position)
+		private ImagePage.Listener pageListener = new ImagePage.Listener()
 		{
-			Fragment ret = new ImagePage();
+			@Override
+			public void detached(ImagePage page)
+			{
+				synchronized (lock)
+				{
+					Set<Integer> keys = pages.keySet();
+					for (int key : keys)
+					{
+						ImagePage pg = pages.get(key);
+
+						if (pg == page)
+						{
+							pages.remove(key);
+							break;
+						}
+					}
+				}
+			}
+		};
+
+		@Override
+		public Fragment getItem(final int position)
+		{
+			final ImagePage ret = new ImagePage();
+			ret.setListener(pageListener);
+
+			synchronized (lock)
+			{
+				pages.put(position, ret);
+			}
+
 			Bundle args = new Bundle();
 
 			String arg = files[position];
@@ -438,6 +477,23 @@ public class ImageViewerFragment extends Fragment
 				newFiles[i - 1] = files[i];
 
 			files = newFiles;
+
+			synchronized (lock)
+			{
+				Set<Integer> keys = pages.keySet();
+
+				for (int key : keys)
+				{
+					ImagePage page = pages.get(key);
+
+					if (key < newFiles.length)
+					{
+						String path = newFiles[key];
+						page.updatePath(path);
+					}
+				}
+			}
+
 			notifyDataSetChanged();
 		}
 
@@ -474,10 +530,37 @@ public class ImageViewerFragment extends Fragment
 		}
 
 		@Override
-		public void onStart()
+		public void onDetach()
 		{
-			super.onStart();
+			super.onDetach();
 
+			if (listener != null)
+				listener.detached(this);
+		}
+
+		public interface Listener
+		{
+			void detached(ImagePage page);
+		}
+
+		private Listener listener;
+
+		public void setListener(Listener listener)
+		{
+			this.listener = listener;
+		}
+
+		public void updatePath(String path)
+		{
+			if (this.path != null && path.equals(this.path))
+				return;
+
+			this.path = path;
+			update();
+		}
+
+		private void update()
+		{
 			File fl = new File(path);
 			long sz = fl.length();
 			Bitmap bmp;
@@ -492,6 +575,14 @@ public class ImageViewerFragment extends Fragment
 			}
 
 			thumbnailView.setImageBitmap(bmp);
+		}
+
+		@Override
+		public void onStart()
+		{
+			super.onStart();
+
+			update();
 		}
 	}
 }
