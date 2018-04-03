@@ -192,6 +192,9 @@ public class PreviewWidget extends TextureView
 
 	private void setupTexture(Camera camera)
 	{
+		if (currentParameters == null)
+			currentParameters = camera.getParameters();
+
 		List<Camera.Size> presizes = currentParameters.getSupportedPreviewSizes();
 		List<Camera.Size> picsizes = currentParameters.getSupportedPictureSizes();
 		Camera.Size picSize = picsizes.get(0);

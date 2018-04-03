@@ -6,3 +6,4 @@ app/.externalNativeBuild
 *.jks
 .DS_Store
 app/release
+app/src/main/cpp/jpeg-9c
