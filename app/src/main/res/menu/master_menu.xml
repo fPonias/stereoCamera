@@ -27,6 +27,11 @@
             app:showAsAction="never"
             android:title="@string/menu_prefs"
             />
+        <item
+            android:id="@+id/help"
+            app:showAsAction="never"
+            android:title="@string/menu_help"
+            />
     </group>
     <group android:id="@+id/menu_group_stuff">
         <item

@@ -1,0 +1,51 @@
+body {
+    padding: 20px;
+}
+
+.linkDiv {
+    margin-bottom: 20px;
+    font-size: 20pt;
+}
+
+.title {
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: 18pt;
+}
+
+.description {
+    font-size: 14pt;
+}
+
+.image {
+    margin: 20px 0px 20px 0px;
+    text-align: center;
+}
+
+.image img {
+    width: 280px;
+}
+
+.nav {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 18pt;
+}
+
+.nav a {
+    text-decoration: none;
+}
+
+.nav .nav-prev {
+    display: inline;
+    margin-right: 20px;
+}
+
+.nav .nav-home {
+    display: inline;
+    margin-right: 20px;
+}
+
+.nav .nav-next {
+    display: inline;
+}

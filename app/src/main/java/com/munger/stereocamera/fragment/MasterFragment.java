@@ -156,6 +156,7 @@ public class MasterFragment extends PreviewFragment
 	private MenuItem debugItem;
 	private MenuItem galleryItem;
 	private MenuItem prefsItem;
+	private MenuItem helpItem;
 
 
 	@Override
@@ -168,6 +169,7 @@ public class MasterFragment extends PreviewFragment
 		debugItem = menu.findItem(R.id.test);
 		galleryItem = menu.findItem(R.id.gallery);
 		prefsItem = menu.findItem(R.id.prefs);
+		helpItem = menu.findItem(R.id.help);
 
 		updateHandPhoneButton();
 
@@ -208,6 +210,12 @@ public class MasterFragment extends PreviewFragment
 		{
 			((MainActivity) getActivity()).openSettings();
 			return true;
+		}});
+
+		helpItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
+		{
+			((MainActivity) getActivity()).openHelp();
+			return false;
 		}});
 	}
 

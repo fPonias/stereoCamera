@@ -22,6 +22,7 @@
     <string name="menu_swap">Swap Sides</string>
     <string name="menu_gallery">Gallery</string>
     <string name="menu_prefs">Preferences</string>
+    <string name="menu_help">Help</string>
 
     <string name="pref_overlay">Preview Overlay</string>
     <string name="pref_overlay_desc">Which composition aid should be overlaid on the camera preview?</string>
