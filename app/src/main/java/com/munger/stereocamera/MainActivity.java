@@ -63,7 +63,10 @@ public class MainActivity extends BaseActivity
 	public void setupBTServer(BluetoothCtrl.SetupListener listener)
 	{
 		if (btCtrl == null)
+		{
 			btCtrl = new BluetoothCtrl(this);
+			MyApplication.getInstance().setBtCtrl(btCtrl);
+		}
 
 		if (!btCtrl.getIsSetup())
 		{
@@ -152,17 +155,21 @@ public class MainActivity extends BaseActivity
 	@Override
 	protected void onStart()
 	{
-		super.onStart();
+		btCtrl = MyApplication.getInstance().getBtCtrl();
 
 		FragmentManager ft = getSupportFragmentManager();
 		backStackListener = new BackStackListener(ft);
 		ft.addOnBackStackChangedListener(backStackListener);
+
+		super.onStart();
 	}
 
 	@Override
 	protected void onResume()
 	{
 		super.onResume();
+
+		btCtrl = MyApplication.getInstance().getBtCtrl();
 
 		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
 		registerReceiver(photoReceiver, filter, "com.munger.stereocamera.NOTIFICATION", new Handler(Looper.getMainLooper()));

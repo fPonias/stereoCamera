@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;

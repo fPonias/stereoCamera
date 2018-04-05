@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "710522118789",
+    "firebase_url": "https://stereocamera-585f7.firebaseio.com",
+    "project_id": "stereocamera-585f7",
+    "storage_bucket": "stereocamera-585f7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:710522118789:android:955f444a0792f5f3",
+        "android_client_info": {
+          "package_name": "com.munger.stereocamera"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "710522118789-mctej8hnnop7ticg19uj43fu19r7tgrf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.munger.stereocamera",
+            "certificate_hash": "72d0cff64330969c4cf59b3f7e2352e49a68707c"
+          }
+        },
+        {
+          "client_id": "710522118789-b3s9hf3j9i7p7pdo7m17qkvu9g5b8ak2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEFK1ejrFRuIOyfiOZqSTMIfdtNv1sT20"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "710522118789-b3s9hf3j9i7p7pdo7m17qkvu9g5b8ak2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
