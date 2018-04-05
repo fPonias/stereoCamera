@@ -44,6 +44,9 @@
     <string name="bluetooth_master_communication_failed_error">Failed to communicate with primary camera.</string>
     <string name="bluetooth_communication_failed_error">Failed to communicate with secondary camera.</string>
     <string name="camera_open_error">Unable to open the camera.</string>
+    <string name="first_time_title">Welcome!</string>
+    <string name="first_time_question">Welcome to McMunger Stereo Camera.  Would you like to view the
+    documentation to familiarize yourself with the app?</string>
 
     <string name="delete_confirm_title">Confirm</string>
     <string name="delete_confirm_message">Delete the selected image?</string>

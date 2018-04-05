@@ -27,6 +27,7 @@ public class Preferences
 	private static final String CLIENT_KEY = "client";
 	private static final String SIDE_KEY = "side";
 	private static final String FACING_KEY = "facing";
+	private static final String FIRST_TIME = "first_time";
 
 	private enum CameraKeysEnum
 	{
@@ -60,6 +61,7 @@ public class Preferences
 	private String client = null;
 	private boolean isOnLeft = true;
 	private boolean isFacing = true;
+	private boolean firstTime = true;
 	private HashMap<String, cameraPrefs> cameras = new HashMap<>();
 
 	public Preferences()
@@ -133,6 +135,12 @@ public class Preferences
 		{
 			boolean value = preferences.getBoolean(FACING_KEY, true);
 			isFacing = value;
+		}
+
+		if (preferences.contains(FIRST_TIME))
+		{
+			boolean value = preferences.getBoolean(FIRST_TIME, true);
+			firstTime = value;
 		}
 	}
 
@@ -228,5 +236,16 @@ public class Preferences
 	{
 		isFacing = facing;
 		preferences.edit().putBoolean(FACING_KEY, facing).apply();
+	}
+
+	public boolean getFirstTime()
+	{
+		return firstTime;
+	}
+
+	public void setFirstTime(boolean first)
+	{
+		firstTime = first;
+		preferences.edit().putBoolean(FIRST_TIME, firstTime).apply();
 	}
 }

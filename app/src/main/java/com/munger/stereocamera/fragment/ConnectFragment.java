@@ -141,10 +141,41 @@ public class ConnectFragment extends Fragment
 		{
 			thumbnailClicked();
 		}});
+
+		boolean firstTime = prefs.getFirstTime();
+
+		if (firstTime)
+		{
+			doFirstTime();
+		}
+	}
+
+	private void doFirstTime()
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.first_time_title)
+				.setMessage(R.string.first_time_question)
+				.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)
+				{
+					prefs.setFirstTime(false);
+					firstTimeDialog.dismiss();
+				}})
+				.setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)
+				{
+					prefs.setFirstTime(false);
+					firstTimeDialog.dismiss();
+
+					((MainActivity) MyApplication.getInstance().getCurrentActivity()).openHelp();
+				}});
+
+		firstTimeDialog = builder.create();
+		firstTimeDialog.show();
 	}
 
 	private BluetoothCtrl btCtrl;
 	private Preferences prefs;
+
+	private AlertDialog firstTimeDialog;
 
 	private DiscoverDialog discoverDialog;
 	private HashMap<String, BluetoothDevice> devices;

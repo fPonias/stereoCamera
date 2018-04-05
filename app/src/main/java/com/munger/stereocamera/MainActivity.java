@@ -114,6 +114,9 @@ public class MainActivity extends BaseActivity
 
 		if (connectFragment != null)
 		{
+			if (prefs.getFirstTime() == true)
+				return;
+
 			if (role == Preferences.Roles.MASTER)
 			{
 				connectFragment.connect();
