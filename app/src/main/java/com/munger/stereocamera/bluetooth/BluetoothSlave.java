@@ -8,13 +8,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
-import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
-import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
 import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
-import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
-import com.munger.stereocamera.bluetooth.utility.TimedCommand;
 
 import java.io.IOException;
 
@@ -68,7 +62,7 @@ public class BluetoothSlave
 		//timeout isn't working ...
 		//discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout);
 
-		MyApplication.getInstance().getCurrentActivity().startActivityForResult(discoverableIntent, new MainActivity.ActivityResultListener()
+		MainActivity.getInstance().startActivityForResult(discoverableIntent, new MainActivity.ActivityResultListener()
 		{
 			@Override
 			public void onResult(int resultCode, Intent data)
@@ -136,7 +130,7 @@ public class BluetoothSlave
 				{
 					try {listenLock.wait(timeout);} catch(InterruptedException e){}
 
-					Log.d(MyApplication.BT_SERVICE_NAME, "checking bluetooth cancel");
+					Log.d(MainActivity.BT_SERVICE_NAME, "checking bluetooth cancel");
 					runCancel = (cancelThread != null);
 
 					listenThread = null;
@@ -145,11 +139,11 @@ public class BluetoothSlave
 
 				if (runCancel)
 				{
-					Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket, cancelling");
+					Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket, cancelling");
 					doCancel();
 				}
 				else
-					Log.d(MyApplication.BT_SERVICE_NAME, "no bluetooth cancel");
+					Log.d(MainActivity.BT_SERVICE_NAME, "no bluetooth cancel");
 
 			}});
 		}
@@ -193,7 +187,7 @@ public class BluetoothSlave
 		try
 		{
 			Log.d(getTag(), "starting server socket");
-			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MyApplication.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
+			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MainActivity.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
 
 			lastConnected = null;
 
@@ -212,7 +206,7 @@ public class BluetoothSlave
 			cleanUpServerSocket();
 		}
 		catch(IOException e){
-			Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket");
+			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket");
 
 			synchronized (lock)
 			{
@@ -232,7 +226,7 @@ public class BluetoothSlave
 		}
 		else
 		{
-			Log.d(MyApplication.BT_SERVICE_NAME, "failed to run bluetooth socket");
+			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket");
 			cleanUp();
 			listenListener.onFailed();
 		}
@@ -287,7 +281,7 @@ public class BluetoothSlave
 		}
 		catch (IOException e)
 		{
-			Log.d(MyApplication.BT_SERVICE_NAME, "failed to close bluetooth socket");
+			Log.d(MainActivity.BT_SERVICE_NAME, "failed to close bluetooth socket");
 		}
 
 		serverSocket = null;

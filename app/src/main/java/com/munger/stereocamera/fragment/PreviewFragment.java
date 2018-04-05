@@ -18,11 +18,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.widget.LoadingWidget;
-import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 public class PreviewFragment extends Fragment
@@ -153,9 +151,9 @@ public class PreviewFragment extends Fragment
 
 	protected void startPreview()
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
 			{
 				@Override
 				public void onResult(int resultCode)
@@ -181,7 +179,7 @@ public class PreviewFragment extends Fragment
 
 	public PhotoOrientation getCurrentOrientation()
 	{
-		int rotation = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
+		int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
 
 		switch (rotation)
 		{

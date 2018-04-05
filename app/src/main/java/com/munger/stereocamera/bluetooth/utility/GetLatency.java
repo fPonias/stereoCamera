@@ -2,7 +2,7 @@ package com.munger.stereocamera.bluetooth.utility;
 
 import android.util.Log;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
@@ -25,7 +25,7 @@ public class GetLatency
 		this.target = fragment;
 		this.timeout = timeout;
 
-		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
 	}
 
 	private long localLatency;

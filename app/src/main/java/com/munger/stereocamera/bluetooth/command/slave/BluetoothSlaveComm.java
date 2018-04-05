@@ -3,19 +3,14 @@ package com.munger.stereocamera.bluetooth.command.slave;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
-import com.munger.stereocamera.fragment.PreviewFragment;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -222,7 +217,7 @@ public class BluetoothSlaveComm
 
 			Log.d(getTag(), "slave failed to send array of size " + arr.length);
 
-			MyApplication.getInstance().handleDisconnection();
+			MainActivity.getInstance().handleDisconnection();
 			throw e;
 		}
 	}
@@ -252,7 +247,7 @@ public class BluetoothSlaveComm
 
 			Log.d(getTag(), "slave failed to read array of size " + sz);
 
-			MyApplication.getInstance().handleDisconnection();
+			MainActivity.getInstance().handleDisconnection();
 			throw e;
 		}
 	}

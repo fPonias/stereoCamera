@@ -1,6 +1,6 @@
 package com.munger.stereocamera.bluetooth.utility;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.LinearRegression;
 
@@ -9,10 +9,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-/**
- * Created by hallmarklabs on 3/2/18.
- */
 
 public class CalculateSync
 {
@@ -88,7 +84,7 @@ public class CalculateSync
 			return;
 		}
 
-		RemoteState remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
+		RemoteState remoteState = MainActivity.getInstance().getBtCtrl().getMaster().getRemoteState();
 		remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, TIMEOUT, new RemoteState.ReadyListener()
 		{
 			@Override
@@ -153,8 +149,8 @@ public class CalculateSync
 
 	private void loadPastData() throws IOException
 	{
-		String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
-		File file = new File(MyApplication.getInstance().getFilesDir(), key);
+		String key = "syncData-" + MainActivity.getInstance().getPrefs().getClient();
+		File file = new File(MainActivity.getInstance().getFilesDir(), key);
 
 		if (!file.exists())
 		{
@@ -192,8 +188,8 @@ public class CalculateSync
 
 	private void saveData(double[] inputs, double[] actuals) throws IOException
 	{
-		String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
-		File file = new File(MyApplication.getInstance().getFilesDir(), key);
+		String key = "syncData-" + MainActivity.getInstance().getPrefs().getClient();
+		File file = new File(MainActivity.getInstance().getFilesDir(), key);
 
 		if (!file.exists())
 		{

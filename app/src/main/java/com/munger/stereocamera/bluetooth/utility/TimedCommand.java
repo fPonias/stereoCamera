@@ -1,6 +1,6 @@
 package com.munger.stereocamera.bluetooth.utility;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
@@ -37,7 +37,7 @@ public class TimedCommand
 	public void run(MasterCommand command)
 	{
 		response = null;
-		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
 		masterComm.runCommand(command, new BluetoothMasterComm.SlaveListener()
 		{
 			@Override

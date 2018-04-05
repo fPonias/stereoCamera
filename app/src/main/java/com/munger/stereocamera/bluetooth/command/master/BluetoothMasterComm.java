@@ -3,7 +3,7 @@ package com.munger.stereocamera.bluetooth.command.master;
 import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
@@ -86,7 +86,7 @@ public class BluetoothMasterComm
 					Log.d(getTag(), "bluetooth socket is closed");
 
 				Log.d(getTag(), "socket closed while waiting for input");
-				MyApplication.getInstance().handleDisconnection();
+				MainActivity.getInstance().handleDisconnection();
 
 				throw(e);
 			}
@@ -142,7 +142,7 @@ public class BluetoothMasterComm
 				Log.d(getTag(), "bluetooth socket is closed");
 
 			Log.d(getTag(), "failed to read " + sz + "bytes from the master socket");
-			MyApplication.getInstance().handleDisconnection();
+			MainActivity.getInstance().handleDisconnection();
 
 			throw(e);
 		}
@@ -165,7 +165,7 @@ public class BluetoothMasterComm
 				Log.d(getTag(), "bluetooth socket is closed");
 
 			Log.d(getTag(), "failed to write " + array.length + "bytes to the master socket");
-			MyApplication.getInstance().handleDisconnection();
+			MainActivity.getInstance().handleDisconnection();
 			throw(e);
 		}
 	}

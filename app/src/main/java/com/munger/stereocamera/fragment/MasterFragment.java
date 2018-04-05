@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.bluetooth.command.master.commands.ConnectionPause;
@@ -60,7 +59,7 @@ public class MasterFragment extends PreviewFragment
 	private long shutterDelay;
 	private PhotoOrientation orientation;
 
-	private MyApplication.Listener appListener;
+	private MainActivity.Listener appListener;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
@@ -95,7 +94,7 @@ public class MasterFragment extends PreviewFragment
 
 		startLocalGravity();
 
-		Preferences prefs = MyApplication.getInstance().getPrefs();
+		Preferences prefs = MainActivity.getInstance().getPrefs();
 		previewView.setOrientation(orientation);
 
 		slavePreview = rootView.findViewById(R.id.slavePreview);
@@ -118,7 +117,7 @@ public class MasterFragment extends PreviewFragment
 
 		setHasOptionsMenu(true);
 
-		appListener = new MyApplication.Listener()
+		appListener = new MainActivity.Listener()
 		{
 			@Override
 			public void onScreenChanged(boolean isOn)
@@ -138,7 +137,7 @@ public class MasterFragment extends PreviewFragment
 				}
 			}
 		};
-		MyApplication.getInstance().addListener(appListener);
+		MainActivity.getInstance().addListener(appListener);
 
 		masterHandshake = new MasterHandshake(this);
 	}
@@ -148,7 +147,7 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onDestroy();
 
-		MyApplication.getInstance().removeListener(appListener);
+		MainActivity.getInstance().removeListener(appListener);
 	}
 
 	private MenuItem flipItem;
@@ -182,7 +181,7 @@ public class MasterFragment extends PreviewFragment
 
 		swapItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			Preferences prefs = MyApplication.getInstance().getPrefs();
+			Preferences prefs = MainActivity.getInstance().getPrefs();
 			boolean val = !prefs.getIsOnLeft();
 			prefs.setIsOnLeft(val);
 
@@ -222,7 +221,7 @@ public class MasterFragment extends PreviewFragment
 	private void onFlip()
 	{
 		setStatus(Status.BUSY);
-		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+		boolean isFacing = MainActivity.getInstance().getPrefs().getIsFacing();
 		isFacing = !isFacing;
 		setCamera(isFacing, new SetCameraListener()
 		{
@@ -249,7 +248,7 @@ public class MasterFragment extends PreviewFragment
 	void setCamera(boolean isFacing, final SetCameraListener listener)
 	{
 		setFacing(isFacing);
-		MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
+		MainActivity.getInstance().getPrefs().setIsFacing(isFacing);
 
 		masterComm.runCommand(new SetFacing(isFacing), new BluetoothMasterComm.SlaveListener()
 		{
@@ -264,7 +263,7 @@ public class MasterFragment extends PreviewFragment
 	private void setCamera2(final SetCameraListener listener)
 	{
 		String cameraId = getCameraId();
-		Preferences prefs = MyApplication.getInstance().getPrefs();
+		Preferences prefs = MainActivity.getInstance().getPrefs();
 		float localZoom = prefs.getLocalZoom(cameraId);
 		setZoom(localZoom);
 
@@ -331,9 +330,8 @@ public class MasterFragment extends PreviewFragment
 	private void disconnect()
 	{
 		pauseConnection();
-		MyApplication.getInstance().cleanUpConnections();
-		MainActivity act = (MainActivity) MyApplication.getInstance().getCurrentActivity();
-		act.popSubViews();
+		MainActivity.getInstance().cleanUpConnections();
+		MainActivity.getInstance().popSubViews();
 	}
 
 	private void resumeConnection()
@@ -382,7 +380,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateHandPhoneButton()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
+		Preferences prefs = MainActivity.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 
 		if (val)
@@ -444,7 +442,7 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void result(long localDelay)
 			{
-				MyApplication.getInstance().getPrefs().setShutterDelay(getCameraId(), localDelay);
+				MainActivity.getInstance().getPrefs().setShutterDelay(getCameraId(), localDelay);
 				setStatus(Status.READY);
 			}
 
@@ -459,9 +457,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void openThumbnail()
 	{
-		BaseActivity act = MyApplication.getInstance().getCurrentActivity();
-		if (act instanceof MainActivity)
-			((MainActivity) act).startThumbnailView();
+		MainActivity.getInstance().startThumbnailView();
 	}
 
 	@Override
@@ -469,10 +465,10 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
 		handler = new Handler(Looper.getMainLooper());
 
-		remoteState = MyApplication.getInstance().getBtCtrl().getMaster().getRemoteState();
+		remoteState = MainActivity.getInstance().getBtCtrl().getMaster().getRemoteState();
 		remoteState.addListener(remoteListener);
 		remoteState.start();
 
@@ -492,7 +488,7 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onZoom(float zoom)
 		{
-			MyApplication.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
+			MainActivity.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
 		}
 
 		@Override
@@ -579,7 +575,7 @@ public class MasterFragment extends PreviewFragment
 		Log.d(getTag(), "slave ready");
 		setStatus(PreviewFragment.Status.READY);
 
-		Context c = MyApplication.getInstance();
+		Context c = MainActivity.getInstance();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
 		boolean runSync = sharedPref.getBoolean("pref_sync", false);
 
@@ -594,9 +590,9 @@ public class MasterFragment extends PreviewFragment
 		handler.post(new Runnable() {public void run()
 		{
 			Log.d(getTag(), "slave setup failed");
-			Toast.makeText(MyApplication.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
+			Toast.makeText(MainActivity.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
 			pauseConnection();
-			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+			MainActivity.getInstance().popSubViews();
 		}});
 	}
 }

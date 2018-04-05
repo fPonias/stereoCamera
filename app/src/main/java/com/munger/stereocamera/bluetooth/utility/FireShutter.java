@@ -8,7 +8,7 @@ import android.content.SharedPreferences;
 import android.support.v4.util.ArraySet;
 import android.support.v7.preference.PreferenceManager;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.service.PhotoProcessor;
@@ -40,7 +40,7 @@ public class FireShutter
 	public FireShutter(MasterFragment fragment)
 	{
 		this.fragment = fragment;
-		masterComm = MyApplication.getInstance().getBtCtrl().getMaster().getComm();
+		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
 		photoFiles = new PhotoFiles(fragment.getContext());
 	}
 
@@ -91,7 +91,7 @@ public class FireShutter
 			localData.orientation = fragment.getCurrentOrientation();
 			localData.zoom = fragment.getZoom();
 
-			MyApplication.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
+			MainActivity.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
 		}});
 		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();
@@ -134,7 +134,7 @@ public class FireShutter
 				String remotePath = photoFiles.saveDataToCache(r.data);
 				remoteData.jpegPath = remotePath;
 
-				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
+				MainActivity.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
 
 				boolean doNext = false;
 
@@ -187,7 +187,7 @@ public class FireShutter
 					return;
 				}
 
-				boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
+				boolean isOnLeft = MainActivity.getInstance().getPrefs().getIsOnLeft();
 
 				if (!isOnLeft)
 				{
@@ -196,7 +196,7 @@ public class FireShutter
 					localData = tmp;
 				}
 
-				Context c = MyApplication.getInstance();
+				Context c = MainActivity.getInstance();
 				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
 
 				ArraySet<String> defaults = new ArraySet<>();
@@ -223,7 +223,7 @@ public class FireShutter
 					}
 
 					Intent i = PhotoProcessorService.getIntent(localData, remoteData, fragment.getFacing(), type);
-					MyApplication.getInstance().startService(i);
+					MainActivity.getInstance().startService(i);
 				}
 
 				listener.done();

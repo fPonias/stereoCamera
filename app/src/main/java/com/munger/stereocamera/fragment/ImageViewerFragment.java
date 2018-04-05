@@ -28,7 +28,6 @@ import android.widget.TextView;
 
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFiles;
 
@@ -289,6 +288,28 @@ public class ImageViewerFragment extends Fragment
 		}
 	}
 
+	MainActivity.Listener appListener = new MainActivity.Listener()
+	{
+		@Override
+		public void onNewPhoto(String newPath)
+		{
+			updateAdapter();
+
+			if (handler == null)
+				handler = new Handler(Looper.getMainLooper());
+
+			playbackUpdateRunnable.doScroll(0, true);
+		}
+	};
+
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+
+		MainActivity.getInstance().addListener(appListener);
+	}
+
 	@Override
 	public void onPause()
 	{
@@ -298,6 +319,8 @@ public class ImageViewerFragment extends Fragment
 		{
 			stopPlayback();
 		}
+
+		MainActivity.getInstance().removeListener(appListener);
 	}
 
 	@Override
@@ -346,13 +369,13 @@ public class ImageViewerFragment extends Fragment
 		if (f.exists())
 			f.delete();
 
-		adapter.deleteItem(idx);
+		adapter.update();
 
 		updateLabel(idx);
 
 		if (sz == 1)
 		{
-			((MainActivity)MyApplication.getInstance().getCurrentActivity()).popView();
+			MainActivity.getInstance().popView();
 		}
 	}
 
@@ -377,9 +400,15 @@ public class ImageViewerFragment extends Fragment
 			@Override
 			public void done()
 			{
-				adapter = new ImagePagerAdapter(getFragmentManager(), photoFiles);
-				updateLabel(0);
-				pager.setAdapter(adapter);
+				if (adapter == null)
+				{
+					adapter = new ImagePagerAdapter(getFragmentManager(), photoFiles);
+
+					updateLabel(0);
+					pager.setAdapter(adapter);
+				}
+				else
+					adapter.update();
 			}
 
 			@Override
@@ -391,6 +420,7 @@ public class ImageViewerFragment extends Fragment
 
 	public static class ImagePagerAdapter extends FragmentStatePagerAdapter
 	{
+		private PhotoFiles photoFiles;
 		private String[] files;
 		private HashMap<Integer, ImagePage> pages = new HashMap<>();
 		private final Object lock = new Object();
@@ -404,7 +434,31 @@ public class ImageViewerFragment extends Fragment
 		{
 			super(fm);
 
-			files = pf.getFiles();
+			this.photoFiles = pf;
+			update();
+		}
+
+		public void update()
+		{
+			files = photoFiles.getFiles();
+
+			synchronized (lock)
+			{
+				Set<Integer> keys = pages.keySet();
+
+				for (int key : keys)
+				{
+					ImagePage page = pages.get(key);
+
+					if (key < files.length)
+					{
+						String path = files[key];
+						page.updatePath(path);
+					}
+				}
+			}
+
+			notifyDataSetChanged();
 		}
 
 		private ImagePage.Listener pageListener = new ImagePage.Listener()
@@ -463,38 +517,6 @@ public class ImageViewerFragment extends Fragment
 			}
 
 			return POSITION_NONE;
-		}
-
-		public void deleteItem(int position)
-		{
-			int sz = files.length;
-			String[] newFiles = new String[sz - 1];
-
-			for (int i = 0; i < position; i++)
-				newFiles[i] = files[i];
-
-			for (int i = position + 1; i < sz; i++)
-				newFiles[i - 1] = files[i];
-
-			files = newFiles;
-
-			synchronized (lock)
-			{
-				Set<Integer> keys = pages.keySet();
-
-				for (int key : keys)
-				{
-					ImagePage page = pages.get(key);
-
-					if (key < newFiles.length)
-					{
-						String path = newFiles[key];
-						page.updatePath(path);
-					}
-				}
-			}
-
-			notifyDataSetChanged();
 		}
 
 		@Override

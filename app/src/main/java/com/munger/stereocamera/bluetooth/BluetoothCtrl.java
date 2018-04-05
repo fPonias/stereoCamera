@@ -21,7 +21,6 @@ import android.util.Log;
 
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -30,14 +29,14 @@ import java.util.UUID;
 
 public class BluetoothCtrl
 {
-	public BluetoothCtrl(MyApplication parent)
+	public BluetoothCtrl(MainActivity parent)
 	{
 		this.parent = parent;
 		adapter = BluetoothAdapter.getDefaultAdapter();
 	}
 
 	private BluetoothAdapter adapter;
-	private MyApplication parent;
+	private MainActivity parent;
 	private boolean isSetup = false;
 	private final Object lock = new Object();
 
@@ -62,12 +61,10 @@ public class BluetoothCtrl
 		if (adapter == null)
 			return;
 
-		BaseActivity a = MyApplication.getInstance().getCurrentActivity();
-
 		if (!adapter.isEnabled())
 		{
 			Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			a.startActivityForResult(i, new MainActivity.ActivityResultListener()
+			parent.startActivityForResult(i, new MainActivity.ActivityResultListener()
 			{
 				@Override
 				public void onResult(int resultCode, Intent data)
@@ -80,7 +77,7 @@ public class BluetoothCtrl
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(parent, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
 		{
-			a.requestPermissionForResult(Manifest.permission.ACCESS_COARSE_LOCATION, new MainActivity.PermissionResultListener()
+			parent.requestPermissionForResult(Manifest.permission.ACCESS_COARSE_LOCATION, new MainActivity.PermissionResultListener()
 			{
 				@Override
 				public void onResult(int resultCode)
@@ -203,7 +200,7 @@ public class BluetoothCtrl
 		return isSetup;
 	}
 
-	public MyApplication getParent()
+	public MainActivity getParent()
 	{
 		return parent;
 	}

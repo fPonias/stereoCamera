@@ -3,7 +3,7 @@ package com.munger.stereocamera.service;
 import android.content.Context;
 import android.content.Intent;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.utility.PhotoFiles;
 
@@ -47,7 +47,7 @@ public class PhotoProcessor
 					remoteData.zoom = 1.0f;
 
 					Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, CompositeImageType.SPLIT);
-					MyApplication.getInstance().startService(i);
+					MainActivity.getInstance().startService(i);
 				}});
 				t.start();
 			}

@@ -8,14 +8,14 @@ import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 
 public class PhotoProcessorService extends IntentService
 {
 	public static Intent getIntent(PhotoArgument local, PhotoArgument remote, boolean flip, PhotoProcessor.CompositeImageType type)
 	{
-		Intent i = new Intent(MyApplication.getInstance(), PhotoProcessorService.class);
+		Intent i = new Intent(MainActivity.getInstance(), PhotoProcessorService.class);
 		i.putExtra(PhotoProcessorService.FLIP_ARG, flip);
 		i.putExtra(PhotoProcessorService.TYPE_ARG, type);
 		i.putExtra(PhotoProcessorService.LEFT_PHOTO_ARG, local);
@@ -113,7 +113,7 @@ public class PhotoProcessorService extends IntentService
 
 		Intent localIntent = new Intent(BROADCAST_PROCESSED_ACTION);
 		localIntent.putExtra(EXTENDED_DATA_PATH, out);
-		LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+		sendBroadcast(localIntent, "com.munger.stereocamera.NOTIFICATION");
 	}
 
 	private boolean parseArguments(Intent i)

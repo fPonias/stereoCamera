@@ -2,7 +2,7 @@ package com.munger.stereocamera.fragment;
 
 import android.util.Log;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.bluetooth.command.master.commands.Handshake;
 import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
@@ -210,7 +210,7 @@ public class MasterHandshake
 
 	private Step setCameraStep = new Step("setup camera") { public void execute(final StepListener listener)
 		{
-			boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+			boolean isFacing = MainActivity.getInstance().getPrefs().getIsFacing();
 			target.startPreview();
 			target.setCamera(isFacing, new MasterFragment.SetCameraListener()
 			{

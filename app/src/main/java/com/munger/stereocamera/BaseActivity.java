@@ -7,49 +7,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 
-import com.munger.stereocamera.MyApplication;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public abstract class BaseActivity extends AppCompatActivity
 {
-
-	@Override
-	protected void onResume()
-	{
-		super.onResume();
-		MyApplication.getInstance().setCurrentActivity(this);
-	}
-
-	@Override
-	protected void onStart()
-	{
-		MyApplication.getInstance().setCurrentActivity(this);
-		super.onStart();
-	}
-
-	@Override
-	protected void onPause()
-	{
-		clearActivity();
-		super.onPause();
-	}
-
-	@Override
-	protected void onDestroy()
-	{
-		clearActivity();
-		super.onDestroy();
-	}
-
-	protected void clearActivity()
-	{
-		Activity cur = MyApplication.getInstance().getCurrentActivity();
-		if (this.equals(cur))
-			MyApplication.getInstance().setCurrentActivity(null);
-	}
-
 	public interface ActivityResultListener
 	{
 		void onResult(int resultCode, Intent data);

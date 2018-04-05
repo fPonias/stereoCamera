@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
 
@@ -20,7 +20,7 @@ public class OrientationCtrl implements SensorEventListener
 
 	public OrientationCtrl()
 	{
-		mgr = (SensorManager) MyApplication.getInstance().getSystemService(Context.SENSOR_SERVICE);
+		mgr = (SensorManager) MainActivity.getInstance().getSystemService(Context.SENSOR_SERVICE);
 	}
 
 	public void start()

@@ -35,7 +35,6 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.utility.PhotoFiles;
@@ -149,7 +148,7 @@ public class PreviewWidget extends TextureView
 			}
 		});
 
-		scaleDetector = new ScaleGestureDetector(MyApplication.getInstance(), new ScaleDetector());
+		scaleDetector = new ScaleGestureDetector(MainActivity.getInstance(), new ScaleDetector());
 
 		setOnTouchListener(new View.OnTouchListener()
 		{
@@ -282,7 +281,7 @@ public class PreviewWidget extends TextureView
 	{
 		Camera.CameraInfo info = new Camera.CameraInfo();
 		Camera.getCameraInfo(cameraId, info);
-		int rotation = MyApplication.getInstance().getCurrentActivity().getWindowManager().getDefaultDisplay().getRotation();
+		int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
 		int degrees = 0;
 
 		switch (rotation)
@@ -372,9 +371,9 @@ public class PreviewWidget extends TextureView
 
 	public void setAndStartCamera(final boolean facing)
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
 			{
 				@Override
 				public void onResult(int resultCode)
@@ -429,7 +428,7 @@ public class PreviewWidget extends TextureView
 						public void run()
 						{
 							Toast.makeText(getContext(), R.string.camera_open_error, Toast.LENGTH_LONG).show();
-							((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+							MainActivity.getInstance().popSubViews();
 						}
 					});
 				}

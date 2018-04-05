@@ -3,6 +3,7 @@ package com.munger.stereocamera.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.munger.stereocamera.R;
@@ -46,7 +47,6 @@ public class PhotoProcessorServiceReceiver extends BroadcastReceiver
 		{
 			String path = intent.getStringExtra(PhotoProcessorService.EXTENDED_DATA_PATH);
 			listener.onPhoto(path);
-
 		}
 	}
 }

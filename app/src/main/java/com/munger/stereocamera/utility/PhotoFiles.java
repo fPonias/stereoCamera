@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.support.v4.content.ContextCompat;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 
 import java.io.File;
@@ -26,10 +25,6 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-
-/**
- * Created by hallmarklabs on 3/2/18.
- */
 
 public class PhotoFiles
 {
@@ -48,9 +43,9 @@ public class PhotoFiles
 
 	public void checkPermissions(final Listener listener)
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
 		{
-			MyApplication.getInstance().getCurrentActivity().requestPermissionForResult(Manifest.permission.WRITE_EXTERNAL_STORAGE, new MainActivity.PermissionResultListener()
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.WRITE_EXTERNAL_STORAGE, new MainActivity.PermissionResultListener()
 			{
 				@Override
 				public void onResult(int resultCode)
@@ -292,7 +287,7 @@ public class PhotoFiles
 		}
 
 		if (dest != null)
-			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{dest.getPath()}, null, null);
+			MediaScannerConnection.scanFile(MainActivity.getInstance(), new String[]{dest.getPath()}, null, null);
 
 		return dest.getPath();
 	}
@@ -317,7 +312,7 @@ public class PhotoFiles
 			fos.write(data);
 			fos.close();
 
-			MediaScannerConnection.scanFile(MyApplication.getInstance(), new String[]{f.getPath()}, null, null);
+			MediaScannerConnection.scanFile(MainActivity.getInstance(), new String[]{f.getPath()}, null, null);
 		}
 		catch(IOException e){
 

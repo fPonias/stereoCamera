@@ -13,7 +13,6 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
@@ -164,12 +163,12 @@ public class SlaveFragment extends PreviewFragment
 		});
 		gravityCtrl.start();
 
-		slaveComm = MyApplication.getInstance().getBtCtrl().getSlave().getComm();
+		slaveComm = MainActivity.getInstance().getBtCtrl().getSlave().getComm();
 
 		if (slaveComm == null)
 		{
 			Toast.makeText(getActivity(), R.string.bluetooth_master_communication_failed_error, Toast.LENGTH_LONG).show();
-			((MainActivity) MyApplication.getInstance().getCurrentActivity()).popSubViews();
+			MainActivity.getInstance().popSubViews();
 			return;
 		}
 
@@ -308,7 +307,7 @@ public class SlaveFragment extends PreviewFragment
 			slaveComm.sendCommand(command);
 	}
 
-	private MyApplication.Listener appListener;
+	private MainActivity.Listener appListener;
 	private boolean previewAlreadyStarted;
 
 	@Override
@@ -321,7 +320,7 @@ public class SlaveFragment extends PreviewFragment
 
 		setHasOptionsMenu(true);
 
-		appListener = new MyApplication.Listener()
+		appListener = new MainActivity.Listener()
 		{
 			@Override
 			public void onScreenChanged(boolean isOn)
@@ -341,7 +340,7 @@ public class SlaveFragment extends PreviewFragment
 				}
 			}
 		};
-		MyApplication.getInstance().addListener(appListener);
+		MainActivity.getInstance().addListener(appListener);
 	}
 
 	@Override
@@ -349,7 +348,7 @@ public class SlaveFragment extends PreviewFragment
 	{
 		super.onDestroy();
 
-		MyApplication.getInstance().removeListener(appListener);
+		MainActivity.getInstance().removeListener(appListener);
 	}
 
 	@Override
@@ -396,9 +395,8 @@ public class SlaveFragment extends PreviewFragment
 	private void disconnect()
 	{
 		cancelConnection();
-		MyApplication.getInstance().cleanUpConnections();
-		MainActivity act = (MainActivity) MyApplication.getInstance().getCurrentActivity();
-		act.popSubViews();
+		MainActivity.getInstance().cleanUpConnections();
+		MainActivity.getInstance().popSubViews();
 	}
 
 	private static final long PING_TIMEOUT = 1000;

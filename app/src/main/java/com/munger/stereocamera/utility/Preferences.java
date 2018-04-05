@@ -2,17 +2,11 @@ package com.munger.stereocamera.utility;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.hardware.Camera;
-import android.util.SparseArray;
 
-import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.MainActivity;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
-/**
- * Created by hallmarklabs on 3/4/18.
- */
 
 public class Preferences
 {
@@ -77,7 +71,7 @@ public class Preferences
 
 	private void readPreferences()
 	{
-		preferences = MyApplication.getInstance().getCurrentActivity().getPreferences(Context.MODE_PRIVATE);
+		preferences = MainActivity.getInstance().getPreferences(Context.MODE_PRIVATE);
 
 		if (preferences.contains(ROLE_KEY))
 		{
