@@ -58,6 +58,7 @@ public class BluetoothSlave
 
 	private void startDiscovery()
 	{
+		Log.d(getTag(), "starting bluetooth discovery");
 		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		//timeout isn't working ...
 		//discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout);
@@ -67,6 +68,7 @@ public class BluetoothSlave
 			@Override
 			public void onResult(int resultCode, Intent data)
 			{
+				Log.d(getTag(), "bluetooth discovery startup returned with " + resultCode);
 				if (resultCode == 0)
 					listenListener.onFailed();
 				else

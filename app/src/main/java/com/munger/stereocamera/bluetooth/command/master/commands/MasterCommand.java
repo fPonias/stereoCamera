@@ -44,6 +44,9 @@ public abstract class MasterCommand
 		return null;
 	}
 
+	public int getFileSz() { return 0; }
+	public String getFilePath() { return null; }
+
 	public void onStart()
 	{}
 

@@ -7,10 +7,6 @@ import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-/**
- * Created by hallmarklabs on 3/5/18.
- */
-
 public class SlaveCommand
 {
 	public BluetoothCommands command;

@@ -3,6 +3,7 @@ package com.munger.stereocamera;
 import android.app.Application;
 
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.utility.Preferences;
 
 public class MyApplication extends Application
 {
@@ -21,7 +22,6 @@ public class MyApplication extends Application
 		instance = this;
 	}
 
-
 	private BluetoothCtrl btCtrl;
 
 	public BluetoothCtrl getBtCtrl()
@@ -32,5 +32,17 @@ public class MyApplication extends Application
 	public void setBtCtrl(BluetoothCtrl btCtrl)
 	{
 		this.btCtrl = btCtrl;
+	}
+
+	private Preferences prefs;
+
+	public Preferences getPrefs()
+	{
+		return prefs;
+	}
+
+	public void setPrefs(Preferences prefs)
+	{
+		this.prefs = prefs;
 	}
 }

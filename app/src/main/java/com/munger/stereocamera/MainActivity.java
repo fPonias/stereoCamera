@@ -57,7 +57,6 @@ public class MainActivity extends BaseActivity
 	public static final String BT_SERVICE_NAME = "stereoCamera";
 
 	private BluetoothCtrl btCtrl;
-	private OrientationCtrl orientationCtrl;
 	private Preferences prefs;
 
 	public void setupBTServer(BluetoothCtrl.SetupListener listener)
@@ -87,11 +86,6 @@ public class MainActivity extends BaseActivity
 		return prefs;
 	}
 
-	public OrientationCtrl getOrientationCtrl()
-	{
-		return orientationCtrl;
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -101,6 +95,7 @@ public class MainActivity extends BaseActivity
 		super.onCreate(savedInstanceState);
 
 		prefs = new Preferences();
+		MyApplication.getInstance().setPrefs(prefs);
 		prefs.setup();
 
 		View root = getLayoutInflater().inflate(R.layout.activity_main, null);
@@ -117,8 +112,6 @@ public class MainActivity extends BaseActivity
 
 			currentFragment = connectFragment;
 		}
-
-		setContentView(frame);
 
 		handler = new Handler(Looper.getMainLooper());
 
@@ -170,6 +163,7 @@ public class MainActivity extends BaseActivity
 		super.onResume();
 
 		btCtrl = MyApplication.getInstance().getBtCtrl();
+		prefs = MyApplication.getInstance().getPrefs();
 
 		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
 		registerReceiver(photoReceiver, filter, "com.munger.stereocamera.NOTIFICATION", new Handler(Looper.getMainLooper()));

@@ -360,6 +360,9 @@ public class ImageViewerFragment extends Fragment
 	private void deleteCurrent2()
 	{
 		int idx = pager.getCurrentItem();
+		ImagePage frag = (ImagePage) adapter.getItem(idx);
+		frag.cleanUp();
+
 		String[] list = adapter.getData();
 		int sz = list.length;
 		String selectedPath = list[idx];
@@ -535,6 +538,7 @@ public class ImageViewerFragment extends Fragment
 	public static class ImagePage extends Fragment
 	{
 		private ImageView thumbnailView;
+		private Bitmap bmp;
 		private String path;
 
 		@Nullable
@@ -549,6 +553,16 @@ public class ImageViewerFragment extends Fragment
 			path = args.getString("file");
 
 			return thumbnailView;
+		}
+
+		public void cleanUp()
+		{
+			if (bmp != null && !bmp.isRecycled())
+			{
+				thumbnailView.setImageBitmap(null);
+				bmp.recycle();
+				bmp = null;
+			}
 		}
 
 		@Override
@@ -583,20 +597,21 @@ public class ImageViewerFragment extends Fragment
 
 		private void update()
 		{
-			File fl = new File(path);
-			long sz = fl.length();
-			Bitmap bmp;
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			bmp = BitmapFactory.decodeFile(path, options);
+			long sz = options.outWidth * options.outHeight * 4;
+			double ratio = Math.ceil((double) sz / (double) 0x2000000);
 
-			if (sz <= 600000) //jpegs bigger than .5 MB are likely to be too large to render
-				bmp = BitmapFactory.decodeFile(path);
-			else
-			{
-				BitmapFactory.Options options = new BitmapFactory.Options();
-				options.inSampleSize = 2;
-				bmp = BitmapFactory.decodeFile(path, options);
-			}
+			options = new BitmapFactory.Options();
 
-			thumbnailView.setImageBitmap(bmp);
+			if (ratio > 1)
+				options.inSampleSize = (int) ratio;
+
+			bmp = BitmapFactory.decodeFile(path, options);
+
+			if (thumbnailView != null)
+				thumbnailView.setImageBitmap(bmp);
 		}
 
 		@Override

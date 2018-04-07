@@ -5,6 +5,7 @@ import android.util.Log;
 import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
 import com.munger.stereocamera.bluetooth.command.master.commands.MasterCommand;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
@@ -101,6 +102,16 @@ public class OutputProcessor
 		byte[] args = arg.command.getArguments();
 		if (args != null)
 			parent.writeBytes(args);
+
+		int sz = arg.command.getFileSz();
+
+		if (sz > 0)
+		{
+			String path = arg.command.getFilePath();
+			FileInputStream fis = new FileInputStream(path);
+			parent.writeStream(sz, fis);
+			fis.close();
+		}
 	}
 
 	public void runCommand(BluetoothMasterComm.CommandArg command)

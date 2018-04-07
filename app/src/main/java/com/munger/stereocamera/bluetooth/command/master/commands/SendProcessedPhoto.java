@@ -12,17 +12,15 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-/**
- * Created by hallmarklabs on 3/20/18.
- */
-
 public class SendProcessedPhoto extends MasterCommand
 {
 	private String path;
+	private File file;
 
 	public SendProcessedPhoto(String path)
 	{
 		this.path = path;
+		file = new File(path);
 	}
 
 	@Override
@@ -36,59 +34,14 @@ public class SendProcessedPhoto extends MasterCommand
 	{}
 
 	@Override
-	public MasterIncoming getResponse()
+	public int getFileSz()
 	{
-		return new Response(id);
+		return (int) file.length();
 	}
 
-	public class Response extends MasterIncoming
+	@Override
+	public String getFilePath()
 	{
-		public byte[] data;
-
-		public Response(int id)
-		{
-			super(BluetoothCommands.SEND_PROCESSED_PHOTO, id);
-		}
-
-		@Override
-		public void readResponse() throws IOException
-		{
-			RandomAccessFile raf = null;
-			FileChannel ch = null;
-			ByteBuffer bb = null;
-			byte[] ret = null;
-			try
-			{
-				raf = new RandomAccessFile(path, "r");
-				ch = raf.getChannel();
-
-				int sz = (int) ch.size();
-				bb = ByteBuffer.allocate(4 + sz);
-				bb.putInt(sz);
-
-				ch.read(bb);
-				ret = bb.array();
-			}
-			catch(IOException e){
-				ret = new byte[0];
-			}
-			finally{
-				try
-				{
-					if (ch != null)
-						ch.close();
-				}
-				catch(IOException e){}
-
-				try
-				{
-					if (raf != null)
-						raf.close();
-				}
-				catch(IOException e){}
-			}
-
-			data = ret;
-		}
+		return path;
 	}
 }

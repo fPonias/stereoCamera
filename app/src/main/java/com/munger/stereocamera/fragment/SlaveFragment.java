@@ -36,6 +36,11 @@ import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 public class SlaveFragment extends PreviewFragment
 {
 	PhotoOrientation orientation;
@@ -260,7 +265,7 @@ public class SlaveFragment extends PreviewFragment
 		slaveComm.addListener(BluetoothCommands.SEND_PROCESSED_PHOTO, new BluetoothSlaveComm.Listener() {public void onCommand(SlaveCommand command)
 		{
 			ReceiveProcessedPhoto cmd = (ReceiveProcessedPhoto) command;
-			saveProcessedPhoto(cmd.getData());
+			saveProcessedPhoto(cmd);
 		}});
 
 		slaveComm.sendCommand(new SendOrientation(orientation));
@@ -494,7 +499,7 @@ public class SlaveFragment extends PreviewFragment
 	PhotoFiles photoFiles = null;
 	Handler handler = null;
 
-	private void saveProcessedPhoto(final byte[] data)
+	private void saveProcessedPhoto(final ReceiveProcessedPhoto cmd)
 	{
 		if (photoFiles == null)
 			 photoFiles = new PhotoFiles(getContext());
@@ -504,7 +509,7 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public void done()
 			{
-				saveProcessedPhoto2(data);
+				saveProcessedPhoto2(cmd);
 			}
 
 			@Override
@@ -513,14 +518,50 @@ public class SlaveFragment extends PreviewFragment
 		});
 	}
 
-	private void saveProcessedPhoto2(final byte[] data)
+	private void saveProcessedPhoto2(final ReceiveProcessedPhoto cmd)
 	{
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
 			@Override
 			public void done()
 			{
-				photoFiles.saveNewFile(data);
+				FileOutputStream fos = null;
+				FileInputStream fis = null;
+
+				try
+				{
+					String path = photoFiles.getNewFilePath();
+					String tmpPath = cmd.getTmpPath();
+					byte[] buffer = new byte[1024];
+					int read = 1;
+
+					fos = new FileOutputStream(path);
+					fis = new FileInputStream(tmpPath);
+					while (read > 0)
+					{
+						read = fis.read(buffer);
+
+						if (read > 0)
+							fos.write(buffer, 0, read);
+					}
+					fos.flush();
+				}
+				catch(IOException e){
+
+				}
+				finally{
+					try{
+						if (fos != null)
+							fos.close();
+					}
+					catch(IOException e){}
+
+					try{
+						if (fis != null)
+							fis.close();
+					}
+					catch (IOException e){}
+				}
 
 				if (handler == null)
 					handler = new Handler(Looper.getMainLooper());
@@ -528,6 +569,7 @@ public class SlaveFragment extends PreviewFragment
 				handler.post(new Runnable() { public void run()
 				{
 					Toast.makeText(getContext(), R.string.new_photo_available, Toast.LENGTH_LONG).show();
+
 				}});
 			}
 

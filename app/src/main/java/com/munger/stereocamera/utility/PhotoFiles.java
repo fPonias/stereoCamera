@@ -294,12 +294,24 @@ public class PhotoFiles
 
 	public void saveNewFile(byte[] data)
 	{
+		String localName = getNewFile();
+		saveFile(localName, data);
+	}
+
+	public String getNewFile()
+	{
 		int max = getNewestId();
 		max++;
 
 		String localName = max + ".jpg";
+		return localName;
+	}
 
-		saveFile(localName, data);
+	public String getNewFilePath()
+	{
+		String file = getNewFile();
+		String path = targetDir + "/" + file;
+		return path;
 	}
 
 	public void saveFile(String name, byte[] data)

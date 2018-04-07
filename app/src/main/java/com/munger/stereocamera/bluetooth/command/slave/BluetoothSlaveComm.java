@@ -251,4 +251,35 @@ public class BluetoothSlaveComm
 			throw e;
 		}
 	}
+
+	public void pipeData(int sz, OutputStream ostr) throws IOException
+	{
+		try
+		{
+			byte[] buffer = new byte[1024];
+			int read = 1;
+			int total = 0;
+
+			while (read > 0 && total < sz)
+			{
+				int toRead = Math.min(1024, sz - total);
+				read = ins.read(buffer, 0, toRead);
+
+				if (read > 0)
+				{
+					ostr.write(buffer, 0, read);
+					total += read;
+				}
+			}
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d(getTag(), "slave socket no longer open");
+
+			Log.d(getTag(), "slave failed to pipe output");
+
+			MainActivity.getInstance().handleDisconnection();
+			throw e;
+		}
+	}
 }

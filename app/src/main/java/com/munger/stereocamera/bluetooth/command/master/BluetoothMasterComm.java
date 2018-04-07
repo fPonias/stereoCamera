@@ -170,6 +170,49 @@ public class BluetoothMasterComm
 		}
 	}
 
+	public void writeStream(int sz, InputStream str) throws IOException
+	{
+		try
+		{
+
+			ByteBuffer sendBuffer = ByteBuffer.allocate(4);
+			sendBuffer.putInt(0, sz);
+			outs.write(sendBuffer.array());
+
+
+			byte[] buffer = new byte[1024];
+
+
+			int total = 0;
+			int read = 1;
+
+			while (read > 0 && total < sz)
+			{
+				read = str.read(buffer);
+
+				if (outs == null)
+					throw new IOException("failed master socket write");
+
+				if (read > 0)
+				{
+					total += read;
+					outs.write(buffer, 0, read);
+				}
+			}
+
+			outs.flush();
+			Log.d(getTag(), "wrote " + sz + " bytes to bluetooth");
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d(getTag(), "bluetooth socket is closed");
+
+			Log.d(getTag(), "failed to write stream to the master socket");
+			MainActivity.getInstance().handleDisconnection();
+			throw(e);
+		}
+	}
+
 	public static class CommandArg
 	{
 		public MasterCommand command;

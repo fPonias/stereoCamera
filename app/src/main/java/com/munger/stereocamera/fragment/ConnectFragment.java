@@ -9,6 +9,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -40,6 +43,27 @@ public class ConnectFragment extends Fragment
 	private ThumbnailWidget thumbnail;
 	private View view;
 
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		setHasOptionsMenu(true);
+	}
+
+	MenuItem helpItem;
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+	{
+		inflater.inflate(R.menu.connect_menu, menu);
+		helpItem = menu.findItem(R.id.help);
+
+		helpItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
+		{
+			MainActivity.getInstance().openHelp();
+			return false;
+		}});
+	}
 
 	@Nullable
 	@Override
