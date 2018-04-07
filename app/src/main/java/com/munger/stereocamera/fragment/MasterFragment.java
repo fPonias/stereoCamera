@@ -319,8 +319,11 @@ public class MasterFragment extends PreviewFragment
 
 	private void pauseConnection()
 	{
-		slavePreview.cancel();
-		previewView.stopPreview();
+		if (slavePreview != null)
+		{
+			slavePreview.cancel();
+			previewView.stopPreview();
+		}
 
 		if ((status == Status.READY || status == Status.BUSY) && (remoteState.status == Status.READY || remoteState.status == Status.BUSY))
 			masterComm.runCommand(new ConnectionPause(), null);

@@ -69,7 +69,12 @@ public class InputProcessor
 	private void commandListener() throws IOException
 	{
 		byte actionInt = parent.getByte();
-		BluetoothCommands currentAction = BluetoothCommands.values()[actionInt];
+
+		BluetoothCommands[] cmds = BluetoothCommands.values();
+		if (actionInt < 0 || actionInt >= cmds.length)
+			throw new IOException("Unknown BluetoothCommands command " + actionInt);
+
+		BluetoothCommands currentAction = cmds[actionInt];
 		int id = parent.getInt();
 
 		if (isCancelled)

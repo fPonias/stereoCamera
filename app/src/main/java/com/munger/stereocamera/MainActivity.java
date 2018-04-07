@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -136,6 +137,8 @@ public class MainActivity extends BaseActivity
 		});
 	}
 
+	private boolean isRunning = false;
+
 	@Override
 	protected void onPause()
 	{
@@ -143,6 +146,9 @@ public class MainActivity extends BaseActivity
 
 		unregisterReceiver(photoReceiver);
 		unregisterReceiver(interactiveReceiver);
+
+		currentFragment = null;
+		isRunning = false;
 	}
 
 	@Override
@@ -162,6 +168,7 @@ public class MainActivity extends BaseActivity
 	{
 		super.onResume();
 
+		isRunning = true;
 		btCtrl = MyApplication.getInstance().getBtCtrl();
 		prefs = MyApplication.getInstance().getPrefs();
 
@@ -341,6 +348,11 @@ public class MainActivity extends BaseActivity
 
 	public void popSubViews()
 	{
+		if (!isRunning)
+		{
+			return;
+		}
+
 		if (currentFragment != connectFragment)
 		{
 			FragmentManager mgr = getSupportFragmentManager();

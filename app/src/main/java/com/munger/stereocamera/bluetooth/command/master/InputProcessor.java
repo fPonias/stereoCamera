@@ -85,8 +85,13 @@ public class InputProcessor
 
 		commandStruct ret = new commandStruct();
 
-		byte commandIdx = parent.readByte();
-		ret.command = BluetoothCommands.values()[commandIdx];
+		byte actionInt = parent.readByte();
+
+		BluetoothCommands[] cmds = BluetoothCommands.values();
+		if (actionInt < 0 || actionInt >= cmds.length)
+			throw new IOException("Unknown BluetoothCommands command " + actionInt);
+
+		ret.command = cmds[actionInt];
 		ret.id = parent.readInt();
 
 		return ret;
