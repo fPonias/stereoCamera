@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
@@ -76,6 +77,7 @@ public class MasterFragment extends PreviewFragment
 		controls = rootView.findViewById(R.id.controls);
 
 		clickButton = rootView.findViewById(R.id.shutter);
+		updateShutterButton();
 		verticalIndicator = rootView.findViewById(R.id.vert_level);
 		horizontalIndicator = rootView.findViewById(R.id.horiz_level);
 
@@ -187,6 +189,7 @@ public class MasterFragment extends PreviewFragment
 			prefs.setIsOnLeft(val);
 
 			updateHandPhoneButton();
+			updateShutterButton();
 
 			return true;
 		}});
@@ -320,10 +323,10 @@ public class MasterFragment extends PreviewFragment
 	private void pauseConnection()
 	{
 		if (slavePreview != null)
-		{
 			slavePreview.cancel();
+
+		if (previewView != null)
 			previewView.stopPreview();
-		}
 
 		if ((status == Status.READY || status == Status.BUSY) && (remoteState.status == Status.READY || remoteState.status == Status.BUSY))
 			masterComm.runCommand(new ConnectionPause(), null);
@@ -391,6 +394,30 @@ public class MasterFragment extends PreviewFragment
 			swapItem.setIcon(R.drawable.hand_phone_white);
 		else
 			swapItem.setIcon(R.drawable.hand_phone_white_right);
+	}
+
+	private void updateShutterButton()
+	{
+		Preferences prefs = MainActivity.getInstance().getPrefs();
+		boolean val = prefs.getIsOnLeft();
+
+		orientation = getCurrentOrientation();
+		if (!orientation.isPortait())
+		{
+			RelativeLayout.LayoutParams layout = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();
+			layout.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			layout.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			if (val)
+			{
+				layout.addRule(RelativeLayout.ALIGN_PARENT_START);
+			}
+			else
+			{
+				layout.addRule(RelativeLayout.ALIGN_PARENT_END);
+			}
+
+			clickButton.setLayoutParams(layout);
+		}
 	}
 
 	private OrientationCtrl orientationCtrl;

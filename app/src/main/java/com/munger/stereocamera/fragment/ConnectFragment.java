@@ -333,7 +333,10 @@ public class ConnectFragment extends Fragment
 					.setMessage(message)
 					.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
 					{
-						connectDialog.dismiss();
+
+						if (connectDialog != null)
+							connectDialog.dismiss();
+
 						connectDialog = null;
 						btCtrl.cancelConnect();
 					}})

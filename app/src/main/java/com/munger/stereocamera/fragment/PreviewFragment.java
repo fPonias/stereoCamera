@@ -115,7 +115,8 @@ public class PreviewFragment extends Fragment
 	{
 		super.onDestroy();
 
-		previewView.cleanUp();
+		if (previewView != null)
+			previewView.cleanUp();
 	}
 
 	@Override

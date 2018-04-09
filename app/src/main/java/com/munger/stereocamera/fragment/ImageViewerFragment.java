@@ -570,6 +570,8 @@ public class ImageViewerFragment extends Fragment
 		{
 			super.onDetach();
 
+			cleanUp();
+
 			if (listener != null)
 				listener.detached(this);
 		}

@@ -72,6 +72,13 @@ public class PhotoFiles
 			public void done()
 			{
 				targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+
+				if (targetDir == null)
+				{
+					listener.fail();
+					return;
+				}
+
 				String subPath = targetDir.getPath() + "/" + context.getResources().getString(R.string.app_name);
 				targetDir = new File(subPath);
 

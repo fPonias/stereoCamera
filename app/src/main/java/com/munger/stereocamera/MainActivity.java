@@ -40,6 +40,7 @@ import com.munger.stereocamera.widget.OrientationCtrl;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends BaseActivity
 {
@@ -87,6 +88,17 @@ public class MainActivity extends BaseActivity
 		return prefs;
 	}
 
+	public Fragment getCurrentFragment()
+	{
+		FragmentManager mgr = getSupportFragmentManager();
+		List<Fragment> fragments = mgr.getFragments();
+
+		if (fragments.size() == 0)
+			return null;
+
+		return fragments.get(0);
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -110,8 +122,30 @@ public class MainActivity extends BaseActivity
 			ft.add(android.R.id.content, connectFragment, connectFragment.getTag());
 			ft.disallowAddToBackStack();
 			ft.commit();
+		}
+		else
+		{
+			if (savedInstanceState.containsKey("android:support:fragments"))
+			{
+				FragmentManager mgr = getSupportFragmentManager();
+				List<Fragment> fragments = mgr.getFragments();
 
-			currentFragment = connectFragment;
+				for(Fragment fragment : fragments)
+				{
+					if (fragment instanceof ConnectFragment)
+						connectFragment = (ConnectFragment) fragment;
+					else if (fragment instanceof MasterFragment)
+						masterFragment = (MasterFragment) fragment;
+					else if (fragment instanceof SlaveFragment)
+						slaveFragment = (SlaveFragment) fragment;
+					else if (fragment instanceof HelpFragment)
+						helpFragment = (HelpFragment) fragment;
+					else if (fragment instanceof ImageViewerFragment)
+						imgViewFragment = (ImageViewerFragment) fragment;
+					else if (fragment instanceof SettingsFragment)
+						settingsFragment = (SettingsFragment) fragment;
+				}
+			}
 		}
 
 		handler = new Handler(Looper.getMainLooper());
@@ -131,8 +165,11 @@ public class MainActivity extends BaseActivity
 			@Override
 			public void screenChanged(boolean isOn)
 			{
-				for (Listener listener : listeners)
-					listener.onScreenChanged(isOn);
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onScreenChanged(isOn);
+				}
 			}
 		});
 	}
@@ -147,7 +184,6 @@ public class MainActivity extends BaseActivity
 		unregisterReceiver(photoReceiver);
 		unregisterReceiver(interactiveReceiver);
 
-		currentFragment = null;
 		isRunning = false;
 	}
 
@@ -251,7 +287,6 @@ public class MainActivity extends BaseActivity
 
 				slaveFragment = null;
 				masterFragment = null;
-				currentFragment = connectFragment;
 			}
 
 			lastCount = newCount;
@@ -278,7 +313,6 @@ public class MainActivity extends BaseActivity
 	}
 
 	private BackStackListener backStackListener;
-	private Fragment currentFragment;
 	private MasterFragment masterFragment;
 	private SlaveFragment slaveFragment;
 	private ImageViewerFragment imgViewFragment;
@@ -287,30 +321,30 @@ public class MainActivity extends BaseActivity
 
 	public void startMasterView()
 	{
-		if (masterFragment != null && currentFragment == masterFragment)
+		if (masterFragment != null && getCurrentFragment() == masterFragment)
 			return;
 
-		masterFragment = new MasterFragment();
+		if (masterFragment == null)
+			masterFragment = new MasterFragment();
+
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 		ft.addToBackStack("connect");
 		ft.replace(android.R.id.content, masterFragment, masterFragment.getTag());
 		ft.commit();
-
-		currentFragment = masterFragment;
 	}
 
 	public void startSlaveView()
 	{
-		if (slaveFragment != null && currentFragment == slaveFragment)
+		if (slaveFragment != null && getCurrentFragment() == slaveFragment)
 			return;
 
-		slaveFragment = new SlaveFragment();
+		if (slaveFragment == null)
+			slaveFragment = new SlaveFragment();
+
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 		ft.addToBackStack("connect");
 		ft.replace(android.R.id.content, slaveFragment, slaveFragment.getTag());
 		ft.commit();
-
-		currentFragment = slaveFragment;
 	}
 
 	public void startThumbnailView()
@@ -353,14 +387,12 @@ public class MainActivity extends BaseActivity
 			return;
 		}
 
-		if (currentFragment != connectFragment)
+		if (getCurrentFragment() != connectFragment)
 		{
 			FragmentManager mgr = getSupportFragmentManager();
 			int sz = mgr.getBackStackEntryCount();
 			for (int i = 0; i < sz; i++)
 				mgr.popBackStack();
-
-			currentFragment = connectFragment;
 		}
 	}
 
@@ -411,9 +443,14 @@ public class MainActivity extends BaseActivity
 	{
 		super.onUserLeaveHint();
 
-		if (currentFragment instanceof MasterFragment)
+		Fragment frag = getCurrentFragment();
+		if (frag instanceof MasterFragment)
 		{
-			((MasterFragment) currentFragment).pause();
+			((MasterFragment) frag).pause();
+		}
+		else if (frag instanceof SlaveFragment)
+		{
+			((SlaveFragment) frag).pause();
 		}
 	}
 
@@ -467,21 +504,31 @@ public class MainActivity extends BaseActivity
 	}
 
 	private ArrayList<Listener> listeners = new ArrayList<>();
+	private final Object listenerLock = new Object();
 
 	public void addListener(Listener listener)
 	{
-		listeners.add(listener);
+		synchronized (listenerLock)
+		{
+			listeners.add(listener);
+		}
 	}
 
 	public void removeListener(Listener listener)
 	{
-		listeners.remove(listener);
+		synchronized (listenerLock)
+		{
+			listeners.remove(listener);
+		}
 	}
 
 	public void handleDisconnection()
 	{
-		for (Listener listener : listeners)
-			listener.onBluetoothChanged(false, null);
+		synchronized (listenerLock)
+		{
+			for (Listener listener : listeners)
+				listener.onBluetoothChanged(false, null);
+		}
 	}
 
 
