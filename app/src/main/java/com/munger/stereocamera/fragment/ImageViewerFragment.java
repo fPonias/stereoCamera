@@ -6,6 +6,8 @@ import android.content.DialogInterface;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.view.PagerAdapter;
+import android.support.v4.widget.ImageViewCompat;
 import android.support.v7.app.ActionBar;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,12 +18,14 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -308,6 +312,8 @@ public class ImageViewerFragment extends Fragment
 		super.onResume();
 
 		MainActivity.getInstance().addListener(appListener);
+		updateAdapter();
+		pager.setCurrentItem(pageIndex);
 	}
 
 	@Override
@@ -328,6 +334,9 @@ public class ImageViewerFragment extends Fragment
 	{
 		super.onStop();
 		resetLabel();
+
+		adapter.cleanUp();
+		adapter = null;
 	}
 
 	public MenuItem deleteMenuItem;
@@ -382,14 +391,6 @@ public class ImageViewerFragment extends Fragment
 		}
 	}
 
-	@Override
-	public void onStart()
-	{
-		super.onStart();
-
-		updateAdapter();
-	}
-
 	private void openTopBar()
 	{
 
@@ -405,9 +406,9 @@ public class ImageViewerFragment extends Fragment
 			{
 				if (adapter == null)
 				{
-					adapter = new ImagePagerAdapter(getFragmentManager(), photoFiles);
+					adapter = new ImagePagerAdapter(getContext(), photoFiles);
 
-					updateLabel(0);
+					updateLabel(pageIndex);
 					pager.setAdapter(adapter);
 				}
 				else
@@ -421,8 +422,9 @@ public class ImageViewerFragment extends Fragment
 		});
 	}
 
-	public static class ImagePagerAdapter extends FragmentStatePagerAdapter
+	public static class ImagePagerAdapter extends PagerAdapter
 	{
+		private Context context;
 		private PhotoFiles photoFiles;
 		private String[] files;
 		private HashMap<Integer, ImagePage> pages = new HashMap<>();
@@ -433,10 +435,11 @@ public class ImageViewerFragment extends Fragment
 			return files;
 		}
 
-		public ImagePagerAdapter(FragmentManager fm, PhotoFiles pf)
+		public ImagePagerAdapter(Context c, PhotoFiles pf)
 		{
-			super(fm);
+			super();
 
+			this.context = c;
 			this.photoFiles = pf;
 			update();
 		}
@@ -464,46 +467,16 @@ public class ImageViewerFragment extends Fragment
 			notifyDataSetChanged();
 		}
 
-		private ImagePage.Listener pageListener = new ImagePage.Listener()
+		public void cleanUp()
 		{
-			@Override
-			public void detached(ImagePage page)
+			Set<Integer> keys = pages.keySet();
+			for (Integer key : keys)
 			{
-				synchronized (lock)
-				{
-					Set<Integer> keys = pages.keySet();
-					for (int key : keys)
-					{
-						ImagePage pg = pages.get(key);
-
-						if (pg == page)
-						{
-							pages.remove(key);
-							break;
-						}
-					}
-				}
-			}
-		};
-
-		@Override
-		public Fragment getItem(final int position)
-		{
-			final ImagePage ret = new ImagePage();
-			ret.setListener(pageListener);
-
-			synchronized (lock)
-			{
-				pages.put(position, ret);
+				ImagePage pg = pages.get(key);
+				pg.cleanUp();
 			}
 
-			Bundle args = new Bundle();
-
-			String arg = files[position];
-			args.putString("file", arg);
-			ret.setArguments(args);
-
-			return ret;
+			pages.clear();
 		}
 
 		@Override
@@ -522,6 +495,14 @@ public class ImageViewerFragment extends Fragment
 			return POSITION_NONE;
 		}
 
+		public ImagePage getItem(int idx)
+		{
+			if (!pages.containsKey(idx))
+				return null;
+
+			return pages.get(idx);
+		}
+
 		@Override
 		public int getCount()
 		{
@@ -533,26 +514,72 @@ public class ImageViewerFragment extends Fragment
 		{
 			super.setPrimaryItem(container, position, object);
 		}
+
+		@Override
+		public boolean isViewFromObject(@NonNull View view, @NonNull Object object)
+		{
+			return view == object;
+		}
+
+		@NonNull
+		@Override
+		public Object instantiateItem(@NonNull ViewGroup container, int position)
+		{
+			ImagePage pg = new ImagePage(context);
+
+			FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+			pg.setLayoutParams(lp);
+
+			String path = files[position];
+			pg.updatePath(path);
+			container.addView(pg);
+
+			pages.put(position, pg);
+
+			return pg;
+		}
+
+		@Override
+		public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object)
+		{
+			pages.remove(position);
+			ImagePage pg = (ImagePage) object;
+			pg.cleanUp();
+			container.removeView(pg);
+		}
 	}
 
-	public static class ImagePage extends Fragment
+	public static class ImagePage extends FrameLayout
 	{
 		private ImageView thumbnailView;
 		private Bitmap bmp;
 		private String path;
 
-		@Nullable
-		@Override
-		public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+		public ImagePage(@NonNull Context context)
+		{
+			super(context);
+			init();
+		}
+
+		public ImagePage(@NonNull Context context, @Nullable AttributeSet attrs)
+		{
+			super(context, attrs);
+			init();
+		}
+
+		public ImagePage(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr)
+		{
+			super(context, attrs, defStyleAttr);
+			init();
+		}
+
+		private void init()
 		{
 			thumbnailView = new ImageView(getContext());
 			ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 			thumbnailView.setLayoutParams(params);
 
-			Bundle args = getArguments();
-			path = args.getString("file");
-
-			return thumbnailView;
+			addView(thumbnailView);
 		}
 
 		public void cleanUp()
@@ -563,29 +590,6 @@ public class ImageViewerFragment extends Fragment
 				bmp.recycle();
 				bmp = null;
 			}
-		}
-
-		@Override
-		public void onDetach()
-		{
-			super.onDetach();
-
-			cleanUp();
-
-			if (listener != null)
-				listener.detached(this);
-		}
-
-		public interface Listener
-		{
-			void detached(ImagePage page);
-		}
-
-		private Listener listener;
-
-		public void setListener(Listener listener)
-		{
-			this.listener = listener;
 		}
 
 		public void updatePath(String path)
@@ -614,14 +618,6 @@ public class ImageViewerFragment extends Fragment
 
 			if (thumbnailView != null)
 				thumbnailView.setImageBitmap(bmp);
-		}
-
-		@Override
-		public void onStart()
-		{
-			super.onStart();
-
-			update();
 		}
 	}
 }

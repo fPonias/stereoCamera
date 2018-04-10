@@ -245,7 +245,7 @@ public class MainActivity extends BaseActivity
 			}
 		}
 
-		if (connectFragment != null)
+		if (connectFragment != null && getCurrentFragment() == connectFragment)
 		{
 			if (prefs.getFirstTime() == true)
 				return;
