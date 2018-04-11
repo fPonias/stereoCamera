@@ -88,6 +88,10 @@ public class MainActivity extends BaseActivity
 		return prefs;
 	}
 
+	public boolean getAdsEnabled() {return MyApplication.getInstance().getAdsEnabled();}
+
+	public boolean getIsDebug() { return BuildConfig.DEBUG; }
+
 	public Fragment getCurrentFragment()
 	{
 		FragmentManager mgr = getSupportFragmentManager();

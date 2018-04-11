@@ -28,8 +28,12 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
@@ -46,12 +50,16 @@ public class ImageViewerFragment extends Fragment
 	private ViewPager pager;
 	private ImagePagerAdapter adapter;
 	private ImageButton playButton;
+	private AdView adView;
+	private RelativeLayout rootView;
 
 	@Nullable
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
 	{
 		View ret = inflater.inflate(R.layout.fragment_thumbnail, container, false);
+
+		rootView = ret.findViewById(R.id.root_view);
 		pager = ret.findViewById(R.id.pager);
 
 		pager.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
@@ -73,7 +81,31 @@ public class ImageViewerFragment extends Fragment
 
 		setHasOptionsMenu(true);
 
+		MainActivity activity = MainActivity.getInstance();
+		if (activity.getAdsEnabled())
+			addBannerAd();
+
 		return ret;
+	}
+
+	private void addBannerAd()
+	{
+		MainActivity activity = MainActivity.getInstance();
+		adView = new AdView(activity);
+		adView.setAdSize(AdSize.BANNER);
+
+		if (activity.getIsDebug())
+			adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
+		else
+			adView.setAdUnitId("ca-app-pub-9089181112526283/9787362203");
+
+		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+		lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+		lp.setMargins(0, 30, 0 , 0);
+
+		adView.setLayoutParams(lp);
+		rootView.addView(adView);
 	}
 
 	private void resetLabel()
@@ -311,9 +343,16 @@ public class ImageViewerFragment extends Fragment
 	{
 		super.onResume();
 
-		MainActivity.getInstance().addListener(appListener);
+		MainActivity activity = MainActivity.getInstance();
+		activity.addListener(appListener);
 		updateAdapter();
 		pager.setCurrentItem(pageIndex);
+
+		if (activity.getAdsEnabled())
+		{
+			AdRequest adRequest = new AdRequest.Builder().build();
+			adView.loadAd(adRequest);
+		}
 	}
 
 	@Override

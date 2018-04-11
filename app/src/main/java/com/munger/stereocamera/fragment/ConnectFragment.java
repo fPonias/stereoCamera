@@ -2,9 +2,11 @@ package com.munger.stereocamera.fragment;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -15,9 +17,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
@@ -42,12 +50,29 @@ public class ConnectFragment extends Fragment
 	private Button listenDiscoverButton;
 	private ThumbnailWidget thumbnail;
 	private View view;
+	private AdView adView;
+	private InterstitialAd fullAdView;
+	private RelativeLayout rootView;
+	private ViewGroup buttonsLayout;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState != null && savedInstanceState.containsKey("adLastShown"))
+			lastShown = savedInstanceState.getLong("adLastShown");
+		else
+			lastShown = 0;
+
 		setHasOptionsMenu(true);
+	}
+
+	@Override
+	public void onSaveInstanceState(@NonNull Bundle outState)
+	{
+		super.onSaveInstanceState(outState);
+		outState.putLong("adLastShown", lastShown);
 	}
 
 	MenuItem helpItem;
@@ -87,15 +112,50 @@ public class ConnectFragment extends Fragment
 		super.onStart();
 	}
 
+	private boolean isResumed = false;
+	private long lastShown = 0;
+	private long lastShownThreshold = 6 * 60000;
+	private final Object lock = new Object();
+
 	@Override
 	public void onResume()
 	{
 		super.onResume();
 		thumbnail.update();
+
+		MainActivity activity = MainActivity.getInstance();
+		if (activity.getAdsEnabled())
+		{
+			AdRequest adRequest = new AdRequest.Builder().build();
+			adView.loadAd(adRequest);
+			adRequest = new AdRequest.Builder().build();
+			fullAdView.loadAd(adRequest);
+
+			synchronized (lock)
+			{
+				isResumed = true;
+			}
+
+			showFullScreenAd();
+		}
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+
+		synchronized (lock)
+		{
+			isResumed = false;
+		}
 	}
 
 	private void findViews()
 	{
+		rootView = view.findViewById(R.id.root_view);
+		buttonsLayout = view.findViewById(R.id.buttons_layout);
+
 		discoverTitle = view.findViewById(R.id.discoverTitle);
 		restoreTitle = view.findViewById(R.id.restoreTitle);
 
@@ -105,6 +165,77 @@ public class ConnectFragment extends Fragment
 		listenDiscoverButton = view.findViewById(R.id.listenDiscoverButton);
 
 		thumbnail = view.findViewById(R.id.thumbnail);
+
+		MainActivity activity = MainActivity.getInstance();
+		if (activity.getAdsEnabled())
+		{
+			addBannerAd();
+			addFullScreenAd();
+		}
+	}
+
+	private void addBannerAd()
+	{
+		MainActivity activity = MainActivity.getInstance();
+		adView = new AdView(activity);
+		adView.setId(View.generateViewId());
+		adView.setAdSize(AdSize.BANNER);
+
+		if (activity.getIsDebug())
+			adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
+		else
+			adView.setAdUnitId("ca-app-pub-9089181112526283/9788729183");
+
+		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+		lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+		lp.setMargins(0, 30, 0 , 0);
+
+		adView.setLayoutParams(lp);
+		rootView.addView(adView);
+
+		lp = (RelativeLayout.LayoutParams) buttonsLayout.getLayoutParams();
+		lp.addRule(RelativeLayout.BELOW, adView.getId());
+		lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+		buttonsLayout.setLayoutParams(lp);
+	}
+
+	private void addFullScreenAd()
+	{
+		MainActivity activity = MainActivity.getInstance();
+		fullAdView = new InterstitialAd(activity);
+
+		if (activity.getIsDebug())
+			fullAdView.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+		else
+			fullAdView.setAdUnitId("ca-app-pub-9089181112526283/1107938167");
+
+		fullAdView.setAdListener(new AdListener()
+		{
+			public void onAdLoaded()
+			{
+				showFullScreenAd();
+			}
+		});
+	}
+
+	private void showFullScreenAd()
+	{
+		synchronized (lock)
+		{
+			if (!fullAdView.isLoaded() || !isResumed)
+				return;
+
+			long now = System.currentTimeMillis();
+			long diff = now - lastShown;
+
+			if (diff < lastShownThreshold)
+				return;
+
+			lastShown = now;
+		}
+
+		fullAdView.show();
 	}
 
 	private void setupViews()
