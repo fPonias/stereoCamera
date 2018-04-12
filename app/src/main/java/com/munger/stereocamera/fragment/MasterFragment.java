@@ -19,7 +19,6 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
@@ -66,7 +65,7 @@ public class MasterFragment extends PreviewFragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		orientation = getCurrentOrientation();
+		orientation = MainActivity.getInstance().getCurrentOrientation();
 		if (orientation.isPortait())
 			rootView = inflater.inflate(R.layout.fragment_master, container, false);
 		else
@@ -401,7 +400,7 @@ public class MasterFragment extends PreviewFragment
 		Preferences prefs = MainActivity.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 
-		orientation = getCurrentOrientation();
+		orientation = MainActivity.getInstance().getCurrentOrientation();
 		if (!orientation.isPortait())
 		{
 			RelativeLayout.LayoutParams layout = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();

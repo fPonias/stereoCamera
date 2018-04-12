@@ -4,18 +4,14 @@ apply plugin: 'io.fabric'
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "com.munger.stereocamera"
         minSdkVersion 17
         targetSdkVersion 27
+        applicationId "com.munger.stereocamera"
 
-        versionCode 1
+        versionCode 1103
+
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        /*externalNativeBuild {
-            cmake {
-                cppFlags ""
-            }
-        }*/
     }
     buildTypes {
         release {
@@ -34,7 +30,7 @@ android {
         paid {
             dimension "app"
             versionNameSuffix "-paid"
-            resConfig "paid"
+            applicationIdSuffix ".paid"
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher_white"
             ]
@@ -52,9 +48,9 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support:preference-v7:27.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.google.firebase:firebase-core:12.0.1'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.1'
-    adsImplementation 'com.google.android.gms:play-services-ads:12.0.1'
+    adsImplementation 'com.google.firebase:firebase-core:12.0.1'
+    adsImplementation 'com.crashlytics.sdk.android:crashlytics:2.9.1'
+    implementation 'com.google.android.gms:play-services-ads:12.0.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'

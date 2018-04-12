@@ -60,7 +60,7 @@ public class SlaveFragment extends PreviewFragment
 
 		PreviewOverlayWidget.Type overlayType = PreviewOverlayWidget.Type.values()[type];
 
-				orientation = getCurrentOrientation();
+		orientation = MainActivity.getInstance().getCurrentOrientation();
 		if (orientation.isPortait())
 			rootView = inflater.inflate(R.layout.fragment_slave, container, false);
 		else
@@ -227,7 +227,7 @@ public class SlaveFragment extends PreviewFragment
 
 				Shutter cmd = (Shutter) command;
 
-				cmd.setOrientation(getCurrentOrientation());
+				cmd.setOrientation(MainActivity.getInstance().getCurrentOrientation());
 				cmd.setZoom(zoomSlider.get());
 
 				byte[] data = doFireShutter();

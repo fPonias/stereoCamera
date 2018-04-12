@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +29,10 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
 import com.google.android.gms.ads.AdRequest;
@@ -50,7 +54,8 @@ public class ImageViewerFragment extends Fragment
 	private ViewPager pager;
 	private ImagePagerAdapter adapter;
 	private ImageButton playButton;
-	private AdView adView;
+	private AdView adView1;
+	private AdView adView2;
 	private RelativeLayout rootView;
 
 	@Nullable
@@ -83,15 +88,59 @@ public class ImageViewerFragment extends Fragment
 
 		MainActivity activity = MainActivity.getInstance();
 		if (activity.getAdsEnabled())
-			addBannerAd();
+			addBannerAds();
 
 		return ret;
 	}
 
-	private void addBannerAd()
+	private void addBannerAds()
+	{
+		if (MainActivity.getInstance().getCurrentOrientation().isPortait())
+		{
+			adView1 = createBannerAd();
+			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+			lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+			lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+			adView1.setLayoutParams(lp);
+
+			rootView.addView(adView1);
+
+			adView2 = null;
+		}
+		else
+		{
+			TableLayout tl = new TableLayout(getContext());
+			RelativeLayout.LayoutParams rllp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+			rllp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			rllp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			rllp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+			tl.setLayoutParams(rllp);
+			rootView.addView(tl);
+
+			TableRow row = new TableRow(getContext());
+			TableLayout.LayoutParams tllp = new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT);
+			row.setGravity(Gravity.CENTER_HORIZONTAL);
+			row.setLayoutParams(tllp);
+			tl.addView(row);
+
+			adView1 = createBannerAd();
+			TableRow.LayoutParams lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+			adView1.setId(View.generateViewId());
+			adView1.setLayoutParams(lp);
+
+			adView2 = createBannerAd();
+			lp = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+			adView2.setLayoutParams(lp);
+
+			row.addView(adView1);
+			row.addView(adView2);
+		}
+	}
+
+	private AdView createBannerAd()
 	{
 		MainActivity activity = MainActivity.getInstance();
-		adView = new AdView(activity);
+		AdView adView = new AdView(activity);
 		adView.setAdSize(AdSize.BANNER);
 
 		if (activity.getIsDebug())
@@ -99,13 +148,7 @@ public class ImageViewerFragment extends Fragment
 		else
 			adView.setAdUnitId("ca-app-pub-9089181112526283/9787362203");
 
-		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
-		lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
-		lp.setMargins(0, 30, 0 , 0);
-
-		adView.setLayoutParams(lp);
-		rootView.addView(adView);
+		return adView;
 	}
 
 	private void resetLabel()
@@ -351,7 +394,12 @@ public class ImageViewerFragment extends Fragment
 		if (activity.getAdsEnabled())
 		{
 			AdRequest adRequest = new AdRequest.Builder().build();
-			adView.loadAd(adRequest);
+			adView1.loadAd(adRequest);
+
+			if (adView2 != null)
+			{
+				adView2.loadAd(adRequest);
+			}
 		}
 	}
 

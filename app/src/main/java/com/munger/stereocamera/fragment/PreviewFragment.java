@@ -142,7 +142,7 @@ public class PreviewFragment extends Fragment
 			if (oldStatus == Status.BUSY || oldStatus == Status.READY)
 			{
 				previewView.setZoom(savedInstanceState.getFloat("currentZoom"));
-				previewView.setOrientation(getCurrentOrientation());
+				previewView.setOrientation(MainActivity.getInstance().getCurrentOrientation());
 				previewView.setAndStartCamera(savedInstanceState.getBoolean("facing"));
 			}
 		}
@@ -176,20 +176,6 @@ public class PreviewFragment extends Fragment
 	protected void setZoom(float zoom)
 	{
 		previewView.setZoom(zoom);
-	}
-
-	public PhotoOrientation getCurrentOrientation()
-	{
-		int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
-
-		switch (rotation)
-		{
-			case Surface.ROTATION_0: return PhotoOrientation.DEG_0;
-			case Surface.ROTATION_90: return PhotoOrientation.DEG_90;
-			case Surface.ROTATION_180: return PhotoOrientation.DEG_180;
-			case Surface.ROTATION_270: return PhotoOrientation.DEG_270;
-			default: return PhotoOrientation.DEG_0;
-		}
 	}
 
 	protected PreviewWidget.Listener previewListener = new PreviewWidget.Listener()

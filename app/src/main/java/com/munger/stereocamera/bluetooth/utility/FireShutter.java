@@ -88,7 +88,7 @@ public class FireShutter
 				public void onFinished()
 				{}
 			});
-			localData.orientation = fragment.getCurrentOrientation();
+			localData.orientation = MainActivity.getInstance().getCurrentOrientation();
 			localData.zoom = fragment.getZoom();
 
 			MainActivity.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());

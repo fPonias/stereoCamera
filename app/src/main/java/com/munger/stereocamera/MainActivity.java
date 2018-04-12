@@ -12,6 +12,7 @@ import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.munger.stereocamera.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
 import com.munger.stereocamera.bluetooth.command.master.commands.SendProcessedPhoto;
@@ -90,7 +92,7 @@ public class MainActivity extends BaseActivity
 
 	public boolean getAdsEnabled() {return MyApplication.getInstance().getAdsEnabled();}
 
-	public boolean getIsDebug() { return BuildConfig.DEBUG; }
+	public boolean getIsDebug() { return false; }//return BuildConfig.DEBUG; }
 
 	public Fragment getCurrentFragment()
 	{
@@ -574,5 +576,19 @@ public class MainActivity extends BaseActivity
 		BluetoothSlave btslave = btCtrl.getSlave();
 		if (btslave != null && isSlaveConnected())
 			btslave.cleanUp();
+	}
+
+	public PhotoOrientation getCurrentOrientation()
+	{
+		int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
+
+		switch (rotation)
+		{
+			case Surface.ROTATION_0: return PhotoOrientation.DEG_0;
+			case Surface.ROTATION_90: return PhotoOrientation.DEG_90;
+			case Surface.ROTATION_180: return PhotoOrientation.DEG_180;
+			case Surface.ROTATION_270: return PhotoOrientation.DEG_270;
+			default: return PhotoOrientation.DEG_0;
+		}
 	}
 }
