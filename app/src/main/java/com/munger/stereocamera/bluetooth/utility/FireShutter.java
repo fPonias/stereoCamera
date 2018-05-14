@@ -19,6 +19,7 @@ import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
 import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.widget.PreviewWidget;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -53,7 +54,7 @@ public class FireShutter
 
 	private Listener listener;
 
-	public void execute(final long delay, final Listener listener)
+	public void execute(final long delay, Shutter.SHUTTER_TYPE type, final Listener listener)
 	{
 		synchronized (lock)
 		{
@@ -64,32 +65,47 @@ public class FireShutter
 			shutterFiring = true;
 		}
 
-		fireLocal(delay);
-		fireRemote();
+		fireLocal(type, delay);
+		fireRemote(type);
 	}
 
-	private void fireLocal(final long wait)
+	private void fireLocal(final Shutter.SHUTTER_TYPE type, final long wait)
 	{
-		localData = new PhotoProcessorService.PhotoArgument();
+		synchronized (lock)
+		{
+			localData = new PhotoProcessorService.PhotoArgument();
+		}
 
 		Thread t = new Thread(new Runnable() {public void run()
 		{
 			try { Thread.sleep(wait); } catch(InterruptedException e){}
 
-			fragment.fireShutter(new PreviewFragment.ImageListener()
+			fragment.fireShutter(type, new PreviewWidget.ImageListener()
 			{
 				@Override
 				public void onImage(byte[] bytes)
 				{
-					handleLocal(bytes);
+					synchronized (lock)
+					{
+						String localPath = photoFiles.saveDataToCache(bytes);
+						localData.jpegPath = localPath;
+					}
+
+					handleLocal();
 				}
 
 				@Override
 				public void onFinished()
 				{}
 			});
-			localData.orientation = MainActivity.getInstance().getCurrentOrientation();
-			localData.zoom = fragment.getZoom();
+
+			synchronized (lock)
+			{
+				localData.orientation = MainActivity.getInstance().getCurrentOrientation();
+				localData.zoom = fragment.getZoom();
+			}
+
+			handleLocal();
 
 			MainActivity.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
 		}});
@@ -97,15 +113,15 @@ public class FireShutter
 		t.start();
 	}
 
-	private void handleLocal(byte[] bytes)
+	private void handleLocal()
 	{
-		String localPath = photoFiles.saveDataToCache(bytes);
-		localData.jpegPath = localPath;
-
 		boolean doNext = false;
 
 		synchronized (lock)
 		{
+			if (localData.jpegPath == null || localData.orientation == null)
+				return;
+
 			localShutterDone = true;
 
 			if (remoteShutterDone)
@@ -119,9 +135,9 @@ public class FireShutter
 			done();
 	}
 
-	private void fireRemote()
+	private void fireRemote(Shutter.SHUTTER_TYPE type)
 	{
-		masterComm.runCommand(new Shutter(), new BluetoothMasterComm.SlaveListener()
+		masterComm.runCommand(new Shutter(type), new BluetoothMasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)

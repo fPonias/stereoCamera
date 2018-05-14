@@ -8,22 +8,20 @@
 #include <jni.h>
 #include "util.h"
 
-void Util::getPath(const char* root, long id, const char* postfix, char** out)
+void Util::getPath(const char* root, long id, const char* postfix, char* out)
 {
     size_t pathSz = strlen(root);
     size_t postSz = strlen(postfix);
     size_t sz = pathSz + 18 + postSz;
-    *out = new char[sz + 1];
-    sprintf(*out, "%s/%lx%s", root, id, postfix);
+    sprintf(out, "%s/%lx%s", root, id, postfix);
 }
 
-void Util::getPath(const char* root, const char* postfix, char** out)
+void Util::getPath(const char* root, const char* postfix, char* out)
 {
     size_t pathSz = strlen(root);
     size_t postSz = strlen(postfix);
     size_t sz = pathSz + postSz;
-    *out = new char[sz + 1];
-    sprintf(*out, "%s%s", root, postfix);
+    sprintf(out, "%s%s", root, postfix);
 }
 
 void Util::writeToCache(const char* path, Pixel* data, long width, long height)

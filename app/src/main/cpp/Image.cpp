@@ -58,7 +58,6 @@ long Image::getTargetDim()
 void Image::setJpegPath(const char* path)
 {
     size_t psz = strlen(path);
-    this->jpegpath = new char[psz + 1];
     strcpy(this->jpegpath, path);
 
 }
@@ -66,13 +65,12 @@ void Image::setJpegPath(const char* path)
 void Image::setCachePath(const char* cachePath)
 {
     size_t psz = strlen(cachePath);
-    this->cachepath = new char[psz + 1];
     strcpy(this->cachepath, cachePath);
 
     long r = random();
 
-    Util::getPath(cachePath, r, "-raw", &rawpath);
-    Util::getPath(cachePath, r, "-proc", &procpath);
+    Util::getPath(cachePath, r, "-raw", rawpath);
+    Util::getPath(cachePath, r, "-proc", procpath);
 }
 
 void Image::calcTargetDim()
@@ -185,21 +183,7 @@ void Image::init(int orientation, float zoom, const char* jpegSrc, const char* c
 
 Image::~Image()
 {
-    if (jpegpath == 0)
-        return;
-
-    delete[] jpegpath;
-    jpegpath = 0;
-
     remove(cachepath);
-    delete[] cachepath;
-    cachepath = 0;
-
     remove(rawpath);
-    delete[] rawpath;
-    rawpath = 0;
-
     remove(procpath);
-    delete[] procpath;
-    procpath = 0;
 }

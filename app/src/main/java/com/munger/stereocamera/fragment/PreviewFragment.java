@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.widget.LoadingWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 
@@ -210,46 +211,10 @@ public class PreviewFragment extends Fragment
 		setStatus(Status.BUSY);
 	}
 
-	private Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback()
+
+	public void fireShutter(Shutter.SHUTTER_TYPE type, PreviewWidget.ImageListener listener)
 	{
-		@Override
-		public void onShutter()
-		{
-			shutterEnd = System.currentTimeMillis();
-		}
-	};
-
-	private Camera.PictureCallback jpegCallback = new Camera.PictureCallback()
-	{
-		@Override
-		public void onPictureTaken(byte[] bytes, Camera camera)
-		{
-			if (listener != null)
-				listener.onImage(bytes);
-
-			camera.startPreview();
-			listener.onFinished();
-
-			listener = null;
-		}
-	};
-
-	public interface ImageListener
-	{
-		void onImage(byte[] bytes);
-		void onFinished();
-	}
-
-	protected ImageListener listener;
-	protected long shutterStart;
-	protected long shutterEnd;
-
-	public void fireShutter(ImageListener listener)
-	{
-		setStatus(Status.BUSY);
-		this.listener = listener;
-		shutterStart = System.currentTimeMillis();
-		previewView.getCamera().takePicture(shutterCallback, null, null, jpegCallback);
+		previewView.takePicture(type, listener);
 	}
 
 	public interface LatencyListener

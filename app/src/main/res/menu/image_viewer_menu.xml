@@ -5,4 +5,9 @@
         android:title="Delete"
         android:icon="@drawable/delete_icon_white"
         app:showAsAction="always" />
+    <item android:id="@+id/export"
+        android:title="@string/menu_export"
+        android:icon="@drawable/share"
+        app:showAsAction="ifRoom"
+        />
 </menu>

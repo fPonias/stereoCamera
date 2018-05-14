@@ -20,4 +20,12 @@
         android:title="@string/pref_sync"
         android:summary="@string/pref_sync_desc"
         android:defaultValue="false"/>
+    <ListPreference
+        android:key="pref_capture"
+        android:title="@string/pref_capture"
+        android:summary="@string/pref_capture_desc"
+        android:defaultValue="@string/capture_default"
+        android:entries="@array/capture_type_names"
+        android:entryValues="@array/capture_type_values"
+    />
 </PreferenceScreen>

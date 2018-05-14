@@ -10,10 +10,12 @@
 class Image
 {
 private:
-    char* cachepath;
-    char* jpegpath;
-    char* rawpath;
-    char* procpath;
+    static const int PATH_SIZE = 196;
+
+    char cachepath[PATH_SIZE];
+    char jpegpath[PATH_SIZE];
+    char rawpath[PATH_SIZE];
+    char procpath[PATH_SIZE];
 
     int orientation;
     float zoom;

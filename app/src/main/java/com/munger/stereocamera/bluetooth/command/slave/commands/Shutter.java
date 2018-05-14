@@ -19,6 +19,20 @@ public class Shutter extends SlaveCommand
 		this.command = BluetoothCommands.FIRE_SHUTTER;
 	}
 
+	private com.munger.stereocamera.bluetooth.command.master.commands.Shutter.SHUTTER_TYPE type;
+
+	public com.munger.stereocamera.bluetooth.command.master.commands.Shutter.SHUTTER_TYPE getType()
+	{
+		return type;
+	}
+
+	@Override
+	protected void readArguments() throws IOException
+	{
+		int tmp = comm.getInt();
+		type = com.munger.stereocamera.bluetooth.command.master.commands.Shutter.SHUTTER_TYPE.values()[tmp];
+	}
+
 	private byte[] imgData;
 	private PhotoOrientation orientation = PhotoOrientation.DEG_0;
 	private float zoom = 1.0f;

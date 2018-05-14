@@ -27,4 +27,13 @@
     <string-array name="format_type_default">
         <item>split</item>
     </string-array>
+    <string-array name="capture_type_names">
+        <item>Preview Capture</item>
+        <item>Hi Res Camera</item>
+    </string-array>
+    <string-array name="capture_type_values">
+        <item>preview</item>
+        <item>hi cam</item>
+    </string-array>
+
 </resources>

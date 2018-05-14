@@ -12,8 +12,8 @@
 class Util
 {
 public:
-    static void getPath(const char* root, long id, const char* postfix, char** out);
-    static void getPath(const char *root, const char *postfix, char **out);
+    static void getPath(const char* root, long id, const char* postfix, char* out);
+    static void getPath(const char *root, const char *postfix, char *out);
     static void writeToCache(const char *path, struct Pixel *data, long width, long height);
 };
 

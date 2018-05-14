@@ -34,6 +34,7 @@ import com.munger.stereocamera.bluetooth.utility.PreviewSender;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
 import java.io.File;
@@ -230,7 +231,7 @@ public class SlaveFragment extends PreviewFragment
 				cmd.setOrientation(MainActivity.getInstance().getCurrentOrientation());
 				cmd.setZoom(zoomSlider.get());
 
-				byte[] data = doFireShutter();
+				byte[] data = doFireShutter(cmd.getType());
 				cmd.setData(data);
 			}
 		});
@@ -451,12 +452,12 @@ public class SlaveFragment extends PreviewFragment
 		}
 	}
 
-	private byte[] doFireShutter()
+	private byte[] doFireShutter(com.munger.stereocamera.bluetooth.command.master.commands.Shutter.SHUTTER_TYPE type)
 	{
 		final Object lock = new Object();
 		imgBytes = null;
 
-		fireShutter(new ImageListener()
+		fireShutter(type, new PreviewWidget.ImageListener()
 		{
 			@Override
 			public void onImage(byte[] bytes)

@@ -21,9 +21,11 @@ import android.widget.Toast;
 
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
 import com.munger.stereocamera.bluetooth.command.master.commands.ConnectionPause;
+import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
 import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
@@ -442,7 +444,24 @@ public class MasterFragment extends PreviewFragment
 	{
 		setStatus(Status.BUSY);
 
-		new FireShutter(MasterFragment.this).execute(shutterDelay, new FireShutter.Listener()
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MyApplication.getInstance());
+		String captureTypeStr = sharedPref.getString("pref_capture", "preview");
+		Shutter.SHUTTER_TYPE captureType;
+
+		switch(captureTypeStr)
+		{
+			case "hi cam":
+				captureType = Shutter.SHUTTER_TYPE.HI_RES;
+				break;
+			case "lo cam":
+				captureType = Shutter.SHUTTER_TYPE.LO_RES;
+				break;
+			default:
+				captureType = Shutter.SHUTTER_TYPE.PREVIEW;
+				break;
+		}
+
+		new FireShutter(MasterFragment.this).execute(shutterDelay, captureType, new FireShutter.Listener()
 		{
 			@Override
 			public void onProcessing()

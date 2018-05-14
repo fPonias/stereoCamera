@@ -37,6 +37,8 @@ import android.widget.Toast;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
+import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.ByteArrayOutputStream;
@@ -607,7 +609,74 @@ public class PreviewWidget extends TextureView
 		}
 	}
 
+	private Camera.ShutterCallback shutterCallback = new Camera.ShutterCallback()
+	{
+		@Override
+		public void onShutter()
+		{
+			shutterEnd = System.currentTimeMillis();
+		}
+	};
+
+	private Camera.PictureCallback jpegCallback = new Camera.PictureCallback()
+	{
+		@Override
+		public void onPictureTaken(byte[] bytes, Camera camera)
+		{
+			if (listener != null)
+				imageListener.onImage(bytes);
+
+			camera.startPreview();
+			imageListener.onFinished();
+
+			imageListener = null;
+		}
+	};
+
+	public interface ImageListener
+	{
+		void onImage(byte[] bytes);
+		void onFinished();
+	}
+
+	protected ImageListener imageListener;
+	protected long shutterStart;
+	protected long shutterEnd;
+
+	public void takePicture(Shutter.SHUTTER_TYPE type, ImageListener imageListener)
+	{
+		this.imageListener = imageListener;
+		shutterStart = System.currentTimeMillis();
+
+		if (type == Shutter.SHUTTER_TYPE.PREVIEW)
+			takePreviewPicture();
+		else
+			getCamera().takePicture(shutterCallback, null, null, jpegCallback);
+
+	}
+
+	private void takePreviewPicture()
+	{
+		getHandler().post(new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				shutterCallback.onShutter();
+				byte[] jpegData = getPreviewFrame();
+				imageListener.onImage(jpegData);
+				imageListener.onFinished();
+				imageListener = null;
+			}
+		});
+	}
+
 	public byte[] getPreviewFrame()
+	{
+		return getPreviewFrame(-1);
+	}
+
+	public byte[] getPreviewFrame(int targetHeight)
 	{
 		if (currentParameters == null)
 			return null;
@@ -615,10 +684,17 @@ public class PreviewWidget extends TextureView
 		Camera.Size sz = currentParameters.getPreviewSize();
 		float ratio = (float) sz.width / (float) sz.height;
 
-		int targetH = 256;
-		int targetW = (int) ((float) targetH * ratio);
+		int targetW;
 
-		Bitmap bmp = Bitmap.createBitmap(targetW, targetH, Bitmap.Config.ARGB_8888);
+		if (targetHeight > 0)
+			targetW = (int) ((float) targetHeight * ratio);
+		else
+		{
+			targetHeight = sz.height;
+			targetW = sz.width;
+		}
+
+		Bitmap bmp = Bitmap.createBitmap(targetW, targetHeight, Bitmap.Config.ARGB_8888);
 		getBitmap(bmp);
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

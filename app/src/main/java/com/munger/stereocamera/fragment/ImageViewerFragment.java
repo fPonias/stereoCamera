@@ -1,11 +1,16 @@
 package com.munger.stereocamera.fragment;
 
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.widget.ImageViewCompat;
 import android.support.v7.app.ActionBar;
@@ -18,7 +23,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.AttributeSet;
+import android.view.ActionProvider;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -26,6 +33,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -34,6 +42,7 @@ import android.widget.RelativeLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -41,9 +50,15 @@ import com.google.android.gms.ads.AdView;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.service.InstagramTransform;
+import com.munger.stereocamera.utility.MyActivityChooserModel;
+import com.munger.stereocamera.utility.MyActivityChooserView;
+import com.munger.stereocamera.utility.MyShareActionProvider;
 import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.widget.MyShareMenuItemCtrl;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -75,6 +90,7 @@ public class ImageViewerFragment extends Fragment
 		{
 			super.onPageSelected(position);
 			pageIndex = position;
+			shareMenuItemCtrl.setCurrentPath(getCurrentItem());
 			updateLabel(position);
 		}});
 
@@ -310,6 +326,7 @@ public class ImageViewerFragment extends Fragment
 
 	private String menuTitle;
 
+
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
 	{
@@ -322,6 +339,10 @@ public class ImageViewerFragment extends Fragment
 			deleteCurrent();
 			return true;
 		}});
+
+		shareMenuItem = menu.findItem(R.id.export);
+		shareMenuItemCtrl = new MyShareMenuItemCtrl(getContext(), shareMenuItem, R.id.export);
+		updateShareMenuItemCtrl();
 
 		try
 		{
@@ -345,6 +366,28 @@ public class ImageViewerFragment extends Fragment
 		catch(NullPointerException e){}
 	}
 
+	private void updateShareMenuItemCtrl()
+	{
+		if (shareMenuItemCtrl != null && adapter != null)
+		{
+			String[] list = adapter.getData();
+			int sz = list.length;
+			String selectedPath = list[pageIndex];
+
+			shareMenuItemCtrl.setCurrentPath(selectedPath);
+		}
+	}
+
+	public String getCurrentItem()
+	{
+		if (adapter == null)
+			return "";
+
+		ImageViewerFragment.ImagePage pg = adapter.getItem(pager.getCurrentItem());
+		String path = pg.getPath();
+		return path;
+	}
+
 	@Override
 	public void onSaveInstanceState(@NonNull Bundle outState)
 	{
@@ -365,6 +408,8 @@ public class ImageViewerFragment extends Fragment
 		{
 			pageIndex = 0;
 		}
+
+		updateShareMenuItemCtrl();
 	}
 
 	MainActivity.Listener appListener = new MainActivity.Listener()
@@ -381,6 +426,13 @@ public class ImageViewerFragment extends Fragment
 		}
 	};
 
+	private File getShareFile()
+	{
+		String path = getCurrentItem();
+		File shareFile = new File(path);
+		return shareFile;
+	}
+
 	@Override
 	public void onResume()
 	{
@@ -390,6 +442,7 @@ public class ImageViewerFragment extends Fragment
 		activity.addListener(appListener);
 		updateAdapter();
 		pager.setCurrentItem(pageIndex);
+		updateShareMenuItemCtrl();
 
 		if (activity.getAdsEnabled())
 		{
@@ -427,6 +480,8 @@ public class ImageViewerFragment extends Fragment
 	}
 
 	public MenuItem deleteMenuItem;
+	public MenuItem shareMenuItem;
+	private MyShareMenuItemCtrl shareMenuItemCtrl;
 	private Dialog deleteDialog;
 
 	private void deleteCurrent()
@@ -469,6 +524,7 @@ public class ImageViewerFragment extends Fragment
 			f.delete();
 
 		adapter.update();
+		updateShareMenuItemCtrl();
 
 		updateLabel(idx);
 
@@ -497,6 +553,7 @@ public class ImageViewerFragment extends Fragment
 
 					updateLabel(pageIndex);
 					pager.setAdapter(adapter);
+					updateShareMenuItemCtrl();
 				}
 				else
 					adapter.update();
@@ -705,6 +762,11 @@ public class ImageViewerFragment extends Fragment
 
 			if (thumbnailView != null)
 				thumbnailView.setImageBitmap(bmp);
+		}
+
+		public String getPath()
+		{
+			return path;
 		}
 	}
 }

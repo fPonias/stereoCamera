@@ -35,5 +35,15 @@
         <service android:name="com.munger.stereocamera.service.PhotoProcessorService"
             android:process="com.munger.stereocamera.processor"
         />
+
+        <provider
+            android:authorities="com.munger.stereocamera.export.provider"
+            android:name="com.munger.stereocamera.GenericFileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
     </application>
 </manifest>
