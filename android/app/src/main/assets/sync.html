@@ -1,0 +1,31 @@
+<html>
+<head>
+    <title>Stereo Camera help</title>
+    <link rel="stylesheet" href="base.css" type="text/css" />
+</head>
+<body>
+<div class="title">Image Sync</div>
+<div class="description">
+    In short:  don't shoot moving targets.  They won't sync unless you're very lucky.
+</div>
+<div class="description">
+    Two factors contribute to this unreliability:
+    Bluetooth networking and the cameras being controlled by separate computers.  The software firing
+    the shutter has been observed to take anywhere from 10 - 800 ms to fire, while the signal to fire
+    secondary shutter can take anywhere from 1 - 50 ms to reach the other device.  The delay is not
+    consistent and makes syncing impossible with the current solutions.<br/>
+    <br/>
+    An experimental solution has been included in the current app that tries to guess how much longer
+    the secondary camera is going to take to fire the shutter, and delays the primary shutter by that guess.
+    This solution only sort-of works.  So no complaining if you're taking pics of kids that won't sit still
+    for half a second.  If you want to activate this go to the preferences from the main shutter view
+    and select the "Shutter Sync" checkbox.  The next time the main shutter view shows up it will fire
+    the primary and secondary shutters 10 times in rapid succession.
+</div>
+<div class="nav">
+    <div class="nav-prev"><a href="align.html">&lt;-</a></div>
+    <div class="nav-home"><a href="index.html">Home</a></div>
+    <div class="nav-next"><a href="coming.html">-&gt;</a></div>
+</div>
+</body>
+</html>

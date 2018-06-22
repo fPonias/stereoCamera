@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="@color/white">
+
+    <com.munger.stereocamera.widget.SquareLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/previewContainer">
+
+        <com.munger.stereocamera.widget.PreviewWidget
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/preview"
+            />
+        <com.munger.stereocamera.widget.PreviewOverlayWidget
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/previewOverlay"
+            type="crosshairs"
+            color="@color/white"/>
+    </com.munger.stereocamera.widget.SquareLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_below="@+id/previewContainer"
+        android:layout_marginTop="0dp"
+        android:layout_alignParentEnd="true"
+        android:paddingTop="20dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:gravity="center"
+        android:background="@color/white"
+        android:id="@+id/controls">
+        <com.munger.stereocamera.widget.ZoomWidget
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:id="@+id/zoom_slider"
+            />
+    </LinearLayout>
+</RelativeLayout>

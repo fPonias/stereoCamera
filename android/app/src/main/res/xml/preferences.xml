@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="pref_overlay"
+        android:title="@string/pref_overlay"
+        android:summary="@string/pref_overlay_desc"
+        android:entries="@array/overlay_names"
+        android:entryValues="@array/overlay_values"
+        android:defaultValue="1"
+    />
+    <!-- wee need to fix the anaglyph outputs before making them available as options
+    <MultiSelectListPreference
+        android:key="pref_formats"
+        android:title="@string/pref_formats"
+        android:summary="@string/pref_formats_desc"
+        android:entries="@array/format_type_names"
+        android:entryValues="@array/format_type_values"
+        android:defaultValue="@array/format_type_default" />
+    -->
+    <CheckBoxPreference
+        android:key="pref_sync"
+        android:title="@string/pref_sync"
+        android:summary="@string/pref_sync_desc"
+        android:defaultValue="false"/>
+    <ListPreference
+        android:key="pref_capture"
+        android:title="@string/pref_capture"
+        android:summary="@string/pref_capture_desc"
+        android:defaultValue="@string/capture_default"
+        android:entries="@array/capture_type_names"
+        android:entryValues="@array/capture_type_values"
+    />
+</PreferenceScreen>

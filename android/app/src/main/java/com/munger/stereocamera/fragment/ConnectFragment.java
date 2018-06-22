@@ -1,0 +1,694 @@
+package com.munger.stereocamera.fragment;
+
+import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
+import com.munger.stereocamera.BaseActivity;
+import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.R;
+import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.bluetooth.BluetoothDiscoverer;
+import com.munger.stereocamera.bluetooth.BluetoothMaster;
+import com.munger.stereocamera.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.widget.ThumbnailWidget;
+
+import java.util.HashMap;
+
+public class ConnectFragment extends Fragment
+{
+	private Handler handler;
+
+	private TextView restoreTitle;
+	private TextView discoverTitle;
+	private Button connectButton;
+	private Button listenButton;
+	private Button discoverButton;
+	private Button listenDiscoverButton;
+	private ThumbnailWidget thumbnail;
+	private View view;
+	private AdView adView;
+	private InterstitialAd fullAdView;
+	private RelativeLayout rootView;
+	private ViewGroup buttonsLayout;
+
+	public ConnectFragment()
+	{
+
+	}
+
+	@Override
+	public void onCreate(@Nullable Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState != null && savedInstanceState.containsKey("adLastShown"))
+			lastShown = savedInstanceState.getLong("adLastShown");
+		else
+			lastShown = 0;
+
+		setHasOptionsMenu(true);
+	}
+
+	@Override
+	public void onSaveInstanceState(@NonNull Bundle outState)
+	{
+		super.onSaveInstanceState(outState);
+		outState.putLong("adLastShown", lastShown);
+	}
+
+	MenuItem helpItem;
+
+	@Override
+	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+	{
+		inflater.inflate(R.menu.connect_menu, menu);
+		helpItem = menu.findItem(R.id.help);
+
+		helpItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
+		{
+			MainActivity.getInstance().openHelp();
+			return false;
+		}});
+	}
+
+	@Nullable
+	@Override
+	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
+	{
+		view = inflater.inflate(R.layout.fragment_connect, container, false);
+
+		handler = new Handler(Looper.getMainLooper());
+
+		findViews();
+		setupViews();
+
+		return view;
+	}
+
+	private boolean firstConnect = true;
+
+	@Override
+	public void onStart()
+	{
+		super.onStart();
+	}
+
+	private boolean isResumed = false;
+	private long lastShown = 0;
+	private long lastShownThreshold = 6 * 60000;
+	private final Object lock = new Object();
+
+	@Override
+	public void onResume()
+	{
+		super.onResume();
+		thumbnail.update();
+
+		MainActivity activity = MainActivity.getInstance();
+		if (activity.getAdsEnabled())
+		{
+			AdRequest adRequest = new AdRequest.Builder().build();
+			adView.loadAd(adRequest);
+			adRequest = new AdRequest.Builder().build();
+			fullAdView.loadAd(adRequest);
+
+			synchronized (lock)
+			{
+				isResumed = true;
+			}
+
+			showFullScreenAd();
+		}
+	}
+
+	@Override
+	public void onStop()
+	{
+		super.onStop();
+
+		synchronized (lock)
+		{
+			isResumed = false;
+		}
+	}
+
+	private void findViews()
+	{
+		rootView = view.findViewById(R.id.root_view);
+		buttonsLayout = view.findViewById(R.id.buttons_layout);
+
+		discoverTitle = view.findViewById(R.id.discoverTitle);
+		restoreTitle = view.findViewById(R.id.restoreTitle);
+
+		connectButton = view.findViewById(R.id.connectButton);
+		listenButton = view.findViewById(R.id.listenButton);
+		discoverButton = view.findViewById(R.id.discoverButton);
+		listenDiscoverButton = view.findViewById(R.id.listenDiscoverButton);
+
+		thumbnail = view.findViewById(R.id.thumbnail);
+
+		MainActivity activity = MainActivity.getInstance();
+		if (activity.getAdsEnabled())
+		{
+			addBannerAd();
+			addFullScreenAd();
+		}
+	}
+
+	private void addBannerAd()
+	{
+		MainActivity activity = MainActivity.getInstance();
+		adView = new AdView(activity);
+		adView.setId(View.generateViewId());
+		adView.setAdSize(AdSize.BANNER);
+
+		if (activity.getIsDebug())
+			adView.setAdUnitId("ca-app-pub-3940256099942544/6300978111");
+		else
+			adView.setAdUnitId("ca-app-pub-9089181112526283/9788729183");
+
+		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+		lp.addRule(RelativeLayout.CENTER_HORIZONTAL);
+		lp.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+		lp.setMargins(0, 30, 0 , 0);
+
+		adView.setLayoutParams(lp);
+		rootView.addView(adView);
+
+		lp = (RelativeLayout.LayoutParams) buttonsLayout.getLayoutParams();
+		lp.addRule(RelativeLayout.BELOW, adView.getId());
+		lp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+		buttonsLayout.setLayoutParams(lp);
+	}
+
+	private void addFullScreenAd()
+	{
+		MainActivity activity = MainActivity.getInstance();
+		fullAdView = new InterstitialAd(activity);
+
+		if (activity.getIsDebug())
+			fullAdView.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+		else
+			fullAdView.setAdUnitId("ca-app-pub-9089181112526283/1107938167");
+
+		fullAdView.setAdListener(new AdListener()
+		{
+			public void onAdLoaded()
+			{
+				showFullScreenAd();
+			}
+		});
+	}
+
+	private void showFullScreenAd()
+	{
+		synchronized (lock)
+		{
+			if (!fullAdView.isLoaded() || !isResumed)
+				return;
+
+			long now = System.currentTimeMillis();
+			long diff = now - lastShown;
+
+			if (diff < lastShownThreshold)
+				return;
+
+			lastShown = now;
+		}
+
+		fullAdView.show();
+	}
+
+	private void setupViews()
+	{
+		prefs = MainActivity.getInstance().getPrefs();
+		Preferences.Roles role = prefs.getRole();
+
+		if (role == Preferences.Roles.MASTER)
+		{
+			restoreTitle.setVisibility(View.VISIBLE);
+			listenButton.setVisibility(View.GONE);
+			connectButton.setVisibility(View.VISIBLE);
+		}
+		else if (role == Preferences.Roles.SLAVE)
+		{
+			restoreTitle.setVisibility(View.VISIBLE);
+			listenButton.setVisibility(View.VISIBLE);
+			connectButton.setVisibility(View.GONE);
+		}
+		else
+		{
+			restoreTitle.setVisibility(View.GONE);
+			listenButton.setVisibility(View.GONE);
+			connectButton.setVisibility(View.GONE);
+		}
+
+		connectButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
+		{
+			connect();
+		}});
+
+		listenButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
+		{
+			listen();
+		}});
+
+		discoverButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				discoverClicked();
+			}
+		});
+
+		listenDiscoverButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View view)
+			{
+				listenDiscoverClicked();
+			}
+		});
+
+		thumbnail.update();
+		thumbnail.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
+		{
+			thumbnailClicked();
+		}});
+
+		boolean firstTime = prefs.getFirstTime();
+
+		if (firstTime)
+		{
+			doFirstTime();
+		}
+	}
+
+	private void doFirstTime()
+	{
+		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		builder.setTitle(R.string.first_time_title)
+				.setMessage(R.string.first_time_question)
+				.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)
+				{
+					prefs.setFirstTime(false);
+					firstTimeDialog.dismiss();
+				}})
+				.setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)
+				{
+					prefs.setFirstTime(false);
+					firstTimeDialog.dismiss();
+
+					MainActivity.getInstance().openHelp();
+				}});
+
+		firstTimeDialog = builder.create();
+		firstTimeDialog.setCanceledOnTouchOutside(false);
+		firstTimeDialog.show();
+	}
+
+	private BluetoothCtrl btCtrl;
+	private Preferences prefs;
+
+	private AlertDialog firstTimeDialog;
+
+	private DiscoverDialog discoverDialog;
+	private HashMap<String, BluetoothDevice> devices;
+	private BluetoothDiscoverer discoverer;
+
+	private static int CONNECT_RETRIES = 2;
+	private static long CONNECT_RETRY_WAIT = 1500;
+
+	public void connect()
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				btCtrl = MainActivity.getInstance().getBtCtrl();
+				discoverer = MainActivity.getInstance().getBtCtrl().getDiscoverer();
+				String id = prefs.getClient();
+
+				if (id != null && id.length() > 0)
+					deviceSelected(id, CONNECT_RETRIES);
+			}
+		});
+	}
+
+	private void discoverClicked()
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				btCtrl = MainActivity.getInstance().getBtCtrl();
+				connectClicked2();
+			}
+		});
+
+	}
+
+	private void connectClicked2()
+	{
+		try
+		{
+			discoverDialog = new DiscoverDialog();
+			devices = new HashMap<>();
+			discoverer = MainActivity.getInstance().getBtCtrl().getDiscoverer();
+
+			btCtrl.discover(new BluetoothDiscoverer.DiscoverListener()
+			{
+				public void onDiscovered(BluetoothDevice device)
+				{
+					String id = device.getAddress();
+					String name = device.getName();
+
+					devices.put(id, device);
+
+					discoverDialog.addDiscovery(id, name);
+				}
+
+				@Override
+				public void onKnown(BluetoothDevice device)
+				{
+					String id = device.getAddress();
+					String name = device.getName();
+
+					devices.put(id, device);
+
+					discoverDialog.addKnown(id, name);
+				}
+			});
+		}
+		catch(BluetoothCtrl.BluetoothDiscoveryFailedException e)
+		{
+			Toast.makeText(getActivity(), R.string.bluetooth_discovery_failed_error, Toast.LENGTH_LONG).show();
+			return;
+		}
+
+		discoverDialog.show(getActivity().getSupportFragmentManager(), "discoverDialog");
+		discoverDialog.setListener(new DiscoverDialog.ActionListener()
+		{
+			@Override
+			public void cancelled()
+			{
+				discoverer.cancelDiscover();
+			}
+
+			@Override
+			public void selected(String id)
+			{
+				deviceSelected(id, 0);
+			}
+		});
+	}
+
+	private BluetoothMaster master;
+
+	private void deviceSelected(String id, int retries)
+	{
+		if (discoverer != null)
+			discoverer.cancelDiscover();
+
+
+		BluetoothDevice device;
+		if (devices != null && devices.containsKey(id))
+			device = devices.get(id);
+		else
+			device = btCtrl.getKnownDevice(id);
+
+		if (device == null)
+			return;
+
+		deviceSelected(device, retries);
+	}
+
+	private AlertDialog connectDialog;
+
+	public void deviceSelected(final BluetoothDevice device, final int retries)
+	{
+		if (btCtrl == null)
+			btCtrl = MainActivity.getInstance().getBtCtrl();
+
+		handler.post(new Runnable() {public void run()
+		{
+			if (discoverDialog != null)
+				discoverDialog.dismiss();
+
+			if (device == null)
+				return;
+
+			String message = getResources().getString(R.string.bluetooth_connecting_message) + device.getName();
+			connectDialog = new AlertDialog.Builder(getActivity())
+					.setMessage(message)
+					.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+					{
+
+						if (connectDialog != null)
+							connectDialog.dismiss();
+
+						connectDialog = null;
+						btCtrl.cancelConnect();
+					}})
+					.create();
+			connectDialog.setCanceledOnTouchOutside(false);
+			connectDialog.show();
+		}});
+
+		deviceSelected2(device, retries);
+	}
+
+	private void deviceSelected2(final BluetoothDevice device, final int retries)
+	{
+		btCtrl.connect(device, new BluetoothCtrl.ConnectListener()
+		{
+			@Override
+			public void onFailed()
+			{
+				if (retries > 0)
+				{
+					try{Thread.sleep(CONNECT_RETRY_WAIT);} catch(InterruptedException e){return;}
+					deviceSelected2(device, retries - 1);
+					return;
+				}
+
+				handler.post(new Runnable() {public void run()
+				{
+					if (connectDialog != null)
+					{
+						connectDialog.dismiss();
+						Toast.makeText(getActivity(), R.string.bluetooth_connect_failed_error, Toast.LENGTH_LONG).show();
+					}
+				}});
+			}
+
+			@Override
+			public void onDiscoverable()
+			{}
+
+			@Override
+			public void onConnected()
+			{
+				handler.post(new Runnable() {public void run()
+				{
+					Toast.makeText(getActivity(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
+
+					if (connectDialog != null)
+						connectDialog.dismiss();
+
+					prefs.setRole(Preferences.Roles.MASTER);
+					prefs.setClient(device.getAddress());
+
+					BaseActivity act = MainActivity.getInstance();
+					if (act instanceof MainActivity)
+						((MainActivity) act).startMasterView();
+				}});
+			}
+
+			@Override
+			public void onDisconnected()
+			{}
+		});
+	}
+
+
+	private AlertDialog listenDialog = null;
+	private BluetoothSlave listenSlave = null;
+
+	public void listen()
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				btCtrl = MainActivity.getInstance().getBtCtrl();
+				listenForMaster();
+			}
+		});
+	}
+
+	private void listenDiscoverClicked()
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener()
+		{
+			@Override
+			public void onSetup()
+			{
+				btCtrl = MainActivity.getInstance().getBtCtrl();
+				listenAndEnableDiscovery();
+			}
+		});
+	}
+
+	private AlertDialog againDialog;
+	private boolean discovering = false;
+
+	private BluetoothCtrl.ConnectListener listenListener = new BluetoothCtrl.ConnectListener()
+	{
+		@Override
+		public void onConnected()
+		{
+			handler.post(new Runnable() {public void run()
+			{
+				if (listenDialog == null)
+					return;
+
+				//listenDialog.setStatus("Connected");
+				listenDialog.dismiss();
+				listenDialog = null;
+
+				prefs.setRole(Preferences.Roles.SLAVE);
+				prefs.setClient(null);
+
+				MainActivity.getInstance().startSlaveView();
+			}});
+		}
+
+		@Override
+		public void onDiscoverable()
+		{
+			handler.post(new Runnable() {public void run()
+			{
+				if (listenDialog == null)
+					return;
+
+				//listenDialog.setStatus("Discoverable");
+			}});
+		}
+
+		@Override
+		public void onFailed()
+		{
+			handler.post(new Runnable() {public void run()
+			{
+				if (listenDialog == null || againDialog != null)
+					return;
+
+				listenDialog.dismiss();
+				listenDialog = null;
+
+				againDialog = new AlertDialog.Builder(getActivity())
+						.setTitle(R.string.bluetooth_listen_failed_error)
+						.setMessage(R.string.bluetooth_try_again_message)
+						.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							againDialog.dismiss();
+							againDialog = null;
+						}})
+						.setPositiveButton(R.string.retry_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							againDialog.dismiss();
+							againDialog = null;
+
+							if (discovering)
+								listenAndEnableDiscovery();
+							else
+								listenForMaster();
+						}})
+						.create();
+				againDialog.setCanceledOnTouchOutside(false);
+				againDialog.show();
+			}});
+		}
+
+		@Override
+		public void onDisconnected()
+		{
+
+		}
+	};
+
+	private void listenAndEnableDiscovery()
+	{
+		discovering = true;
+		btCtrl.listen(true, listenListener);
+
+		showListenDialog();
+	}
+
+	public void listenForMaster()
+	{
+		MainActivity.getInstance().setupBTServer(new BluetoothCtrl.SetupListener() { public void onSetup()
+		{
+			btCtrl = MainActivity.getInstance().getBtCtrl();
+
+			showListenDialog();
+
+			discovering = false;
+			btCtrl.listen(false, listenListener);
+		}});
+	}
+
+	private void showListenDialog()
+	{
+		if (listenDialog != null)
+			return;
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		listenDialog = builder
+				.setTitle("Listening")
+				.setMessage(getString(R.string.bluetooth_listen_message))
+				.setCancelable(true)
+				.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int i)
+				{
+					btCtrl.cancelListen();
+					listenDialog = null;
+				}})
+				.create();
+		listenDialog.setCanceledOnTouchOutside(false);
+		listenDialog.show();
+	}
+
+	private void thumbnailClicked()
+	{
+		MainActivity.getInstance().startThumbnailView();
+	}
+}

@@ -1,0 +1,61 @@
+<resources>
+    <string name="app_name">3D Camera for 2</string>
+    <string name="discover_buttons_title">New Connection</string>
+    <string name="discover_connect_button">Discover new secondary</string>
+    <string name="discover_listen_button">Connect to new primary</string>
+    <string name="restore_buttons_title">Restore Connection</string>
+    <string name="connect_button">Connect to last secondary</string>
+    <string name="listen_button">Listen for previous primary</string>
+    <string name="retry_button">Retry</string>
+    <string name="cancel_button">Cancel</string>
+    <string name="discover_known_title">Known Bluetooth Devices</string>
+    <string name="discover_title">Discovered Bluetooth Devices</string>
+    <string name="yes_button">Yes</string>
+    <string name="no_button">No</string>
+    <string name="ok_button">Okay</string>
+    <string name="tilt_sensor_label">Tilt</string>
+    <string name="level_sensor_label">Level</string>
+
+    <string name="menu_zoom">Zoom</string>
+    <string name="menu_flip">Flip</string>
+    <string name="menu_sync">Sync Latency</string>
+    <string name="menu_swap">Swap Sides</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_prefs">Preferences</string>
+    <string name="menu_help">Help</string>
+    <string name="menu_export">Export</string>
+
+    <string name="pref_overlay">Preview Overlay</string>
+    <string name="pref_overlay_desc">Which composition aid should be overlaid on the camera preview?</string>
+    <string name="pref_sync">Shutter Sync</string>
+    <string name="pref_sync_desc">Run shutter sync on settings close.</string>
+    <string name="pref_formats">Output Types</string>
+    <string name="pref_formats_desc">Photos are saved in the specified formats.</string>
+    <string name="pref_capture">Capture Type / Resolution</string>
+    <string name="pref_capture_desc">Which method the camera should use to capture the image.  Texture capture is fastest if sync is a problem.</string>
+
+    <string name="capture_default">preview</string>
+
+    <string name="thumbnail_filesystem_error">Stereocamera is unable to access the filesystem.</string>
+    <string name="bluetooth_unsupported_error">Bluetooth is not supported on this device.</string>
+    <string name="bluetooth_discovery_failed_error">Bluetooth discovery has failed.</string>
+    <string name="bluetooth_connecting_message">Attempting bluetooth client connection to </string>
+    <string name="bluetooth_listen_message">Now listening for connections.  Please set your primary phone to discover mode.</string>
+    <string name="bluetooth_connect_failed_error">Bluetooth client connection has failed.</string>
+    <string name="bluetooth_connect_success">Bluetooth client connection succeeded.</string>
+    <string name="bluetooth_reconnect_title">Attempt connection to previous slave?</string>
+    <string name="bluetooth_listen_failed_error">Bluetooth listen has failed.</string>
+    <string name="bluetooth_try_again_message">Listen again for incoming connections?</string>
+    <string name="bluetooth_master_communication_failed_error">Failed to communicate with primary camera.</string>
+    <string name="bluetooth_communication_failed_error">Failed to communicate with secondary camera.</string>
+    <string name="camera_open_error">Unable to open the camera.</string>
+    <string name="first_time_title">Welcome!</string>
+    <string name="first_time_question">Welcome to McMunger Stereo Camera.  Would you like to view the
+    documentation to familiarize yourself with the app?</string>
+    <string name="instagram_failed_error">Transform image for Instagram share failed.</string>
+
+    <string name="delete_confirm_title">Confirm</string>
+    <string name="delete_confirm_message">Delete the selected image?</string>
+
+    <string name="new_photo_available">Your photo has successfully been processed.</string>
+</resources>

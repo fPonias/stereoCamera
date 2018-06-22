@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="overlay_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <string-array name="overlay_names">
+        <item>None</item>
+        <item>Crosshairs</item>
+        <item>Thirds</item>
+        <item>Fourths</item>
+        <!--<item>Ghost</item>-->
+    </string-array>
+    <string-array name="format_type_values">
+        <item>split</item>
+        <item>red blue</item>
+        <item>green mag</item>
+    </string-array>
+    <string-array name="format_type_names">
+        <item>Split Image</item>
+        <item>Red Cyan Anaglyph</item>
+        <item>Green Magenta Anaglyph</item>
+    </string-array>
+    <string-array name="format_type_default">
+        <item>split</item>
+    </string-array>
+    <string-array name="capture_type_names">
+        <item>Preview Capture</item>
+        <item>Hi Res Camera</item>
+    </string-array>
+    <string-array name="capture_type_values">
+        <item>preview</item>
+        <item>hi cam</item>
+    </string-array>
+
+</resources>

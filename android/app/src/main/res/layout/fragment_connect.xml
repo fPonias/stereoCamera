@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/root_view"
+
+    tools:context="com.munger.stereocamera.MainActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:id="@+id/buttons_layout"
+    >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/restore_buttons_title"
+            android:id="@+id/restoreTitle"
+            android:textSize="20sp"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/connectButton"
+            android:text="@string/connect_button"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/listenButton"
+            android:text="@string/listen_button"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/discover_buttons_title"
+            android:layout_marginTop="20dp"
+            android:textSize="20sp"
+            android:id="@+id/discoverTitle"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/discoverButton"
+            android:text="@string/discover_connect_button"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/listenDiscoverButton"
+            android:text="@string/discover_listen_button"/>
+    </LinearLayout>
+
+    <com.munger.stereocamera.widget.ThumbnailWidget
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="10dp"
+        android:id="@+id/thumbnail"/>
+</RelativeLayout>
