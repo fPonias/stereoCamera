@@ -11,10 +11,10 @@ import UIKit
 
 class GalleryGridWidget: UICollectionViewCell
 {
-    @IBOutlet weak var foo: UIImageView!
+    @IBOutlet weak var thumbnail: UIImageView!
     
     func displayContent(image: UIImage)
     {
-        foo.image = image
+        thumbnail.image = image
     }
 }

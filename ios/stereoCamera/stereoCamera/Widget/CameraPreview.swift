@@ -37,6 +37,16 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         context = glContext
     }
     
+    private var _zoom:Float = 1.0
+    var zoom:Float
+    {
+        get {return _zoom}
+        set
+        {
+            _zoom = newValue
+        }
+    }
+    
     func startCamera()
     {
         switch AVCaptureDevice.authorizationStatus(for: .video)
@@ -114,8 +124,11 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         { EAGLContext.setCurrent(glContext) }
         
         self.bindDrawable()
-        let dest = CGRect(x:0, y:0, width: image.extent.width, height: image.extent.height)
-        ciContext.draw(image, in:dest, from: image.extent)
+        let extent = image.extent
+        let zoomMargin = (extent.width - extent.width / CGFloat(_zoom)) / CGFloat(2.0)
+        let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
+        let dest = CGRect(x:0, y:0, width: extent.width, height: extent.height)
+        ciContext.draw(image, in:dest, from: from)
         display()
     }
     
@@ -142,15 +155,15 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
             rotation = 0.0
         }
         
+        var trans = CGAffineTransform(translationX: 0, y: 0)
+        
         if (rotation != 0)
         {
-            let half:CGFloat = CGFloat(inRect.width / 2.0)
-            var trans = CGAffineTransform(translationX: -half, y: -half)
             trans = trans.rotated(by: rotation)
-            //trans = trans.scaledBy(x: CGFloat(2.0), y: CGFloat(2.0))
-            trans = trans.translatedBy(x: half, y: half)
-            ret = ret.transformed(by: trans)
         }
+        
+        trans = trans.scaledBy(x: CGFloat(_zoom), y: CGFloat(_zoom))
+        ret = ret.transformed(by: trans)
         
         return ret
     }

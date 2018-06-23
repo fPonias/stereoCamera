@@ -97,28 +97,31 @@
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ezj-ej-J20">
                                 <rect key="frame" x="0.0" y="64" width="375" height="603"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="hoW-tp-0Lg">
-                                    <size key="itemSize" width="50" height="50"/>
+                                <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="hoW-tp-0Lg" customClass="GalleryGridLayout" customModule="stereoCamera" customModuleProvider="target">
+                                    <size key="itemSize" width="120" height="60"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
                                 <cells>
-                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="GalleryGridWidget" id="prn-np-gCV" customClass="GalleryGridWidget" customModule="stereoCamera" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                    <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="galleryGridWidget" id="prn-np-gCV" customClass="GalleryGridWidget" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO">
-                                            <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qeC-IT-SQR">
-                                                    <rect key="frame" x="-163" y="-277" width="375" height="603"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qeC-IT-SQR" userLabel="thumbnail">
+                                                    <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" relation="lessThanOrEqual" constant="120" id="ULz-bh-6IY"/>
+                                                        <constraint firstAttribute="width" secondItem="qeC-IT-SQR" secondAttribute="height" multiplier="2:1" id="ndH-he-b1I"/>
+                                                    </constraints>
                                                 </imageView>
                                             </subviews>
                                         </view>
                                         <connections>
-                                            <outlet property="foo" destination="qeC-IT-SQR" id="1zf-67-aom"/>
+                                            <outlet property="thumbnail" destination="qeC-IT-SQR" id="1zf-67-aom"/>
                                         </connections>
                                     </collectionViewCell>
                                 </cells>
@@ -135,11 +138,64 @@
                     </view>
                     <connections>
                         <outlet property="collectionView" destination="ezj-ej-J20" id="cEd-4e-Cl7"/>
+                        <segue destination="Ycq-Ts-lyG" kind="show" identifier="GalleryToPlayback" id="Vq8-Ge-Xqe"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nQX-M5-tkE" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1558" y="-1040"/>
+            <point key="canvasLocation" x="1557.5999999999999" y="-1040.3298350824589"/>
+        </scene>
+        <!--Gallery Playback Ctrl-->
+        <scene sceneID="EKP-yg-nWp">
+            <objects>
+                <viewController id="Ycq-Ts-lyG" customClass="GalleryPlaybackCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Kvb-hV-XfX">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="IZG-Ys-M2w" userLabel="image">
+                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="On7-8S-oez" userLabel="playBtn">
+                                <rect key="frame" x="319" y="611" width="36" height="36"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="36" id="d26-CF-uJF"/>
+                                    <constraint firstAttribute="width" constant="36" id="wjk-B3-Pu7"/>
+                                </constraints>
+                                <state key="normal" image="play_arrow"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                        <real key="value" value="8"/>
+                                    </userDefinedRuntimeAttribute>
+                                    <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                        <color key="value" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <action selector="playClicked:" destination="Ycq-Ts-lyG" eventType="primaryActionTriggered" id="D13-ay-9Xb"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="hRd-wz-FuD" firstAttribute="trailing" secondItem="IZG-Ys-M2w" secondAttribute="trailing" id="ZNd-o5-htT"/>
+                            <constraint firstItem="hRd-wz-FuD" firstAttribute="bottom" secondItem="On7-8S-oez" secondAttribute="bottom" constant="20" id="ZVT-QT-Jjb"/>
+                            <constraint firstItem="IZG-Ys-M2w" firstAttribute="top" secondItem="hRd-wz-FuD" secondAttribute="top" id="eYd-cC-dnA"/>
+                            <constraint firstItem="hRd-wz-FuD" firstAttribute="bottom" secondItem="IZG-Ys-M2w" secondAttribute="bottom" id="gHE-2f-faT"/>
+                            <constraint firstItem="IZG-Ys-M2w" firstAttribute="leading" secondItem="hRd-wz-FuD" secondAttribute="leading" id="yB7-cR-vK1"/>
+                            <constraint firstItem="hRd-wz-FuD" firstAttribute="trailing" secondItem="On7-8S-oez" secondAttribute="trailing" constant="20" id="yf5-QD-bwD"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="hRd-wz-FuD"/>
+                    </view>
+                    <connections>
+                        <outlet property="image" destination="IZG-Ys-M2w" id="76S-Kd-dF7"/>
+                        <outlet property="playBtn" destination="On7-8S-oez" id="adG-E1-CjQ"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="nXh-Wg-gpp" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2426" y="-1047"/>
         </scene>
         <!--Camera Master-->
         <scene sceneID="1HH-jI-vZd">
@@ -185,18 +241,39 @@
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7P6-Kh-k3i">
                                         <rect key="frame" x="0.0" y="375" width="375" height="228"/>
                                         <subviews>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7IW-x7-aDI" userLabel="galleryBtn">
-                                                <rect key="frame" x="10" y="188" width="46" height="30"/>
-                                                <state key="normal" title="Button"/>
+                                            <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7IW-x7-aDI" userLabel="galleryBtn">
+                                                <rect key="frame" x="10" y="158" width="120" height="60"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="120" id="7NA-l0-X6d"/>
+                                                    <constraint firstAttribute="width" secondItem="7IW-x7-aDI" secondAttribute="height" multiplier="2:1" id="cdJ-2O-M1w"/>
+                                                </constraints>
                                                 <connections>
                                                     <action selector="openGallery:" destination="QJ5-c1-r6R" eventType="primaryActionTriggered" id="dRb-nz-YPs"/>
                                                 </connections>
                                             </button>
+                                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="T66-ZK-jVr" userLabel="zoomSlider">
+                                                <rect key="frame" x="45" y="8" width="322" height="31"/>
+                                                <connections>
+                                                    <action selector="zoomChanged:" destination="QJ5-c1-r6R" eventType="valueChanged" id="JjD-QL-UjB"/>
+                                                </connections>
+                                            </slider>
+                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="zoom_icon" translatesAutoresizingMaskIntoConstraints="NO" id="Ohq-G1-xzL">
+                                                <rect key="frame" x="10" y="8" width="29" height="29"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="29" id="787-Qm-32K"/>
+                                                    <constraint firstAttribute="height" constant="29" id="gdM-N1-Xxc"/>
+                                                </constraints>
+                                            </imageView>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstItem="7IW-x7-aDI" firstAttribute="leading" secondItem="7P6-Kh-k3i" secondAttribute="leading" constant="10" id="9n8-W1-kPf"/>
                                             <constraint firstAttribute="bottom" secondItem="7IW-x7-aDI" secondAttribute="bottom" constant="10" id="Ik9-64-lh9"/>
+                                            <constraint firstAttribute="trailing" secondItem="T66-ZK-jVr" secondAttribute="trailing" constant="10" id="YSD-ee-bV1"/>
+                                            <constraint firstItem="Ohq-G1-xzL" firstAttribute="leading" secondItem="7P6-Kh-k3i" secondAttribute="leading" constant="10" id="gRa-06-sAq"/>
+                                            <constraint firstItem="T66-ZK-jVr" firstAttribute="top" secondItem="7P6-Kh-k3i" secondAttribute="top" constant="8" id="jh8-a7-tLC"/>
+                                            <constraint firstItem="Ohq-G1-xzL" firstAttribute="top" secondItem="7P6-Kh-k3i" secondAttribute="top" constant="8" id="nk2-eI-ahJ"/>
+                                            <constraint firstItem="T66-ZK-jVr" firstAttribute="leading" secondItem="Ohq-G1-xzL" secondAttribute="trailing" constant="8" id="z7Z-II-DNH"/>
                                         </constraints>
                                     </view>
                                 </subviews>
@@ -228,6 +305,7 @@
                         <outlet property="cameraPreview" destination="r4S-pM-IKa" id="SHb-e0-91L"/>
                         <outlet property="galleryBtn" destination="7IW-x7-aDI" id="vJ8-Ca-esX"/>
                         <outlet property="shutterBtn" destination="e4q-Qt-1HD" id="V8P-R0-MsO"/>
+                        <outlet property="zoomSlider" destination="T66-ZK-jVr" id="Q2g-Lb-gc0"/>
                         <segue destination="G98-3c-JEd" kind="show" identifier="MasterToGallery" id="cKU-4a-9aZ"/>
                     </connections>
                 </viewController>
@@ -255,7 +333,9 @@
         </scene>
     </scenes>
     <resources>
+        <image name="play_arrow" width="24" height="24"/>
         <image name="shutter_icon" width="24" height="24"/>
+        <image name="zoom_icon" width="24" height="24"/>
     </resources>
     <inferredMetricsTieBreakers>
         <segue reference="cKU-4a-9aZ"/>

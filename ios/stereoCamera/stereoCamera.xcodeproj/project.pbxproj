@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		7C2E237220DB0A380027A2F5 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2E237120DB0A380027A2F5 /* Files.swift */; };
+		7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */; };
+		7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */; };
 		7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD11420D0DA530010F6B1 /* AppDelegate.swift */; };
 		7C6CD11C20D0DA550010F6B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */; };
 		7C6CD11F20D0DA550010F6B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD11D20D0DA550010F6B1 /* LaunchScreen.storyboard */; };
@@ -255,6 +257,8 @@
 
 /* Begin PBXFileReference section */
 		7C2E237120DB0A380027A2F5 /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
+		7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridLayout.swift; sourceTree = "<group>"; };
+		7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryPlaybackCtrl.swift; sourceTree = "<group>"; };
 		7C6CD11120D0DA530010F6B1 /* stereoCamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = stereoCamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C6CD11420D0DA530010F6B1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -607,6 +611,7 @@
 				7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */,
 				7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */,
 				7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */,
+				7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -656,6 +661,7 @@
 				7CDC416F20D75C16005BE7A8 /* CameraPreview.swift */,
 				7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */,
 				7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */,
+				7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -1304,7 +1310,9 @@
 				7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */,
 				7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */,
 				7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */,
+				7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */,
 				7CDC417020D75C16005BE7A8 /* CameraPreview.swift in Sources */,
+				7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */,
 				7CDC416620D39DF6005BE7A8 /* CommandTypes.swift in Sources */,
 				7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */,
 				7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */,

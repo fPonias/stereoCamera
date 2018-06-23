@@ -1,29 +1,18 @@
 import UIKit
+import Photos
 
 class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource
 {
     @IBOutlet weak var collectionView: UICollectionView!
-    
-    private var dataDir = Files.getDataDir()
-    private var files = [URL]()
+    var files = [PHAsset]()
     
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
-        do
-        {
-            files = try FileManager.default.contentsOfDirectory(at: dataDir!, includingPropertiesForKeys: nil)
-        }
-        catch {
-            print("failed to get a listing of saved files")
-        }
-    }
-    
-    override func didReceiveMemoryWarning()
-    {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        files = Files.getGalleryFiles()
+        collectionView.dataSource = self
+        collectionView.delegate = self
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
@@ -38,20 +27,16 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         
         let cell2 = cell as! GalleryGridWidget
         
-        let file = files[indexPath.item]
         
-        do
-        {
-            let data = try Data(contentsOf: file)
-            let image = UIImage(data: data)
-            
-            if (image != nil)
-                { cell2.displayContent(image: image!) }
-        }
-        catch{
-            print ("failed to load image at " + file.path)
-        }
-        
+        let file:PHAsset = files[indexPath.item]
+        let image:UIImage = Files.assetToImage(file, asThumbnail: true)
+        cell2.displayContent(image: image)
+
         return cell2
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
+    {
+        performSegue(withIdentifier: "GalleryToPlayback", sender: indexPath)
     }
 }
