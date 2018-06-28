@@ -67,7 +67,20 @@ class CommandFactory
         {
         case CommandTypes.PING:
             return Ping()
+        case CommandTypes.HANDSHAKE:
+            return Handshake()
+        case CommandTypes.SEND_VERSION:
+            return Version()
+        case CommandTypes.RECEIVE_STATUS:
+            return SendStatus()
+        case CommandTypes.SET_FACING:
+            return SetFacing()
+        case CommandTypes.SET_OVERLAY:
+            return SetOverlay()
+        case CommandTypes.FIRE_SHUTTER:
+            return FireShutter()
         default:
+            print("CommandFactory unable to construct command of type " + type.description)
             return DefaultCommand()
         }
     }

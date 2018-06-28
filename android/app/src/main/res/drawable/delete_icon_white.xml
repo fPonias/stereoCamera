@@ -1,2 +1,22 @@
-outurl	URL?	"file:///Users/hallmarklabs/Library/Developer/CoreSimulator/Devices/A0901658-CBAB-4F2B-AB30-7D4B535A068E/data/Containers/Data/Application/C7EE659E-7A55-4F2F-B9DE-23059A7731D6/Library/Caches/3683729718"	some
-path	const unsigned char *	"/Users/hallmarklabs/Library/Developer/CoreSimulator/Devices/A0901658-CBAB-4F2B-AB30-7D4B535A068E/data/Containers/Data/Application/C7EE659E-7A55-4F2F-B9DE-23059A7731D6/Library/Caches/3683729718"	0x00006040001975c0
+06-27 15:49:24.174 19944 20446 D ADMMessageHandler: Recieved a message from ADM: Intent { act=com.amazon.device.messaging.intent.RECEIVE cat=[com.feeln.androidapp] flg=0x10 pkg=com.feeln.androidapp cmp=com.feeln.androidapp/com.feeln.android.tv.aws.AmazonADMService (has extras) }
+06-27 15:49:24.214 19944 20446 D ADMMessageHandler: onMessage: msg{"directive":{"header":{"namespace":"Alexa.SeekController","name":"AdjustSeekPosition","payloadVersion":"3","messageId":"6ad6b1d6-e3e1-4ac0-b2a5-f7dec4714d93","correlationToken":"AAAAAAAAAACdCbUdJqNbzHHUZ1YyvKfjDAIAAAAAAADgXInbK/8ElzZ994cT4FvU/qjQ6bziMEZYIAkgnd6RsS67KodyGtJ9VIoP9mNhOgn67K1UBLX9U69FRf7WIRHkcLyiLxyaA3hlx/S35D6/7AzW2GN/+tBfK6rVDK/DQsFMavKcNks5B0ld3+iHCf9DfM/cIW2lCuSOOAIASLcbrz7nPDBtU7ws2lLwQoK0wbmtQkTGWgmQ8M/urBXqePcLSxgZSYTaQcdtyk4mirdvubEOO8vAJXkSS4lSQHdEdaEEp5TdO5c1sDqdkt5GQvrT4+pqbq+I7rh2oYRys/jYHOzWgSbpJDrjoZ0GdJUxB8FkiwzqDsrTPVyq71NGwEw/mF2DbSuoEZjAbaX0lRBgOc3NYJK7SagzNuuD42/OR4WMZDjez+3gPBx3RsuHnTF5rYcSuEHPggVNZ7Wf5Tgl5SAWDenMx3RfPt28jBE5ilGPVJ03hOABweDz65gqY2dha1c/pFiNKoOGLaqZZsa5HAiRFioQnEvWYzK+lWdREX0cOlM7MMAznlpTVohfmbu0CB9IY0pWwb1jJtXeOSER5++e1JMS92wPX/iz731JUgV5xMoHw0USoldHa8bCqKiX6tDOtsOJrd2tlRUjNRjoT2iDN5cjHTYjiwibTfKDb21A9FqV5scMk0A3yXc6p3pvsQ5/EeL+ATAzay1Y/HJ6HtTpUBaa2sI5jYTceA=="},"endpoint":{"scope":{"type":"BearerToken"},"endpointId":"84601fe5679cea66##amzn1-ask-skill-bf30ad76-975a-40a8-86aa-d362821f4b39##live##com-feeln-androidapp","cookie":{"deviceType":"A3HF4YRA2L7XGC","VSKClientVersion":"1.1.0","appName":"Hallmark","appPackageName":"com.feeln.androidapp","deviceId":"G090P009814705HK","applicationInstanceId":"amzn1.adm-registration.v3.Y29tLmFtYXpvbi5EZXZpY2VNZXNzYWdpbmcuUmVnaXN0cmF0aW9uSWRFbmNyeXB0aW9uS2V5ITEhWTRMbTBzcGYwMnRUMEhvZTA1Skx1UnlGK3hpMFhsMlY3U0xnSzhGQVpFaVNOVjZUVXBJUzYwOXVCZ1p4dExVSzFBNjNlTGUwRVNEVHZsN1pEa3pyOHR3eVNPL3JUdFFOL3BnbThDbzNSTXdMazV2Sk04UjI2cEFDemFtdXM4aERORUFVTFhKV0JxT0p4bmhRd1JBSWtFWnhMNGw1dUlrRWVQdU5FU3Ywa2k3cDhjY1NrYjZqcC9RSzVmMEtubFNCVzUxV0NSYnNWOEt4eTh1elgwdk13blo5c1oyZkdDcmZxT2lYT2FIN3JrR2I2S1U3aWllNkliVXRnNmlnMjg3Si9VTXNjQnQvMVovL0xzRWlJQ2s0N2wrYnU0WlBBa2tDVXlnSkxHbDJjZU5VQU4xN0lBZk1EOGZkTjF4ZStRM0N3VFl2Q3pzZjg4S2d2azN0NWluUC9RPT0haU5ueC92ZituOGtzMEh2SzJUaEFodz09"}},"payload":{"deltaPositionMilliseconds":600000}}}
+06-27 15:49:24.244 19944 20346 I MediaCodecLogger: Flushing: com.feeln.androidapp.secure.HW.video.avc.framerate = 24.180 fps
+06-27 15:49:24.451 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc.framerate = 0.000 fps
+06-27 15:49:25.580  4167  7954 D Vizzini:MediaSessionLib.MediaSessionControllerStateMgr: com.feeln.androidapp has permission: false
+06-27 15:49:25.701 19944 20363 I MediaCodecLogger: com.feeln.androidapp.secure.SW.audio.mp4a.bitrateInKbps = 75
+06-27 15:49:26.003 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc.bitrateInKbps = 6951
+06-27 15:49:29.266 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc Resolution change from 1280x720 to 1920x1080 took = 1
+06-27 15:49:30.717 19944 20363 I MediaCodecLogger: com.feeln.androidapp.secure.SW.audio.mp4a.bitrateInKbps = 125
+06-27 15:49:31.105 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc.bitrateInKbps = 7130
+06-27 15:49:34.423  5968  5968 D RecentRefreshManager: Recent App Package was: com.feeln.androidapp
+06-27 15:49:35.775 19944 20363 I MediaCodecLogger: com.feeln.androidapp.secure.SW.audio.mp4a.bitrateInKbps = 126
+06-27 15:49:36.183 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc.bitrateInKbps = 6895
+06-27 15:49:40.805 19944 20363 I MediaCodecLogger: com.feeln.androidapp.secure.SW.audio.mp4a.bitrateInKbps = 126
+06-27 15:49:41.282 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc.bitrateInKbps = 5916
+06-27 15:49:45.819 19944 20363 I MediaCodecLogger: com.feeln.androidapp.secure.SW.audio.mp4a.bitrateInKbps = 126
+06-27 15:49:46.313 19944 20366 I MediaCodecLogger: com.feeln.androidapp.secure.HW.video.avc.bitrateInKbps = 5894
+
+
+
+am startservice  -a test -n com.feeln.androidapp/com.feeln.android.tv.aws.AmazonADMService -e message test -e key <command>
+

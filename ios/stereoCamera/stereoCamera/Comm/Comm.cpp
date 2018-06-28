@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <netinet/ip.h>
+#include <unistd.h>
 
 void CommCpp::startServer(unsigned int port)
 {
@@ -97,22 +98,25 @@ struct in_addr CommCpp::stringToAddr(const char* address)
             
             idx = 0;
             count++;
-            }
-            }
+        }
+    }
             
-            struct in_addr retStr;
-            retStr.s_addr = ret;
-            return retStr;
-            }
+    struct in_addr retStr;
+    retStr.s_addr = ret;
+    return retStr;
+}
 
 void CommCpp::cleanUp()
-{
-    if (!isConnected())
-        return;
-    
+{    
     if (serverSocket > 0)
     {
         shutdown(serverSocket, SHUT_RDWR);
+        close(serverSocket);
+    }
+    
+    if (clientSocket > 0)
+    {
+        close(clientSocket);
     }
     
     clientSocket = 0;

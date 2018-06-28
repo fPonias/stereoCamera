@@ -18,47 +18,40 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="center" axis="vertical" distribution="equalCentering" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="eNC-Z9-lVi">
-                                <rect key="frame" x="97.5" y="246" width="180" height="175"/>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="m9d-iQ-OlL">
+                                <rect key="frame" x="10" y="164" width="355" height="174.5"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Restore Connection" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Oap-R2-FFT">
-                                        <rect key="frame" x="14.5" y="0.0" width="151" height="20.5"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="IP Address" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iQZ-xh-Rj0">
+                                        <rect key="frame" x="0.0" y="0.0" width="355" height="20.5"/>
                                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UcI-kI-oSl">
-                                        <rect key="frame" x="0.0" y="25" width="180" height="30"/>
-                                        <state key="normal" title="Connect to last secondary"/>
+                                    <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1vn-Zk-ARA">
+                                        <rect key="frame" x="0.0" y="28.5" width="355" height="30"/>
+                                        <state key="normal" title="Listen to secondary"/>
                                         <connections>
-                                            <action selector="evt_primaryReconnect:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="gVf-bt-FSS"/>
+                                            <action selector="listenSecondaryAction:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="9CQ-wr-oNc"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ez6-TF-0V6">
-                                        <rect key="frame" x="15.5" y="55" width="149" height="30"/>
-                                        <state key="normal" title="Listen for last primary"/>
-                                        <connections>
-                                            <action selector="evt_secondaryReconnect:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="tmL-6b-mYB"/>
-                                        </connections>
-                                    </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="New Connection" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ydj-sW-ov2">
-                                        <rect key="frame" x="26.5" y="90" width="127" height="20.5"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ITd-7Z-QsK">
+                                        <rect key="frame" x="0.0" y="66.5" width="355" height="32"/>
+                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="32" id="LeG-aN-B2O"/>
+                                        </constraints>
+                                    </view>
+                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Primary IP Address" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Mj7-Bh-as7">
+                                        <rect key="frame" x="0.0" y="106.5" width="355" height="30"/>
                                         <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JDA-br-lzK">
-                                        <rect key="frame" x="6" y="115" width="168" height="30"/>
-                                        <state key="normal" title="Discover new secondary"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                        <textInputTraits key="textInputTraits"/>
+                                    </textField>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jVD-WB-Sxc">
+                                        <rect key="frame" x="0.0" y="144.5" width="355" height="30"/>
+                                        <state key="normal" title="Connect to primary"/>
                                         <connections>
-                                            <action selector="evt_primaryDiscover:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="DBI-OP-1aT"/>
-                                        </connections>
-                                    </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Kdc-Hd-wm5">
-                                        <rect key="frame" x="7.5" y="145" width="165" height="30"/>
-                                        <state key="normal" title="Connect to new primary"/>
-                                        <connections>
-                                            <action selector="evt_secondaryDiscover:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="l7n-OD-O4A"/>
+                                            <action selector="connectPrimaryAction:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="jOZ-r0-9Sv"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -66,25 +59,103 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="eNC-Z9-lVi" firstAttribute="centerY" secondItem="lH3-ng-oU9" secondAttribute="centerY" id="V3n-TN-TDD"/>
-                            <constraint firstItem="eNC-Z9-lVi" firstAttribute="centerX" secondItem="lH3-ng-oU9" secondAttribute="centerX" id="toU-lW-W2C"/>
+                            <constraint firstItem="m9d-iQ-OlL" firstAttribute="leading" secondItem="ltB-uT-iuc" secondAttribute="leading" constant="10" id="0BF-KA-mLM"/>
+                            <constraint firstItem="ltB-uT-iuc" firstAttribute="trailing" secondItem="m9d-iQ-OlL" secondAttribute="trailing" constant="10" id="Krs-CI-NAr"/>
+                            <constraint firstItem="m9d-iQ-OlL" firstAttribute="top" secondItem="ltB-uT-iuc" secondAttribute="top" constant="100" id="RN8-d3-Cly"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="ltB-uT-iuc"/>
                     </view>
                     <navigationItem key="navigationItem" id="apG-eA-Dz3"/>
                     <connections>
-                        <outlet property="btn_primaryDiscover" destination="JDA-br-lzK" id="IUc-cF-bud"/>
-                        <outlet property="btn_primaryReconnect" destination="UcI-kI-oSl" id="P5O-3l-YHy"/>
-                        <outlet property="btn_secondaryDiscover" destination="Kdc-Hd-wm5" id="XNM-jv-ZoI"/>
-                        <outlet property="btn_secondaryReconnect" destination="ez6-TF-0V6" id="NWs-uE-eqI"/>
-                        <outlet property="lbl_reconnect" destination="Oap-R2-FFT" id="I2s-RJ-Hpk"/>
+                        <outlet property="connectPrimaryBtn" destination="jVD-WB-Sxc" id="chF-y7-2xe"/>
+                        <outlet property="connectPrimaryInput" destination="Mj7-Bh-as7" id="NSs-5L-Bah"/>
+                        <outlet property="connectSecondaryBtn" destination="1vn-Zk-ARA" id="qug-zy-k33"/>
+                        <outlet property="layout" destination="m9d-iQ-OlL" id="nZp-yF-9Nu"/>
                         <segue destination="QJ5-c1-r6R" kind="show" identifier="CameraMasterSegue" id="43O-CY-JsG"/>
                         <segue destination="G98-3c-JEd" kind="show" identifier="ConnectToGallery" id="l82-AT-lYU"/>
+                        <segue destination="TDn-Nd-bkU" kind="show" identifier="ConnectToSlave" id="qpg-bF-fmj"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="h9q-VP-cZL" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="968.79999999999995" y="39.130434782608695"/>
+        </scene>
+        <!--Camera Slave Ctrl-->
+        <scene sceneID="8Qt-Qj-rC3">
+            <objects>
+                <viewController id="TDn-Nd-bkU" customClass="CameraSlaveCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="NNq-Fc-sEr">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <glkView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" enableSetNeedsDisplay="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cJH-Sk-Po2" customClass="CameraPreview" customModule="stereoCamera" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="64" width="375" height="375"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="cJH-Sk-Po2" secondAttribute="height" multiplier="1:1" id="hL1-Om-vgw"/>
+                                </constraints>
+                            </glkView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WOS-9s-Tb8">
+                                <rect key="frame" x="0.0" y="439" width="375" height="228"/>
+                                <subviews>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EcM-WB-PYu" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="10" y="158" width="120" height="60"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="120" id="1K8-Sq-awR"/>
+                                            <constraint firstAttribute="width" secondItem="EcM-WB-PYu" secondAttribute="height" multiplier="2:1" id="7c6-DO-8uH"/>
+                                        </constraints>
+                                        <connections>
+                                            <action selector="openGallery:" destination="TDn-Nd-bkU" eventType="primaryActionTriggered" id="9UO-Cb-Zua"/>
+                                        </connections>
+                                    </button>
+                                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="zoom_icon" translatesAutoresizingMaskIntoConstraints="NO" id="IG3-Fu-sU6">
+                                        <rect key="frame" x="10" y="10" width="29" height="29"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="29" id="493-xp-XYI"/>
+                                            <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="29" id="5MK-Xs-maP"/>
+                                            <constraint firstAttribute="height" constant="29" id="AWd-nr-kOL"/>
+                                            <constraint firstAttribute="width" constant="29" id="tIg-YG-MOa"/>
+                                        </constraints>
+                                    </imageView>
+                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="QHY-Ve-ywX" userLabel="zoomSlider">
+                                        <rect key="frame" x="45" y="10" width="322" height="31"/>
+                                        <connections>
+                                            <action selector="zoomChanged:" destination="TDn-Nd-bkU" eventType="valueChanged" id="0nK-vG-AiS"/>
+                                        </connections>
+                                    </slider>
+                                </subviews>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstItem="IG3-Fu-sU6" firstAttribute="top" secondItem="WOS-9s-Tb8" secondAttribute="top" constant="10" id="MDA-0s-csE"/>
+                                    <constraint firstAttribute="trailing" secondItem="QHY-Ve-ywX" secondAttribute="trailing" constant="10" id="Que-XQ-5zO"/>
+                                    <constraint firstItem="EcM-WB-PYu" firstAttribute="leading" secondItem="WOS-9s-Tb8" secondAttribute="leading" constant="10" id="X25-E6-Bre"/>
+                                    <constraint firstAttribute="bottom" secondItem="EcM-WB-PYu" secondAttribute="bottom" constant="10" id="agX-ky-kUJ"/>
+                                    <constraint firstItem="IG3-Fu-sU6" firstAttribute="leading" secondItem="WOS-9s-Tb8" secondAttribute="leading" constant="10" id="bav-Z8-ofj"/>
+                                    <constraint firstItem="QHY-Ve-ywX" firstAttribute="leading" secondItem="IG3-Fu-sU6" secondAttribute="trailing" constant="8" id="tes-fw-ZYe"/>
+                                    <constraint firstItem="QHY-Ve-ywX" firstAttribute="top" secondItem="WOS-9s-Tb8" secondAttribute="top" constant="10" id="wgP-eZ-yap"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="KkN-Hk-B3i" firstAttribute="trailing" secondItem="cJH-Sk-Po2" secondAttribute="trailing" id="Bqv-eA-5sa"/>
+                            <constraint firstItem="WOS-9s-Tb8" firstAttribute="top" secondItem="cJH-Sk-Po2" secondAttribute="bottom" id="EZ2-0e-ICf"/>
+                            <constraint firstItem="WOS-9s-Tb8" firstAttribute="leading" secondItem="KkN-Hk-B3i" secondAttribute="leading" id="NQC-YU-5nU"/>
+                            <constraint firstItem="KkN-Hk-B3i" firstAttribute="bottom" secondItem="WOS-9s-Tb8" secondAttribute="bottom" id="QMH-3f-8Dd"/>
+                            <constraint firstItem="KkN-Hk-B3i" firstAttribute="trailing" secondItem="WOS-9s-Tb8" secondAttribute="trailing" id="UXG-oE-coR"/>
+                            <constraint firstItem="cJH-Sk-Po2" firstAttribute="leading" secondItem="KkN-Hk-B3i" secondAttribute="leading" id="aTo-KT-4wt"/>
+                            <constraint firstItem="cJH-Sk-Po2" firstAttribute="top" secondItem="KkN-Hk-B3i" secondAttribute="top" id="cPC-8Q-epH"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="KkN-Hk-B3i"/>
+                    </view>
+                    <connections>
+                        <outlet property="_cameraPreview" destination="cJH-Sk-Po2" id="tHw-Wu-b8Q"/>
+                        <outlet property="_zoomSlider" destination="QHY-Ve-ywX" id="B31-gf-22U"/>
+                        <segue destination="G98-3c-JEd" kind="show" identifier="SlaveToGallery" id="mFp-SI-y5w"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="BOn-Yc-Bfz" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2076" y="-759"/>
         </scene>
         <!--Gallery Grid Ctrl-->
         <scene sceneID="rRY-mw-Lat">
@@ -143,7 +214,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nQX-M5-tkE" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1557.5999999999999" y="-1040.3298350824589"/>
+            <point key="canvasLocation" x="3281" y="-487"/>
         </scene>
         <!--Gallery Playback Ctrl-->
         <scene sceneID="EKP-yg-nWp">
@@ -195,7 +266,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nXh-Wg-gpp" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2426" y="-1047"/>
+            <point key="canvasLocation" x="4134" y="-487"/>
         </scene>
         <!--Camera Master-->
         <scene sceneID="1HH-jI-vZd">
@@ -241,7 +312,7 @@
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7P6-Kh-k3i">
                                         <rect key="frame" x="0.0" y="375" width="375" height="228"/>
                                         <subviews>
-                                            <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7IW-x7-aDI" userLabel="galleryBtn">
+                                            <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7IW-x7-aDI" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
                                                 <rect key="frame" x="10" y="158" width="120" height="60"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="120" id="7NA-l0-X6d"/>
@@ -302,16 +373,16 @@
                         <viewLayoutGuide key="safeArea" id="fqx-Wf-spF"/>
                     </view>
                     <connections>
-                        <outlet property="cameraPreview" destination="r4S-pM-IKa" id="SHb-e0-91L"/>
+                        <outlet property="_cameraPreview" destination="r4S-pM-IKa" id="SHb-e0-91L"/>
+                        <outlet property="_zoomSlider" destination="T66-ZK-jVr" id="Q2g-Lb-gc0"/>
                         <outlet property="galleryBtn" destination="7IW-x7-aDI" id="vJ8-Ca-esX"/>
                         <outlet property="shutterBtn" destination="e4q-Qt-1HD" id="V8P-R0-MsO"/>
-                        <outlet property="zoomSlider" destination="T66-ZK-jVr" id="Q2g-Lb-gc0"/>
                         <segue destination="G98-3c-JEd" kind="show" identifier="MasterToGallery" id="cKU-4a-9aZ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RhW-i4-iEM" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2287.1999999999998" y="38.23088455772114"/>
+            <point key="canvasLocation" x="2105" y="39"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="PGx-G9-l5P">
@@ -338,6 +409,6 @@
         <image name="zoom_icon" width="24" height="24"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="cKU-4a-9aZ"/>
+        <segue reference="mFp-SI-y5w"/>
     </inferredMetricsTieBreakers>
 </document>

@@ -14,42 +14,151 @@ class Comm
     
     deinit
     {
-        commandReceiverIsRunning = false;
+        if (commandReceiverIsRunning)
+        {
+            commandsReceivedCnd.lock()
+                commandReceiverIsRunning = false;
+                commandsReceivedCnd.signal()
+            commandsReceivedCnd.unlock()
+        }
         
         if(commandSenderIsRunning)
         {
             commandSenderCondition.lock()
-            commandSenderIsRunning = false
-            commandSenderCondition.signal()
+                commandSenderIsRunning = false
+                commandSenderCondition.signal()
             commandSenderCondition.unlock()
         }
         
         commCleanUp(cppPtr)
+        cppPtr = commNew()
     }
     
-    func connect(onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void)
+    var _isMaster:Bool = false
+    var isMaster:Bool
     {
-        DispatchQueue.global(qos: .userInitiated).async
+        get
         {
-            if (CommManager.instance.isMaster)
-                { commStartServer(self.cppPtr, CommManager.PORT) }
-            else
-                { commStartClient(self.cppPtr, CommManager.instance.masterAddresses[0], CommManager.PORT) }
-            
-            if (commIsConnected(self.cppPtr) > 0)
-            {
-                print("comm connected starting sender and receiver")
-                self.startCommandSender()
-                self.startCommandReceiver()
-                
-                usleep(250000)
-                
-                print("comm connected")
-                connected()
-            }
-            else
-                { fail() }
+            return _isMaster
         }
+    }
+    
+    var _address:String = ""
+    var address:String
+    {
+        get
+        {
+            return _address
+        }
+    }
+    
+    private let connectCnd = NSCondition()
+    private var isConnecting = false;
+    
+    func disconnect()
+    {
+        connectCnd.lock()
+            if (isConnecting || commIsConnected(self.cppPtr) != 0)
+            {
+                print("disconnecting")
+                
+                commCleanUp(self.cppPtr)
+                self.cppPtr = commNew()
+
+                self.isConnecting = false
+                
+                connectCnd.signal()
+            }
+        connectCnd.unlock()
+    }
+    
+    func connect(onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
+    {
+        let guess = CommManager.instance.guessAddress()
+        connect(master: guess.isMaster, address: guess.address, onConnected: connected, onFail: fail, timeout: timeout)
+    }
+    
+    func connect(master:Bool, address:String, onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
+    {
+        var doReturn = false
+        connectCnd.lock()
+            if (isConnecting || commIsConnected(self.cppPtr) > 0)
+                { doReturn = true }
+            else
+                { isConnecting = true }
+        connectCnd.unlock()
+        
+        if (doReturn)
+            { return }
+        
+        _isMaster = master
+        _address = address
+        
+        DispatchQueue.global(qos: .userInitiated).async
+        { [unowned self] in
+            self.connectThread(master: master, address: address, onConnected: connected, onFail: fail)
+        }
+        
+        DispatchQueue.global(qos: .userInitiated).async
+        { [unowned self] in
+            self.connectCnd.lock()
+                self.connectCnd.wait(until: Date(timeIntervalSinceNow: timeout))
+            
+                if (commIsConnected(self.cppPtr) == 0)
+                {
+                    print("connect timed out")
+                    
+                    commCleanUp(self.cppPtr)
+                    self.cppPtr = commNew()
+                    
+                    self.isConnecting = false
+                }
+            self.connectCnd.unlock()
+        }
+    }
+    
+    func connectThread(master:Bool, address:String, onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void)
+    {
+        if (master)
+            { commStartServer(cppPtr, CommManager.PORT) }
+        else
+            { commStartClient(cppPtr, address, CommManager.PORT) }
+        
+        var doReturn = false
+        connectCnd.lock()
+            if (!isConnecting || commIsConnected(cppPtr) == 0)
+                { doReturn = true }
+            else
+            {
+                isConnecting = false
+                connectCnd.signal()
+            }
+        connectCnd.unlock()
+        
+        if (doReturn)
+        {
+            print("connect failed")
+            fail()
+            return
+        }
+        
+        print("comm connected starting sender and receiver")
+        startCommandSender()
+        startCommandReceiver()
+        
+        while (!self.commandReceiverIsRunning && !self.commandSenderIsRunning)
+            { usleep(100000) }
+        
+        print("comm connected")
+        connected()
+    }
+    
+    func read(buffer:[UInt8]) -> Int32
+    {
+        let bufPtr = UnsafeMutablePointer<UInt8>(mutating: buffer)
+        let szRead = commRead(cppPtr, bufPtr, Int32(buffer.count))
+        
+        return szRead
     }
     
     func read(sz:Int) -> ([UInt8], Int32)
@@ -71,6 +180,8 @@ class Comm
     }
     
     private var commandReceiverIsRunning:Bool = false
+    private let commandsReceivedCnd = NSCondition()
+    private var commandsReceivedQueue = [Command]()
     
     func startCommandReceiver()
     {
@@ -78,58 +189,102 @@ class Comm
         {return}
         
         DispatchQueue.global(qos: .background).async
-        {
+        { [unowned self] in
             if (self.commandReceiverIsRunning)
                 {return}
             
             print("starting command receiver")
             self.commandReceiverIsRunning = true
+            
+            self.startCommandsReceivedProcessor()
+            
             let buffer = [UInt8].init(repeating: 0, count: 1)
-            let bufferPtr = UnsafeMutablePointer<UInt8>(mutating: buffer)
             
             while(self.commandReceiverIsRunning)
             {
-                let sz = commRead(self.cppPtr, bufferPtr, 1)
-                
-                if (sz != 1 || !self.commandReceiverIsRunning)
-                {
-                    self.commandReceiverIsRunning = false
-                    return
-                }
-                
-                let cmdType = CommandTypes(rawValue: Int(buffer[0]))
-                print("read command type " + String(buffer[0]))
-                
-                if (cmdType == nil)
-                {
-                    self.commandReceiverIsRunning = false
-                    return
-                }
-                
-                let cmd = CommandFactory.build(type: cmdType!)
-                
-                if (cmd.cmdtype != CommandTypes.NONE)
-                {
-                    print("received command " + cmd.cmdtype.description)
-                    cmd.receive(comm: self)
-                    
-                    DispatchQueue.global(qos: .userInitiated).async
-                    {
-                        for listener: CommandListener? in self.commandListeners
-                        {
-                            listener?(cmd)
-                        }
-                        
-                        let idx:String = self.getCommandIndex(cmd)
-                        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
-                        if (str != nil)
-                        {
-                            str?.command.onResponse(command: cmd)
-                            str?.listener(str?.command, cmd)
-                        }
-                    }
-                }
+                self.receiveCommand(buffer: buffer)
             }
+        }
+    }
+    
+    private func receiveCommand(buffer:[UInt8])
+    {
+        let bufferPtr = UnsafeMutablePointer<UInt8>(mutating: buffer)
+        let sz = commRead(self.cppPtr, bufferPtr, 1)
+        
+        if (sz != 1 || !self.commandReceiverIsRunning)
+        {
+            self.commandReceiverIsRunning = false
+            return
+        }
+
+        let cmdType = CommandTypes(rawValue: Int(buffer[0]))
+        print("read command type " + String(buffer[0]))
+
+        if (cmdType == nil)
+        {
+            self.commandReceiverIsRunning = false
+            return
+        }
+
+        let cmd = CommandFactory.build(type: cmdType!)
+
+        if (cmd.cmdtype != CommandTypes.NONE)
+        {
+            cmd.receive(comm: self)
+            
+            print("receive: enqueueing command " + cmd.cmdtype.description)
+            self.commandsReceivedCnd.lock()
+                self.commandsReceivedQueue.append(cmd)
+                self.commandsReceivedCnd.signal()
+            self.commandsReceivedCnd.unlock()
+        }
+    }
+    
+    private func startCommandsReceivedProcessor()
+    {
+        DispatchQueue.global(qos: .userInitiated).async
+        {  [unowned self] in
+            while (self.commandReceiverIsRunning)
+            {
+                self.processReceivedCommand()
+            }
+        }
+    }
+    
+    private func processReceivedCommand()
+    {
+        var cmd:Command? = nil
+        
+        self.commandsReceivedCnd.lock()
+            if (self.commandsReceivedQueue.count == 0 || self.commandListener == nil)
+            {
+                print ("commands received processor waiting")
+                self.commandsReceivedCnd.wait()
+            }
+
+            if (self.commandsReceivedQueue.count > 0)
+            {
+                cmd = self.commandsReceivedQueue.first
+                
+                if (cmd!.isResponse || self.commandListener != nil)
+                    { cmd = self.commandsReceivedQueue.removeFirst() }
+            }
+        self.commandsReceivedCnd.unlock()
+
+        if (!self.commandReceiverIsRunning || cmd == nil)
+            { return }
+
+        print ("handling command " + cmd!.cmdtype.description)
+        
+        self.commandListener?.onCommand(cmd!)
+
+        let idx:String = self.getCommandIndex(cmd!)
+        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+        if (str != nil)
+        {
+            str?.command.onResponse(command: cmd!)
+            str?.listener(str?.command, cmd!)
         }
     }
     
@@ -137,11 +292,26 @@ class Comm
     private var commandSenderIsRunning:Bool = false
     private var commandQueue = [Command]()
     private var commandResponseListeners = [String: CommandResponseListenerStr]()
-    private var commandListeners = [CommandListener?]()
+    private weak var _commandListener:CommandListener? = nil
     
-    func addCommandListener(weak listener:@escaping CommandListener)
+    var commandListener:CommandListener?
     {
-        commandListeners.append(listener)
+        get { return _commandListener }
+        
+        set
+        {
+            self.commandsReceivedCnd.lock()
+                _commandListener = newValue
+            
+                if (_commandListener != nil)
+                {
+                    print("command listener set")
+                    self.commandsReceivedCnd.signal()
+                }
+                else
+                    { print ("command listener unset" )}
+            self.commandsReceivedCnd.unlock()
+        }
     }
     
     private func getCommandIndex(_ command:Command) -> String
@@ -159,14 +329,11 @@ class Comm
             index: idx, command: command, listener: listener
         )
         
-        print("command send lock: acquiring")
         commandSenderCondition.lock()
-            print("command send lock: acquiured")
             commandQueue.append(command)
-            print("enqueued command: " + command.cmdtype.description)
+            print("send: enqueueing command: " + command.cmdtype.description)
             commandSenderCondition.signal()
         commandSenderCondition.unlock()
-        print("command send lock: released")
     }
     
     func startCommandSender()
@@ -175,45 +342,50 @@ class Comm
         { return }
         
         DispatchQueue.global(qos:.userInitiated).async
-        {
+        { [unowned self] in
             if (self.commandSenderIsRunning)
                 { return }
             
-            self.commandQueue = [Command]()
             self.commandSenderIsRunning = true
             
             print("command sender: started")
             while (self.commandSenderIsRunning)
             {
-                var nextCommand:Command? = nil
-                print("command sender lock: acquiring")
-                self.commandSenderCondition.lock()
-                
-                    print("command sender lock: acquired")
-                    if (self.commandQueue.count == 0)
-                    {
-                        print("command sender lock: waiting")
-                        self.commandSenderCondition.wait()
-                        print("command sender lock: signal received")
-                    }
-                
-                    if (self.commandSenderIsRunning && self.commandQueue.count > 0)
-                        { nextCommand = self.commandQueue.remove(at:0) }
-                
-                self.commandSenderCondition.unlock()
-                print("command sender lock: released")
-                
-                if (nextCommand != nil)
-                {
-                    print("command sender: sending command " + nextCommand!.cmdtype.description)
-                    nextCommand?.send(comm: self)
-                }
+                self.sendCommand()
             }
+        }
+    }
+    
+    private func sendCommand()
+    {
+        var nextCommand:Command? = nil
+        self.commandSenderCondition.lock()
+
+            if (self.commandQueue.count == 0)
+            {
+                print("command sender lock: waiting")
+                self.commandSenderCondition.wait()
+                print("command sender lock: signal received")
+            }
+
+            if (self.commandSenderIsRunning && self.commandQueue.count > 0)
+                { nextCommand = self.commandQueue.remove(at:0) }
+
+        self.commandSenderCondition.unlock()
+
+        if (nextCommand != nil)
+        {
+            print("command sender: sending command " + nextCommand!.cmdtype.description)
+            nextCommand?.send(comm: self)
         }
     }
 }
 
-typealias CommandListener = (_ command:Command) -> Void
+protocol CommandListener: class
+{
+    func onCommand(_ command:Command) -> Void
+}
+
 typealias CommandResponseListener = (_ origCmd: Command?, _ respCmd: Command) -> Void
 
 struct CommandResponseListenerStr

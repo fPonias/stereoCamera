@@ -16,6 +16,18 @@
 		7C6CD12B20D1B1A70010F6B1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD12A20D1B1A70010F6B1 /* Main.storyboard */; };
 		7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */; };
 		7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD13B20D2223B0010F6B1 /* CommManager.swift */; };
+		7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */; };
+		7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */; };
+		7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */; };
+		7CC66B7620E0BC5800AF811B /* MasterShake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7520E0BC5800AF811B /* MasterShake.swift */; };
+		7CCB728620E1B137000BE923 /* Handshake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728520E1B137000BE923 /* Handshake.swift */; };
+		7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728720E20CFA000BE923 /* SendStatus.swift */; };
+		7CCB728C20E2137F000BE923 /* SlaveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728B20E2137F000BE923 /* SlaveState.swift */; };
+		7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728D20E2A412000BE923 /* Listeners.swift */; };
+		7CCB729020E2F2C0000BE923 /* Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728F20E2F2C0000BE923 /* Version.swift */; };
+		7CCB729220E36EA8000BE923 /* SetFacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729120E36EA8000BE923 /* SetFacing.swift */; };
+		7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729320E374C4000BE923 /* SetOverlay.swift */; };
+		7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729520E3ECFA000BE923 /* FireShutter.swift */; };
 		7CDC415F20D39458005BE7A8 /* Comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC415D20D39458005BE7A8 /* Comm.cpp */; };
 		7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416020D397C4005BE7A8 /* Comm.swift */; };
 		7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416320D39DD3005BE7A8 /* Ping.swift */; };
@@ -269,6 +281,18 @@
 		7C6CD13A20D1C2870010F6B1 /* stereoCamera.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = stereoCamera.entitlements; sourceTree = "<group>"; };
 		7C6CD13B20D2223B0010F6B1 /* CommManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommManager.swift; sourceTree = "<group>"; };
 		7C6CD13F20D247520010F6B1 /* stereoCamera-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "stereoCamera-Bridging-Header.h"; sourceTree = "<group>"; };
+		7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSlaveCtrl.swift; sourceTree = "<group>"; };
+		7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraBaseCtrl.swift; sourceTree = "<group>"; };
+		7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryBtn.swift; sourceTree = "<group>"; };
+		7CC66B7520E0BC5800AF811B /* MasterShake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MasterShake.swift; path = stereoCamera/Controllers/MasterShake.swift; sourceTree = SOURCE_ROOT; };
+		7CCB728520E1B137000BE923 /* Handshake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Handshake.swift; sourceTree = "<group>"; };
+		7CCB728720E20CFA000BE923 /* SendStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendStatus.swift; sourceTree = "<group>"; };
+		7CCB728B20E2137F000BE923 /* SlaveState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlaveState.swift; sourceTree = "<group>"; };
+		7CCB728D20E2A412000BE923 /* Listeners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listeners.swift; sourceTree = "<group>"; };
+		7CCB728F20E2F2C0000BE923 /* Version.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
+		7CCB729120E36EA8000BE923 /* SetFacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetFacing.swift; sourceTree = "<group>"; };
+		7CCB729320E374C4000BE923 /* SetOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOverlay.swift; sourceTree = "<group>"; };
+		7CCB729520E3ECFA000BE923 /* FireShutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireShutter.swift; sourceTree = "<group>"; };
 		7CDC415D20D39458005BE7A8 /* Comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comm.cpp; sourceTree = "<group>"; };
 		7CDC415E20D39458005BE7A8 /* Comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Comm.hpp; sourceTree = "<group>"; };
 		7CDC416020D397C4005BE7A8 /* Comm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comm.swift; sourceTree = "<group>"; };
@@ -608,10 +632,13 @@
 		7C6CD12C20D1B2080010F6B1 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				7CC66B7520E0BC5800AF811B /* MasterShake.swift */,
 				7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */,
 				7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */,
 				7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */,
 				7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */,
+				7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */,
+				7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -624,6 +651,7 @@
 				7CDC416020D397C4005BE7A8 /* Comm.swift */,
 				7CDC415D20D39458005BE7A8 /* Comm.cpp */,
 				7CDC415E20D39458005BE7A8 /* Comm.hpp */,
+				7CCB728B20E2137F000BE923 /* SlaveState.swift */,
 			);
 			path = Comm;
 			sourceTree = "<group>";
@@ -642,6 +670,12 @@
 				7CDC416320D39DD3005BE7A8 /* Ping.swift */,
 				7CDC416520D39DF6005BE7A8 /* CommandTypes.swift */,
 				7CDC416720D40F21005BE7A8 /* Command.swift */,
+				7CCB728520E1B137000BE923 /* Handshake.swift */,
+				7CCB728720E20CFA000BE923 /* SendStatus.swift */,
+				7CCB728F20E2F2C0000BE923 /* Version.swift */,
+				7CCB729120E36EA8000BE923 /* SetFacing.swift */,
+				7CCB729320E374C4000BE923 /* SetOverlay.swift */,
+				7CCB729520E3ECFA000BE923 /* FireShutter.swift */,
 			);
 			path = Commands;
 			sourceTree = "<group>";
@@ -651,6 +685,7 @@
 			children = (
 				7CDC416A20D4F0F6005BE7A8 /* Bytes.swift */,
 				7C2E237120DB0A380027A2F5 /* Files.swift */,
+				7CCB728D20E2A412000BE923 /* Listeners.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -662,6 +697,7 @@
 				7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */,
 				7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */,
 				7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */,
+				7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -1249,12 +1285,14 @@
 				7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */,
 				7CDC467020DA93CC005BE7A8 /* jmemname.c in Sources */,
 				7CDC467120DA93CC005BE7A8 /* jmemmgr.c in Sources */,
+				7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */,
 				7CDC466F20DA93B9005BE7A8 /* jutils.c in Sources */,
 				7CDC466D20DA93B1005BE7A8 /* jquant1.c in Sources */,
 				7CDC466E20DA93B1005BE7A8 /* jquant2.c in Sources */,
 				7CDC466A20DA93A7005BE7A8 /* jidctfst.c in Sources */,
 				7CDC466B20DA93A7005BE7A8 /* jidctint.c in Sources */,
 				7CDC466C20DA93A7005BE7A8 /* jidctflt.c in Sources */,
+				7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */,
 				7CDC466720DA939B005BE7A8 /* jfdctflt.c in Sources */,
 				7CDC466820DA939B005BE7A8 /* jfdctint.c in Sources */,
 				7CDC466920DA939B005BE7A8 /* jfdctfst.c in Sources */,
@@ -1265,10 +1303,12 @@
 				7CDC466320DA9370005BE7A8 /* jdpostct.c in Sources */,
 				7CDC465F20DA9365005BE7A8 /* jdmarker.c in Sources */,
 				7CDC466020DA9365005BE7A8 /* jdmerge.c in Sources */,
+				7CC66B7620E0BC5800AF811B /* MasterShake.swift in Sources */,
 				7CDC466120DA9365005BE7A8 /* jdmaster.c in Sources */,
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
 				7CDC466220DA9365005BE7A8 /* jdmainct.c in Sources */,
 				7CDC465E20DA9353005BE7A8 /* jdinput.c in Sources */,
+				7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */,
 				7CDC465D20DA934C005BE7A8 /* jdhuff.c in Sources */,
 				7CDC465C20DA933F005BE7A8 /* jddctmgr.c in Sources */,
 				7CDC465A20DA9335005BE7A8 /* jdcolor.c in Sources */,
@@ -1285,10 +1325,15 @@
 				7CDC465220DA92DD005BE7A8 /* jcprepct.c in Sources */,
 				7CDC465020DA92D4005BE7A8 /* jcomapi.c in Sources */,
 				7CDC464D20DA92BE005BE7A8 /* jcmaster.c in Sources */,
+				7CCB729220E36EA8000BE923 /* SetFacing.swift in Sources */,
 				7CDC464E20DA92BF005BE7A8 /* jcmainct.c in Sources */,
 				7CDC464F20DA92BF005BE7A8 /* jcmarker.c in Sources */,
+				7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */,
 				7CDC464C20DA92B4005BE7A8 /* jcinit.c in Sources */,
+				7CCB729020E2F2C0000BE923 /* Version.swift in Sources */,
 				7CDC464B20DA92AE005BE7A8 /* jchuff.c in Sources */,
+				7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */,
+				7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */,
 				7CDC464A20DA92A2005BE7A8 /* jcdctmgr.c in Sources */,
 				7CDC464820DA9296005BE7A8 /* jccoefct.c in Sources */,
 				7CDC464920DA9296005BE7A8 /* jccolor.c in Sources */,
@@ -1301,6 +1346,7 @@
 				7CDC463F20DA8FF3005BE7A8 /* AnaglyphCompositeImage.cpp in Sources */,
 				7CDC463D20DA8FF3005BE7A8 /* SplitCompositeImage.cpp in Sources */,
 				7CDC463B20DA8FF3005BE7A8 /* Image.cpp in Sources */,
+				7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */,
 				7CDC463E20DA8FF3005BE7A8 /* util.cpp in Sources */,
 				7CDC464220DA9115005BE7A8 /* jpegCtrl.cpp in Sources */,
 				7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */,
@@ -1313,10 +1359,12 @@
 				7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */,
 				7CDC417020D75C16005BE7A8 /* CameraPreview.swift in Sources */,
 				7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */,
+				7CCB728620E1B137000BE923 /* Handshake.swift in Sources */,
 				7CDC416620D39DF6005BE7A8 /* CommandTypes.swift in Sources */,
 				7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */,
 				7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */,
 				7CDC416820D40F21005BE7A8 /* Command.swift in Sources */,
+				7CCB728C20E2137F000BE923 /* SlaveState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

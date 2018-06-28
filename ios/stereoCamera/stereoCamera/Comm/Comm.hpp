@@ -37,7 +37,7 @@ extern "C"
     void commCleanUp(const void* ptr)
     {
         ((CommCpp*) ptr)->cleanUp();
-        delete ((CommCpp*) ptr);
+        delete (CommCpp*) ptr;
     }
     
     int commIsConnected(const void* ptr) { return ((CommCpp*) ptr)->isConnected(); }

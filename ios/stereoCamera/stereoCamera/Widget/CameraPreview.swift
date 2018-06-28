@@ -195,3 +195,12 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 }
+
+enum CameraPreviewOverlayType:Int
+{
+    case None,
+    Crosshairs,
+    Thirds,
+    Fourths,
+    Ghost
+};

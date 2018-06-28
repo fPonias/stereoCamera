@@ -18,16 +18,10 @@ class CommManager
         get { return _instance }
     }
     
-    private var _isMaster:Bool = false
-    var isMaster:Bool
+    private var _localAddresses:[String] = [String]()
+    var localAddresses:[String]
     {
-        get { return _isMaster }
-    }
-
-    private var _masterAddresses:[String] = [String]()
-    var masterAddresses:[String]
-    {
-        get { return _masterAddresses }
+        get { return _localAddresses }
     }
     
     private var _comm:Comm = Comm()
@@ -36,39 +30,95 @@ class CommManager
         get { return _comm }
     }
     
-    init()
+    private let _slaveState:SlaveState = SlaveState()
+    var slaveState:SlaveState
     {
-        guessMasterAddresses()
+        get { return _slaveState }
     }
     
-    private func guessMasterAddresses()
+    var isMaster:Bool
     {
-        let addresses:[String] = getIFAddresses()
-        
-        for address:String in addresses
+        get
         {
-            var parts:[Substring] = address.split(separator: ".")
+            return comm.isMaster
+        }
+    }
+    
+    var address:String
+    {
+        get
+        {
+            return comm.address
+        }
+    }
+    
+    init()
+    {
+        fetchLocalAddresses()
+    }
+    
+    func fetchLocalAddresses()
+    {
+        let addresses:[IFAddress] = getIFAddresses()
+        
+        for address:IFAddress in addresses
+        {
+            let parts:[Substring] = address.address.split(separator: ".")
+            if (parts.count == 4)
+            {
+                _localAddresses.append(address.address)
+            }
+        }
+    }
+
+    struct AddressGuess
+    {
+        var isMaster:Bool = false
+        var address:String = ""
+    }
+
+    func guessAddress() -> AddressGuess
+    {
+        let addresses = getIFAddresses()
+        var ret = AddressGuess()
+        
+        for address:IFAddress in addresses
+        {
+            var parts:[Substring] = address.address.split(separator: ".")
             if (parts.count == 4)
             {
                 if (parts[3] == "1")
                 {
-                    _isMaster = true
-                    _masterAddresses.removeAll(keepingCapacity: false)
-                    _masterAddresses.append(address)
-                    return;
+                    ret.isMaster = true
+                    ret.address = address.address
+                    break
                 }
-                
-                parts[3] = "1"
-                _masterAddresses.append(parts.joined(separator:"."))
+                else
+                {
+                    parts[3] = "1"
+                    ret.isMaster = false;
+                    ret.address = parts.joined(separator:".")
+                    
+                    if (parts[0] == "172" && parts[1] == "20" && parts[2] == "10")
+                    {
+                        break
+                    }
+                }
             }
         }
         
-        _isMaster = false
+        return ret
     }
     
-    private func getIFAddresses() -> [String]
+    struct IFAddress
     {
-        var addresses = [String]()
+        var address:String = ""
+        var name:String = ""
+    }
+    
+    private func getIFAddresses() -> [IFAddress]
+    {
+        var addresses = [IFAddress]()
         
         // Get list of all interfaces on the local machine:
         var ifaddr : UnsafeMutablePointer<ifaddrs>?
@@ -80,6 +130,7 @@ class CommManager
         {
             let flags = Int32(ptr.pointee.ifa_flags)
             let addr = ptr.pointee.ifa_addr.pointee
+            let name = ptr.pointee.ifa_name
             
             // Check for running IPv4, IPv6 interfaces. Skip the loopback interface.
             if (flags & (IFF_UP|IFF_RUNNING|IFF_LOOPBACK)) == (IFF_UP|IFF_RUNNING)
@@ -92,7 +143,8 @@ class CommManager
                     if (nameinfo == 0)
                     {
                         let address = String(cString: hostname)
-                        addresses.append(address)
+                        let addressStr = IFAddress(address: address, name: String(cString: name!))
+                        addresses.append(addressStr)
                     }
                 }
             }
