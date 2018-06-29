@@ -134,6 +134,7 @@ bool CommCpp::isConnected()
 int CommCpp::read(unsigned char* buffer, int buffsz)
 {
     ssize_t sz = recv(clientSocket, buffer, buffsz, MSG_WAITALL);
+    printf("comm read %ld bytes\n", sz);
     
     if (sz == -1)
     {
@@ -146,6 +147,7 @@ int CommCpp::read(unsigned char* buffer, int buffsz)
 int CommCpp::write(const unsigned char* buffer, int buffsz)
 {
     ssize_t sz = send(clientSocket, buffer, buffsz, MSG_DONTWAIT);
+    printf("comm wrote %ld bytes\n", sz);
     
     if (sz == -1)
     {

@@ -297,12 +297,27 @@ class CameraMasterCtrl: CameraBaseCtrl
         showLoader(false)
         
         saveToPhotos(dataPath: outpath)
+        sendProcessedPhoto(dataPath: outpath)
         
         self.shutterLock.lock()
             self.shutterEvents = 0
             self.shutterLocal = ""
             self.shutterRemote = ""
         self.shutterLock.unlock()
+    }
+    
+    func sendProcessedPhoto(dataPath:String)
+    {
+        do
+        {
+            let url = URL(fileURLWithPath: dataPath)
+            let data = try Data(contentsOf: url)
+            
+            let cmd = SendPhoto(dta: data)
+            CommManager.instance.comm.sendCommand(command: cmd)
+        }
+        catch {
+        }
     }
     
     @IBAction func openGallery(_ sender: Any)

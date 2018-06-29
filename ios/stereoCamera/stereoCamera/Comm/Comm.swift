@@ -14,24 +14,7 @@ class Comm
     
     deinit
     {
-        if (commandReceiverIsRunning)
-        {
-            commandsReceivedCnd.lock()
-                commandReceiverIsRunning = false;
-                commandsReceivedCnd.signal()
-            commandsReceivedCnd.unlock()
-        }
-        
-        if(commandSenderIsRunning)
-        {
-            commandSenderCondition.lock()
-                commandSenderIsRunning = false
-                commandSenderCondition.signal()
-            commandSenderCondition.unlock()
-        }
-        
-        commCleanUp(cppPtr)
-        cppPtr = commNew()
+        disconnect()
     }
     
     var _isMaster:Bool = false
@@ -57,6 +40,7 @@ class Comm
     
     func disconnect()
     {
+        print("disconnect triggered")
         connectCnd.lock()
             if (isConnecting || commIsConnected(self.cppPtr) != 0)
             {
@@ -70,6 +54,31 @@ class Comm
                 connectCnd.signal()
             }
         connectCnd.unlock()
+        
+        killProcessors()
+    }
+    
+    private func killProcessors()
+    {
+        if (commandReceiverIsRunning)
+        {
+            commandsReceivedCnd.lock()
+                commandReceiverIsRunning = false;
+                commandsReceivedCnd.signal()
+            commandsReceivedCnd.unlock()
+            
+            commandRepliesCnd.lock()
+                commandRepliesCnd.signal()
+            commandRepliesCnd.lock()
+        }
+        
+        if(commandSenderIsRunning)
+        {
+            commandSenderCondition.lock()
+                commandSenderIsRunning = false
+                commandSenderCondition.signal()
+            commandSenderCondition.unlock()
+        }
     }
     
     func connect(onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
@@ -182,6 +191,8 @@ class Comm
     private var commandReceiverIsRunning:Bool = false
     private let commandsReceivedCnd = NSCondition()
     private var commandsReceivedQueue = [Command]()
+    private let commandRepliesCnd = NSCondition()
+    private var commandRepliesQueue = [Command]()
     
     func startCommandReceiver()
     {
@@ -197,6 +208,7 @@ class Comm
             self.commandReceiverIsRunning = true
             
             self.startCommandsReceivedProcessor()
+            self.startCommandRepliesProcessor()
             
             let buffer = [UInt8].init(repeating: 0, count: 1)
             
@@ -233,11 +245,63 @@ class Comm
         {
             cmd.receive(comm: self)
             
-            print("receive: enqueueing command " + cmd.cmdtype.description)
-            self.commandsReceivedCnd.lock()
-                self.commandsReceivedQueue.append(cmd)
-                self.commandsReceivedCnd.signal()
-            self.commandsReceivedCnd.unlock()
+            if (cmd.isResponse)
+            {
+                print("reply: enqueueing response " + cmd.cmdtype.description)
+                self.commandRepliesCnd.lock()
+                    self.commandRepliesQueue.append(cmd)
+                    self.commandRepliesCnd.signal()
+                self.commandRepliesCnd.unlock()
+            }
+            else
+            {
+                print("received: enqueueing command " + cmd.cmdtype.description)
+                self.commandsReceivedCnd.lock()
+                    self.commandsReceivedQueue.append(cmd)
+                    self.commandsReceivedCnd.signal()
+                self.commandsReceivedCnd.unlock()
+            }
+        }
+    }
+    
+    private func startCommandRepliesProcessor()
+    {
+        DispatchQueue.global(qos: .userInitiated).async
+        { [unowned self] in
+            while (self.commandReceiverIsRunning)
+            {
+                self.processCommandReply()
+            }
+        }
+    }
+    
+    private func processCommandReply()
+    {
+        var cmd:Command? = nil
+        
+        self.commandRepliesCnd.lock()
+            if (self.commandRepliesQueue.count == 0)
+            {
+                print ("reply: response processor waiting")
+                self.commandRepliesCnd.wait()
+            }
+        
+            if (self.commandRepliesQueue.count > 0)
+            {
+                cmd = self.commandRepliesQueue.removeFirst()
+            }
+        self.commandRepliesCnd.unlock()
+        
+        if (cmd == nil)
+            { return }
+        
+        let idx:String = self.getCommandIndex(cmd!)
+        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+        if (str != nil)
+        {
+            print ("reply: handling command " + cmd!.cmdtype.description)
+            str?.command.onResponse(command: cmd!)
+            str?.listener(str?.command, cmd!)
         }
     }
     
@@ -259,33 +323,20 @@ class Comm
         self.commandsReceivedCnd.lock()
             if (self.commandsReceivedQueue.count == 0 || self.commandListener == nil)
             {
-                print ("commands received processor waiting")
+                print ("received: processor waiting")
                 self.commandsReceivedCnd.wait()
             }
 
-            if (self.commandsReceivedQueue.count > 0)
-            {
-                cmd = self.commandsReceivedQueue.first
-                
-                if (cmd!.isResponse || self.commandListener != nil)
-                    { cmd = self.commandsReceivedQueue.removeFirst() }
-            }
+            if (self.commandsReceivedQueue.count > 0 && self.commandListener != nil)
+                { cmd = self.commandsReceivedQueue.removeFirst() }
         self.commandsReceivedCnd.unlock()
 
         if (!self.commandReceiverIsRunning || cmd == nil)
             { return }
 
-        print ("handling command " + cmd!.cmdtype.description)
+        print ("received: handling command " + cmd!.cmdtype.description)
         
         self.commandListener?.onCommand(cmd!)
-
-        let idx:String = self.getCommandIndex(cmd!)
-        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
-        if (str != nil)
-        {
-            str?.command.onResponse(command: cmd!)
-            str?.listener(str?.command, cmd!)
-        }
     }
     
     private var commandSenderCondition = NSCondition()
@@ -348,7 +399,7 @@ class Comm
             
             self.commandSenderIsRunning = true
             
-            print("command sender: started")
+            print("send: started")
             while (self.commandSenderIsRunning)
             {
                 self.sendCommand()
@@ -363,9 +414,8 @@ class Comm
 
             if (self.commandQueue.count == 0)
             {
-                print("command sender lock: waiting")
+                print("send: waiting")
                 self.commandSenderCondition.wait()
-                print("command sender lock: signal received")
             }
 
             if (self.commandSenderIsRunning && self.commandQueue.count > 0)
@@ -375,7 +425,7 @@ class Comm
 
         if (nextCommand != nil)
         {
-            print("command sender: sending command " + nextCommand!.cmdtype.description)
+            print("send: sending command " + nextCommand!.cmdtype.description)
             nextCommand?.send(comm: self)
         }
     }

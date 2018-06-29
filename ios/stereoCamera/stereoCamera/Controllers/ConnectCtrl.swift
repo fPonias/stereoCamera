@@ -147,7 +147,7 @@ class ConnectCtrl: UIViewController
     */
     @IBAction func listenSecondaryAction(_ sender: Any)
     {
-        alert.message = "Listening for connections"
+        alert.message = "Listening"
         present(alert, animated: true, completion: nil)
         
         CommManager.instance.comm.connect(master: true, address: "", onConnected: onConnected, onFail: onFail, timeout: listenTimeout)

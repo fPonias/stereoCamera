@@ -71,20 +71,25 @@ class CameraBaseCtrl : UIViewController
     
     let galleryTitle:String = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as! String
     
+    func saveToPhotos(data:Data)
+    {
+        PHPhotoLibrary.requestAuthorization {
+        status in
+            guard status == .authorized else { return }
+            PHPhotoLibrary.shared().performChanges({ self.saveToPhotos2(data) }, completionHandler: self.photoCompletion)
+            
+        }
+    }
+    
     func saveToPhotos(dataPath:String)
     {
-        PHPhotoLibrary.requestAuthorization { status in
-            guard status == .authorized else { return }
-            
-            do
-            {
-                let url = URL(fileURLWithPath: dataPath)
-                let data = try Data(contentsOf: url)
-                
-                PHPhotoLibrary.shared().performChanges({ self.saveToPhotos2(data) }, completionHandler: self.photoCompletion)
-            }
-            catch{
-            }
+        do
+        {
+            let url = URL(fileURLWithPath: dataPath)
+            let data = try Data(contentsOf: url)
+            saveToPhotos(data:data)
+        }
+        catch{
         }
     }
     

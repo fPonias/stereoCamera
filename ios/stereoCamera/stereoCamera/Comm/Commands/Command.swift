@@ -43,7 +43,7 @@ class Command
         //TODO handle error
         
         id = Bytes.fromByteArray(buf)
-        isResponse = Bytes.fromByteArray(buf, Int.bitWidth)
+        isResponse = Bytes.fromByteArray(buf, 8)
     }
     
     func onResponse(command:Command)
@@ -79,6 +79,8 @@ class CommandFactory
             return SetOverlay()
         case CommandTypes.FIRE_SHUTTER:
             return FireShutter()
+        case CommandTypes.SEND_PROCESSED_PHOTO:
+            return SendPhoto()
         default:
             print("CommandFactory unable to construct command of type " + type.description)
             return DefaultCommand()

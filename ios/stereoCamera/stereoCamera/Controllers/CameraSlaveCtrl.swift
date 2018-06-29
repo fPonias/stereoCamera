@@ -66,6 +66,12 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                 fireShutter.isResponse = true
                 CommManager.instance.comm.sendCommand(command: fireShutter)
             })
+        case CommandTypes.SEND_PROCESSED_PHOTO:
+            let sendPhoto = command as! SendPhoto
+            let url = saveToTmp(data: Data(sendPhoto.data))
+            
+            if (url != nil)
+                { saveToPhotos(dataPath: url!.path) }
         default:
             print("unsupported command " + command.cmdtype.description)
         }

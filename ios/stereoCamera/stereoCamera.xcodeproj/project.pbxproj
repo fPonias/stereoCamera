@@ -28,6 +28,7 @@
 		7CCB729220E36EA8000BE923 /* SetFacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729120E36EA8000BE923 /* SetFacing.swift */; };
 		7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729320E374C4000BE923 /* SetOverlay.swift */; };
 		7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729520E3ECFA000BE923 /* FireShutter.swift */; };
+		7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729720E5ADCA000BE923 /* SendPhoto.swift */; };
 		7CDC415F20D39458005BE7A8 /* Comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC415D20D39458005BE7A8 /* Comm.cpp */; };
 		7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416020D397C4005BE7A8 /* Comm.swift */; };
 		7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416320D39DD3005BE7A8 /* Ping.swift */; };
@@ -293,6 +294,7 @@
 		7CCB729120E36EA8000BE923 /* SetFacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetFacing.swift; sourceTree = "<group>"; };
 		7CCB729320E374C4000BE923 /* SetOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOverlay.swift; sourceTree = "<group>"; };
 		7CCB729520E3ECFA000BE923 /* FireShutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireShutter.swift; sourceTree = "<group>"; };
+		7CCB729720E5ADCA000BE923 /* SendPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendPhoto.swift; sourceTree = "<group>"; };
 		7CDC415D20D39458005BE7A8 /* Comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comm.cpp; sourceTree = "<group>"; };
 		7CDC415E20D39458005BE7A8 /* Comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Comm.hpp; sourceTree = "<group>"; };
 		7CDC416020D397C4005BE7A8 /* Comm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comm.swift; sourceTree = "<group>"; };
@@ -676,6 +678,7 @@
 				7CCB729120E36EA8000BE923 /* SetFacing.swift */,
 				7CCB729320E374C4000BE923 /* SetOverlay.swift */,
 				7CCB729520E3ECFA000BE923 /* FireShutter.swift */,
+				7CCB729720E5ADCA000BE923 /* SendPhoto.swift */,
 			);
 			path = Commands;
 			sourceTree = "<group>";
@@ -1284,6 +1287,7 @@
 			files = (
 				7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */,
 				7CDC467020DA93CC005BE7A8 /* jmemname.c in Sources */,
+				7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */,
 				7CDC467120DA93CC005BE7A8 /* jmemmgr.c in Sources */,
 				7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */,
 				7CDC466F20DA93B9005BE7A8 /* jutils.c in Sources */,
