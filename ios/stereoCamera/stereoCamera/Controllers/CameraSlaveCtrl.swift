@@ -14,6 +14,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
 {
     @IBOutlet weak var _cameraPreview: CameraPreview!
     @IBOutlet weak var _zoomSlider: UISlider!
+    @IBOutlet weak var galleryBtn: GalleryBtn!
     
     var pingReceived = false;
     
@@ -36,6 +37,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             CommManager.instance.comm.sendCommand(command: version)
         case CommandTypes.HANDSHAKE:
             self.cancelConnection()
+            self.showLoader(true)
             self.pingReceived = true;
 
             self.setStatus(Status.LISTENING);
@@ -49,11 +51,26 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             setOverlay.id = command.id
             setOverlay.isResponse = true
             CommManager.instance.comm.sendCommand(command: setOverlay)
+            self.showLoader(false)
         case CommandTypes.SET_FACING:
             let setFacing = SetFacing((command as! SetFacing).facing)
             setFacing.id = command.id
             setFacing.isResponse = true
             CommManager.instance.comm.sendCommand(command: setFacing)
+            
+            cameraPreview.startCamera()
+        case CommandTypes.SET_ZOOM:
+            let setZoom = SetZoom((command as! SetZoom).zoom)
+            setZoom.id = command.id
+            setZoom.isResponse = true
+            CommManager.instance.comm.sendCommand(command: setZoom)
+            
+            DispatchQueue.main.async {
+            [ unowned self ] in
+                self.zoomSlider.setValue(setZoom.zoom, animated: false)
+                self.zoomChanged(self.zoomSlider)
+            }
+            
         case CommandTypes.FIRE_SHUTTER:
             self.fireShutter(listener: {(data:Data?) -> Void
             in
@@ -71,7 +88,14 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             let url = saveToTmp(data: Data(sendPhoto.data))
             
             if (url != nil)
-                { saveToPhotos(dataPath: url!.path) }
+            {
+                saveToPhotos(dataPath: url!.path)
+                
+                DispatchQueue.main.async {
+                [ unowned self ] in
+                    self.galleryBtn.update()
+                }
+            }
         default:
             print("unsupported command " + command.cmdtype.description)
         }
@@ -89,6 +113,10 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             usleep(500000)
             self.setStatus(Status.CREATED)
         }
+        
+        showLoader(true)
+        
+        galleryBtn.update()
     }
     
     override var cameraPreview: CameraPreview
@@ -101,10 +129,34 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         get { return _zoomSlider }
     }
     
+    var currentZoom:Float = 1.0
+    var zoomSending = false
+    let zoomSendDelay:UInt32 = 100000
+    
     @IBAction func zoomChanged(_ sender: Any)
     {
-        let current = zoomSlider .value
-        cameraPreview.zoom = current
+        currentZoom = zoomSlider .value
+    
+        //avoid spamming zoom updates during the slider drag
+        if (!zoomSending)
+        {
+            zoomSending = true
+            DispatchQueue.global(qos: .background).async {
+            [unowned self] in
+                self.zoomChanged2()
+            }
+        }
+        
+        cameraPreview.zoom = currentZoom
+    }
+    
+    private func zoomChanged2()
+    {
+        usleep(zoomSendDelay)
+        
+        let cmd = SendZoom(currentZoom)
+        CommManager.instance.comm.sendCommand(command: cmd)
+        zoomSending = false
     }
     
     @IBAction func openGallery(_ sender: Any)

@@ -25,7 +25,8 @@ class MasterShake
         steps.append(CreatedStep(parent: self))
         steps.append(HandshakeStep())
         steps.append(ReadyStep(parent: self))
-        steps.append(SetCameraStep())
+        steps.append(SetCameraStep(parent: self))
+        steps.append(SetZoomStep(parent: self))
         steps.append(SetOverlayStep())
     }
     
@@ -125,11 +126,39 @@ class MasterShake
     
     class SetCameraStep : MasterShakeStep
     {
+        unowned let parent:MasterShake
+        init(parent: MasterShake)
+        {
+            self.parent = parent
+        }
         var name:String { get { return "set camera" }}
         
         func execute(listener: @escaping MasterShakeListener)
         {
-            let cmd = SetFacing(false)
+            let position = parent.parent?.cameraPreview.currentCamera?.position
+            let posBool = (position != nil && position == .front) ? true : false
+            
+            let cmd = SetFacing(posBool)
+            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
+            in
+                listener(true)
+            })
+        }
+    }
+    
+    class SetZoomStep : MasterShakeStep
+    {
+        unowned let parent:MasterShake
+        init(parent: MasterShake)
+        {
+            self.parent = parent
+        }
+        var name:String { get { return "set zoom" }}
+        
+        func execute(listener: @escaping MasterShakeListener)
+        {
+            let zoom = Cookie.instance.getZoomForClient(isMaster: false, client: CommManager.instance.comm.address, camera: (parent.parent?.cameraPreview.currentCamera?.position)!)
+            let cmd = SetZoom(zoom)
             CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
             in
                 listener(true)

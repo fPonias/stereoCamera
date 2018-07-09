@@ -18,50 +18,72 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="m9d-iQ-OlL">
-                                <rect key="frame" x="10" y="164" width="355" height="174.5"/>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" showsHorizontalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JiH-s3-oJf">
+                                <rect key="frame" x="10" y="144" width="355" height="533"/>
                                 <subviews>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="IP Address" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iQZ-xh-Rj0">
-                                        <rect key="frame" x="0.0" y="0.0" width="355" height="20.5"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                        <nil key="textColor"/>
-                                        <nil key="highlightedColor"/>
-                                    </label>
-                                    <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1vn-Zk-ARA">
-                                        <rect key="frame" x="0.0" y="28.5" width="355" height="30"/>
-                                        <state key="normal" title="Listen to secondary"/>
-                                        <connections>
-                                            <action selector="listenSecondaryAction:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="9CQ-wr-oNc"/>
-                                        </connections>
-                                    </button>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ITd-7Z-QsK">
-                                        <rect key="frame" x="0.0" y="66.5" width="355" height="32"/>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <constraints>
-                                            <constraint firstAttribute="height" constant="32" id="LeG-aN-B2O"/>
-                                        </constraints>
-                                    </view>
-                                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Primary IP Address" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="Mj7-Bh-as7">
-                                        <rect key="frame" x="0.0" y="106.5" width="355" height="30"/>
-                                        <nil key="textColor"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                        <textInputTraits key="textInputTraits"/>
-                                    </textField>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jVD-WB-Sxc">
-                                        <rect key="frame" x="0.0" y="144.5" width="355" height="30"/>
-                                        <state key="normal" title="Connect to primary"/>
-                                        <connections>
-                                            <action selector="connectPrimaryAction:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="jOZ-r0-9Sv"/>
-                                        </connections>
-                                    </button>
+                                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="m9d-iQ-OlL">
+                                        <rect key="frame" x="0.0" y="100" width="355" height="174.5"/>
+                                        <subviews>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="IP Address" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iQZ-xh-Rj0">
+                                                <rect key="frame" x="0.0" y="0.0" width="355" height="20.5"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
+                                            <button opaque="NO" contentMode="center" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1vn-Zk-ARA">
+                                                <rect key="frame" x="0.0" y="28.5" width="355" height="30"/>
+                                                <state key="normal" title="Listen to secondary"/>
+                                                <connections>
+                                                    <action selector="listenSecondaryAction:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="9CQ-wr-oNc"/>
+                                                </connections>
+                                            </button>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ITd-7Z-QsK">
+                                                <rect key="frame" x="0.0" y="66.5" width="355" height="32"/>
+                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="32" id="LeG-aN-B2O"/>
+                                                </constraints>
+                                            </view>
+                                            <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Primary IP Address" textAlignment="natural" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="Mj7-Bh-as7">
+                                                <rect key="frame" x="0.0" y="106.5" width="355" height="30"/>
+                                                <nil key="textColor"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                <textInputTraits key="textInputTraits" keyboardType="decimalPad" returnKeyType="done" enablesReturnKeyAutomatically="YES"/>
+                                            </textField>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jVD-WB-Sxc">
+                                                <rect key="frame" x="0.0" y="144.5" width="355" height="30"/>
+                                                <state key="normal" title="Connect to primary"/>
+                                                <connections>
+                                                    <action selector="connectPrimaryAction:" destination="H1m-jl-dHT" eventType="primaryActionTriggered" id="jOZ-r0-9Sv"/>
+                                                </connections>
+                                            </button>
+                                        </subviews>
+                                    </stackView>
                                 </subviews>
-                            </stackView>
+                                <constraints>
+                                    <constraint firstItem="m9d-iQ-OlL" firstAttribute="top" secondItem="JiH-s3-oJf" secondAttribute="top" constant="100" id="EAS-HX-jut"/>
+                                    <constraint firstAttribute="trailing" secondItem="m9d-iQ-OlL" secondAttribute="trailing" id="UiP-F5-mav"/>
+                                    <constraint firstItem="m9d-iQ-OlL" firstAttribute="leading" secondItem="JiH-s3-oJf" secondAttribute="leading" id="VqX-zC-HZ9"/>
+                                    <constraint firstItem="m9d-iQ-OlL" firstAttribute="width" secondItem="JiH-s3-oJf" secondAttribute="width" id="tip-EC-xG2"/>
+                                </constraints>
+                            </scrollView>
+                            <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KbA-Xk-D2W" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
+                                <rect key="frame" x="10" y="597" width="120" height="60"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="KbA-Xk-D2W" secondAttribute="height" multiplier="2:1" id="00I-eZ-ehV"/>
+                                    <constraint firstAttribute="width" constant="120" id="lNP-lJ-jvW"/>
+                                </constraints>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="m9d-iQ-OlL" firstAttribute="leading" secondItem="ltB-uT-iuc" secondAttribute="leading" constant="10" id="0BF-KA-mLM"/>
-                            <constraint firstItem="ltB-uT-iuc" firstAttribute="trailing" secondItem="m9d-iQ-OlL" secondAttribute="trailing" constant="10" id="Krs-CI-NAr"/>
-                            <constraint firstItem="m9d-iQ-OlL" firstAttribute="top" secondItem="ltB-uT-iuc" secondAttribute="top" constant="100" id="RN8-d3-Cly"/>
+                            <constraint firstItem="KbA-Xk-D2W" firstAttribute="top" secondItem="JiH-s3-oJf" secondAttribute="bottom" id="JJw-aC-gRN"/>
+                            <constraint firstItem="JiH-s3-oJf" firstAttribute="leading" secondItem="ltB-uT-iuc" secondAttribute="leading" constant="10" id="LkR-bM-eFS"/>
+                            <constraint firstItem="JiH-s3-oJf" firstAttribute="top" secondItem="ltB-uT-iuc" secondAttribute="top" id="MaC-qA-8eV"/>
+                            <constraint firstItem="ltB-uT-iuc" firstAttribute="bottom" secondItem="KbA-Xk-D2W" secondAttribute="bottom" constant="10" id="OVW-jB-0gI"/>
+                            <constraint firstItem="ltB-uT-iuc" firstAttribute="trailing" secondItem="JiH-s3-oJf" secondAttribute="trailing" constant="10" id="Vgg-TJ-wlc"/>
+                            <constraint firstItem="KbA-Xk-D2W" firstAttribute="leading" secondItem="ltB-uT-iuc" secondAttribute="leading" constant="10" id="YJh-WH-PYV"/>
+                            <constraint firstItem="KbA-Xk-D2W" firstAttribute="width" secondItem="KbA-Xk-D2W" secondAttribute="height" multiplier="2:1" id="bP5-0R-tca"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="ltB-uT-iuc"/>
                     </view>
@@ -70,7 +92,9 @@
                         <outlet property="connectPrimaryBtn" destination="jVD-WB-Sxc" id="chF-y7-2xe"/>
                         <outlet property="connectPrimaryInput" destination="Mj7-Bh-as7" id="NSs-5L-Bah"/>
                         <outlet property="connectSecondaryBtn" destination="1vn-Zk-ARA" id="qug-zy-k33"/>
+                        <outlet property="galleryBtn" destination="KbA-Xk-D2W" id="MYK-BO-jub"/>
                         <outlet property="layout" destination="m9d-iQ-OlL" id="nZp-yF-9Nu"/>
+                        <outlet property="scrollView" destination="JiH-s3-oJf" id="ThW-Hf-zXc"/>
                         <segue destination="QJ5-c1-r6R" kind="show" identifier="CameraMasterSegue" id="43O-CY-JsG"/>
                         <segue destination="G98-3c-JEd" kind="show" identifier="ConnectToGallery" id="l82-AT-lYU"/>
                         <segue destination="TDn-Nd-bkU" kind="show" identifier="ConnectToSlave" id="qpg-bF-fmj"/>
@@ -150,6 +174,7 @@
                     <connections>
                         <outlet property="_cameraPreview" destination="cJH-Sk-Po2" id="tHw-Wu-b8Q"/>
                         <outlet property="_zoomSlider" destination="QHY-Ve-ywX" id="B31-gf-22U"/>
+                        <outlet property="galleryBtn" destination="EcM-WB-PYu" id="EEC-uc-Hna"/>
                         <segue destination="G98-3c-JEd" kind="show" identifier="SlaveToGallery" id="mFp-SI-y5w"/>
                     </connections>
                 </viewController>
@@ -268,16 +293,16 @@
             </objects>
             <point key="canvasLocation" x="4134" y="-487"/>
         </scene>
-        <!--Camera Master-->
+        <!--Camera-->
         <scene sceneID="1HH-jI-vZd">
             <objects>
-                <viewController storyboardIdentifier="CameraMaster" title="CameraMaster" useStoryboardIdentifierAsRestorationIdentifier="YES" id="QJ5-c1-r6R" userLabel="Camera Master" customClass="CameraMasterCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="Camera" title="Camera" useStoryboardIdentifierAsRestorationIdentifier="YES" id="QJ5-c1-r6R" userLabel="Camera" customClass="CameraMasterCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="KbU-lX-7RL">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1xm-cI-rJc">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <rect key="frame" x="0.0" y="64" width="375" height="559"/>
                                 <subviews>
                                     <glkView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" enableSetNeedsDisplay="NO" translatesAutoresizingMaskIntoConstraints="NO" id="r4S-pM-IKa" userLabel="cameraPreview" customClass="CameraPreview" customModule="stereoCamera" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="0.0" width="375" height="375"/>
@@ -310,10 +335,10 @@
                                         </connections>
                                     </button>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="7P6-Kh-k3i">
-                                        <rect key="frame" x="0.0" y="375" width="375" height="228"/>
+                                        <rect key="frame" x="0.0" y="375" width="375" height="184"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7IW-x7-aDI" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
-                                                <rect key="frame" x="10" y="158" width="120" height="60"/>
+                                                <rect key="frame" x="10" y="114" width="120" height="60"/>
                                                 <constraints>
                                                     <constraint firstAttribute="width" constant="120" id="7NA-l0-X6d"/>
                                                     <constraint firstAttribute="width" secondItem="7IW-x7-aDI" secondAttribute="height" multiplier="2:1" id="cdJ-2O-M1w"/>
@@ -335,16 +360,60 @@
                                                     <constraint firstAttribute="height" constant="29" id="gdM-N1-Xxc"/>
                                                 </constraints>
                                             </imageView>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2Ys-dF-uyn" userLabel="FlipBtn">
+                                                <rect key="frame" x="10" y="46" width="36" height="36"/>
+                                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="36" id="ORp-Ov-Eol"/>
+                                                    <constraint firstAttribute="width" constant="36" id="dKJ-mC-OQt"/>
+                                                </constraints>
+                                                <state key="normal" image="flip_icon"/>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                                        <color key="value" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                                        <real key="value" value="8"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="flipCamera:" destination="QJ5-c1-r6R" eventType="primaryActionTriggered" id="lA3-az-2tS"/>
+                                                </connections>
+                                            </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fDf-99-IkI" userLabel="HandBtn">
+                                                <rect key="frame" x="58" y="46" width="36" height="36"/>
+                                                <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="36" id="Jmb-6u-6Xt"/>
+                                                    <constraint firstAttribute="height" constant="36" id="Lzd-vR-h0I"/>
+                                                </constraints>
+                                                <state key="normal" image="hand_phone"/>
+                                                <userDefinedRuntimeAttributes>
+                                                    <userDefinedRuntimeAttribute type="color" keyPath="borderColor">
+                                                        <color key="value" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                    <userDefinedRuntimeAttribute type="number" keyPath="cornerRadius">
+                                                        <real key="value" value="8"/>
+                                                    </userDefinedRuntimeAttribute>
+                                                </userDefinedRuntimeAttributes>
+                                                <connections>
+                                                    <action selector="switchHand:" destination="QJ5-c1-r6R" eventType="primaryActionTriggered" id="CTm-LL-NGC"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
+                                            <constraint firstItem="fDf-99-IkI" firstAttribute="top" secondItem="T66-ZK-jVr" secondAttribute="bottom" constant="8" id="4F5-ml-6RS"/>
                                             <constraint firstItem="7IW-x7-aDI" firstAttribute="leading" secondItem="7P6-Kh-k3i" secondAttribute="leading" constant="10" id="9n8-W1-kPf"/>
                                             <constraint firstAttribute="bottom" secondItem="7IW-x7-aDI" secondAttribute="bottom" constant="10" id="Ik9-64-lh9"/>
+                                            <constraint firstItem="fDf-99-IkI" firstAttribute="leading" secondItem="2Ys-dF-uyn" secondAttribute="trailing" constant="12" id="WOv-eO-uKT"/>
                                             <constraint firstAttribute="trailing" secondItem="T66-ZK-jVr" secondAttribute="trailing" constant="10" id="YSD-ee-bV1"/>
                                             <constraint firstItem="Ohq-G1-xzL" firstAttribute="leading" secondItem="7P6-Kh-k3i" secondAttribute="leading" constant="10" id="gRa-06-sAq"/>
                                             <constraint firstItem="T66-ZK-jVr" firstAttribute="top" secondItem="7P6-Kh-k3i" secondAttribute="top" constant="8" id="jh8-a7-tLC"/>
                                             <constraint firstItem="Ohq-G1-xzL" firstAttribute="top" secondItem="7P6-Kh-k3i" secondAttribute="top" constant="8" id="nk2-eI-ahJ"/>
+                                            <constraint firstItem="2Ys-dF-uyn" firstAttribute="top" secondItem="T66-ZK-jVr" secondAttribute="bottom" constant="8" id="pzX-he-kv1"/>
                                             <constraint firstItem="T66-ZK-jVr" firstAttribute="leading" secondItem="Ohq-G1-xzL" secondAttribute="trailing" constant="8" id="z7Z-II-DNH"/>
+                                            <constraint firstItem="2Ys-dF-uyn" firstAttribute="leading" secondItem="7P6-Kh-k3i" secondAttribute="leading" constant="10" id="zzk-zB-xbo"/>
                                         </constraints>
                                     </view>
                                 </subviews>
@@ -372,10 +441,14 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="fqx-Wf-spF"/>
                     </view>
+                    <toolbarItems/>
+                    <simulatedToolbarMetrics key="simulatedBottomBarMetrics"/>
                     <connections>
                         <outlet property="_cameraPreview" destination="r4S-pM-IKa" id="SHb-e0-91L"/>
                         <outlet property="_zoomSlider" destination="T66-ZK-jVr" id="Q2g-Lb-gc0"/>
-                        <outlet property="galleryBtn" destination="7IW-x7-aDI" id="vJ8-Ca-esX"/>
+                        <outlet property="flipBtn" destination="2Ys-dF-uyn" id="luK-dJ-QyV"/>
+                        <outlet property="galleryBtn" destination="7IW-x7-aDI" id="Idt-BD-26f"/>
+                        <outlet property="handPhoneBtn" destination="fDf-99-IkI" id="YgA-AM-9jF"/>
                         <outlet property="shutterBtn" destination="e4q-Qt-1HD" id="V8P-R0-MsO"/>
                         <segue destination="G98-3c-JEd" kind="show" identifier="MasterToGallery" id="cKU-4a-9aZ"/>
                     </connections>
@@ -404,6 +477,8 @@
         </scene>
     </scenes>
     <resources>
+        <image name="flip_icon" width="24" height="24"/>
+        <image name="hand_phone" width="24" height="24"/>
         <image name="play_arrow" width="24" height="24"/>
         <image name="shutter_icon" width="24" height="24"/>
         <image name="zoom_icon" width="24" height="24"/>

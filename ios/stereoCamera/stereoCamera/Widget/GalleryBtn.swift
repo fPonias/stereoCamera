@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import Photos
 
-class GalleryBtn : UIButton
+class GalleryBtn : UIImageView
 {
     var files = [PHAsset]()
     
@@ -28,12 +28,17 @@ class GalleryBtn : UIButton
     
     func viewDidLoad()
     {
+        update()
+    }
+    
+    func update()
+    {
         files = Files.getGalleryFiles()
         if (files.count > 0)
         {
             let asset = files[files.count - 1]
-            let image = Files.assetToImage(asset, asThumbnail: true)
-            setImage(image, for: .normal)
+            let image = Files.assetToImage(asset)
+            self.image = image
         }
     }
 }

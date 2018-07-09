@@ -34,8 +34,6 @@ class CameraBaseCtrl : UIViewController
         let tmpUrlStr = tmpUrl.path
         let ptr = Bytes.toPointer(tmpUrlStr)
         imageProcessor_initN(ptr)
-        
-        cameraPreview.startCamera()
     }
     
     override func didReceiveMemoryWarning()
@@ -45,22 +43,32 @@ class CameraBaseCtrl : UIViewController
     }
     
     let alert = UIAlertController(title: nil, message: "Camera Busy", preferredStyle: UIAlertControllerStyle.alert)
+    var isShowing = false
+    var loadingIndicator: UIActivityIndicatorView? = nil
     
     func showLoader(_ show:Bool)
     {
-        if (show)
-        {
-            let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50 ))
-            loadingIndicator.hidesWhenStopped = true
-            loadingIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
-            loadingIndicator.startAnimating()
-            
-            alert.view.addSubview(loadingIndicator)
-            present(alert, animated: true, completion: nil)
-        }
-        else
-        {
-            dismiss(animated: false, completion: nil)
+        if (show == isShowing)
+            { return }
+        
+        isShowing = show
+    
+        DispatchQueue.main.async {
+        [unowned self] in
+            if (show)
+            {
+                self.loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50 ))
+                self.loadingIndicator!.hidesWhenStopped = true
+                self.loadingIndicator!.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+                self.loadingIndicator!.startAnimating()
+                
+                self.alert.view.addSubview(self.loadingIndicator!)
+                self.present(self.alert, animated: true, completion: nil)
+            }
+            else
+            {
+                self.alert.dismiss(animated: false, completion: nil)
+            }
         }
     }
     

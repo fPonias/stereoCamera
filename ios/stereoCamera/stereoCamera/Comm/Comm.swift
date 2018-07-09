@@ -81,13 +81,13 @@ class Comm
         }
     }
     
-    func connect(onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
+    func connect(onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
     {
         let guess = CommManager.instance.guessAddress()
         connect(master: guess.isMaster, address: guess.address, onConnected: connected, onFail: fail, timeout: timeout)
     }
     
-    func connect(master:Bool, address:String, onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
+    func connect(master:Bool, address:String, onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
     {
         var doReturn = false
         connectCnd.lock()
@@ -126,7 +126,7 @@ class Comm
         }
     }
     
-    func connectThread(master:Bool, address:String, onConnected connected: @escaping () -> Void, onFail fail: @escaping () -> Void)
+    func connectThread(master:Bool, address:String, onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void)
     {
         if (master)
             { commStartServer(cppPtr, CommManager.PORT) }
@@ -159,7 +159,7 @@ class Comm
             { usleep(100000) }
         
         print("comm connected")
-        connected()
+        connected(address)
     }
     
     func read(buffer:[UInt8]) -> Int32
@@ -199,7 +199,7 @@ class Comm
         if (self.commandReceiverIsRunning)
         {return}
         
-        DispatchQueue.global(qos: .background).async
+        DispatchQueue.global(qos: .userInitiated).async
         { [unowned self] in
             if (self.commandReceiverIsRunning)
                 {return}

@@ -29,7 +29,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         setupOpenGL()
     }
     
-    func setupOpenGL()
+    private func setupOpenGL()
     {
         captureSession = AVCaptureSession()
         glContext = EAGLContext(api: .openGLES2)!
@@ -47,17 +47,17 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         }
     }
     
-    func startCamera()
+    func startCamera(cameraPosition: AVCaptureDevice.Position = .unspecified)
     {
         switch AVCaptureDevice.authorizationStatus(for: .video)
         {
         case .authorized:
-            startCamera2()
+            startCamera2(cameraPosition: cameraPosition)
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { granted in
                 if (granted)
                 {
-                    self.startCamera2()
+                    self.startCamera2(cameraPosition: cameraPosition)
                 }
             }
         case .denied:
@@ -67,20 +67,20 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         }
     }
     
-    var captureSession:AVCaptureSession!
-    var glContext:EAGLContext!
-    var ciContext:CIContext!
-    var photoOutput = AVCapturePhotoOutput()
-    var _currentCamera:AVCaptureDevice? = nil
+    private var captureSession:AVCaptureSession!
+    private var glContext:EAGLContext!
+    private var ciContext:CIContext!
+    private var photoOutput = AVCapturePhotoOutput()
+    private var _currentCamera:AVCaptureDevice? = nil
     
-    public var currentCamera:AVCaptureDevice?
+    var currentCamera:AVCaptureDevice?
     {
         get { return _currentCamera }
     }
     
-    func startCamera2()
+    private func startCamera2(cameraPosition: AVCaptureDevice.Position)
     {
-        _currentCamera = cameraPicker()
+        _currentCamera = cameraPicker(cameraPosition: cameraPosition)
         
         if (_currentCamera == nil)
         {
@@ -88,7 +88,9 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
             return;
         }
         
+        captureSession = AVCaptureSession()
         captureSession.beginConfiguration()
+        
         
         guard
             let videoDeviceInput = try? AVCaptureDeviceInput(device: _currentCamera!),
@@ -114,6 +116,11 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         captureSession.startRunning()
     }
     
+    func stopCamera()
+    {
+        captureSession.stopRunning()
+    }
+    
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection)
     {
         let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
@@ -132,7 +139,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         display()
     }
     
-    func rotateScaleImage(image: CIImage) -> CIImage
+    private func rotateScaleImage(image: CIImage) -> CIImage
     {
         var ret:CIImage = image
         
@@ -157,6 +164,9 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         
         var trans = CGAffineTransform(translationX: 0, y: 0)
         
+        if (_currentCamera?.position == .front)
+            { trans = trans.scaledBy(x: CGFloat(-1.0), y: CGFloat(1.0)) }
+        
         if (rotation != 0)
         {
             trans = trans.rotated(by: rotation)
@@ -168,9 +178,9 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         return ret
     }
     
-    func cameraPicker() -> AVCaptureDevice?
+    private func cameraPicker(cameraPosition: AVCaptureDevice.Position) -> AVCaptureDevice?
     {
-        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera], mediaType: .video, position: .unspecified)
+        let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera], mediaType: .video, position: cameraPosition)
         let devices = discoverySession.devices
         guard !devices.isEmpty else { print ("No cameras found"); return nil }
         

@@ -16,8 +16,10 @@ class CameraMasterCtrl: CameraBaseCtrl
 {
     @IBOutlet weak var _cameraPreview: CameraPreview!
     @IBOutlet weak var shutterBtn: UIButton!
-    @IBOutlet weak var galleryBtn: UIButton!
     @IBOutlet weak var _zoomSlider: UISlider!
+    @IBOutlet weak var flipBtn: UIButton!
+    @IBOutlet weak var handPhoneBtn: UIButton!
+    @IBOutlet weak var galleryBtn: GalleryBtn!
     
     override var cameraPreview: CameraPreview
     {
@@ -33,6 +35,7 @@ class CameraMasterCtrl: CameraBaseCtrl
     {
         let current = zoomSlider .value
         cameraPreview.zoom = current
+        Cookie.instance.setZoomForClient(zoom: current, isMaster: true, client: CommManager.instance.comm.address, camera: cameraPreview.currentCamera!.position)
     }
     
     let masterShake:MasterShake = MasterShake()
@@ -76,7 +79,10 @@ class CameraMasterCtrl: CameraBaseCtrl
             }
         }
         
-        func onZoom(zoom: Float) {}
+        func onZoom(zoom: Float)
+        {
+            Cookie.instance.setZoomForClient(zoom: zoom, isMaster: false, client: CommManager.instance.comm.address, camera: parent.cameraPreview.currentCamera!.position)
+        }
         
         func onFov(horiz: Float, vert: Float) {}
         
@@ -100,27 +106,29 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         showLoader(true)
         
+        cameraPreview.startCamera()
+        
         DispatchQueue.global(qos: .userInitiated).async
         {
             usleep(5000000)
             self.handshake()
         }
+        
+        galleryBtn.update()
     }
     
     func handshake()
     {
-        self.masterShake.start(listener: {(success: Bool) -> Void
+        showLoader(true)
+        self.masterShake.start(listener: {[unowned self] (success: Bool) -> Void
         in
             DispatchQueue.main.async
             {
+                self.showLoader(false)
                 if (!success)
                 {
                     print("master handshake failed")
                     self.navigationController?.popViewController(animated: true)
-                }
-                else
-                {
-                    self.showLoader(false)
                 }
             }
         })
@@ -304,6 +312,11 @@ class CameraMasterCtrl: CameraBaseCtrl
             self.shutterLocal = ""
             self.shutterRemote = ""
         self.shutterLock.unlock()
+        
+        DispatchQueue.main.async {
+        [ unowned self ] in
+            self.galleryBtn.update()
+        }
     }
     
     func sendProcessedPhoto(dataPath:String)
@@ -323,5 +336,24 @@ class CameraMasterCtrl: CameraBaseCtrl
     @IBAction func openGallery(_ sender: Any)
     {
         performSegue(withIdentifier: "MasterToGallery", sender: self)
+    }
+    
+    @IBAction func flipCamera(_ sender: Any)
+    {
+        cameraPreview.stopCamera()
+        let curPos = cameraPreview.currentCamera?.position
+        
+        var newPos = AVCaptureDevice.Position.back
+        if (curPos == .unspecified || curPos == .back)
+        {
+            newPos = AVCaptureDevice.Position.front
+        }
+        
+        cameraPreview.startCamera(cameraPosition: newPos)
+        handshake()
+    }
+    
+    @IBAction func switchHand(_ sender: Any)
+    {
     }
 }

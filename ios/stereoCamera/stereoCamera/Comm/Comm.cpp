@@ -133,8 +133,20 @@ bool CommCpp::isConnected()
 
 int CommCpp::read(unsigned char* buffer, int buffsz)
 {
-    ssize_t sz = recv(clientSocket, buffer, buffsz, MSG_WAITALL);
-    printf("comm read %ld bytes\n", sz);
+    ssize_t current = 0;
+    ssize_t sz = 0;
+    ssize_t diff, recSz;
+
+    while (sz > -1 && current < buffsz)
+    {
+        diff = buffsz - current;
+        recSz = (diff > 4096) ? 4096 : diff;
+    
+        sz = recv(clientSocket, buffer + current, buffsz, MSG_WAITALL);
+        current += sz;
+        
+        printf("comm read %ld bytes\n", sz);
+    }
     
     if (sz == -1)
     {
@@ -146,8 +158,20 @@ int CommCpp::read(unsigned char* buffer, int buffsz)
 
 int CommCpp::write(const unsigned char* buffer, int buffsz)
 {
-    ssize_t sz = send(clientSocket, buffer, buffsz, MSG_DONTWAIT);
-    printf("comm wrote %ld bytes\n", sz);
+    ssize_t current = 0;
+    ssize_t sz = 0;
+    ssize_t diff, sendSz;
+    
+    while (sz > -1 && current < buffsz)
+    {
+        diff = buffsz - current;
+        sendSz = (diff > 4096) ? 4096 : diff;
+        
+        sz = send(clientSocket, buffer + current, sendSz, MSG_DONTWAIT);
+        current += sz;
+        
+        printf("comm wrote %ld bytes\n", sz);
+    }
     
     if (sz == -1)
     {

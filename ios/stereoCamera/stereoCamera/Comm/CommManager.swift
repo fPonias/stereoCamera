@@ -99,7 +99,11 @@ class CommManager
                     ret.isMaster = false;
                     ret.address = parts.joined(separator:".")
                     
-                    if (parts[0] == "172" && parts[1] == "20" && parts[2] == "10")
+                    if (parts[0] == "172" && parts[1] == "20" && parts[2] == "10") //if connected to an apple network tether
+                    {
+                        break
+                    }
+                    else if (parts[0] == "192" && parts[1] == "168") //if connected to a default home router setup
                     {
                         break
                     }

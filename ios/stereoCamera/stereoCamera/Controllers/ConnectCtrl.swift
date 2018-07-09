@@ -9,12 +9,14 @@
 
 import UIKit
 
-class ConnectCtrl: UIViewController
+class ConnectCtrl: UIViewController, UITextFieldDelegate
 {
     @IBOutlet weak var layout: UIStackView!
     @IBOutlet weak var connectSecondaryBtn: UIButton!
     @IBOutlet weak var connectPrimaryInput: UITextField!
     @IBOutlet weak var connectPrimaryBtn: UIButton!
+    @IBOutlet weak var galleryBtn: GalleryBtn!
+    @IBOutlet weak var scrollView: UIScrollView!
     
     let listenTimeout = 60.0
     let connectTimeout = 2.5
@@ -41,6 +43,93 @@ class ConnectCtrl: UIViewController
         setupLoader()
         setupLabels()
         firstConnect()
+        
+        let tapRecog = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
+        galleryBtn.isUserInteractionEnabled = true
+        galleryBtn.addGestureRecognizer(tapRecog)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+        connectPrimaryInput.delegate = self
+        connectPrimaryInput.addDoneButtonToKeyboard(target: self, myAction: #selector(inputReturn))
+    }
+    
+    var keyboardIsPresent = false
+    
+    @objc func keyboardWillShow(notification:Notification)
+    {
+        if (!keyboardIsPresent)
+        {
+            let szValue = notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue
+            let sz = szValue?.cgRectValue
+            
+            if (sz != nil)
+            {
+                scrollView.contentOffset.y += sz!.height - 100
+                keyboardIsPresent = true
+            }
+        }
+    }
+    
+    @objc func keyboardWillHide(notification:Notification)
+    {
+        if (keyboardIsPresent)
+        {
+            let szValue = notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue
+            let sz = szValue?.cgRectValue
+            
+            if (sz != nil)
+            {
+                scrollView.contentOffset.y = 0
+                keyboardIsPresent = false
+            }
+        }
+    }
+    
+    @objc func imageTapped()
+    {
+        performSegue(withIdentifier: "ConnectToGallery", sender: self)
+    }
+    
+    @objc func inputReturn()
+    {
+        let value = connectPrimaryInput.text
+        
+        if (value == nil || value?.count == 0)
+            { return }
+        
+        let isValid = validateIP(value!)
+        
+        
+        if (isValid)
+            { connectPrimaryInput.resignFirstResponder() }
+        else
+        {
+            let msg = "please enter a valid IP address"
+            let alert = UIAlertController(title: nil, message: msg, preferredStyle: UIAlertControllerStyle.alert)
+            present(alert, animated: true, completion: {
+            [] in
+                usleep(2000000)
+                alert.dismiss(animated: true, completion: nil)
+            })
+        }
+    }
+    
+    func validateIP(_ ip:String) -> Bool
+    {
+        let parts = ip.split(separator: ".")
+        
+        if (parts.count != 4)
+            { return false }
+        
+        for part in parts
+        {
+            let partInt = Int(part)
+            if (partInt == nil || partInt! < 0 || partInt! >= 256)
+                { return false }
+        }
+        
+        return true
     }
     
     func setupLabels()
@@ -55,7 +144,10 @@ class ConnectCtrl: UIViewController
         
         if (!addressGuess.isMaster)
         {
-            connectPrimaryInput.text = addressGuess.address
+            if (Cookie.instance.client != "")
+                { connectPrimaryInput.text = Cookie.instance.client }
+            else
+                { connectPrimaryInput.text = addressGuess.address }
         }
     }
     
@@ -78,16 +170,26 @@ class ConnectCtrl: UIViewController
     
     func firstConnect()
     {
-        var timeout = listenTimeout
-        if (!addressGuess.isMaster)
+        var master = false
+        var address = addressGuess.address
+        var timeout = connectTimeout
+        
+        if (Cookie.instance.master || addressGuess.isMaster)
         {
-            timeout = connectTimeout
+            master = true
+            address = ""
+            timeout = listenTimeout
             alert.message = "Connecting to " + addressGuess.address
+        }
+        else if (Cookie.instance.client != "")
+        {
+            address = Cookie.instance.client
         }
         
         present(alert, animated: true, completion: nil)
         
         CommManager.instance.comm.connect(
+            master: master, address: address,
             onConnected: onConnected,
             onFail: onFail,
             timeout: timeout
@@ -99,7 +201,7 @@ class ConnectCtrl: UIViewController
         // Dispose of any resources that can be recreated.
     }
     
-    func onConnected()
+    func onConnected(client:String)
     {
         if (CommManager.instance.isMaster)
         {
@@ -107,7 +209,7 @@ class ConnectCtrl: UIViewController
         }
         else
         {
-            onSlaveConnected()
+            onSlaveConnected(client: client)
         }
     }
     
@@ -117,18 +219,25 @@ class ConnectCtrl: UIViewController
         {[unowned self] in
             self.dismiss(animated: true, completion: {
             [unowned self] in
+                Cookie.instance.master = true
+                Cookie.instance.client = ""
                 self.performSegue(withIdentifier: "CameraMasterSegue", sender: self)
             })
         }
         
     }
     
-    func onSlaveConnected()
+    func onSlaveConnected(client: String)
     {
-        dismiss(animated: true, completion: {
-        [unowned self] in
-            self.performSegue(withIdentifier: "ConnectToSlave", sender: self)
-        })
+        DispatchQueue.main.async
+        {[unowned self] in
+            self.dismiss(animated: true, completion: {
+            [unowned self] in
+                Cookie.instance.master = false
+                Cookie.instance.client = client
+                self.performSegue(withIdentifier: "ConnectToSlave", sender: self)
+            })
+        }
     }
     
     func onFail()
@@ -165,4 +274,6 @@ class ConnectCtrl: UIViewController
         
         CommManager.instance.comm.connect(master: false, address: address!, onConnected: onConnected, onFail: onFail, timeout: connectTimeout)
     }
+    
+    
 }

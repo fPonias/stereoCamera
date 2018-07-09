@@ -29,6 +29,10 @@
 		7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729320E374C4000BE923 /* SetOverlay.swift */; };
 		7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729520E3ECFA000BE923 /* FireShutter.swift */; };
 		7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729720E5ADCA000BE923 /* SendPhoto.swift */; };
+		7CCB729A20E75072000BE923 /* DesignableTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729920E75072000BE923 /* DesignableTextField.swift */; };
+		7CCB729D20E8B4AC000BE923 /* Cookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729C20E8B4AC000BE923 /* Cookie.swift */; };
+		7CCB729F20F024C0000BE923 /* SetZoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729E20F024C0000BE923 /* SetZoom.swift */; };
+		7CCB72A120F031BA000BE923 /* SendZoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A020F031BA000BE923 /* SendZoom.swift */; };
 		7CDC415F20D39458005BE7A8 /* Comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC415D20D39458005BE7A8 /* Comm.cpp */; };
 		7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416020D397C4005BE7A8 /* Comm.swift */; };
 		7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416320D39DD3005BE7A8 /* Ping.swift */; };
@@ -295,6 +299,10 @@
 		7CCB729320E374C4000BE923 /* SetOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOverlay.swift; sourceTree = "<group>"; };
 		7CCB729520E3ECFA000BE923 /* FireShutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireShutter.swift; sourceTree = "<group>"; };
 		7CCB729720E5ADCA000BE923 /* SendPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendPhoto.swift; sourceTree = "<group>"; };
+		7CCB729920E75072000BE923 /* DesignableTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignableTextField.swift; sourceTree = "<group>"; };
+		7CCB729C20E8B4AC000BE923 /* Cookie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cookie.swift; sourceTree = "<group>"; };
+		7CCB729E20F024C0000BE923 /* SetZoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetZoom.swift; sourceTree = "<group>"; };
+		7CCB72A020F031BA000BE923 /* SendZoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendZoom.swift; sourceTree = "<group>"; };
 		7CDC415D20D39458005BE7A8 /* Comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comm.cpp; sourceTree = "<group>"; };
 		7CDC415E20D39458005BE7A8 /* Comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Comm.hpp; sourceTree = "<group>"; };
 		7CDC416020D397C4005BE7A8 /* Comm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comm.swift; sourceTree = "<group>"; };
@@ -679,6 +687,8 @@
 				7CCB729320E374C4000BE923 /* SetOverlay.swift */,
 				7CCB729520E3ECFA000BE923 /* FireShutter.swift */,
 				7CCB729720E5ADCA000BE923 /* SendPhoto.swift */,
+				7CCB729E20F024C0000BE923 /* SetZoom.swift */,
+				7CCB72A020F031BA000BE923 /* SendZoom.swift */,
 			);
 			path = Commands;
 			sourceTree = "<group>";
@@ -689,6 +699,7 @@
 				7CDC416A20D4F0F6005BE7A8 /* Bytes.swift */,
 				7C2E237120DB0A380027A2F5 /* Files.swift */,
 				7CCB728D20E2A412000BE923 /* Listeners.swift */,
+				7CCB729C20E8B4AC000BE923 /* Cookie.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -701,6 +712,7 @@
 				7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */,
 				7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */,
 				7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */,
+				7CCB729920E75072000BE923 /* DesignableTextField.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -1290,6 +1302,7 @@
 				7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */,
 				7CDC467120DA93CC005BE7A8 /* jmemmgr.c in Sources */,
 				7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */,
+				7CCB729D20E8B4AC000BE923 /* Cookie.swift in Sources */,
 				7CDC466F20DA93B9005BE7A8 /* jutils.c in Sources */,
 				7CDC466D20DA93B1005BE7A8 /* jquant1.c in Sources */,
 				7CDC466E20DA93B1005BE7A8 /* jquant2.c in Sources */,
@@ -1304,9 +1317,11 @@
 				7CDC467420DA9498005BE7A8 /* ImageProcessor.cpp in Sources */,
 				7CDC466520DA937E005BE7A8 /* jdtrans.c in Sources */,
 				7CDC466420DA9377005BE7A8 /* jdsample.c in Sources */,
+				7CCB729F20F024C0000BE923 /* SetZoom.swift in Sources */,
 				7CDC466320DA9370005BE7A8 /* jdpostct.c in Sources */,
 				7CDC465F20DA9365005BE7A8 /* jdmarker.c in Sources */,
 				7CDC466020DA9365005BE7A8 /* jdmerge.c in Sources */,
+				7CCB729A20E75072000BE923 /* DesignableTextField.swift in Sources */,
 				7CC66B7620E0BC5800AF811B /* MasterShake.swift in Sources */,
 				7CDC466120DA9365005BE7A8 /* jdmaster.c in Sources */,
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
@@ -1354,6 +1369,7 @@
 				7CDC463E20DA8FF3005BE7A8 /* util.cpp in Sources */,
 				7CDC464220DA9115005BE7A8 /* jpegCtrl.cpp in Sources */,
 				7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */,
+				7CCB72A120F031BA000BE923 /* SendZoom.swift in Sources */,
 				7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */,
 				7CDC415F20D39458005BE7A8 /* Comm.cpp in Sources */,
 				7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */,
