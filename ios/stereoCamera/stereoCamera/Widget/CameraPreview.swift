@@ -14,18 +14,24 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     override init(frame: CGRect)
     {
         super.init(frame: frame)
+        
+        updateTransform()
         setupOpenGL()
     }
     
     override init(frame: CGRect, context: EAGLContext)
     {
         super.init(frame: frame, context: context)
+        
+        updateTransform()
         setupOpenGL()
     }
     
     required init?(coder aDecoder: NSCoder)
     {
         super.init(coder: aDecoder)
+
+        updateTransform()
         setupOpenGL()
     }
     
@@ -44,6 +50,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         set
         {
             _zoom = newValue
+            updateTransform()
         }
     }
     
@@ -104,6 +111,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         let videoOutput = AVCaptureVideoDataOutput()
         let dq = DispatchQueue(label: "sample buffer delegate")
         videoOutput.setSampleBufferDelegate(self, queue: dq)
+        videoOutput.alwaysDiscardsLateVideoFrames = true
         
         guard captureSession.canAddOutput(videoOutput) else {return}
         
@@ -121,8 +129,19 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         captureSession.stopRunning()
     }
     
+    private var frameCount = 0
+    
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection)
     {
+        if (frameCount != 1)
+        {
+            frameCount += 1
+            return
+        }
+        else
+            { frameCount = 0 }
+        
+    
         let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
         var image = CIImage(cvPixelBuffer: pixelBuffer! as CVPixelBuffer, options: nil)
         image = rotateScaleImage(image: image)
@@ -139,15 +158,10 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         display()
     }
     
-    private func rotateScaleImage(image: CIImage) -> CIImage
+    private var previewTransform:CGAffineTransform = CGAffineTransform()
+    
+    func updateTransform()
     {
-        var ret:CIImage = image
-        
-        let inRect = image.extent
-        let margin = (inRect.width - inRect.height) / 2
-        let cropped = CGRect(x: margin, y: 0, width: inRect.height, height: inRect.height)
-        ret = ret.cropped(to: cropped)
-        
         var rotation:CGFloat = 0.0
         let orient = UIDevice.current.orientation
         switch(orient)
@@ -162,18 +176,29 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
             rotation = 0.0
         }
         
-        var trans = CGAffineTransform(translationX: 0, y: 0)
+        previewTransform = CGAffineTransform(translationX: 0, y: 0)
         
         if (_currentCamera?.position == .front)
-            { trans = trans.scaledBy(x: CGFloat(-1.0), y: CGFloat(1.0)) }
+            { previewTransform = previewTransform.scaledBy(x: CGFloat(-1.0), y: CGFloat(1.0)) }
         
         if (rotation != 0)
         {
-            trans = trans.rotated(by: rotation)
+            previewTransform = previewTransform.rotated(by: rotation)
         }
         
-        trans = trans.scaledBy(x: CGFloat(_zoom), y: CGFloat(_zoom))
-        ret = ret.transformed(by: trans)
+        previewTransform = previewTransform.scaledBy(x: CGFloat(_zoom), y: CGFloat(_zoom))
+    }
+    
+    private func rotateScaleImage(image: CIImage) -> CIImage
+    {
+        var ret:CIImage = image
+        
+        let inRect = image.extent
+        let margin = (inRect.width - inRect.height) / 2
+        let cropped = CGRect(x: margin, y: 0, width: inRect.height, height: inRect.height)
+        ret = ret.cropped(to: cropped)
+        
+        ret = ret.transformed(by: previewTransform)
         
         return ret
     }
@@ -199,7 +224,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     var fireShutterListener:FireShutterListener?
     
     public func fireShutter(delegate: @escaping FireShutterListener)
-    {        
+    {
         self.fireShutterListener = delegate
         let settings = AVCapturePhotoSettings()
         photoOutput.capturePhoto(with: settings, delegate: self)

@@ -85,6 +85,14 @@ class CommandFactory
             return FireShutter()
         case CommandTypes.SEND_PROCESSED_PHOTO:
             return SendPhoto()
+        case CommandTypes.DISCONNECT:
+            return Disconnect()
+        case CommandTypes.RECEIVE_DISCONNECT:
+            return SendDisconnect()
+        case CommandTypes.CONNECTION_PAUSE:
+            return ConnectionPause()
+        case CommandTypes.RECEIVE_CONNECTION_PAUSE:
+            return SendConnectionPause()
         default:
             print("CommandFactory unable to construct command of type " + type.description)
             return DefaultCommand()

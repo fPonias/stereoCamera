@@ -69,7 +69,7 @@ class Comm
             
             commandRepliesCnd.lock()
                 commandRepliesCnd.signal()
-            commandRepliesCnd.lock()
+            commandRepliesCnd.unlock()
         }
         
         if(commandSenderIsRunning)
@@ -165,18 +165,30 @@ class Comm
     func read(buffer:[UInt8]) -> Int32
     {
         let bufPtr = UnsafeMutablePointer<UInt8>(mutating: buffer)
-        let szRead = commRead(cppPtr, bufPtr, Int32(buffer.count))
+        let sz = commRead(cppPtr, bufPtr, Int32(buffer.count))
         
-        return szRead
+        if (sz <= 0 || !commandReceiverIsRunning)
+        {
+            commandReceiverIsRunning = false
+            commandListener?.onDisconnect()
+        }
+        
+        return sz
     }
     
     func read(sz:Int) -> ([UInt8], Int32)
     {
         let buf = [UInt8](repeating: 0, count: sz)
         let bufPtr = UnsafeMutablePointer<UInt8>(mutating: buf)
-        let szRead = commRead(cppPtr, bufPtr, Int32(sz))
+        let sz = commRead(cppPtr, bufPtr, Int32(sz))
         
-        return (buf, szRead)
+        if (sz <= 0 || !commandReceiverIsRunning)
+        {
+            commandReceiverIsRunning = false
+            commandListener?.onDisconnect()
+        }
+        
+        return (buf, sz)
     }
     
     func write(buf:[UInt8]) -> Int32
@@ -184,6 +196,12 @@ class Comm
         let sz = buf.count
         let bufPtr = UnsafePointer<UInt8>(buf)
         let szWritten = commWrite(cppPtr, bufPtr, Int32(sz))
+        
+        if (szWritten <= 0 || !commandReceiverIsRunning)
+        {
+            commandReceiverIsRunning = false
+            commandListener?.onDisconnect()
+        }
         
         return szWritten
     }
@@ -199,7 +217,7 @@ class Comm
         if (self.commandReceiverIsRunning)
         {return}
         
-        DispatchQueue.global(qos: .userInitiated).async
+        Thread.detachNewThread
         { [unowned self] in
             if (self.commandReceiverIsRunning)
                 {return}
@@ -211,6 +229,7 @@ class Comm
             self.startCommandRepliesProcessor()
             
             let buffer = [UInt8].init(repeating: 0, count: 1)
+            Thread.current.qualityOfService = QualityOfService.userInteractive
             
             while(self.commandReceiverIsRunning)
             {
@@ -227,6 +246,7 @@ class Comm
         if (sz != 1 || !self.commandReceiverIsRunning)
         {
             self.commandReceiverIsRunning = false
+            self.commandListener?.onDisconnect()
             return
         }
 
@@ -266,7 +286,7 @@ class Comm
     
     private func startCommandRepliesProcessor()
     {
-        DispatchQueue.global(qos: .userInitiated).async
+        Thread.detachNewThread
         { [unowned self] in
             while (self.commandReceiverIsRunning)
             {
@@ -307,7 +327,7 @@ class Comm
     
     private func startCommandsReceivedProcessor()
     {
-        DispatchQueue.global(qos: .userInitiated).async
+        Thread.detachNewThread
         {  [unowned self] in
             while (self.commandReceiverIsRunning)
             {
@@ -392,7 +412,7 @@ class Comm
         if (commandSenderIsRunning)
         { return }
         
-        DispatchQueue.global(qos:.userInitiated).async
+        Thread.detachNewThread
         { [unowned self] in
             if (self.commandSenderIsRunning)
                 { return }
@@ -400,6 +420,7 @@ class Comm
             self.commandSenderIsRunning = true
             
             print("send: started")
+            Thread.current.qualityOfService = QualityOfService.userInteractive
             while (self.commandSenderIsRunning)
             {
                 self.sendCommand()
@@ -434,6 +455,7 @@ class Comm
 protocol CommandListener: class
 {
     func onCommand(_ command:Command) -> Void
+    func onDisconnect() -> Void
 }
 
 typealias CommandResponseListener = (_ origCmd: Command?, _ respCmd: Command) -> Void

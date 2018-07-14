@@ -49,6 +49,11 @@ class SlaveState : CommandListener
         }
     }
     
+    func onDisconnect()
+    {
+        listener?.onDisconnect()
+    }
+    
     func start()
     {
         CommManager.instance.comm.commandListener = self

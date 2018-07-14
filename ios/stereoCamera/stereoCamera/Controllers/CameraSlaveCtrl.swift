@@ -96,9 +96,18 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                     self.galleryBtn.update()
                 }
             }
+        case CommandTypes.DISCONNECT:
+            self.disconnect()
+        case CommandTypes.CONNECTION_PAUSE:
+            self.cancelConnection()
         default:
             print("unsupported command " + command.cmdtype.description)
         }
+    }
+    
+    func onDisconnect()
+    {
+        disconnect()
     }
     
     override func viewDidLoad()
@@ -117,6 +126,13 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         showLoader(true)
         
         galleryBtn.update()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        let cmd = SendDisconnect()
+        CommManager.instance.comm.sendCommand(command: cmd)
+        CommManager.instance.comm.disconnect()
     }
     
     override var cameraPreview: CameraPreview
@@ -168,12 +184,20 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     {
         pingReceived = false;
         //previewSender.cancel();
-        //stopPreview();
 
-        //if (status == Status.READY || status == Status.BUSY)
-        //    slaveComm.sendCommand(new SendConnectionPause());
+        if (status == Status.READY || status == Status.BUSY)
+            { /*CommManager.instance.comm.sendCommand(command: SendConnectionPause())*/ }
 
         setStatus(Status.CREATED);
+    }
+    
+    func disconnect()
+    {
+        DispatchQueue.main.async
+        {
+        [unowned self] in
+            self.navigationController?.popViewController(animated: true)
+        }
     }
     
     override func setStatus(_ status: Status)

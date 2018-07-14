@@ -54,6 +54,13 @@ class CameraMasterCtrl: CameraBaseCtrl
         masterShake.parent = self
     }
     
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        let cmd = Disconnect()
+        CommManager.instance.comm.sendCommand(command: cmd)
+        CommManager.instance.comm.disconnect()
+    }
+    
     class SlaveListener : SlaveStateListener
     {
         unowned var parent:CameraMasterCtrl
@@ -92,7 +99,10 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         func onConnectionPause() {}
         
-        func onDisconnect() {}
+        func onDisconnect()
+        {
+            parent.disconnect()
+        }
         
         func onPreviewFrame(data: [UInt8], zoom: Float) {}
     }
@@ -150,9 +160,11 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     func disconnect()
     {
-        pauseConnection();
-        //MainActivity.getInstance().cleanUpConnections();
-        self.navigationController?.popViewController(animated: true)
+        DispatchQueue.main.async
+        {
+        [unowned self] in
+            self.navigationController?.popViewController(animated: true)
+        }
     }
     
     private let shutterLock = NSCondition()

@@ -34,6 +34,13 @@ class CameraBaseCtrl : UIViewController
         let tmpUrlStr = tmpUrl.path
         let ptr = Bytes.toPointer(tmpUrlStr)
         imageProcessor_initN(ptr)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(CameraBaseCtrl.rotated), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+    }
+    
+    @objc func rotated()
+    {
+        cameraPreview.updateTransform()
     }
     
     override func didReceiveMemoryWarning()
