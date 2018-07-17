@@ -33,6 +33,8 @@ class SlaveState : CommandListener
             case .RECEIVE_ANGLE_OF_VIEW:
                 break
             case .RECEIVE_GRAVITY:
+                let sendGravity = command as! SendGravity
+                listener?.onGravity(gravity: sendGravity.gravity)
                 break
             case .RECEIVE_ZOOM:
                 break
@@ -117,7 +119,7 @@ protocol SlaveStateListener
     func onStatus(status:Status)
     func onZoom(zoom:Float)
     func onFov(horiz:Float, vert:Float)
-    func onGravity(gravity:Any)
+    func onGravity(gravity:Gravity)
     func onOrientation(orientation:UIDeviceOrientation)
     func onConnectionPause()
     func onDisconnect()

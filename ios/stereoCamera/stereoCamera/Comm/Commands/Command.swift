@@ -93,6 +93,8 @@ class CommandFactory
             return ConnectionPause()
         case CommandTypes.RECEIVE_CONNECTION_PAUSE:
             return SendConnectionPause()
+        case CommandTypes.RECEIVE_GRAVITY:
+            return SendGravity()
         default:
             print("CommandFactory unable to construct command of type " + type.description)
             return DefaultCommand()

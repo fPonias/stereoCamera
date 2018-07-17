@@ -16,6 +16,9 @@
 		7C6CD12B20D1B1A70010F6B1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD12A20D1B1A70010F6B1 /* Main.storyboard */; };
 		7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */; };
 		7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD13B20D2223B0010F6B1 /* CommManager.swift */; };
+		7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84966E20F990CF00C50601 /* SendGravity.swift */; };
+		7C84967120FD4D8E00C50601 /* LevelWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84967020FD4D8E00C50601 /* LevelWidget.swift */; };
+		7C84967320FD5B0F00C50601 /* Angles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84967220FD5B0F00C50601 /* Angles.swift */; };
 		7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */; };
 		7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */; };
 		7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */; };
@@ -290,6 +293,9 @@
 		7C6CD13A20D1C2870010F6B1 /* stereoCamera.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = stereoCamera.entitlements; sourceTree = "<group>"; };
 		7C6CD13B20D2223B0010F6B1 /* CommManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommManager.swift; sourceTree = "<group>"; };
 		7C6CD13F20D247520010F6B1 /* stereoCamera-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "stereoCamera-Bridging-Header.h"; sourceTree = "<group>"; };
+		7C84966E20F990CF00C50601 /* SendGravity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendGravity.swift; sourceTree = "<group>"; };
+		7C84967020FD4D8E00C50601 /* LevelWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelWidget.swift; sourceTree = "<group>"; };
+		7C84967220FD5B0F00C50601 /* Angles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Angles.swift; sourceTree = "<group>"; };
 		7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSlaveCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraBaseCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryBtn.swift; sourceTree = "<group>"; };
@@ -701,6 +707,7 @@
 				7CCB72A420F416EC000BE923 /* SendDisconnect.swift */,
 				7CCB72A620F418F1000BE923 /* ConnectionPause.swift */,
 				7CCB72A820F4193C000BE923 /* SendConnectionPause.swift */,
+				7C84966E20F990CF00C50601 /* SendGravity.swift */,
 			);
 			path = Commands;
 			sourceTree = "<group>";
@@ -712,6 +719,7 @@
 				7C2E237120DB0A380027A2F5 /* Files.swift */,
 				7CCB728D20E2A412000BE923 /* Listeners.swift */,
 				7CCB729C20E8B4AC000BE923 /* Cookie.swift */,
+				7C84967220FD5B0F00C50601 /* Angles.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -725,6 +733,7 @@
 				7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */,
 				7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */,
 				7CCB729920E75072000BE923 /* DesignableTextField.swift */,
+				7C84967020FD4D8E00C50601 /* LevelWidget.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -1338,6 +1347,7 @@
 				7CC66B7620E0BC5800AF811B /* MasterShake.swift in Sources */,
 				7CDC466120DA9365005BE7A8 /* jdmaster.c in Sources */,
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
+				7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */,
 				7CCB72A520F416EC000BE923 /* SendDisconnect.swift in Sources */,
 				7CDC466220DA9365005BE7A8 /* jdmainct.c in Sources */,
 				7CDC465E20DA9353005BE7A8 /* jdinput.c in Sources */,
@@ -1347,6 +1357,7 @@
 				7CDC465A20DA9335005BE7A8 /* jdcolor.c in Sources */,
 				7CCB72A920F4193C000BE923 /* SendConnectionPause.swift in Sources */,
 				7CDC465B20DA9335005BE7A8 /* jdcoefct.c in Sources */,
+				7C84967320FD5B0F00C50601 /* Angles.swift in Sources */,
 				7CDC465520DA9314005BE7A8 /* jdatasrc.c in Sources */,
 				7CDC465620DA9314005BE7A8 /* jdapistd.c in Sources */,
 				7C2E237220DB0A380027A2F5 /* Files.swift in Sources */,
@@ -1382,6 +1393,7 @@
 				7CDC463B20DA8FF3005BE7A8 /* Image.cpp in Sources */,
 				7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */,
 				7CDC463E20DA8FF3005BE7A8 /* util.cpp in Sources */,
+				7C84967120FD4D8E00C50601 /* LevelWidget.swift in Sources */,
 				7CDC464220DA9115005BE7A8 /* jpegCtrl.cpp in Sources */,
 				7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */,
 				7CCB72A120F031BA000BE923 /* SendZoom.swift in Sources */,

@@ -11,6 +11,7 @@ import UIKit
 import AVFoundation
 import GLKit
 import Photos
+import CoreMotion
 
 class CameraMasterCtrl: CameraBaseCtrl
 {
@@ -20,6 +21,8 @@ class CameraMasterCtrl: CameraBaseCtrl
     @IBOutlet weak var flipBtn: UIButton!
     @IBOutlet weak var handPhoneBtn: UIButton!
     @IBOutlet weak var galleryBtn: GalleryBtn!
+    @IBOutlet weak var levelMeter: LevelWidget!
+    @IBOutlet weak var tiltMeter: LevelWidget!
     
     override var cameraPreview: CameraPreview
     {
@@ -93,7 +96,14 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         func onFov(horiz: Float, vert: Float) {}
         
-        func onGravity(gravity: Any) {}
+        func onGravity(gravity: Gravity)
+        {
+            let horiz = Angles.horizontalOrientation(orientation: UIDevice.current.orientation, gravity: gravity)
+            parent.levelMeter.rotation2 = horiz
+            
+            let vert = Angles.verticalOrientation(gravity: gravity)
+            parent.tiltMeter.rotation2 = vert
+        }
         
         func onOrientation(orientation: UIDeviceOrientation) {}
         
@@ -105,6 +115,19 @@ class CameraMasterCtrl: CameraBaseCtrl
         }
         
         func onPreviewFrame(data: [UInt8], zoom: Float) {}
+    }
+    
+    override func gravityHandler(data:CMAccelerometerData?, error:Error?)
+    {
+        if (data == nil)
+            { return }
+        
+        let gravity = Gravity(x: Float(data!.acceleration.x), y: Float(data!.acceleration.y), z: Float(data!.acceleration.z))
+        let horiz = Angles.horizontalOrientation(orientation: UIDevice.current.orientation, gravity: gravity)
+        levelMeter.rotation1 = horiz
+    
+        let vert = Angles.verticalOrientation(gravity: gravity)
+        tiltMeter.rotation1 = vert
     }
     
     override func viewDidLoad()

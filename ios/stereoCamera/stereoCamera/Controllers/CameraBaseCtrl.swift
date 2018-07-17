@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import Photos
+import CoreMotion
 
 class CameraBaseCtrl : UIViewController
 {
@@ -36,6 +37,18 @@ class CameraBaseCtrl : UIViewController
         imageProcessor_initN(ptr)
         
         NotificationCenter.default.addObserver(self, selector: #selector(CameraBaseCtrl.rotated), name: NSNotification.Name.UIDeviceOrientationDidChange, object: nil)
+        
+        //gravityDetector.accelerometerUpdateInterval = 0.15
+        //gravityDetector.startAccelerometerUpdates(to: gravityQueue, withHandler: gravityHandler)
+    }
+    
+    deinit
+    {
+        //gravityDetector.stopAccelerometerUpdates()
+    }
+    
+    func gravityHandler(data:CMAccelerometerData?, error:Error?)
+    {
     }
     
     @objc func rotated()
@@ -52,6 +65,8 @@ class CameraBaseCtrl : UIViewController
     let alert = UIAlertController(title: nil, message: "Camera Busy", preferredStyle: UIAlertControllerStyle.alert)
     var isShowing = false
     var loadingIndicator: UIActivityIndicatorView? = nil
+    private let gravityDetector = CMMotionManager()
+    private let gravityQueue = OperationQueue()
     
     func showLoader(_ show:Bool)
     {

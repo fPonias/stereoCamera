@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 import AVKit
+import CoreMotion
 
 class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
 {
@@ -133,6 +134,16 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         let cmd = SendDisconnect()
         CommManager.instance.comm.sendCommand(command: cmd)
         CommManager.instance.comm.disconnect()
+    }
+    
+    override func gravityHandler(data: CMAccelerometerData?, error: Error?)
+    {
+        if (data == nil)
+            { return }
+
+        let value = Gravity(x: Float(data!.acceleration.x), y: Float(data!.acceleration.y), z: Float(data!.acceleration.z))
+        let cmd = SendGravity(gravity: value)
+        CommManager.instance.comm.sendCommand(command: cmd)
     }
     
     override var cameraPreview: CameraPreview
