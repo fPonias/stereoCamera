@@ -40,6 +40,25 @@ class CameraBaseCtrl : UIViewController
         
         //gravityDetector.accelerometerUpdateInterval = 0.15
         //gravityDetector.startAccelerometerUpdates(to: gravityQueue, withHandler: gravityHandler)
+        
+        setupLoader()
+    }
+    
+    private func setupLoader()
+    {
+        self.loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50 ))
+        self.loadingIndicator!.hidesWhenStopped = true
+        self.loadingIndicator!.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
+        self.loadingIndicator!.startAnimating()
+
+        self.alert.view.addSubview(self.loadingIndicator!)
+
+        let action = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: {
+        [unowned self] (action) in
+            self.dismiss(animated: true, completion: nil)
+            self.onConnectCancelled()
+        })
+        self.alert.addAction(action)
     }
     
     deinit
@@ -79,12 +98,8 @@ class CameraBaseCtrl : UIViewController
         [unowned self] in
             if (show)
             {
-                self.loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50 ))
-                self.loadingIndicator!.hidesWhenStopped = true
-                self.loadingIndicator!.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
-                self.loadingIndicator!.startAnimating()
                 
-                self.alert.view.addSubview(self.loadingIndicator!)
+                
                 self.present(self.alert, animated: true, completion: nil)
             }
             else
@@ -92,6 +107,11 @@ class CameraBaseCtrl : UIViewController
                 self.alert.dismiss(animated: false, completion: nil)
             }
         }
+    }
+    
+    func onConnectCancelled()
+    {
+    
     }
     
     func setLoadingMessage(_ message:String)

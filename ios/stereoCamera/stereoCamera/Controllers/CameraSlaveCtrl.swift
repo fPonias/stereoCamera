@@ -59,7 +59,8 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             setFacing.isResponse = true
             CommManager.instance.comm.sendCommand(command: setFacing)
             
-            cameraPreview.startCamera()
+            let newPos = (setFacing.facing) ? AVCaptureDevice.Position.front : AVCaptureDevice.Position.back;
+            cameraPreview.startCamera(cameraPosition: newPos)
         case CommandTypes.SET_ZOOM:
             let setZoom = SetZoom((command as! SetZoom).zoom)
             setZoom.id = command.id
@@ -85,12 +86,18 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                 CommManager.instance.comm.sendCommand(command: fireShutter)
             })
         case CommandTypes.SEND_PROCESSED_PHOTO:
+            let sendPhotoReply = SendPhoto()
+            sendPhotoReply.id = command.id
+            sendPhotoReply.isResponse = true
+            CommManager.instance.comm.sendCommand(command: sendPhotoReply)
+            
             let sendPhoto = command as! SendPhoto
             let url = saveToTmp(data: Data(sendPhoto.data))
             
             if (url != nil)
             {
                 saveToPhotos(dataPath: url!.path)
+                self.showLoader(false)
                 
                 DispatchQueue.main.async {
                 [ unowned self ] in
@@ -191,6 +198,11 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         performSegue(withIdentifier: "SlaveToGallery", sender: self)
     }
     
+    override func onConnectCancelled()
+    {
+        disconnect()
+    }
+    
     func cancelConnection()
     {
         pingReceived = false;
@@ -219,6 +231,8 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     
     func fireShutter(listener: @escaping DataListener)
     {
+        showLoader(true)
+    
         if (self.cameraPreview.currentCamera == nil)
         {
             DispatchQueue.global(qos: .userInitiated).async(execute:

@@ -28,7 +28,7 @@ class SendPhoto : Command
     private func doInit()
     {
         cmdtype = CommandTypes.SEND_PROCESSED_PHOTO
-        expectsResponse = false
+        expectsResponse = true
     }
     
     override func send(comm: Comm)

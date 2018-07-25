@@ -18,11 +18,10 @@ class CameraMasterCtrl: CameraBaseCtrl
     @IBOutlet weak var _cameraPreview: CameraPreview!
     @IBOutlet weak var shutterBtn: UIButton!
     @IBOutlet weak var _zoomSlider: UISlider!
-    @IBOutlet weak var flipBtn: UIButton!
     @IBOutlet weak var handPhoneBtn: UIButton!
     @IBOutlet weak var galleryBtn: GalleryBtn!
-    @IBOutlet weak var levelMeter: LevelWidget!
-    @IBOutlet weak var tiltMeter: LevelWidget!
+    @IBOutlet weak var settingsBtn: UIBarButtonItem!
+    @IBOutlet weak var flipBtn: UIBarButtonItem!
     
     override var cameraPreview: CameraPreview
     {
@@ -99,10 +98,10 @@ class CameraMasterCtrl: CameraBaseCtrl
         func onGravity(gravity: Gravity)
         {
             let horiz = Angles.horizontalOrientation(orientation: UIDevice.current.orientation, gravity: gravity)
-            parent.levelMeter.rotation2 = horiz
+            //parent.levelMeter.rotation2 = horiz
             
             let vert = Angles.verticalOrientation(gravity: gravity)
-            parent.tiltMeter.rotation2 = vert
+            //parent.tiltMeter.rotation2 = vert
         }
         
         func onOrientation(orientation: UIDeviceOrientation) {}
@@ -124,10 +123,10 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         let gravity = Gravity(x: Float(data!.acceleration.x), y: Float(data!.acceleration.y), z: Float(data!.acceleration.z))
         let horiz = Angles.horizontalOrientation(orientation: UIDevice.current.orientation, gravity: gravity)
-        levelMeter.rotation1 = horiz
+        //levelMeter.rotation1 = horiz
     
         let vert = Angles.verticalOrientation(gravity: gravity)
-        tiltMeter.rotation1 = vert
+        //tiltMeter.rotation1 = vert
     }
     
     override func viewDidLoad()
@@ -139,7 +138,8 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         showLoader(true)
         
-        cameraPreview.startCamera()
+        let cam = Cookie.instance.camera
+        cameraPreview.startCamera(cameraPosition: cam)
         
         DispatchQueue.global(qos: .userInitiated).async
         {
@@ -165,6 +165,11 @@ class CameraMasterCtrl: CameraBaseCtrl
                 }
             }
         })
+    }
+    
+    override func onConnectCancelled()
+    {
+        disconnect()
     }
     
     func pauseConnection()
@@ -213,6 +218,7 @@ class CameraMasterCtrl: CameraBaseCtrl
             { return }
     
         showLoader(true)
+        Cookie.instance.camera = cameraPreview.currentCamera!.position
         
         shutterFireLocal()
         shutterFireRemote()
@@ -337,7 +343,6 @@ class CameraMasterCtrl: CameraBaseCtrl
         imageProcessor_processN(1, 0, outptr )
         
         imageProcessor_cleanUpN()
-        showLoader(false)
         
         saveToPhotos(dataPath: outpath)
         sendProcessedPhoto(dataPath: outpath)
@@ -362,7 +367,10 @@ class CameraMasterCtrl: CameraBaseCtrl
             let data = try Data(contentsOf: url)
             
             let cmd = SendPhoto(dta: data)
-            CommManager.instance.comm.sendCommand(command: cmd)
+            CommManager.instance.comm.sendCommand(command: cmd, listener: {[ unowned self ] (_ cmd:Command?, _ resp:Command) -> Void
+            in
+                self.showLoader(false)
+            })
         }
         catch {
         }
@@ -373,9 +381,17 @@ class CameraMasterCtrl: CameraBaseCtrl
         performSegue(withIdentifier: "MasterToGallery", sender: self)
     }
     
+    @IBAction func openSettings(_ sender: Any)
+    {
+    }
+    
     @IBAction func flipCamera(_ sender: Any)
     {
         cameraPreview.stopCamera()
+        let cmd = ConnectionPause()
+        CommManager.instance.comm.sendCommand(command: cmd)
+        showLoader(true)
+        
         let curPos = cameraPreview.currentCamera?.position
         
         var newPos = AVCaptureDevice.Position.back

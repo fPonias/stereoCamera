@@ -97,7 +97,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         
         captureSession = AVCaptureSession()
         captureSession.beginConfiguration()
-        
+        photoOutput = AVCapturePhotoOutput()
         
         guard
             let videoDeviceInput = try? AVCaptureDeviceInput(device: _currentCamera!),

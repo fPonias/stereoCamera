@@ -71,7 +71,11 @@ class Cookie
             let cameraInt = UserDefaults.standard.integer(forKey: cameraKey)
             return AVCaptureDevice.Position(rawValue: cameraInt)!
         }
-        set { UserDefaults.standard.set(newValue, forKey: cameraKey) }
+        set
+        {
+            let value = newValue.rawValue
+            UserDefaults.standard.set(value, forKey: cameraKey)
+        }
     }
     
     func getZoomForClient(isMaster: Bool, client: String, camera: AVCaptureDevice.Position = AVCaptureDevice.Position.back) -> Float

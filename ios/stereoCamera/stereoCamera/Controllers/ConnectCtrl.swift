@@ -179,7 +179,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
             master = true
             address = ""
             timeout = listenTimeout
-            alert.message = "Connecting to " + addressGuess.address
+            alert.message = "Listening"
         }
         else if (Cookie.instance.client != "")
         {
