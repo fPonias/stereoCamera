@@ -19,6 +19,7 @@
 		7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84966E20F990CF00C50601 /* SendGravity.swift */; };
 		7C84967120FD4D8E00C50601 /* LevelWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84967020FD4D8E00C50601 /* LevelWidget.swift */; };
 		7C84967320FD5B0F00C50601 /* Angles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84967220FD5B0F00C50601 /* Angles.swift */; };
+		7CA546FB21085A9600C81830 /* SettingsCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA546FA21085A9600C81830 /* SettingsCtrl.swift */; };
 		7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */; };
 		7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */; };
 		7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */; };
@@ -277,6 +278,9 @@
 		7CDC467520DA9498005BE7A8 /* ImageProcessor.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7CDC467320DA9498005BE7A8 /* ImageProcessor.hpp */; };
 		7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */; };
 		7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */; };
+		7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */; };
+		7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */; };
+		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -296,6 +300,7 @@
 		7C84966E20F990CF00C50601 /* SendGravity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendGravity.swift; sourceTree = "<group>"; };
 		7C84967020FD4D8E00C50601 /* LevelWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelWidget.swift; sourceTree = "<group>"; };
 		7C84967220FD5B0F00C50601 /* Angles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Angles.swift; sourceTree = "<group>"; };
+		7CA546FA21085A9600C81830 /* SettingsCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCtrl.swift; sourceTree = "<group>"; };
 		7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSlaveCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraBaseCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryBtn.swift; sourceTree = "<group>"; };
@@ -604,6 +609,9 @@
 		7CDC467320DA9498005BE7A8 /* ImageProcessor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ImageProcessor.hpp; sourceTree = "<group>"; };
 		7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridCtrl.swift; sourceTree = "<group>"; };
 		7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridWidget.swift; sourceTree = "<group>"; };
+		7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewOverlay.swift; sourceTree = "<group>"; };
+		7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListSelectorCtrl.swift; sourceTree = "<group>"; };
+		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -663,6 +671,8 @@
 				7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */,
 				7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */,
 				7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */,
+				7CA546FA21085A9600C81830 /* SettingsCtrl.swift */,
+				7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -734,6 +744,8 @@
 				7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */,
 				7CCB729920E75072000BE923 /* DesignableTextField.swift */,
 				7C84967020FD4D8E00C50601 /* LevelWidget.swift */,
+				7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */,
+				7CF59843211157810015260C /* SettingsListWidget.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -1355,6 +1367,7 @@
 				7CDC465D20DA934C005BE7A8 /* jdhuff.c in Sources */,
 				7CDC465C20DA933F005BE7A8 /* jddctmgr.c in Sources */,
 				7CDC465A20DA9335005BE7A8 /* jdcolor.c in Sources */,
+				7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */,
 				7CCB72A920F4193C000BE923 /* SendConnectionPause.swift in Sources */,
 				7CDC465B20DA9335005BE7A8 /* jdcoefct.c in Sources */,
 				7C84967320FD5B0F00C50601 /* Angles.swift in Sources */,
@@ -1365,16 +1378,19 @@
 				7CDC465820DA9314005BE7A8 /* jdatadst.c in Sources */,
 				7CDC465920DA9314005BE7A8 /* jdapimin.c in Sources */,
 				7CDC465420DA92EF005BE7A8 /* jctrans.c in Sources */,
+				7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */,
 				7CDC465320DA92E5005BE7A8 /* jcsample.c in Sources */,
 				7CDC465120DA92DD005BE7A8 /* jcparam.c in Sources */,
 				7CDC465220DA92DD005BE7A8 /* jcprepct.c in Sources */,
 				7CDC465020DA92D4005BE7A8 /* jcomapi.c in Sources */,
+				7CA546FB21085A9600C81830 /* SettingsCtrl.swift in Sources */,
 				7CDC464D20DA92BE005BE7A8 /* jcmaster.c in Sources */,
 				7CCB729220E36EA8000BE923 /* SetFacing.swift in Sources */,
 				7CDC464E20DA92BF005BE7A8 /* jcmainct.c in Sources */,
 				7CDC464F20DA92BF005BE7A8 /* jcmarker.c in Sources */,
 				7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */,
 				7CDC464C20DA92B4005BE7A8 /* jcinit.c in Sources */,
+				7CF59844211157810015260C /* SettingsListWidget.swift in Sources */,
 				7CCB729020E2F2C0000BE923 /* Version.swift in Sources */,
 				7CDC464B20DA92AE005BE7A8 /* jchuff.c in Sources */,
 				7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */,

@@ -56,8 +56,16 @@ class CameraMasterCtrl: CameraBaseCtrl
         masterShake.parent = self
     }
     
-    override func viewWillDisappear(_ animated: Bool)
+    private var ignoreNavFrom = true
+    
+    override func didMove(toParentViewController parent: UIViewController?)
     {
+        if (ignoreNavFrom)
+        {
+            ignoreNavFrom = false
+            return
+        }
+    
         let cmd = Disconnect()
         CommManager.instance.comm.sendCommand(command: cmd)
         CommManager.instance.comm.disconnect()
@@ -71,7 +79,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         {
             self.parent = parent
         }
-    
+        
         func onStatus(status: Status)
         {
             if (status == .RESUMED && parent.resumed)
@@ -140,6 +148,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         let cam = Cookie.instance.camera
         cameraPreview.startCamera(cameraPosition: cam)
+        
         
         DispatchQueue.global(qos: .userInitiated).async
         {
@@ -378,11 +387,14 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     @IBAction func openGallery(_ sender: Any)
     {
+        ignoreNavFrom = true
         performSegue(withIdentifier: "MasterToGallery", sender: self)
     }
     
     @IBAction func openSettings(_ sender: Any)
     {
+        ignoreNavFrom = true
+        performSegue(withIdentifier: "SettingsSegue", sender: self)
     }
     
     @IBAction func flipCamera(_ sender: Any)

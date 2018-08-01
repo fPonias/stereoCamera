@@ -19,6 +19,15 @@ class Cookie
     let cameraKey = "CAMERA"
     let cameraZoomsKey = "CAMERA_ZOOMS"
     let sideKey = "SIDE"
+    let overlayKey = "OVERLAY"
+    let syncTestKey = "SYNC_TEST"
+    let imageQualityKey = "IMAGE_QUALITY"
+    
+    enum PrefType
+    {
+        case OVERLAY,
+        IMAGE_QUALITY
+    }
     
     static let _instance:Cookie = Cookie()
     
@@ -110,4 +119,80 @@ class Cookie
         }
         set { UserDefaults.standard.set(newValue.rawValue, forKey: sideKey) }
     }
+    
+    var overlay:Overlay
+    {
+        get
+        {
+            let val = UserDefaults.standard.integer(forKey: overlayKey)
+            return Overlay(rawValue: val)!
+        }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: overlayKey)}
+    }
+    
+    var imageQuality:ImageQuality
+    {
+        get
+        {
+            let val = UserDefaults.standard.integer(forKey: imageQualityKey)
+            return ImageQuality(rawValue: val)!
+        }
+        set { UserDefaults.standard.set(newValue.rawValue, forKey: imageQualityKey)}
+    }
+    
+    var runSyncTest:Bool
+    {
+        get { return UserDefaults.standard.bool(forKey: syncTestKey )}
+        set { UserDefaults.standard.set(newValue, forKey: syncTestKey)}
+    }
+}
+
+
+
+enum Overlay: Int
+{
+    case NONE,
+    HALF,
+    THIRDS,
+    FOURTHS
+    
+    func toString() -> String
+    {
+        switch self
+        {
+            case .NONE: return "None"
+            case .HALF: return "Half"
+            case .THIRDS: return "Thirds"
+            case .FOURTHS: return "Fourths"
+        }
+    }
+    
+    //this shouldn't be necessary, but swift lacks good reflection utilities
+    static let allValues = [
+        NONE.rawValue: NONE.toString(),
+        HALF.rawValue: HALF.toString(),
+        THIRDS.rawValue: THIRDS.toString(),
+        FOURTHS.rawValue: FOURTHS.toString()
+    ]
+}
+
+enum ImageQuality: Int
+{
+    case HIGH,
+    LOW
+    
+    func toString() -> String
+    {
+        switch self
+        {
+            case .HIGH: return "High"
+            case .LOW: return "Low"
+        }
+    }
+    
+    //this shouldn't be necessary, but swift lacks good reflection utilities
+    static let allValues = [
+        HIGH.rawValue: HIGH.toString(),
+        LOW.rawValue: LOW.toString()
+    ]
 }

@@ -10,7 +10,7 @@ import Foundation
 
 class SetOverlay : Command
 {
-    var overlay = CameraPreviewOverlayType.None
+    var overlay = Overlay.NONE
 
     override init()
     {
@@ -18,7 +18,7 @@ class SetOverlay : Command
         doInit()
     }
     
-    init(_ overlay: CameraPreviewOverlayType)
+    init(_ overlay: Overlay)
     {
         super.init()
         self.overlay = overlay

@@ -155,6 +155,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
         let dest = CGRect(x:0, y:0, width: extent.width, height: extent.height)
         ciContext.draw(image, in:dest, from: from)
+        
         display()
     }
     
@@ -230,12 +231,3 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         photoOutput.capturePhoto(with: settings, delegate: self)
     }
 }
-
-enum CameraPreviewOverlayType:Int
-{
-    case None,
-    Crosshairs,
-    Thirds,
-    Fourths,
-    Ghost
-};

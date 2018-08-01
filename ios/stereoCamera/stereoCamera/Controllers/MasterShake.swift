@@ -172,7 +172,8 @@ class MasterShake
         
         func execute(listener: @escaping MasterShakeListener)
         {
-            let cmd = SetOverlay(CameraPreviewOverlayType.None)
+            let overlay = Cookie.instance.overlay
+            let cmd = SetOverlay(overlay)
             CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
             in
                 listener(true)

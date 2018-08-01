@@ -16,6 +16,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     @IBOutlet weak var _cameraPreview: CameraPreview!
     @IBOutlet weak var _zoomSlider: UISlider!
     @IBOutlet weak var galleryBtn: GalleryBtn!
+    @IBOutlet weak var cameraOverlay: CameraPreviewOverlay!
     
     var pingReceived = false;
     
@@ -53,6 +54,8 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             setOverlay.isResponse = true
             CommManager.instance.comm.sendCommand(command: setOverlay)
             self.showLoader(false)
+            
+            cameraOverlay.overlay = setOverlay.overlay
         case CommandTypes.SET_FACING:
             let setFacing = SetFacing((command as! SetFacing).facing)
             setFacing.id = command.id
