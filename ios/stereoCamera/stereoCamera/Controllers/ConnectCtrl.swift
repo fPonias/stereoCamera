@@ -242,7 +242,10 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     
     func onFail()
     {
-        self.dismiss(animated: true, completion: nil)
+        DispatchQueue.main.async {
+        [unowned self] in
+            self.dismiss(animated: true, completion: nil)
+        }
     }
 
     /*

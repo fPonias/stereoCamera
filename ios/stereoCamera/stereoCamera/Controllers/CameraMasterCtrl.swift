@@ -152,7 +152,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         DispatchQueue.global(qos: .userInitiated).async
         {
-            usleep(5000000)
+            usleep(1500000)
             self.handshake()
         }
         

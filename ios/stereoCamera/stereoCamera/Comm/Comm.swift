@@ -121,6 +121,7 @@ class Comm
                     self.cppPtr = commNew()
                     
                     self.isConnecting = false
+                    fail()
                 }
             self.connectCnd.unlock()
         }
