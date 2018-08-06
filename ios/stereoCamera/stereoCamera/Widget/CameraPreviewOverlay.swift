@@ -15,7 +15,15 @@ class CameraPreviewOverlay : UIView
     var overlay:Overlay
     {
         get { return _overlay}
-        set { _overlay = newValue }
+        set
+        {
+            _overlay = newValue
+            
+            DispatchQueue.main.async {
+            [unowned self] in
+                self.setNeedsDisplay()
+            }
+        }
     }
 
     override func draw(_ rect: CGRect)

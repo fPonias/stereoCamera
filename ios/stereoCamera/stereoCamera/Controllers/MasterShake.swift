@@ -26,6 +26,7 @@ class MasterShake
         steps.append(HandshakeStep())
         steps.append(ReadyStep(parent: self))
         steps.append(SetCameraStep(parent: self))
+        steps.append(SetQualityStep())
         steps.append(SetZoomStep(parent: self))
         steps.append(SetOverlayStep())
     }
@@ -174,6 +175,21 @@ class MasterShake
         {
             let overlay = Cookie.instance.overlay
             let cmd = SetOverlay(overlay)
+            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
+            in
+                listener(true)
+            })
+        }
+    }
+    
+    class SetQualityStep : MasterShakeStep
+    {
+        var name: String { get { return "set image quality" }}
+        
+        func execute(listener: @escaping MasterShakeListener)
+        {
+            let quality = Cookie.instance.imageQuality
+            let cmd = SetCaptureQuality(quality)
             CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
             in
                 listener(true)

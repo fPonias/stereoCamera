@@ -29,7 +29,8 @@ enum CommandTypes: Int
     RECEIVE_DISCONNECT,
     SEND_PROCESSED_PHOTO,
     RECEIVE_PREVIEW_FRAME,
-    HANDSHAKE
+    HANDSHAKE,
+    SET_CAPTURE_QUALITY
     
     var description: String
     {
@@ -54,6 +55,7 @@ enum CommandTypes: Int
         case .SEND_PROCESSED_PHOTO: return "Send processed photo"
         case .RECEIVE_PREVIEW_FRAME: return "Receive preview frame"
         case .HANDSHAKE: return "Handshake"
+        case .SET_CAPTURE_QUALITY: return "set capture quality"
         default: return "Undefined"
         }
     }

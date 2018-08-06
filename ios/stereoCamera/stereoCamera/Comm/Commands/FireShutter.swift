@@ -11,6 +11,7 @@ import Foundation
 class FireShutter : Command
 {
     var data = [UInt8]()
+    var zoom:Float = 1.0
 
     override init()
     {
@@ -18,10 +19,13 @@ class FireShutter : Command
         doInit()
     }
     
-    init(dta:Data)
+    init(data:Data, zoom:Float)
     {
         super.init()
-        data = [UInt8](dta)
+        
+        self.data = [UInt8](data)
+        self.zoom = zoom
+        
         doInit()
     }
     
@@ -35,8 +39,10 @@ class FireShutter : Command
     {
         super.send(comm: comm)
         
-        let sz = data.count
         var bytes:[UInt8] = []
+        bytes += Bytes.toByteArray(zoom)
+        
+        let sz = data.count
         bytes += Bytes.toByteArray(sz)
         let _ = comm.write(buf: bytes)
         
@@ -48,8 +54,11 @@ class FireShutter : Command
     {
         super.receive(comm: comm)
         
-        let (buf, sz) = comm.read(sz: 8)
-        let bufSz:Int = Bytes.fromByteArray(buf)
+        let(buf2, sz2) = comm.read(sz:8)
+        zoom = Bytes.fromByteArray(buf2)
+        
+        let (buf3, sz3) = comm.read(sz: 8)
+        let bufSz:Int = Bytes.fromByteArray(buf3)
         
         data = [UInt8](repeating: 0, count: bufSz)
         

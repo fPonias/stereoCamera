@@ -95,6 +95,8 @@ class CommandFactory
             return SendConnectionPause()
         case CommandTypes.RECEIVE_GRAVITY:
             return SendGravity()
+        case CommandTypes.SET_CAPTURE_QUALITY:
+            return SetCaptureQuality()
         default:
             print("CommandFactory unable to construct command of type " + type.description)
             return DefaultCommand()

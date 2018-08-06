@@ -54,17 +54,17 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         }
     }
     
-    func startCamera(cameraPosition: AVCaptureDevice.Position = .unspecified)
+    func startCamera(cameraPosition: AVCaptureDevice.Position = .unspecified, quality: ImageQuality = ImageQuality.LOW)
     {
         switch AVCaptureDevice.authorizationStatus(for: .video)
         {
         case .authorized:
-            startCamera2(cameraPosition: cameraPosition)
+            startCamera2(cameraPosition: cameraPosition, quality: quality)
         case .notDetermined:
             AVCaptureDevice.requestAccess(for: .video) { granted in
                 if (granted)
                 {
-                    self.startCamera2(cameraPosition: cameraPosition)
+                    self.startCamera2(cameraPosition: cameraPosition, quality: quality)
                 }
             }
         case .denied:
@@ -85,7 +85,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         get { return _currentCamera }
     }
     
-    private func startCamera2(cameraPosition: AVCaptureDevice.Position)
+    private func startCamera2(cameraPosition: AVCaptureDevice.Position, quality: ImageQuality)
     {
         _currentCamera = cameraPicker(cameraPosition: cameraPosition)
         
@@ -115,7 +115,11 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         
         guard captureSession.canAddOutput(videoOutput) else {return}
         
-        captureSession.sessionPreset = .photo
+        if (quality == .HIGH)
+            { captureSession.sessionPreset = .high }
+        else
+            { captureSession.sessionPreset = .medium }
+            
         captureSession.addOutput(photoOutput)
         captureSession.addOutput(videoOutput)
         
@@ -152,8 +156,11 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         self.bindDrawable()
         let extent = image.extent
         let zoomMargin = (extent.width - extent.width / CGFloat(_zoom)) / CGFloat(2.0)
+        //let scale = extent.width / (frame.width * 2.0)
         let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
-        let dest = CGRect(x:0, y:0, width: extent.width, height: extent.height)
+        
+        let scale = UIScreen.main.scale
+        let dest = CGRect(x:0, y:0, width: frame.width * scale * CGFloat(_zoom), height: frame.height * scale * CGFloat(_zoom))
         ciContext.draw(image, in:dest, from: from)
         
         display()

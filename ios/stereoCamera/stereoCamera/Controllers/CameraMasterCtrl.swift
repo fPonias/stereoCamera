@@ -16,6 +16,7 @@ import CoreMotion
 class CameraMasterCtrl: CameraBaseCtrl
 {
     @IBOutlet weak var _cameraPreview: CameraPreview!
+    @IBOutlet weak var cameraPreviewOverlay: CameraPreviewOverlay!
     @IBOutlet weak var shutterBtn: UIButton!
     @IBOutlet weak var _zoomSlider: UISlider!
     @IBOutlet weak var handPhoneBtn: UIButton!
@@ -56,19 +57,17 @@ class CameraMasterCtrl: CameraBaseCtrl
         masterShake.parent = self
     }
     
-    private var ignoreNavFrom = true
-    
-    override func didMove(toParentViewController parent: UIViewController?)
+    override func viewWillDisappear(_ animated: Bool)
     {
-        if (ignoreNavFrom)
-        {
-            ignoreNavFrom = false
-            return
-        }
+        super.viewWillDisappear(animated)
     
-        let cmd = Disconnect()
-        CommManager.instance.comm.sendCommand(command: cmd)
-        CommManager.instance.comm.disconnect()
+        let idx = navigationController?.viewControllers.index(of: self)
+        if (idx == nil)
+        {
+            let cmd = Disconnect()
+            CommManager.instance.comm.sendCommand(command: cmd)
+            CommManager.instance.comm.disconnect()
+        }
     }
     
     class SlaveListener : SlaveStateListener
@@ -147,8 +146,9 @@ class CameraMasterCtrl: CameraBaseCtrl
         showLoader(true)
         
         let cam = Cookie.instance.camera
-        cameraPreview.startCamera(cameraPosition: cam)
-        
+        let quality = Cookie.instance.imageQuality
+        cameraPreview.startCamera(cameraPosition: cam, quality: quality)
+        cameraPreviewOverlay.overlay = Cookie.instance.overlay
         
         DispatchQueue.global(qos: .userInitiated).async
         {
@@ -183,14 +183,15 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     func pauseConnection()
     {
-        //if (slavePreview != null)
-        //    slavePreview.cancel();
-
-        //if (previewView != null)
-        //    previewView.stopPreview();
-
+        cameraPreview.stopCamera()
+    
         if ((status == .READY || status == .BUSY) && (slaveState.status == .READY || slaveState.status == .BUSY))
-            { /*masterComm.runCommand(new ConnectionPause(), null); */ }
+        {
+            let command = ConnectionPause()
+            CommManager.instance.comm.sendCommand(command: command)
+            
+            showLoader(true)
+        }
 
         setStatus(.CREATED);
     }
@@ -387,22 +388,35 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     @IBAction func openGallery(_ sender: Any)
     {
-        ignoreNavFrom = true
         performSegue(withIdentifier: "MasterToGallery", sender: self)
     }
     
     @IBAction func openSettings(_ sender: Any)
     {
-        ignoreNavFrom = true
         performSegue(withIdentifier: "SettingsSegue", sender: self)
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        //why the hell does this code go in the source controller?
+        if (segue.identifier == "SettingsSegue")
+        {
+            guard let destCtrl = segue.destination as? SettingsCtrl else { return }
+            destCtrl.setSettingsDoneHandler {
+            [ unowned self ] in
+                let overlay = Cookie.instance.overlay
+                self.cameraPreviewOverlay.overlay = overlay
+                
+                self.pauseConnection()
+                self.cameraPreview.startCamera(cameraPosition: Cookie.instance.camera, quality: Cookie.instance.imageQuality)
+                self.handshake()
+            }
+        }
     }
     
     @IBAction func flipCamera(_ sender: Any)
     {
-        cameraPreview.stopCamera()
-        let cmd = ConnectionPause()
-        CommManager.instance.comm.sendCommand(command: cmd)
-        showLoader(true)
+        pauseConnection()
         
         let curPos = cameraPreview.currentCamera?.position
         
@@ -412,7 +426,7 @@ class CameraMasterCtrl: CameraBaseCtrl
             newPos = AVCaptureDevice.Position.front
         }
         
-        cameraPreview.startCamera(cameraPosition: newPos)
+        cameraPreview.startCamera(cameraPosition: newPos, quality: Cookie.instance.imageQuality)
         handshake()
     }
     

@@ -65,6 +65,24 @@ class SettingsCtrl : UIViewController
         }
     }
     
+    override func viewWillDisappear(_ animated: Bool)
+    {
+        super.viewWillDisappear(animated)
+    
+        let idx = navigationController?.viewControllers.index(of: self)
+        if (idx == nil)
+        {
+            if (doneListener != nil)
+                { doneListener!() }
+        }
+    }
+    
+    private var doneListener:Optional<() -> Void> = nil
+    func setSettingsDoneHandler(_ listener:@escaping () -> Void)
+    {
+        doneListener = listener
+    }
+    
     func cellSelected(target:SettingsListSelectorCtrl, idx: Int)
     {
         updateButtons()

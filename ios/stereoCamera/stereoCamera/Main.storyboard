@@ -210,7 +210,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="ezj-ej-J20">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <rect key="frame" x="0.0" y="64" width="375" height="559"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="hoW-tp-0Lg" customClass="GalleryGridLayout" customModule="stereoCamera" customModuleProvider="target">
                                     <size key="itemSize" width="120" height="60"/>
@@ -269,10 +269,10 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <imageView userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="IZG-Ys-M2w" userLabel="image">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <rect key="frame" x="0.0" y="64" width="375" height="559"/>
                             </imageView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="On7-8S-oez" userLabel="playBtn">
-                                <rect key="frame" x="319" y="611" width="36" height="36"/>
+                                <rect key="frame" x="319" y="567" width="36" height="36"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="36" id="d26-CF-uJF"/>
@@ -330,6 +330,13 @@
                                             <constraint firstAttribute="width" secondItem="r4S-pM-IKa" secondAttribute="height" multiplier="1:1" id="SaY-PO-WG3"/>
                                         </constraints>
                                     </glkView>
+                                    <view contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="7hG-eo-5hI" customClass="CameraPreviewOverlay" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="375" height="375"/>
+                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" secondItem="7hG-eo-5hI" secondAttribute="height" multiplier="1:1" id="tTW-yD-eBj"/>
+                                        </constraints>
+                                    </view>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="e4q-Qt-1HD" userLabel="Shutter">
                                         <rect key="frame" x="169" y="329" width="36" height="36"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -417,8 +424,11 @@
                                 <constraints>
                                     <constraint firstAttribute="bottom" secondItem="7P6-Kh-k3i" secondAttribute="bottom" id="3F6-t3-In3"/>
                                     <constraint firstItem="r4S-pM-IKa" firstAttribute="top" secondItem="1xm-cI-rJc" secondAttribute="top" id="8bo-tg-f1K"/>
+                                    <constraint firstItem="7hG-eo-5hI" firstAttribute="leading" secondItem="1xm-cI-rJc" secondAttribute="leading" id="Ddf-g9-vMN"/>
                                     <constraint firstAttribute="trailing" secondItem="7P6-Kh-k3i" secondAttribute="trailing" id="HZi-3l-9UV"/>
                                     <constraint firstItem="r4S-pM-IKa" firstAttribute="bottom" secondItem="e4q-Qt-1HD" secondAttribute="bottom" constant="10" id="NgG-bU-fhI"/>
+                                    <constraint firstAttribute="trailing" secondItem="7hG-eo-5hI" secondAttribute="trailing" id="W1q-TI-l6c"/>
+                                    <constraint firstItem="7hG-eo-5hI" firstAttribute="top" secondItem="1xm-cI-rJc" secondAttribute="top" id="XEl-AH-Emy"/>
                                     <constraint firstItem="7P6-Kh-k3i" firstAttribute="top" secondItem="r4S-pM-IKa" secondAttribute="bottom" id="aRG-dT-aiy"/>
                                     <constraint firstItem="r4S-pM-IKa" firstAttribute="leading" secondItem="1xm-cI-rJc" secondAttribute="leading" id="fe1-HD-qMq"/>
                                     <constraint firstItem="7P6-Kh-k3i" firstAttribute="leading" secondItem="1xm-cI-rJc" secondAttribute="leading" id="h1R-gv-xfw"/>
@@ -457,6 +467,7 @@
                     <connections>
                         <outlet property="_cameraPreview" destination="r4S-pM-IKa" id="SHb-e0-91L"/>
                         <outlet property="_zoomSlider" destination="T66-ZK-jVr" id="Q2g-Lb-gc0"/>
+                        <outlet property="cameraPreviewOverlay" destination="7hG-eo-5hI" id="Gxu-eq-Imi"/>
                         <outlet property="flipBtn" destination="wBa-V1-plC" id="r3B-dd-hsO"/>
                         <outlet property="galleryBtn" destination="7IW-x7-aDI" id="Idt-BD-26f"/>
                         <outlet property="handPhoneBtn" destination="fDf-99-IkI" id="YgA-AM-9jF"/>
@@ -694,6 +705,6 @@
         <image name="zoom_icon" width="24" height="24"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="l82-AT-lYU"/>
+        <segue reference="cKU-4a-9aZ"/>
     </inferredMetricsTieBreakers>
 </document>

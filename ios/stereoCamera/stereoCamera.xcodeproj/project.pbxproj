@@ -281,6 +281,7 @@
 		7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */; };
 		7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */; };
 		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
+		7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59845211234980015260C /* SetCaptureQuality.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -612,6 +613,7 @@
 		7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewOverlay.swift; sourceTree = "<group>"; };
 		7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListSelectorCtrl.swift; sourceTree = "<group>"; };
 		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
+		7CF59845211234980015260C /* SetCaptureQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetCaptureQuality.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -718,6 +720,7 @@
 				7CCB72A620F418F1000BE923 /* ConnectionPause.swift */,
 				7CCB72A820F4193C000BE923 /* SendConnectionPause.swift */,
 				7C84966E20F990CF00C50601 /* SendGravity.swift */,
+				7CF59845211234980015260C /* SetCaptureQuality.swift */,
 			);
 			path = Commands;
 			sourceTree = "<group>";
@@ -1389,6 +1392,7 @@
 				7CDC464E20DA92BF005BE7A8 /* jcmainct.c in Sources */,
 				7CDC464F20DA92BF005BE7A8 /* jcmarker.c in Sources */,
 				7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */,
+				7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */,
 				7CDC464C20DA92B4005BE7A8 /* jcinit.c in Sources */,
 				7CF59844211157810015260C /* SettingsListWidget.swift in Sources */,
 				7CCB729020E2F2C0000BE923 /* Version.swift in Sources */,

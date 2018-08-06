@@ -19,6 +19,8 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     @IBOutlet weak var cameraOverlay: CameraPreviewOverlay!
     
     var pingReceived = false;
+    var cameraPosition = AVCaptureDevice.Position.back
+    var captureQuality = ImageQuality.LOW
     
     func onCommand(_ command: Command)
     {
@@ -63,7 +65,19 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             CommManager.instance.comm.sendCommand(command: setFacing)
             
             let newPos = (setFacing.facing) ? AVCaptureDevice.Position.front : AVCaptureDevice.Position.back;
-            cameraPreview.startCamera(cameraPosition: newPos)
+            
+            cameraPosition = newPos
+            cameraPreview.stopCamera()
+            cameraPreview.startCamera(cameraPosition: newPos, quality: captureQuality)
+        case CommandTypes.SET_CAPTURE_QUALITY:
+            let retCmd = SetCaptureQuality((command as! SetCaptureQuality).quality)
+            retCmd.id = command.id
+            retCmd.isResponse = true
+            CommManager.instance.comm.sendCommand(command: retCmd)
+            
+            captureQuality = retCmd.quality
+            cameraPreview.stopCamera()
+            cameraPreview.startCamera(cameraPosition: cameraPosition, quality: captureQuality)
         case CommandTypes.SET_ZOOM:
             let setZoom = SetZoom((command as! SetZoom).zoom)
             setZoom.id = command.id
@@ -141,9 +155,15 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     
     override func viewWillDisappear(_ animated: Bool)
     {
-        let cmd = SendDisconnect()
-        CommManager.instance.comm.sendCommand(command: cmd)
-        CommManager.instance.comm.disconnect()
+        super.viewWillDisappear(animated)
+    
+        let idx = navigationController?.viewControllers.index(of: self)
+        if (idx == nil)
+        {
+            let cmd = Disconnect()
+            CommManager.instance.comm.sendCommand(command: cmd)
+            CommManager.instance.comm.disconnect()
+        }
     }
     
     override func gravityHandler(data: CMAccelerometerData?, error: Error?)
