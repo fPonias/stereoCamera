@@ -157,6 +157,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         }
         
         galleryBtn.update()
+        updateTriggerLayout()
     }
     
     func handshake()
@@ -432,5 +433,38 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     @IBAction func switchHand(_ sender: Any)
     {
+        let side = (Cookie.instance.side == LEFT) ? RIGHT : LEFT
+        Cookie.instance.side = side
+        
+        updateTriggerLayout()
     }
+    
+    private func updateTriggerLayout()
+    {
+        let side = Cookie.instance.side
+        
+        if (side == LEFT)
+        {
+            shutterLeft.constant = 100
+            shutterRight.constant = view.frame.width - 100 - shutterBtn.frame.width
+            handBtnLeft.constant = view.frame.width - 30 - handPhoneBtn.frame.width
+            handBtnRight.constant = 30
+            
+            handPhoneBtn.setImage(UIImage(named: "hand_phone"), for: .normal)
+        }
+        else
+        {
+            shutterRight.constant = 100
+            shutterLeft.constant = view.frame.width - 100 - shutterBtn.frame.width
+            handBtnRight.constant = view.frame.width - 30 - handPhoneBtn.frame.width
+            handBtnLeft.constant = 30
+            
+            handPhoneBtn.setImage(UIImage(named: "hand_phone_right"), for: .normal)
+        }
+    }
+    
+    @IBOutlet weak var handBtnLeft: NSLayoutConstraint!
+    @IBOutlet weak var handBtnRight: NSLayoutConstraint!
+    @IBOutlet weak var shutterLeft: NSLayoutConstraint!
+    @IBOutlet weak var shutterRight: NSLayoutConstraint!
 }

@@ -238,6 +238,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         DispatchQueue.main.async {
         [unowned self] in
             self.dismiss(animated: true, completion: nil)
+            CommManager.instance.comm.disconnect()
         }
     }
 

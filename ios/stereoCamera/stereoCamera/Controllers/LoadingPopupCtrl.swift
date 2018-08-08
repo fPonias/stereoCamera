@@ -89,8 +89,8 @@ class LoadingPopupCtrl : UIViewController
         btn.setTitle(action.text, for: .normal)
         btn.setTitleColor(UIColor.blue, for: .normal)
         btn.onClick(buttonPressed)
-        btn.widthAnchor.constraint(equalToConstant: 100).isActive = true
-        btn.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        //btn.widthAnchor.constraint(equalToConstant: 100).isActive = true
+        //btn.heightAnchor.constraint(equalToConstant: 30).isActive = true
         
         buttonList?.addArrangedSubview(btn)
         buttonList?.translatesAutoresizingMaskIntoConstraints = false
