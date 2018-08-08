@@ -18,17 +18,21 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     @IBOutlet weak var galleryBtn: GalleryBtn!
     @IBOutlet weak var scrollView: UIScrollView!
     
-    let listenTimeout = 60.0
-    let connectTimeout = 2.5
+    private let listenTimeout = 60.0
+    private let connectTimeout = 2.5
     
-    var addressGuess = CommManager.instance.guessAddress()
-    let alert = UIAlertController(title: nil, message: "Listening", preferredStyle: UIAlertControllerStyle.alert)
+    private var addressGuess = CommManager.instance.guessAddress()
     
-    func showLoader(_ show:Bool)
+    func showLoader(_ show:Bool, message:String = "Loading ...")
     {
         if (show)
         {
-            present(alert, animated: true, completion: nil)
+            let ctrl = LoadingPopupCtrl.initFromStoryboard()
+            
+            ctrl.header = message
+            ctrl.addAction(action: LoadingPopupCtrl.Action(text: "Cancel", onClick: connectCancelled))
+            
+            present(ctrl, animated: true, completion: nil)
         }
         else
         {
@@ -36,11 +40,16 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         }
     }
     
+    func connectCancelled(ctrl:LoadingPopupCtrl, _:LoadingPopupCtrl.Action)
+    {
+        showLoader(false)
+        CommManager.instance.comm.disconnect()
+    }
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
         
-        setupLoader()
         setupLabels()
         firstConnect()
         
@@ -151,42 +160,26 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         }
     }
     
-    func setupLoader()
-    {
-        let loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50 ))
-        loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
-        loadingIndicator.startAnimating()
-    
-        alert.view.addSubview(loadingIndicator)
-        
-        let action = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: { (action) in
-            CommManager.instance.comm.disconnect()
-            
-            self.dismiss(animated: true, completion: nil)
-        })
-        alert.addAction(action)
-    }
-    
     func firstConnect()
     {
         var master = false
         var address = addressGuess.address
         var timeout = connectTimeout
+        var message = "Connecting to " + address
         
         if (Cookie.instance.master || addressGuess.isMaster)
         {
             master = true
             address = ""
             timeout = listenTimeout
-            alert.message = "Listening"
+            message = "Listening for connections"
         }
         else if (Cookie.instance.client != "")
         {
             address = Cookie.instance.client
         }
         
-        present(alert, animated: true, completion: nil)
+        showLoader(true, message: message)
         
         CommManager.instance.comm.connect(
             master: master, address: address,
@@ -259,9 +252,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     */
     @IBAction func listenSecondaryAction(_ sender: Any)
     {
-        alert.message = "Listening"
-        present(alert, animated: true, completion: nil)
-        
+        showLoader(true, message: "Listening")
         CommManager.instance.comm.connect(master: true, address: "", onConnected: onConnected, onFail: onFail, timeout: listenTimeout)
     }
     
@@ -272,11 +263,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         if (address == nil || address == "")
             { address = addressGuess.address }
         
-        alert.message = "Connecting to: " + address!
-        present(alert, animated: true, completion: nil)
-        
+        showLoader(true, message: "Connecting to: " + address!)
         CommManager.instance.comm.connect(master: false, address: address!, onConnected: onConnected, onFail: onFail, timeout: connectTimeout)
     }
-    
-    
 }

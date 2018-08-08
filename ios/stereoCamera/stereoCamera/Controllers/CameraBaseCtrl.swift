@@ -40,25 +40,6 @@ class CameraBaseCtrl : UIViewController
         
         //gravityDetector.accelerometerUpdateInterval = 0.15
         //gravityDetector.startAccelerometerUpdates(to: gravityQueue, withHandler: gravityHandler)
-        
-        setupLoader()
-    }
-    
-    private func setupLoader()
-    {
-        self.loadingIndicator = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50 ))
-        self.loadingIndicator!.hidesWhenStopped = true
-        self.loadingIndicator!.activityIndicatorViewStyle = UIActivityIndicatorViewStyle.gray
-        self.loadingIndicator!.startAnimating()
-
-        self.alert.view.addSubview(self.loadingIndicator!)
-
-        let action = UIAlertAction(title: "Cancel", style: UIAlertActionStyle.cancel, handler: {
-        [unowned self] (action) in
-            self.dismiss(animated: true, completion: nil)
-            self.onConnectCancelled()
-        })
-        self.alert.addAction(action)
     }
     
     deinit
@@ -81,32 +62,33 @@ class CameraBaseCtrl : UIViewController
         // Dispose of any resources that can be recreated.
     }
     
-    let alert = UIAlertController(title: nil, message: "Camera Busy", preferredStyle: UIAlertControllerStyle.alert)
-    var isShowing = false
-    var loadingIndicator: UIActivityIndicatorView? = nil
     private let gravityDetector = CMMotionManager()
     private let gravityQueue = OperationQueue()
     
-    func showLoader(_ show:Bool)
-    {
-        if (show == isShowing)
-            { return }
-        
-        isShowing = show
+    private var loaderCtrl:LoadingPopupCtrl?
     
-        DispatchQueue.main.async {
-        [unowned self] in
-            if (show)
-            {
-                
-                
-                self.present(self.alert, animated: true, completion: nil)
-            }
-            else
-            {
-                self.alert.dismiss(animated: false, completion: nil)
-            }
+    func showLoader(_ show:Bool, message:String = "Camera Busy")
+    {
+        if (show && loaderCtrl == nil)
+        {
+            loaderCtrl = LoadingPopupCtrl.initFromStoryboard()
+            
+            loaderCtrl!.header = message
+            loaderCtrl!.addAction(action: LoadingPopupCtrl.Action(text: "Cancel", onClick: connectCancelled))
+            
+            present(loaderCtrl!, animated: true, completion: nil)
         }
+        else if (!show && loaderCtrl != nil)
+        {
+            loaderCtrl = nil
+            dismiss(animated: false, completion: nil)
+        }
+    }
+    
+    func connectCancelled(ctrl:LoadingPopupCtrl, _:LoadingPopupCtrl.Action)
+    {
+        showLoader(false)
+        onConnectCancelled()
     }
     
     func onConnectCancelled()
@@ -116,7 +98,10 @@ class CameraBaseCtrl : UIViewController
     
     func setLoadingMessage(_ message:String)
     {
-        alert.message = message
+        if (loaderCtrl == nil)
+            { return }
+        
+        loaderCtrl!.header = message
     }
     
     let galleryTitle:String = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as! String
