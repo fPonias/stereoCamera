@@ -7,12 +7,12 @@ for file in $files; do
 	prefix=${file%.*}
 	postfix=${file#*.}
 	
-	if [ $postfix = "xml" ]; then
+	if [ $postfix = "xml" ] && [ ! -f ./$prefix.pdf ]; then
 		data=`xsltproc xml2svg.xsl $1/$file`
 		repData=`echo $data | sed 's/\#[0-9A-Fa-f]\{2\}\([0-9A-Fa-f]\{6\}\)/#\1/g'`
 		echo $repData > $prefix.svg
 		rsvg-convert -f pdf $prefix.svg > $prefix.pdf
-	elif [ $postfix = "png" ]; then
+	elif [ $postfix = "png" ] && [ ! -f ./$file ]; then
 		cp $1/$file ./$file
 	fi
 done

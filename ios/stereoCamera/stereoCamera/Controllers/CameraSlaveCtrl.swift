@@ -150,6 +150,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         
         showLoader(true)
         
+        galleryBtn.setNavigationController(ctrl: navigationController)
         galleryBtn.update()
     }
     
@@ -214,11 +215,6 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         let cmd = SendZoom(currentZoom)
         CommManager.instance.comm.sendCommand(command: cmd)
         zoomSending = false
-    }
-    
-    @IBAction func openGallery(_ sender: Any)
-    {
-        performSegue(withIdentifier: "SlaveToGallery", sender: self)
     }
     
     override func onConnectCancelled()

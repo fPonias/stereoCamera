@@ -156,6 +156,7 @@ class CameraMasterCtrl: CameraBaseCtrl
             self.handshake()
         }
         
+        galleryBtn.setNavigationController(ctrl: navigationController)
         galleryBtn.update()
         updateTriggerLayout()
     }
@@ -385,11 +386,6 @@ class CameraMasterCtrl: CameraBaseCtrl
         }
         catch {
         }
-    }
-    
-    @IBAction func openGallery(_ sender: Any)
-    {
-        performSegue(withIdentifier: "MasterToGallery", sender: self)
     }
     
     @IBAction func openSettings(_ sender: Any)

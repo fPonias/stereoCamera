@@ -17,4 +17,17 @@ class GalleryGridWidget: UICollectionViewCell
     {
         thumbnail.image = image
     }
+    
+    private var _highlighted = false
+    override var isHighlighted:Bool
+    {
+        get { return _highlighted }
+        set
+        {
+            _highlighted = newValue
+            selectedOverlay.isHidden = !_highlighted
+        }
+    }
+    
+    @IBOutlet weak var selectedOverlay: UIView!
 }

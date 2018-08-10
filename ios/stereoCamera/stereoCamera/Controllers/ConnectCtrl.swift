@@ -53,14 +53,12 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         setupLabels()
         firstConnect()
         
-        let tapRecog = UITapGestureRecognizer(target: self, action: #selector(imageTapped))
-        galleryBtn.isUserInteractionEnabled = true
-        galleryBtn.addGestureRecognizer(tapRecog)
-        
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         connectPrimaryInput.delegate = self
         connectPrimaryInput.addDoneButtonToKeyboard(target: self, myAction: #selector(inputReturn))
+        
+        galleryBtn.setNavigationController(ctrl: navigationController)
     }
     
     var keyboardIsPresent = false
@@ -93,11 +91,6 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
                 keyboardIsPresent = false
             }
         }
-    }
-    
-    @objc func imageTapped()
-    {
-        performSegue(withIdentifier: "ConnectToGallery", sender: self)
     }
     
     @objc func inputReturn()

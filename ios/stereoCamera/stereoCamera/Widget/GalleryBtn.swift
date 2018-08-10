@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 import Photos
 
-class GalleryBtn : UIImageView
+class GalleryBtn : UIImageView //I'd make this a UIButton but the image won't display properly
 {
     var files = [PHAsset]()
     
@@ -29,6 +29,29 @@ class GalleryBtn : UIImageView
     func viewDidLoad()
     {
         update()
+        
+        let gest = UITapGestureRecognizer(target: self, action: #selector(GalleryBtn.onTap))
+        addGestureRecognizer(gest)
+    }
+    
+    //hack.  adding this via the storyboard is proving difficult
+    @objc func onTap()
+    {
+        if (navCtrl == nil)
+        {
+            print("please use setNavigationController() before opening the gallery view with GalleryBtn")
+            return
+        }
+        
+        let ctrl = GalleryGridCtrl.initFromStoryboard()
+        navCtrl?.pushViewController(ctrl, animated: true)
+    }
+    
+    private weak var navCtrl:UINavigationController? = nil
+    
+    func setNavigationController(ctrl:UINavigationController?)
+    {
+        navCtrl = ctrl
     }
     
     func update()

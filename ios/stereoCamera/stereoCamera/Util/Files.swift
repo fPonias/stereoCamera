@@ -43,7 +43,7 @@ public class Files
         
         let fetchOptions = PHFetchOptions()
         fetchOptions.predicate = NSPredicate(format: "title = %@", galleryTitle)
-        let collections = PHAssetCollection.fetchAssetCollections(with: PHAssetCollectionType.album, subtype: PHAssetCollectionSubtype.any, options: nil)
+        let collections = PHAssetCollection.fetchAssetCollections(with: PHAssetCollectionType.album, subtype: PHAssetCollectionSubtype.any, options: fetchOptions)
         let filesCollection = collections.firstObject!
         
         let collectionResult = PHAsset.fetchAssets(in: filesCollection, options: nil)
@@ -83,5 +83,22 @@ public class Files
         })
         
         return thumbnail
+    }
+    
+    static func deleteAssets(_ assets:[PHAsset]) -> Bool
+    {
+        do
+        {
+            try PHPhotoLibrary.shared().performChangesAndWait(
+            {
+                let arr = NSArray(array: assets)
+                PHAssetChangeRequest.deleteAssets(arr)
+            })
+        } catch {
+            print("Failed to delete selected files")
+            return false
+        }
+        
+        return true
     }
 }
