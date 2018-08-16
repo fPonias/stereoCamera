@@ -42,9 +42,13 @@ class FireShutter : Command
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(zoom)
         
+        print ("writing Float value " + String(zoom))
+        
         let sz = data.count
         bytes += Bytes.toByteArray(sz)
         let _ = comm.write(buf: bytes)
+        
+        print ("writing Int value " + String(sz))
         
         if (sz > 0)
             { let _ = comm.write(buf: data) }
@@ -54,11 +58,15 @@ class FireShutter : Command
     {
         super.receive(comm: comm)
         
-        let(buf2, sz2) = comm.read(sz:8)
+        let(buf2, sz2) = comm.read(sz:4)
         zoom = Bytes.fromByteArray(buf2)
+        
+        print ("read zoom value " + String(zoom))
         
         let (buf3, sz3) = comm.read(sz: 8)
         let bufSz:Int = Bytes.fromByteArray(buf3)
+        
+        print ("read size value " + String(bufSz))
         
         data = [UInt8](repeating: 0, count: bufSz)
         

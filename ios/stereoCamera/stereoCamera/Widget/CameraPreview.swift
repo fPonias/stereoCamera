@@ -125,6 +125,9 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         
         
         captureSession.commitConfiguration()
+        
+        usleep(1000) //getting sync errors where startRunning is called after commitConfiguration
+        
         captureSession.startRunning()
     }
     

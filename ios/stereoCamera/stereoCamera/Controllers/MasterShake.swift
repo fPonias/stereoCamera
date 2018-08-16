@@ -21,14 +21,13 @@ class MasterShake
     init()
     {
         steps.append(PingStep())
-        steps.append(VersionCheckStep())
-        steps.append(CreatedStep(parent: self))
         steps.append(HandshakeStep())
-        steps.append(ReadyStep(parent: self))
+        steps.append(VersionCheckStep())
         steps.append(SetCameraStep(parent: self))
         steps.append(SetQualityStep())
         steps.append(SetZoomStep(parent: self))
         steps.append(SetOverlayStep())
+        steps.append(ReadyStep(parent: self))
     }
     
     class PingStep : MasterShakeStep
