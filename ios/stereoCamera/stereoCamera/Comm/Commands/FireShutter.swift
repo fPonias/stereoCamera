@@ -35,9 +35,10 @@ class FireShutter : Command
         expectsResponse = true
     }
     
-    override func send(comm: Comm)
+    override func send(comm: Comm) -> Bool
     {
-        super.send(comm: comm)
+        let result = super.send(comm: comm)
+        if (!result) { return false }
         
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(zoom)
@@ -46,24 +47,33 @@ class FireShutter : Command
         
         let sz = data.count
         bytes += Bytes.toByteArray(sz)
-        let _ = comm.write(buf: bytes)
+        let sz1 = comm.write(buf: bytes)
+        if (sz1 <= 0) { return false }
         
         print ("writing Int value " + String(sz))
         
         if (sz > 0)
-            { let _ = comm.write(buf: data) }
+        {
+            let sz2 = comm.write(buf: data)
+            if ( sz2 <= 0) { return false }
+        }
+        
+        return true
     }
     
-    override func receive(comm: Comm)
+    override func receive(comm: Comm) -> Bool
     {
-        super.receive(comm: comm)
+        let result = super.receive(comm: comm)
+        if (!result) { return false }
         
         let(buf2, sz2) = comm.read(sz:4)
+        if (sz2 <= 0) { return false }
         zoom = Bytes.fromByteArray(buf2)
         
         print ("read zoom value " + String(zoom))
         
         let (buf3, sz3) = comm.read(sz: 8)
+        if (sz3 <= 0) { return false }
         let bufSz:Int = Bytes.fromByteArray(buf3)
         
         print ("read size value " + String(bufSz))
@@ -71,8 +81,9 @@ class FireShutter : Command
         data = [UInt8](repeating: 0, count: bufSz)
         
         if (bufSz == 0)
-            { return }
+            { return true }
         
-        let _ = comm.read(buffer: data)
+        let sz4 = comm.read(buffer: data)
+        return (sz4 <= 0) ? false : true
     }
 }

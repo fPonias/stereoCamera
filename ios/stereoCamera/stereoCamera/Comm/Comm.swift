@@ -223,6 +223,7 @@ class Comm
             if (self.commandReceiverIsRunning)
                 {return}
             
+            Thread.current.name = "Command Receiver"
             print("starting command receiver")
             self.commandReceiverIsRunning = true
             
@@ -237,6 +238,13 @@ class Comm
                 self.receiveCommand(buffer: buffer)
             }
         }
+    }
+    
+    func getReceiveSender(command:Command) -> CommandResponseListenerStr?
+    {
+        let idx:String = self.getCommandIndex(command)
+        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+        return str
     }
     
     private func receiveCommand(buffer:[UInt8])
@@ -264,7 +272,18 @@ class Comm
 
         if (cmd.cmdtype != CommandTypes.NONE)
         {
-            cmd.receive(comm: self)
+            let success = cmd.receive(comm: self)
+                let str = getReceiveSender(command: cmd)
+            
+            if (!success)
+            {
+                str?.listener.onReceiveFailed(cmd)
+                return
+            }
+            else
+            {
+                str?.listener.onReceived(cmd, origCommand: str?.command)
+            }
             
             if (cmd.isResponse)
             {
@@ -289,6 +308,7 @@ class Comm
     {
         Thread.detachNewThread
         { [unowned self] in
+            Thread.current.name = "Command Reply Processor"
             while (self.commandReceiverIsRunning)
             {
                 self.processCommandReply()
@@ -322,7 +342,6 @@ class Comm
         {
             print ("reply: handling command " + cmd!.cmdtype.description)
             str?.command.onResponse(command: cmd!)
-            str?.listener(str?.command, cmd!)
         }
     }
     
@@ -330,6 +349,7 @@ class Comm
     {
         Thread.detachNewThread
         {  [unowned self] in
+            Thread.current.name = "Commands Received Processor"
             while (self.commandReceiverIsRunning)
             {
                 self.processReceivedCommand()
@@ -391,15 +411,43 @@ class Comm
         return String(command.id) + "-" + String(command.cmdtype.rawValue)
     }
     
-    func sendCommand(command:Command, listener: @escaping CommandResponseListener = {(foo:Command?, bar:Command) -> Void in})
+    class DefaultCommandResponseListener : CommandResponseListener
+    {
+        var listener:(Bool, Command, Command?) -> Void
+        init(_ listener:@escaping (Bool, Command, Command?) -> Void)
+        {
+            self.listener = listener
+        }
+    
+        override func onReceived(_ command: Command, origCommand: Command?)
+        {
+            listener(true, command, origCommand)
+        }
+        
+        override func onReceiveFailed(_ command: Command)
+        {
+            listener(false, command, nil)
+        }
+    }
+    
+    func sendCommand(command:Command, listenerFunc: @escaping (Bool, Command, Command?) -> Void)
+    {
+        sendCommand(command: command, listener: DefaultCommandResponseListener(listenerFunc))
+    }
+    
+    func sendCommand(command:Command, listener: CommandResponseListener? = nil)
     {
         if (!commandSenderIsRunning)
             { return }
         
         let idx = getCommandIndex(command)
-        commandResponseListeners[idx] = CommandResponseListenerStr(
-            index: idx, command: command, listener: listener
-        )
+        
+        if (listener != nil)
+        {
+            commandResponseListeners[idx] = CommandResponseListenerStr(
+                index: idx, command: command, listener: listener!
+            )
+        }
         
         commandSenderCondition.lock()
             commandQueue.append(command)
@@ -418,6 +466,7 @@ class Comm
             if (self.commandSenderIsRunning)
                 { return }
             
+            Thread.current.name = "Command sender"
             self.commandSenderIsRunning = true
             
             print("send: started")
@@ -447,8 +496,16 @@ class Comm
 
         if (nextCommand != nil)
         {
+            let idx:String = self.getCommandIndex(nextCommand!)
+            let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+        
             print("send: sending command " + nextCommand!.cmdtype.description)
-            nextCommand?.send(comm: self)
+            let success = nextCommand!.send(comm: self)
+            
+            if (!success)
+                { str?.listener.onSendFailed(nextCommand!) }
+            else
+                { str?.listener.onSent(nextCommand!)}
         }
     }
 }
@@ -459,7 +516,17 @@ protocol CommandListener: class
     func onDisconnect() -> Void
 }
 
-typealias CommandResponseListener = (_ origCmd: Command?, _ respCmd: Command) -> Void
+class CommandResponseListener
+{
+    func onReceivingStarted(_ command:Command) {}
+    func onReceiving(_ command:Command, origCommand:Command?, progress:Float) {}
+    func onReceived(_ command:Command, origCommand:Command?) {}
+    func onReceiveFailed(_ command:Command) {}
+    func onSendingStarted(_ command:Command) {}
+    func onSending(_ command:Command, progress:Float) {}
+    func onSent(_ command:Command) {}
+    func onSendFailed(_ command:Command) {}
+}
 
 struct CommandResponseListenerStr
 {

@@ -24,27 +24,34 @@ class Command
         Command.nextId = Command.nextId + 1
     }
     
-    func send(comm:Comm)
-    {
+    func send(comm:Comm) -> Bool
+    {    
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(cmdtype)
         bytes += Bytes.toByteArray(id)
         bytes += Bytes.toByteArray(isResponse)
         
         let sz = comm.write(buf: bytes)
+        if (sz <= 0)
+            { return false }
         
-        //TODO handle error
+        return true
     }
     
-    func receive(comm:Comm)
+    func receive(comm:Comm) -> Bool
     {
         let (buf, sz) = comm.read(sz: 9)
         
-        //TODO handle error
+        if (sz <= 0)
+            { return false }
         
         id = Bytes.fromByteArray(buf)
         isResponse = Bytes.fromByteArray(buf, 8)
+        
+        return true
     }
+    
+    
     
     func onResponse(command:Command)
     {}
@@ -97,6 +104,10 @@ class CommandFactory
             return SendGravity()
         case CommandTypes.SET_CAPTURE_QUALITY:
             return SetCaptureQuality()
+        case CommandTypes.LATENCY_CHECK:
+            return LatencyTest()
+        case CommandTypes.ID:
+            return ID()
         default:
             print("CommandFactory unable to construct command of type " + type.description)
             return DefaultCommand()

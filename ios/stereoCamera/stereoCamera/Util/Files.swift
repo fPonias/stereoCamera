@@ -44,6 +44,8 @@ public class Files
         let fetchOptions = PHFetchOptions()
         fetchOptions.predicate = NSPredicate(format: "title = %@", galleryTitle)
         let collections = PHAssetCollection.fetchAssetCollections(with: PHAssetCollectionType.album, subtype: PHAssetCollectionSubtype.any, options: fetchOptions)
+        guard (collections.count > 0) else { return files }
+        
         let filesCollection = collections.firstObject!
         
         let collectionResult = PHAsset.fetchAssets(in: filesCollection, options: nil)

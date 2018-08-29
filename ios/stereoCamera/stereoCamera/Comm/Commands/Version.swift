@@ -21,23 +21,29 @@ class Version : Command
         version = Version.getVersion()
     }
     
-    override func send(comm: Comm)
+    override func send(comm: Comm) -> Bool
     {
-        super.send(comm: comm)
+        let result = super.send(comm: comm)
+        if (!result ) { return false }
         
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(version)
         
         let sz = comm.write(buf: bytes)
+        return (sz <= 0) ? false : true
         
     }
     
-    override func receive(comm: Comm)
+    override func receive(comm: Comm) -> Bool
     {
-        super.receive(comm: comm)
+        let result = super.receive(comm: comm)
+        if (!result) { return false }
         
         let (buf, sz) = comm.read(sz: 4)
+        if (sz <= 0) { return false }
+        
         version = Bytes.fromByteArray(buf)
+        return true
     }
     
     static func getVersion() -> Int32

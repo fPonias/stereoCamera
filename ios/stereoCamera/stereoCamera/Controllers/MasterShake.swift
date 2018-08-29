@@ -23,11 +23,54 @@ class MasterShake
         steps.append(PingStep())
         steps.append(HandshakeStep())
         steps.append(VersionCheckStep())
+        steps.append(IDStep())
         steps.append(SetCameraStep(parent: self))
         steps.append(SetQualityStep())
         steps.append(SetZoomStep(parent: self))
         steps.append(SetOverlayStep())
         steps.append(ReadyStep(parent: self))
+    }
+    
+    class StepListener : CommandResponseListener
+    {
+        var received:(Command, Command?) -> Void
+        var failed:() -> Void
+        
+        init(received: @escaping (Command, Command?) -> Void, failed: @escaping () -> Void)
+        {
+            self.received = received
+            self.failed = failed
+        }
+
+        override func onReceived(_ command: Command, origCommand: Command?)
+        {
+            received(command, origCommand)
+        }
+        
+        override func onReceiveFailed(_ command: Command)
+        {
+            failed()
+        }
+    }
+    
+    class DefaultStepListener : CommandResponseListener
+    {
+        var listener:MasterShakeListener
+        
+        init(_ listener:@escaping MasterShakeListener)
+        {
+            self.listener = listener
+        }
+        
+        override func onReceived(_ command: Command, origCommand: Command?)
+        {
+            listener(true)
+        }
+        
+        override func onReceiveFailed(_ command: Command)
+        {
+            listener(false)
+        }
     }
     
     class PingStep : MasterShakeStep
@@ -40,10 +83,7 @@ class MasterShake
         func execute(listener: @escaping MasterShakeListener)
         {
             let cmd = Ping()
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
-            in
-                listener(true)
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }
     
@@ -54,13 +94,19 @@ class MasterShake
         func execute(listener: @escaping MasterShakeListener)
         {
             let cmd = Version()
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(origCmd: Command?, respCmd: Command) -> Void
-            in
-                if ((origCmd as! Version).version == (respCmd as! Version).version)
-                    { listener(true) }
-                else
-                    { listener(false) }
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: StepListener(
+                received: {(_ respCmd: Command, _ origCmd: Command?) -> Void
+                in
+                    if ((origCmd as! Version).version == (respCmd as! Version).version)
+                        { listener(true) }
+                    else
+                        { listener(false) }
+                },
+                failed: {() -> Void
+                in
+                    listener(false)
+                }
+            ))
         }
     }
 
@@ -74,10 +120,21 @@ class MasterShake
         func execute(listener: @escaping MasterShakeListener)
         {
             let cmd = Handshake()
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
-            in
-                listener(true)
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
+        }
+    }
+    
+    class IDStep : MasterShakeStep
+    {
+        var name:String
+        {
+            get { return "id" }
+        }
+        
+        func execute(listener: @escaping MasterShakeListener)
+        {
+            let cmd = ID(phoneId: Cookie.instance.id)
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }
 
@@ -139,10 +196,7 @@ class MasterShake
             let posBool = (position != nil && position == .front) ? true : false
             
             let cmd = SetFacing(posBool)
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
-            in
-                listener(true)
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }
     
@@ -159,10 +213,7 @@ class MasterShake
         {
             let zoom = Cookie.instance.getZoomForClient(isMaster: false, client: CommManager.instance.comm.address, camera: (parent.parent?.cameraPreview.currentCamera?.position)!)
             let cmd = SetZoom(zoom)
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
-            in
-                listener(true)
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }
     
@@ -174,10 +225,7 @@ class MasterShake
         {
             let overlay = Cookie.instance.overlay
             let cmd = SetOverlay(overlay)
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
-            in
-                listener(true)
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }
     
@@ -189,10 +237,7 @@ class MasterShake
         {
             let quality = Cookie.instance.imageQuality
             let cmd = SetCaptureQuality(quality)
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {(_ origCmd: Command?, _ respCmd: Command) -> Void
-            in
-                listener(true)
-            })
+            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }
     

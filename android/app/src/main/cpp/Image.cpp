@@ -150,6 +150,8 @@ void Image::processJpeg()
     width = data.width;
     height = data.height;
     
+    printf("processing photo with dims %ldx%ld\n", width, height);
+    
     Util::writeToCache(rawpath, data.data, width, height);
     delete[] data.data;
     

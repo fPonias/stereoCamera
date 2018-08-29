@@ -66,14 +66,18 @@ class CameraBaseCtrl : UIViewController
     private let gravityQueue = OperationQueue()
     
     private var loaderCtrl:LoadingPopupCtrl?
+    private var loaderMessage:String = "Loading ..."
     
-    func showLoader(_ show:Bool, message:String = "Camera Busy")
+    func showLoader(_ show:Bool, message:String? = nil)
     {
+        if (message != nil)
+            { loaderMessage = message! }
+        
         if (show && loaderCtrl == nil)
         {
             loaderCtrl = LoadingPopupCtrl.initFromStoryboard()
             
-            loaderCtrl!.header = message
+            loaderCtrl!.header = loaderMessage
             loaderCtrl!.addAction(action: LoadingPopupCtrl.Action(text: "Cancel", onClick: connectCancelled))
             
             present(loaderCtrl!, animated: true, completion: nil)
@@ -82,6 +86,16 @@ class CameraBaseCtrl : UIViewController
         {
             loaderCtrl = nil
             dismiss(animated: false, completion: nil)
+        }
+    }
+    
+    func setLoaderMessage(_ message:String)
+    {
+        loaderMessage = message
+        
+        if (loaderCtrl != nil)
+        {
+            loaderCtrl!.header = loaderMessage
         }
     }
     
@@ -94,6 +108,26 @@ class CameraBaseCtrl : UIViewController
     func onConnectCancelled()
     {
     
+    }
+    
+    private var didDisconnect = false
+    private var disconnectCond = NSCondition()
+    
+    func disconnect()
+    {
+        disconnectCond.lock()
+            if (didDisconnect)
+                { return }
+        
+            didDisconnect = true
+        disconnectCond.unlock()
+    
+        DispatchQueue.main.async
+        {
+        [unowned self] in
+            self.showLoader(false)
+            self.navigationController?.popViewController(animated: true)
+        }
     }
     
     func setLoadingMessage(_ message:String)

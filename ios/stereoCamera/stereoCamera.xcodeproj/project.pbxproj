@@ -23,6 +23,9 @@
 		7CAD57B82118F493007205B2 /* LoadingPopupCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */; };
 		7CAD57BA2119215D007205B2 /* LoadSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD57B92119215D007205B2 /* LoadSpinner.swift */; };
 		7CAD57BC211A2BEC007205B2 /* ClickableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */; };
+		7CAE81C921273B2A0022569D /* LatencyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81C821273B2A0022569D /* LatencyTest.swift */; };
+		7CAE81CB212F408F0022569D /* ID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CA212F408F0022569D /* ID.swift */; };
+		7CAE81CD212F69E20022569D /* Statistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CC212F69E20022569D /* Statistics.swift */; };
 		7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */; };
 		7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */; };
 		7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */; };
@@ -308,6 +311,9 @@
 		7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingPopupCtrl.swift; sourceTree = "<group>"; };
 		7CAD57B92119215D007205B2 /* LoadSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadSpinner.swift; sourceTree = "<group>"; };
 		7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickableButton.swift; sourceTree = "<group>"; };
+		7CAE81C821273B2A0022569D /* LatencyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatencyTest.swift; sourceTree = "<group>"; };
+		7CAE81CA212F408F0022569D /* ID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID.swift; sourceTree = "<group>"; };
+		7CAE81CC212F69E20022569D /* Statistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Statistics.swift; sourceTree = "<group>"; };
 		7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSlaveCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraBaseCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryBtn.swift; sourceTree = "<group>"; };
@@ -728,6 +734,8 @@
 				7CCB72A820F4193C000BE923 /* SendConnectionPause.swift */,
 				7C84966E20F990CF00C50601 /* SendGravity.swift */,
 				7CF59845211234980015260C /* SetCaptureQuality.swift */,
+				7CAE81C821273B2A0022569D /* LatencyTest.swift */,
+				7CAE81CA212F408F0022569D /* ID.swift */,
 			);
 			path = Commands;
 			sourceTree = "<group>";
@@ -740,6 +748,7 @@
 				7CCB728D20E2A412000BE923 /* Listeners.swift */,
 				7CCB729C20E8B4AC000BE923 /* Cookie.swift */,
 				7C84967220FD5B0F00C50601 /* Angles.swift */,
+				7CAE81CC212F69E20022569D /* Statistics.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -1395,6 +1404,7 @@
 				7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */,
 				7CDC465320DA92E5005BE7A8 /* jcsample.c in Sources */,
 				7CDC465120DA92DD005BE7A8 /* jcparam.c in Sources */,
+				7CAE81CB212F408F0022569D /* ID.swift in Sources */,
 				7CDC465220DA92DD005BE7A8 /* jcprepct.c in Sources */,
 				7CDC465020DA92D4005BE7A8 /* jcomapi.c in Sources */,
 				7CA546FB21085A9600C81830 /* SettingsCtrl.swift in Sources */,
@@ -1413,6 +1423,7 @@
 				7CDC464A20DA92A2005BE7A8 /* jcdctmgr.c in Sources */,
 				7CDC464820DA9296005BE7A8 /* jccoefct.c in Sources */,
 				7CDC464920DA9296005BE7A8 /* jccolor.c in Sources */,
+				7CAE81CD212F69E20022569D /* Statistics.swift in Sources */,
 				7CDC464720DA928D005BE7A8 /* jcarith.c in Sources */,
 				7CDC464520DA9282005BE7A8 /* jcapimin.c in Sources */,
 				7CDC464620DA9282005BE7A8 /* jcapistd.c in Sources */,
@@ -1426,6 +1437,7 @@
 				7CDC463E20DA8FF3005BE7A8 /* util.cpp in Sources */,
 				7C84967120FD4D8E00C50601 /* LevelWidget.swift in Sources */,
 				7CDC464220DA9115005BE7A8 /* jpegCtrl.cpp in Sources */,
+				7CAE81C921273B2A0022569D /* LatencyTest.swift in Sources */,
 				7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */,
 				7CCB72A120F031BA000BE923 /* SendZoom.swift in Sources */,
 				7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */,

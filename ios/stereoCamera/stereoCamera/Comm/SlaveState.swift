@@ -11,6 +11,7 @@ import UIKit
 
 class SlaveState : CommandListener
 {
+    var id:String = ""
     var status:Status = .NONE
     var zoom:Float = 1.0
     var horizFov:Float = 100.0
@@ -46,6 +47,9 @@ class SlaveState : CommandListener
                 break
             case .RECEIVE_PREVIEW_FRAME:
                 break
+            case .ID:
+                let idCmd = command as! ID
+                id = idCmd.phoneId
             default:
                 break
         }

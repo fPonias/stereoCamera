@@ -14,6 +14,7 @@ class SettingsCtrl : UIViewController
     @IBOutlet weak var previewOverlayBtn: UIButton!
     @IBOutlet weak var imageQualityBtn: UIButton!
     @IBOutlet weak var syncTestSwitch: UISwitch!
+    @IBOutlet weak var syncView: UIView!
     
     override func viewDidLoad()
     {
@@ -27,6 +28,8 @@ class SettingsCtrl : UIViewController
         
         let syncTest = Cookie.instance.runSyncTest
         syncTestSwitch.setOn(syncTest, animated: false)
+        
+        syncView.isHidden = (Cookie.instance.useSync == true) ? false : true
         
         let overlay = Cookie.instance.overlay
         previewOverlayBtn.setTitle(overlay.toString(), for: UIControlState.normal)

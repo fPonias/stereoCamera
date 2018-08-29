@@ -100,7 +100,22 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                 
                 fireShutter.id = command.id
                 fireShutter.isResponse = true
-                CommManager.instance.comm.sendCommand(command: fireShutter)
+                
+                class Foo : CommandResponseListener
+                {
+                    weak var parent:CameraSlaveCtrl?
+                    init(_ parent:CameraSlaveCtrl)
+                    {
+                        self.parent = parent
+                    }
+                
+                    override func onSent(_ command: Command)
+                    {
+                        parent?.setLoaderMessage("Receiving Processed Photo")
+                    }
+                }
+                
+                CommManager.instance.comm.sendCommand(command: fireShutter, listener: Foo(self))
             })
         case CommandTypes.SEND_PROCESSED_PHOTO:
             let sendPhotoReply = SendPhoto()
@@ -125,6 +140,14 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             self.disconnect()
         case CommandTypes.CONNECTION_PAUSE:
             self.cancelConnection()
+        case CommandTypes.LATENCY_CHECK:
+            let cmd = command as! LatencyTest
+            self.runSync(command: cmd)
+        case CommandTypes.ID:
+            let cmd = command as! ID
+            cmd.phoneId = Cookie.instance.id
+            cmd.isResponse = true
+            CommManager.instance.comm.sendCommand(command: cmd)
         default:
             print("unsupported command " + command.cmdtype.description)
         }
@@ -233,15 +256,6 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         setStatus(Status.CREATED);
     }
     
-    func disconnect()
-    {
-        DispatchQueue.main.async
-        {
-        [unowned self] in
-            self.navigationController?.popViewController(animated: true)
-        }
-    }
-    
     override func setStatus(_ status: Status)
     {
         let sendStatus = SendStatus(status)
@@ -250,7 +264,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     
     func fireShutter(listener: @escaping DataListener)
     {
-        showLoader(true)
+        showLoader(true, message: "Taking Picture ...")
     
         if (self.cameraPreview.currentCamera == nil)
         {
@@ -266,12 +280,29 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         {
             DispatchQueue.global(qos: .userInitiated).async
             {
-                self.cameraPreview.fireShutter(delegate: {(photo: AVCapturePhoto) -> Void
+                self.cameraPreview.fireShutter(delegate: {[unowned self] (photo: AVCapturePhoto) -> Void
                 in
                     let data = photo.fileDataRepresentation()
+                    self.setLoaderMessage("Sending Picture ...")
                     listener(data)
                 })
             }
+        }
+    }
+    
+    func runSync(command:LatencyTest)
+    {
+        let start = Date()
+        DispatchQueue.global(qos: .userInitiated).async
+        {
+            self.cameraPreview.fireShutter(delegate: {(photo: AVCapturePhoto) -> Void
+            in
+                let result = Int((Date().timeIntervalSince1970 - start.timeIntervalSince1970) * 1000.0)
+                command.elapsed = result
+                command.isResponse = true
+                
+                CommManager.instance.comm.sendCommand(command: command)
+            })
         }
     }
 }

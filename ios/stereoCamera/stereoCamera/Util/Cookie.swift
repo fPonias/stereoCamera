@@ -11,7 +11,7 @@ import AVKit
 
 class Cookie
 {
-    let version:Float = 1.0
+    let version:Float = 5.0
 
     let versionKey = "VERSION"
     let masterKey = "MASTER"
@@ -22,6 +22,10 @@ class Cookie
     let overlayKey = "OVERLAY"
     let syncTestKey = "SYNC_TEST"
     let imageQualityKey = "IMAGE_QUALITY"
+    let remoteSyncKey = "REMOTE_SYNC"
+    let localSyncKey = "LOCAL_SYNC"
+    let useSyncKey = "USE_SYNC"
+    let deviceIDKey = "DEVICE_ID"
     
     enum PrefType
     {
@@ -29,14 +33,13 @@ class Cookie
         IMAGE_QUALITY
     }
     
-    static let _instance:Cookie = Cookie()
-    
+    private static let _instance:Cookie = Cookie()
     static var instance:Cookie
     {
         get { return _instance }
     }
     
-    init()
+    private init()
     {
         let ver = UserDefaults.standard.float(forKey: versionKey)
         if (ver < version)
@@ -58,6 +61,29 @@ class Cookie
             prefs.set(false, forKey: cameraKey)
             prefs.set([String:Float](), forKey: cameraZoomsKey)
             prefs.set(RIGHT.rawValue, forKey: sideKey)
+        }
+        
+        if (ver < 4.0)
+        {
+            prefs.set(version, forKey: versionKey)
+            let id = UUID.init()
+            prefs.set(id.uuidString, forKey: deviceIDKey)
+            prefs.set(true, forKey: useSyncKey)
+        }
+        
+        if (ver < 5.0)
+        {
+            prefs.set(version, forKey: versionKey)
+            let dict = prefs.dictionaryRepresentation()
+            for (key, _) in dict
+            {
+                if (key.starts(with: remoteSyncKey) || key.starts(with: localSyncKey))
+                {
+                    prefs.removeObject(forKey: key)
+                }
+            }
+            
+            prefs.set(false, forKey: useSyncKey)
         }
     }
     
@@ -144,6 +170,45 @@ class Cookie
     {
         get { return UserDefaults.standard.bool(forKey: syncTestKey )}
         set { UserDefaults.standard.set(newValue, forKey: syncTestKey)}
+    }
+    
+    func getLocalSync(id:String) -> [Int]
+    {
+        var ret:[Any]? = UserDefaults.standard.array(forKey: localSyncKey + id)
+        if (ret == nil)
+            { ret = [Int]() }
+        
+        return ret as! [Int]
+    }
+    
+    func setLocalSync(_ value:[Int], id:String)
+    {
+        UserDefaults.standard.set(value, forKey: localSyncKey + id)
+    }
+    
+    func getRemoteSync(id:String) -> [Int]
+    {
+        var ret:[Any]? = UserDefaults.standard.array(forKey: remoteSyncKey + id)
+        if (ret == nil)
+            { ret = [Int]() }
+        
+        return ret as! [Int]
+    }
+    
+    func setRemoteSync(_ value:[Int], id:String)
+    {
+        UserDefaults.standard.set(value, forKey: remoteSyncKey + id)
+    }
+    
+    var id:String
+    {
+        get { return UserDefaults.standard.string(forKey: deviceIDKey)!}
+    }
+    
+    var useSync:Bool
+    {
+        get { return UserDefaults.standard.bool(forKey: useSyncKey) }
+        set { UserDefaults.standard.set(newValue, forKey: useSyncKey) }
     }
 }
 

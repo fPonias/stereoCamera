@@ -32,22 +32,28 @@ class SetCaptureQuality : Command
         expectsResponse = true
     }
     
-    override func send(comm: Comm)
+    override func send(comm: Comm) -> Bool
     {
-        super.send(comm: comm)
+        let result = super.send(comm: comm)
+        if (!result) { return false }
         
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(quality)
 
-        _ = comm.write(buf: bytes)
+        let sz = comm.write(buf: bytes)
+        return (sz <= 0) ? false : true
     }
     
-    override func receive(comm: Comm)
+    override func receive(comm: Comm) -> Bool
     {
-        super.receive(comm: comm)
-        
+        let result = super.receive(comm: comm)
+        if (!result) { return false }
+       
         let bytes = [UInt8].init(repeating: 0, count: 1)
-        _ = comm.read(buffer: bytes)
+        let sz = comm.read(buffer: bytes)
+        if (sz <= 0) { return false }
+        
         quality = ImageQuality(rawValue: Int(bytes[0]))!
+        return true
     }
 }

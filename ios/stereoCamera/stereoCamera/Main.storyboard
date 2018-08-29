@@ -762,6 +762,7 @@
                         <outlet property="imageQualityBtn" destination="rXF-7V-aWd" id="GHk-0T-dmx"/>
                         <outlet property="previewOverlayBtn" destination="X4y-2r-gax" id="qGz-Lv-tdE"/>
                         <outlet property="syncTestSwitch" destination="UZY-6z-18W" id="U6z-op-v6l"/>
+                        <outlet property="syncView" destination="DOU-Ov-tg8" id="Fjs-aT-loV"/>
                         <segue destination="ekb-yX-jnX" kind="show" identifier="SettingsListSelectorSegue" id="1qi-9N-4ca"/>
                     </connections>
                 </viewController>

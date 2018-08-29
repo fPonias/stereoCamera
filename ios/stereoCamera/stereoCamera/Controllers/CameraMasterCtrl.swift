@@ -168,12 +168,18 @@ class CameraMasterCtrl: CameraBaseCtrl
         in
             DispatchQueue.main.async
             {
-                self.showLoader(false)
+                self.showLoader(false, message: "Loading ...")
                 if (!success)
                 {
                     print("master handshake failed")
                     self.navigationController?.popViewController(animated: true)
                 }
+            }
+            
+            if (Cookie.instance.runSyncTest)
+            {
+                Cookie.instance.runSyncTest = false
+                self.runSync()
             }
         })
     }
@@ -198,15 +204,6 @@ class CameraMasterCtrl: CameraBaseCtrl
         setStatus(.CREATED);
     }
     
-    func disconnect()
-    {
-        DispatchQueue.main.async
-        {
-        [unowned self] in
-            self.navigationController?.popViewController(animated: true)
-        }
-    }
-    
     private let shutterLock = NSCondition()
     private var shutterEvents = 0
     private var shutterLocal:String = ""
@@ -229,10 +226,15 @@ class CameraMasterCtrl: CameraBaseCtrl
         if (doReturn)
             { return }
     
-        showLoader(true)
+        showLoader(true, message: "Taking pictures ...")
         Cookie.instance.camera = cameraPreview.currentCamera!.position
         
-        shutterFireLocal()
+        var delay = 0
+        if (Cookie.instance.useSync)
+            { delay = calculateSyncDelay() }
+        
+        
+        shutterFireLocal(delay: delay)
         shutterFireRemote()
         
         DispatchQueue.global(qos: .userInitiated).async
@@ -249,7 +251,21 @@ class CameraMasterCtrl: CameraBaseCtrl
         }
     }
     
-    func shutterFireLocal()
+    private func calculateSyncDelay() -> Int
+    {
+        let localStats = Cookie.instance.getLocalSync(id: slaveState.id)
+        let remoteStats = Cookie.instance.getRemoteSync(id: slaveState.id)
+        
+        if (localStats.count >= 2)
+        {
+            let result = Statistics.leastSquares(x: localStats, y: remoteStats)
+            return Int(max(result.intercept, 0))
+        }
+        else
+            { return 0 }
+    }
+    
+    func shutterFireLocal(delay:Int)
     {
         if (self.cameraPreview.currentCamera == nil)
         {
@@ -262,6 +278,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                 self.shutterLock.lock()
                     self.shutterEvents -= 1
                     self.shutterLocal = tmpUrl!.path
+                    self.setLoaderMessage("Waiting for remote picture ...")
                     self.shutterLock.signal()
                 self.shutterLock.unlock()
             })
@@ -271,6 +288,9 @@ class CameraMasterCtrl: CameraBaseCtrl
         {
             DispatchQueue.global(qos: .userInitiated).async
             {
+                if (delay > 0)
+                    { usleep(UInt32(delay)) }
+            
                 self.cameraPreview.fireShutter(delegate: {(photo: AVCapturePhoto) -> Void
                 in
                     let data = photo.fileDataRepresentation()
@@ -295,7 +315,7 @@ class CameraMasterCtrl: CameraBaseCtrl
     func shutterFireRemote()
     {
         let cmd = FireShutter()
-        CommManager.instance.comm.sendCommand(command: cmd, listener: {(origCmd:Command?, newCmd:Command) -> Void
+        CommManager.instance.comm.sendCommand(command: cmd, listenerFunc: {[unowned self](success:Bool, newCmd:Command, origCmd:Command?) -> Void
         in
             let dataCmd = newCmd as! FireShutter
             guard (dataCmd.data.count > 0) else { self.shutterReset(); return }
@@ -340,6 +360,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         if (doReturn)
             { return }
     
+        setLoaderMessage("Combining pictures ...")
         let localPtr = Bytes.toPointer(self.shutterLocal)
         let remotePtr = Bytes.toPointer(self.shutterRemote)
         
@@ -379,7 +400,8 @@ class CameraMasterCtrl: CameraBaseCtrl
             let data = try Data(contentsOf: url)
             
             let cmd = SendPhoto(dta: data)
-            CommManager.instance.comm.sendCommand(command: cmd, listener: {[ unowned self ] (_ cmd:Command?, _ resp:Command) -> Void
+            setLoaderMessage("Sending finished picture ...")
+            CommManager.instance.comm.sendCommand(command: cmd, listenerFunc: {[ unowned self ] (_success:Bool, _ resp:Command, _ cmd:Command?) -> Void
             in
                 self.showLoader(false)
             })
@@ -463,4 +485,67 @@ class CameraMasterCtrl: CameraBaseCtrl
     @IBOutlet weak var handBtnRight: NSLayoutConstraint!
     @IBOutlet weak var shutterLeft: NSLayoutConstraint!
     @IBOutlet weak var shutterRight: NSLayoutConstraint!
+    
+    private struct syncStr
+    {
+        var start:Date
+        var local:Int
+        var remote:Int
+        var delay:Int
+    }
+    
+    private var syncCount:Int = 0
+    
+    private func runSync(delay:Int = 0)
+    {
+        if (syncCount == 0)
+        {
+            syncCount = 10
+        }
+    
+        var result = syncStr(start: Date(), local: -1, remote: -1, delay: delay)
+        let cmd = LatencyTest()
+        
+        DispatchQueue.global(qos: .userInitiated).async
+        {
+            usleep(UInt32(delay * 1000))
+            self.cameraPreview.fireShutter(delegate: {[unowned self](photo: AVCapturePhoto) -> Void
+            in
+                result.local = Int((Date().timeIntervalSince1970 - result.start.timeIntervalSince1970) * 1000.0)
+                
+                if (result.local > -1 && result.remote > -1)
+                {
+                    self.runSync2(result)
+                }
+            })
+        }
+        
+        CommManager.instance.comm.sendCommand(command: cmd, listenerFunc: { [unowned self] (success:Bool, newCmd:Command, origCmd:Command?) -> Void
+        in
+            let myCmd:LatencyTest = newCmd as! LatencyTest
+            result.remote = myCmd.elapsed
+            
+            if (result.local > -1 && result.remote > -1)
+            {
+                self.runSync2(result)
+            }
+        })
+    }
+    
+    private func runSync2(_ result: syncStr)
+    {
+        let diff = result.remote - result.local
+        var remote = Cookie.instance.getRemoteSync(id: slaveState.id)
+        remote.append(diff)
+        Cookie.instance.setRemoteSync(remote, id: slaveState.id)
+        
+        var local = Cookie.instance.getLocalSync(id: slaveState.id)
+        local.append(result.delay)
+        Cookie.instance.setLocalSync(local, id: slaveState.id)
+        
+        let delay = max(0, result.delay + diff)
+        syncCount -= 1
+        if (syncCount > 0)
+            { runSync(delay: delay) }
+    }
 }

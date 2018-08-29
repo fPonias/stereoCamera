@@ -31,20 +31,27 @@ class SetFacing : Command
         expectsResponse = true
     }
     
-    override func send(comm: Comm)
+    override func send(comm: Comm) -> Bool
     {
-        super.send(comm: comm)
+        let result = super.send(comm: comm)
+        if (!result) { return false }
+        
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(facing)
         
         let sz = comm.write(buf: bytes)
+        return (sz <= 0) ? false : true
     }
     
-    override func receive(comm: Comm)
+    override func receive(comm: Comm) -> Bool
     {
-        super.receive(comm: comm)
+        let result = super.receive(comm: comm)
+        if (!result) { return false }
         
         let (buf, sz) = comm.read(sz: 1)
+        if (sz <= 0) { return false }
+        
         facing = Bytes.fromByteArray(buf)
+        return true
     }
 }

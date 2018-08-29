@@ -59,7 +59,11 @@ class LoadingPopupCtrl : UIViewController
         set
         {
             _header = newValue
-            titleLabel?.text = _header
+            
+            DispatchQueue.main.async
+            { [unowned self] in
+                self.titleLabel?.text = self._header
+            }
         }
     }
     

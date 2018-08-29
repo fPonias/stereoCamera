@@ -32,30 +32,41 @@ class SendGravity : Command
         self.expectsResponse = false
     }
     
-    override func send(comm: Comm)
+    override func send(comm: Comm) -> Bool
     {
-        super.send(comm: comm)
+        let result = super.send(comm: comm)
+        if (!result) { return false }
         
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(gravity.x)
         bytes += Bytes.toByteArray(gravity.y)
         bytes += Bytes.toByteArray(gravity.z)
         
-        _ = comm.write(buf: bytes)
+        let sz = comm.write(buf: bytes)
+        return (sz <= 0) ? false : true
     }
     
-    override func receive(comm: Comm)
+    override func receive(comm: Comm) -> Bool
     {
-        super.receive(comm: comm)
+        let result = super.receive(comm: comm)
+        if (!result) { return false }
         
         let bytes = [UInt8].init(repeating: 0, count: 4)
         
-        _ = comm.read(buffer: bytes)
+        let sz1 = comm.read(buffer: bytes)
+        if (sz1 <= 0) { return false }
         gravity.x = Bytes.fromByteArray( bytes)
-        _ = comm.read(buffer: bytes)
+        
+        let sz2 = comm.read(buffer: bytes)
+        if (sz2 <= 0) { return false }
         gravity.y = Bytes.fromByteArray(bytes)
-        _ = comm.read(buffer: bytes)
+        
+        let sz3 = comm.read(buffer: bytes)
+        if (sz3 <= 0) { return false }
         gravity.z = Bytes.fromByteArray(bytes)
+        
+        
+        return true
     }
 }
 

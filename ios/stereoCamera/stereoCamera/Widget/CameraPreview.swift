@@ -116,9 +116,9 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         guard captureSession.canAddOutput(videoOutput) else {return}
         
         if (quality == .HIGH)
-            { captureSession.sessionPreset = .high }
+            { captureSession.sessionPreset = .photo }
         else
-            { captureSession.sessionPreset = .medium }
+            { captureSession.sessionPreset = .hd1920x1080 }
             
         captureSession.addOutput(photoOutput)
         captureSession.addOutput(videoOutput)
@@ -133,6 +133,8 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     
     func stopCamera()
     {
+        //sometimes we have sync issues if the cameras are started and stopped in rapid succession
+        usleep(5000)
         captureSession.stopRunning()
     }
     
