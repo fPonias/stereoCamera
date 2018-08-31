@@ -2,9 +2,17 @@ body {
     padding: 20px;
 }
 
+body.ios {
+    -webkit-text-size-adjust: none
+}
+
 .linkDiv {
     margin-bottom: 20px;
     font-size: 20pt;
+}
+
+.ios .linkDiv {
+    font-size: 40pt;
 }
 
 .title {
@@ -13,9 +21,17 @@ body {
     font-size: 18pt;
 }
 
+.ios .title{
+    font-size: 36pt;
+}
+
 .description {
     font-size: 14pt;
     margin-bottom: 30px;
+}
+
+.ios .description{
+    font-size: 28pt;
 }
 
 .image {
@@ -27,10 +43,18 @@ body {
     width: 280px;
 }
 
+.ios .image img {
+    width: 700px;
+}
+
 .nav {
     margin-top: 20px;
     text-align: center;
     font-size: 18pt;
+}
+
+.ios .nav {
+    font-size: 36pt;
 }
 
 .nav a {

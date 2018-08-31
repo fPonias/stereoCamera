@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C1E4A0D2139A287005F1944 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 7C1E4A0C2139A287005F1944 /* assets */; };
 		7C2E237220DB0A380027A2F5 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2E237120DB0A380027A2F5 /* Files.swift */; };
 		7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */; };
 		7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */; };
@@ -26,6 +27,7 @@
 		7CAE81C921273B2A0022569D /* LatencyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81C821273B2A0022569D /* LatencyTest.swift */; };
 		7CAE81CB212F408F0022569D /* ID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CA212F408F0022569D /* ID.swift */; };
 		7CAE81CD212F69E20022569D /* Statistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CC212F69E20022569D /* Statistics.swift */; };
+		7CAE81CF2138C2850022569D /* SettingsHtmlCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */; };
 		7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */; };
 		7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */; };
 		7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */; };
@@ -291,6 +293,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		7C1E4A0C2139A287005F1944 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../android/app/src/main/assets; sourceTree = "<group>"; };
 		7C2E237120DB0A380027A2F5 /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridLayout.swift; sourceTree = "<group>"; };
 		7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryPlaybackCtrl.swift; sourceTree = "<group>"; };
@@ -314,6 +317,7 @@
 		7CAE81C821273B2A0022569D /* LatencyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatencyTest.swift; sourceTree = "<group>"; };
 		7CAE81CA212F408F0022569D /* ID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID.swift; sourceTree = "<group>"; };
 		7CAE81CC212F69E20022569D /* Statistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Statistics.swift; sourceTree = "<group>"; };
+		7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHtmlCtrl.swift; sourceTree = "<group>"; };
 		7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSlaveCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraBaseCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryBtn.swift; sourceTree = "<group>"; };
@@ -659,6 +663,7 @@
 		7C6CD11320D0DA530010F6B1 /* stereoCamera */ = {
 			isa = PBXGroup;
 			children = (
+				7C1E4A0C2139A287005F1944 /* assets */,
 				7CDC442D20DA8FB4005BE7A8 /* ImageProcessor */,
 				7C6CD13F20D247520010F6B1 /* stereoCamera-Bridging-Header.h */,
 				7CDC416920D4F0D8005BE7A8 /* Util */,
@@ -688,6 +693,7 @@
 				7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */,
 				7CA546FA21085A9600C81830 /* SettingsCtrl.swift */,
 				7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */,
+				7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -1267,6 +1273,7 @@
 				7CDC457620DA8FF3005BE7A8 /* ar-lib in Resources */,
 				7CDC459F20DA8FF3005BE7A8 /* depcomp in Resources */,
 				7CDC45A920DA8FF3005BE7A8 /* makewvcx.v15 in Resources */,
+				7C1E4A0D2139A287005F1944 /* assets in Resources */,
 				7CDC458D20DA8FF3005BE7A8 /* makerfil.v15 in Resources */,
 				7CDC417220D82649005BE7A8 /* SVGKitFramework-iOS in Resources */,
 				7CDC460020DA8FF3005BE7A8 /* rdswitch.Po in Resources */,
@@ -1365,6 +1372,7 @@
 				7CDC466A20DA93A7005BE7A8 /* jidctfst.c in Sources */,
 				7CDC466B20DA93A7005BE7A8 /* jidctint.c in Sources */,
 				7CDC466C20DA93A7005BE7A8 /* jidctflt.c in Sources */,
+				7CAE81CF2138C2850022569D /* SettingsHtmlCtrl.swift in Sources */,
 				7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */,
 				7CDC466720DA939B005BE7A8 /* jfdctflt.c in Sources */,
 				7CDC466820DA939B005BE7A8 /* jfdctint.c in Sources */,

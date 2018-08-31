@@ -88,7 +88,13 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="ltB-uT-iuc"/>
                     </view>
-                    <navigationItem key="navigationItem" id="apG-eA-Dz3"/>
+                    <navigationItem key="navigationItem" id="apG-eA-Dz3">
+                        <barButtonItem key="rightBarButtonItem" title="Item" image="help_icon_white" id="cYa-mK-oTl">
+                            <connections>
+                                <action selector="openFaq:" destination="H1m-jl-dHT" id="2gZ-Ck-nwh"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="connectPrimaryBtn" destination="jVD-WB-Sxc" id="chF-y7-2xe"/>
                         <outlet property="connectPrimaryInput" destination="Mj7-Bh-as7" id="NSs-5L-Bah"/>
@@ -98,6 +104,7 @@
                         <outlet property="scrollView" destination="JiH-s3-oJf" id="ThW-Hf-zXc"/>
                         <segue destination="QJ5-c1-r6R" kind="show" identifier="CameraMasterSegue" id="43O-CY-JsG"/>
                         <segue destination="TDn-Nd-bkU" kind="show" identifier="ConnectToSlave" id="qpg-bF-fmj"/>
+                        <segue destination="PgO-uJ-iGd" kind="show" identifier="ConnectFAQSegue" id="eC7-5q-uXE"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="h9q-VP-cZL" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -118,7 +125,7 @@
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </view>
                             <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GMj-YP-brd">
-                                <rect key="frame" x="57" y="263" width="260" height="140.5"/>
+                                <rect key="frame" x="57.5" y="263" width="260" height="140.5"/>
                                 <subviews>
                                     <stackView contentMode="scaleToFill" ambiguous="YES" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="2K8-qq-EBE">
                                         <rect key="frame" x="10" y="10" width="240" height="140.5"/>
@@ -185,7 +192,7 @@
             </objects>
             <point key="canvasLocation" x="921" y="-856"/>
         </scene>
-        <!--Camera Slave Ctrl-->
+        <!--Camera-->
         <scene sceneID="8Qt-Qj-rC3">
             <objects>
                 <viewController id="TDn-Nd-bkU" customClass="CameraSlaveCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
@@ -267,11 +274,19 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="KkN-Hk-B3i"/>
                     </view>
+                    <navigationItem key="navigationItem" title="Camera" id="JVj-JE-Pm1">
+                        <barButtonItem key="rightBarButtonItem" title="Item" image="help_icon_white" id="lTO-AL-ZlT">
+                            <connections>
+                                <action selector="openFaq:" destination="TDn-Nd-bkU" id="EzN-Qu-uFW"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                     <connections>
                         <outlet property="_cameraPreview" destination="cJH-Sk-Po2" id="tHw-Wu-b8Q"/>
                         <outlet property="_zoomSlider" destination="QHY-Ve-ywX" id="B31-gf-22U"/>
                         <outlet property="cameraOverlay" destination="CjG-md-Cil" id="eYM-pG-7VK"/>
                         <outlet property="galleryBtn" destination="EcM-WB-PYu" id="EEC-uc-Hna"/>
+                        <segue destination="PgO-uJ-iGd" kind="show" identifier="SlaveCameraFAQSegue" id="3K0-Sd-Pbv"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="BOn-Yc-Bfz" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -604,6 +619,11 @@
                     <navigationItem key="navigationItem" title="Camera" id="Mex-AL-eat">
                         <barButtonItem key="backBarButtonItem" title="Back" id="pfy-IV-BSO"/>
                         <rightBarButtonItems>
+                            <barButtonItem title="Item" image="help_icon_white" id="LxT-5I-cIP">
+                                <connections>
+                                    <action selector="openFaq:" destination="QJ5-c1-r6R" id="LTg-QY-4Iz"/>
+                                </connections>
+                            </barButtonItem>
                             <barButtonItem title="..." id="3yV-5J-QYQ">
                                 <connections>
                                     <action selector="openSettings:" destination="QJ5-c1-r6R" id="C33-Yz-bMe"/>
@@ -631,6 +651,7 @@
                         <outlet property="shutterLeft" destination="psj-Wo-Hz9" id="ZVd-bL-dgL"/>
                         <outlet property="shutterRight" destination="qdN-29-5nL" id="ZR5-Ak-Vho"/>
                         <segue destination="cxW-38-uWp" kind="show" identifier="SettingsSegue" id="MzP-re-dbx"/>
+                        <segue destination="PgO-uJ-iGd" kind="show" identifier="MasterCameraFAQSegue" id="9Ua-XI-Z5l"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RhW-i4-iEM" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -738,7 +759,6 @@
                                     <constraint firstItem="Sd7-e6-qyr" firstAttribute="leading" secondItem="3Kg-1l-Suj" secondAttribute="leading" id="IQ0-9A-KTU"/>
                                     <constraint firstAttribute="trailing" secondItem="Ydx-4C-JaU" secondAttribute="trailing" id="LHn-lP-3zw"/>
                                     <constraint firstItem="SX5-ey-HmY" firstAttribute="top" secondItem="Sd7-e6-qyr" secondAttribute="bottom" id="PmO-nY-pRd"/>
-                                    <constraint firstItem="Ydx-4C-JaU" firstAttribute="top" secondItem="DOU-Ov-tg8" secondAttribute="bottom" id="Q7l-d7-3wp"/>
                                     <constraint firstAttribute="trailing" secondItem="SX5-ey-HmY" secondAttribute="trailing" id="TjE-to-6ga"/>
                                     <constraint firstItem="DOU-Ov-tg8" firstAttribute="top" secondItem="SX5-ey-HmY" secondAttribute="bottom" id="Vmq-2B-CK4"/>
                                     <constraint firstAttribute="trailing" secondItem="Sd7-e6-qyr" secondAttribute="trailing" id="ZQP-1N-pMi"/>
@@ -835,6 +855,40 @@
             </objects>
             <point key="canvasLocation" x="4197.6000000000004" y="263.11844077961024"/>
         </scene>
+        <!--Settings Html Ctrl-->
+        <scene sceneID="ojj-qO-1a8">
+            <objects>
+                <viewController id="PgO-uJ-iGd" customClass="SettingsHtmlCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="LKr-hi-iih">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XMH-JL-Sfq">
+                                <rect key="frame" x="0.0" y="64" width="375" height="559"/>
+                                <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <wkWebViewConfiguration key="configuration">
+                                    <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
+                                    <wkPreferences key="preferences"/>
+                                </wkWebViewConfiguration>
+                            </wkWebView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="rcs-5Z-BXB" firstAttribute="bottom" secondItem="XMH-JL-Sfq" secondAttribute="bottom" id="7Fm-WY-Z5j"/>
+                            <constraint firstItem="XMH-JL-Sfq" firstAttribute="top" secondItem="rcs-5Z-BXB" secondAttribute="top" id="GLi-Y0-371"/>
+                            <constraint firstItem="rcs-5Z-BXB" firstAttribute="trailing" secondItem="XMH-JL-Sfq" secondAttribute="trailing" id="TmP-fZ-CqY"/>
+                            <constraint firstItem="XMH-JL-Sfq" firstAttribute="leading" secondItem="rcs-5Z-BXB" secondAttribute="leading" id="kRd-mq-cRD"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="rcs-5Z-BXB"/>
+                    </view>
+                    <connections>
+                        <outlet property="htmlView" destination="XMH-JL-Sfq" id="BMi-co-iBy"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="bed-ec-z5X" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1537" y="806"/>
+        </scene>
         <!--Navigation Controller-->
         <scene sceneID="PGx-G9-l5P">
             <objects>
@@ -858,8 +912,12 @@
         <image name="check_circle_icon" width="24" height="24"/>
         <image name="flip_icon" width="24" height="24"/>
         <image name="hand_phone" width="24" height="24"/>
+        <image name="help_icon_white" width="24" height="24"/>
         <image name="play_arrow" width="24" height="24"/>
         <image name="shutter_icon" width="24" height="24"/>
         <image name="zoom_icon" width="24" height="24"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="9Ua-XI-Z5l"/>
+    </inferredMetricsTieBreakers>
 </document>

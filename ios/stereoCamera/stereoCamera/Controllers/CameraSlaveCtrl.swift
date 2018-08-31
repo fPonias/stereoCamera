@@ -305,4 +305,9 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             })
         }
     }
+    
+    @IBAction func openFaq(_ sender: Any)
+    {
+        performSegue(withIdentifier: "SlaveCameraFAQSegue", sender: self)
+    }
 }

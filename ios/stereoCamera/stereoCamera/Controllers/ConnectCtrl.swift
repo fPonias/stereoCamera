@@ -51,7 +51,15 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         super.viewDidLoad()
         
         setupLabels()
-        firstConnect()
+        
+        if (Cookie.instance.introSeen)
+            { firstConnect() }
+        else
+        {
+            Cookie.instance.introSeen = true
+            
+            
+        }
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
@@ -259,5 +267,10 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         
         showLoader(true, message: "Connecting to: " + address!)
         CommManager.instance.comm.connect(master: false, address: address!, onConnected: onConnected, onFail: onFail, timeout: connectTimeout)
+    }
+    
+    @IBAction func openFaq(_ sender: Any)
+    {
+        performSegue(withIdentifier: "ConnectFAQSegue", sender: self)
     }
 }

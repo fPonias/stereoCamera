@@ -26,6 +26,7 @@ class Cookie
     let localSyncKey = "LOCAL_SYNC"
     let useSyncKey = "USE_SYNC"
     let deviceIDKey = "DEVICE_ID"
+    let introSeenKey = "INTRO_SEEN"
     
     enum PrefType
     {
@@ -84,6 +85,12 @@ class Cookie
             }
             
             prefs.set(false, forKey: useSyncKey)
+        }
+        
+        if (ver < 6.0)
+        {
+            prefs.set(version, forKey: versionKey)
+            prefs.set(false, forKey: introSeenKey)
         }
     }
     
@@ -209,6 +216,12 @@ class Cookie
     {
         get { return UserDefaults.standard.bool(forKey: useSyncKey) }
         set { UserDefaults.standard.set(newValue, forKey: useSyncKey) }
+    }
+    
+    var introSeen:Bool
+    {
+        get { return UserDefaults.standard.bool(forKey: introSeenKey) }
+        set { UserDefaults.standard.set(newValue, forKey: introSeenKey) }
     }
 }
 

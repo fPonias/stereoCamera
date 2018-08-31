@@ -415,6 +415,11 @@ class CameraMasterCtrl: CameraBaseCtrl
         performSegue(withIdentifier: "SettingsSegue", sender: self)
     }
     
+    @IBAction func openFaq(_ sender: Any)
+    {
+        performSegue(withIdentifier: "MasterCameraFAQSegue", sender: self)
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
     {
         //why the hell does this code go in the source controller?

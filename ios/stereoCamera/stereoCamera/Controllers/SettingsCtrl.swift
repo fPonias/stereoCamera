@@ -33,6 +33,7 @@ class SettingsCtrl : UIViewController
         
         let overlay = Cookie.instance.overlay
         previewOverlayBtn.setTitle(overlay.toString(), for: UIControlState.normal)
+        
     }
     
     @IBAction func previewOverlayAct(_ sender: Any)
@@ -89,5 +90,15 @@ class SettingsCtrl : UIViewController
     func cellSelected(target:SettingsListSelectorCtrl, idx: Int)
     {
         updateButtons()
+    }
+    
+    @IBAction func FAQClicked(_ sender: Any)
+    {
+        performSegue(withIdentifier: "SettingHtmlViewSegue", sender: self)
+    }
+    
+    @IBAction func AboutClicked(_ sender: Any)
+    {
+        performSegue(withIdentifier: "SettingHtmlViewSegue", sender: self)
     }
 }
