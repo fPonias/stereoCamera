@@ -73,6 +73,7 @@ find_library( # Sets the name of the path variable.
               log )
 
 include_directories(src/main/cpp/include
+                    src/main/cpp/jpeg-9c
                     src/main/cpp)
 
 target_link_libraries( # Specifies the target library.

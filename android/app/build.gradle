@@ -26,6 +26,9 @@ android {
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher_ads"
             ]
+            sourceSets {
+                main.res.srcDirs = ['src/main/res']
+            }
         }
         paid {
             dimension "app"
@@ -34,6 +37,9 @@ android {
             manifestPlaceholders = [
                     appIcon: "@mipmap/ic_launcher_white"
             ]
+            sourceSets {
+                main.res.srcDirs = ['src/main/res']
+            }
         }
     }
     externalNativeBuild {
@@ -41,19 +47,21 @@ android {
             path "CMakeLists.txt"
         }
     }
+
+
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:preference-v7:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.0'
-    implementation 'com.google.firebase:firebase-core:15.0.0'
-    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.1'
-    implementation 'com.google.android.gms:play-services-ads:15.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+    implementation 'com.google.firebase:firebase-core:16.0.3'
+    implementation 'com.crashlytics.sdk.android:crashlytics:2.9.5'
+    implementation 'com.google.android.gms:play-services-ads:15.0.1'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
 

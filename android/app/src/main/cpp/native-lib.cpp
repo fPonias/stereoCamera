@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "jpegCtrl.h"
+#include "jpegCtrl.hpp"
 #include "com_munger_stereocamera_service_PhotoProcessor.h"
 #include "util.h"
 #include "SplitCompositeImage.h"
