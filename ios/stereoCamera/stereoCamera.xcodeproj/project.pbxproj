@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		7C1E4A0D2139A287005F1944 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 7C1E4A0C2139A287005F1944 /* assets */; };
+		7C1E4A0F214103AA005F1944 /* GalleryGridHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1E4A0E214103AA005F1944 /* GalleryGridHeader.swift */; };
+		7C1E4A1121419B96005F1944 /* ImageProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C1E4A1021419B96005F1944 /* ImageProvider.swift */; };
 		7C2E237220DB0A380027A2F5 /* Files.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C2E237120DB0A380027A2F5 /* Files.swift */; };
 		7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */; };
 		7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */; };
@@ -286,6 +288,7 @@
 		7CDC467520DA9498005BE7A8 /* ImageProcessor.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7CDC467320DA9498005BE7A8 /* ImageProcessor.hpp */; };
 		7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */; };
 		7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */; };
+		7CEE471F21433334009909EF /* ExportSelectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEE471E21433334009909EF /* ExportSelectCtrl.swift */; };
 		7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */; };
 		7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */; };
 		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
@@ -294,6 +297,8 @@
 
 /* Begin PBXFileReference section */
 		7C1E4A0C2139A287005F1944 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../android/app/src/main/assets; sourceTree = "<group>"; };
+		7C1E4A0E214103AA005F1944 /* GalleryGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridHeader.swift; sourceTree = "<group>"; };
+		7C1E4A1021419B96005F1944 /* ImageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProvider.swift; sourceTree = "<group>"; };
 		7C2E237120DB0A380027A2F5 /* Files.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridLayout.swift; sourceTree = "<group>"; };
 		7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryPlaybackCtrl.swift; sourceTree = "<group>"; };
@@ -626,6 +631,7 @@
 		7CDC467320DA9498005BE7A8 /* ImageProcessor.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ImageProcessor.hpp; sourceTree = "<group>"; };
 		7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridCtrl.swift; sourceTree = "<group>"; };
 		7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridWidget.swift; sourceTree = "<group>"; };
+		7CEE471E21433334009909EF /* ExportSelectCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSelectCtrl.swift; sourceTree = "<group>"; };
 		7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewOverlay.swift; sourceTree = "<group>"; };
 		7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListSelectorCtrl.swift; sourceTree = "<group>"; };
 		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
@@ -684,6 +690,7 @@
 			isa = PBXGroup;
 			children = (
 				7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */,
+				7CEE471E21433334009909EF /* ExportSelectCtrl.swift */,
 				7CC66B7520E0BC5800AF811B /* MasterShake.swift */,
 				7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */,
 				7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */,
@@ -755,6 +762,7 @@
 				7CCB729C20E8B4AC000BE923 /* Cookie.swift */,
 				7C84967220FD5B0F00C50601 /* Angles.swift */,
 				7CAE81CC212F69E20022569D /* Statistics.swift */,
+				7C1E4A1021419B96005F1944 /* ImageProvider.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -773,6 +781,7 @@
 				7CF59843211157810015260C /* SettingsListWidget.swift */,
 				7CAD57B92119215D007205B2 /* LoadSpinner.swift */,
 				7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */,
+				7C1E4A0E214103AA005F1944 /* GalleryGridHeader.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -1407,6 +1416,7 @@
 				7C2E237220DB0A380027A2F5 /* Files.swift in Sources */,
 				7CDC465720DA9314005BE7A8 /* jdarith.c in Sources */,
 				7CDC465820DA9314005BE7A8 /* jdatadst.c in Sources */,
+				7C1E4A0F214103AA005F1944 /* GalleryGridHeader.swift in Sources */,
 				7CDC465920DA9314005BE7A8 /* jdapimin.c in Sources */,
 				7CDC465420DA92EF005BE7A8 /* jctrans.c in Sources */,
 				7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */,
@@ -1449,7 +1459,9 @@
 				7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */,
 				7CCB72A120F031BA000BE923 /* SendZoom.swift in Sources */,
 				7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */,
+				7C1E4A1121419B96005F1944 /* ImageProvider.swift in Sources */,
 				7CAD57B82118F493007205B2 /* LoadingPopupCtrl.swift in Sources */,
+				7CEE471F21433334009909EF /* ExportSelectCtrl.swift in Sources */,
 				7CDC415F20D39458005BE7A8 /* Comm.cpp in Sources */,
 				7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */,
 				7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */,

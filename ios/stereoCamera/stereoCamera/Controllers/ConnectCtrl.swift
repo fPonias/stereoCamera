@@ -58,7 +58,10 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         {
             Cookie.instance.introSeen = true
             
-            
+            let alert = UIAlertController(title: "Welcome", message: "Welcome to 3d Camera for 2.  Would you like to look at the FAQ before starting?", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Yes", style: .default, handler: welcomeOkay))
+            alert.addAction(UIAlertAction(title: "No", style: .cancel, handler: welcomeCancel))
+            present(alert, animated: true, completion: nil)
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
@@ -67,6 +70,17 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         connectPrimaryInput.addDoneButtonToKeyboard(target: self, myAction: #selector(inputReturn))
         
         galleryBtn.setNavigationController(ctrl: navigationController)
+    }
+    
+    func welcomeOkay(_ action:UIAlertAction)
+    {
+        dismiss(animated: false, completion: nil)
+        openFaq(0)
+    }
+    
+    func welcomeCancel(_ action:UIAlertAction)
+    {
+        dismiss(animated: false, completion: nil)
     }
     
     var keyboardIsPresent = false

@@ -16,7 +16,8 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     
     @IBOutlet weak var bottomToolbar: UIToolbar!
     @IBOutlet weak var collectionView: UICollectionView!
-    var files = [PHAsset]()
+    var headers = [String]()
+    var files = [[PHAsset]]()
     
     var selectBtn:UIBarButtonItem? = nil
     
@@ -40,7 +41,12 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     
     override func viewWillAppear(_ animated: Bool)
     {
-        files = Files.getGalleryFiles()
+        refresh()
+    }
+    
+    private func refresh()
+    {
+        (headers, files) = Files.getGroupedGalleryFiles()
         
         DispatchQueue.main.async {
         [unowned self] in
@@ -56,30 +62,85 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         var indices = [PHAsset]()
         for cell in selectedCells
         {
-            indices.append(files[cell])
+            indices.append(files[cell.section][cell.item])
         }
         
         let result = Files.deleteAssets(indices)
         
         if (result == true)
         {
-            selectClicked()
-            files = Files.getGalleryFiles()
-            
-            DispatchQueue.main.async {
-            [unowned self] in
-                self.collectionView.reloadData()
-            }
+            selectedCells.removeAll()
+            refresh()
         }
     }
     
+    private let SELECTION_COPY = "Copy"
+    private let SELECTION_ROTATE_INSTA = "Rotate for Instagram"
+    private let SELECTION_SQUARE = "Square aspect"
+    private let SELECTION_SQUARE_ROTATED = "Square aspect - rotated"
+    
     @objc func exportClicked()
     {
-    
+        if (selectedCells.count == 0)
+            { return }
+        
+        let popup = ExportSelectCtrl.initFromStoryboard()
+
+        popup.header = "Export Actions"
+
+        var selections = [ExportSelectCtrl.Selection]()
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_COPY))
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_ROTATE_INSTA))
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE))
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE_ROTATED))
+        popup.setSelections(selections)
+        
+        popup.addAction(action: ExportSelectCtrl.Action(text: "Cancel", onClick: {
+        [unowned self] (ctrl, action) in
+            self.dismiss(animated: true, completion: nil)
+        }))
+        
+        popup.addAction(action: ExportSelectCtrl.Action(text: "Export", onClick: {
+        [unowned self] (ctrl, action) in
+            
+            var type = ImageProvider.ExportType.COPY
+            let selection = popup.currentSelection
+            
+            if (selection != nil)
+            {
+                if (selection!.text == self.SELECTION_ROTATE_INSTA)
+                    { type = ImageProvider.ExportType.ROTATE_TO_PORTRAIT }
+                else if (selection!.text == self.SELECTION_SQUARE_ROTATED)
+                    { type = ImageProvider.ExportType.ROTATE_TO_SQUARE }
+                else if (selection!.text == self.SELECTION_SQUARE)
+                    { type = ImageProvider.ExportType.SQUARE }
+                else
+                    { type = ImageProvider.ExportType.COPY }
+            }
+            
+            self.dismiss(animated: true, completion: nil)
+            self.exportClicked2(type)
+        }))
+        
+        present(popup, animated: true, completion: nil)
+    }
+
+    func exportClicked2(_ type:ImageProvider.ExportType)
+    {
+        var toShare = [ImageProvider]()
+        for cell in selectedCells
+        {
+            let file = files[cell.section][cell.item]
+            let img = Files.assetToImage(file)
+            toShare.append( ImageProvider(placeholderItem: img, type: type ) )
+        }
+        
+        let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
+        present(shareCtrl, animated: true, completion: nil)
     }
     
     private var isSelecting = false
-    private var selectedCells = Set<Int>()
+    private var selectedCells = Set<IndexPath>()
     
     @objc func selectClicked()
     {
@@ -89,9 +150,8 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
             selectBtn?.title = "Select"
             navigationItem.title = "Gallery"
             
-            for idx in selectedCells
+            for indexPath in selectedCells
             {
-                let indexPath = IndexPath(item: idx, section: 0)
                 let cell = collectionView.cellForItem(at: indexPath)
                 
                 if (cell != nil)
@@ -113,9 +173,27 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         }
     }
     
+    func numberOfSections(in collectionView: UICollectionView) -> Int
+    {
+        return headers.count
+    }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
     {
-        return files.count
+        return files[section].count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView
+    {
+        let view = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "galleryGridHeader", for: indexPath)
+        guard (view is GalleryGridHeader) else { return view }
+        
+        let view2 = view as! GalleryGridHeader
+        
+        let header = headers[indexPath.section]
+        view2.title = header
+        
+        return view2
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
@@ -126,10 +204,10 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         let cell2 = cell as! GalleryGridWidget
         
         
-        let file:PHAsset = files[indexPath.item]
+        let file:PHAsset = files[indexPath.section][indexPath.item]
         let image:UIImage = Files.assetToImage(file, asThumbnail: true)
         cell2.displayContent(image: image)
-        let selected = selectedCells.contains(indexPath.item)
+        let selected = selectedCells.contains(indexPath)
         cell2.isHighlighted = selected
 
         return cell2
@@ -139,21 +217,32 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     {
         if (!isSelecting)
         {
-            performSegue(withIdentifier: "GalleryToPlayback", sender: indexPath.item)
+            var index = 0
+            if (indexPath.section > 0)
+            {
+                for i in 0 ... (indexPath.section - 1)
+                {
+                    index += files[i].count
+                }
+            }
+            
+            index += indexPath.item
+        
+            performSegue(withIdentifier: "GalleryToPlayback", sender: index)
             return
         }
         
         
         let cell = collectionView.cellForItem(at: indexPath)
         let widget = cell as! GalleryGridWidget
-        let selected = (selectedCells.contains(indexPath.item)) ? false : true
+        let selected = (selectedCells.contains(indexPath)) ? false : true
         
         widget.isHighlighted = selected
         
         if (selected)
-            { selectedCells.insert(indexPath.item) }
+            { selectedCells.insert(indexPath) }
         else
-            { selectedCells.remove(indexPath.item) }
+            { selectedCells.remove(indexPath) }
         
         navigationItem.title = String(selectedCells.count) + " Selected"
     }

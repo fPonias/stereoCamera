@@ -7,7 +7,6 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     @IBOutlet weak var toolbar: UIToolbar!
     @IBOutlet weak var playBtn: UIButton!
     @IBOutlet weak var toolbarHeightConstraint: NSLayoutConstraint!
-    @IBOutlet weak var toolbarTitle: UIBarButtonItem!
     
     var files = [PHAsset]()
     
@@ -15,7 +14,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         super.viewDidLoad()
         
-        files = Files.getGalleryFiles()
+        files = Files.getSortedGalleryFiles()
         index = _startIndex
         
         toolbarHeight = toolbarHeightConstraint.constant
@@ -53,7 +52,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             toolbarHeightConstraint.constant = 0
             UIView.animate(withDuration: 0.25){
             [unowned self] in
-                self.toolbar.layoutIfNeeded()
+                self.resize()
             }
         }
         else
@@ -63,8 +62,27 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             toolbarHeightConstraint.constant = toolbarHeight
             UIView.animate(withDuration: 0.25){
             [unowned self] in
-                self.toolbar.layoutIfNeeded()
+                self.resize()
             }
+        }
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        coordinator.animateAlongsideTransition(in: self.view, animation: nil, completion: {
+        [unowned self] (context) in
+            self.resize()
+        })
+    }
+    
+    func resize()
+    {
+        toolbar.layoutIfNeeded()
+        
+        for i in 0 ... 4
+        {
+            let idx = index + (i - 2)
+            setImage(page: idx, image: slides.slides[i])
         }
     }
     
@@ -123,13 +141,64 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         gotoPage(page: next, animated: true)
     }
     
+    private let SELECTION_COPY = "Copy"
+    private let SELECTION_ROTATE_INSTA = "Rotate for Instagram"
+    private let SELECTION_SQUARE = "Square aspect"
+    private let SELECTION_SQUARE_ROTATED = "Square aspect - rotated"
+    
     @IBAction func exportAction(_ sender: Any)
     {
         cancelPlay()
         
-        let img = Files.assetToImage(files[index])
-        let imgToShare = [ ImageProvider(parent: self, placeholderItem: img) ]
-        let shareCtrl = UIActivityViewController(activityItems: imgToShare, applicationActivities: nil)
+        let popup = ExportSelectCtrl.initFromStoryboard()
+        
+        popup.header = "Export Actions"
+
+        var selections = [ExportSelectCtrl.Selection]()
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_COPY))
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_ROTATE_INSTA))
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE))
+        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE_ROTATED))
+        popup.setSelections(selections)
+        
+        popup.addAction(action: ExportSelectCtrl.Action(text: "Cancel", onClick: {
+        [unowned self] (ctrl, action) in
+            self.dismiss(animated: true, completion: nil)
+        }))
+        
+        popup.addAction(action: ExportSelectCtrl.Action(text: "Export", onClick: {
+        [unowned self] (ctrl, action) in
+            
+            var type = ImageProvider.ExportType.COPY
+            let selection = popup.currentSelection
+            
+            if (selection != nil)
+            {
+                if (selection!.text == self.SELECTION_ROTATE_INSTA)
+                    { type = ImageProvider.ExportType.ROTATE_TO_PORTRAIT }
+                else if (selection!.text == self.SELECTION_SQUARE_ROTATED)
+                    { type = ImageProvider.ExportType.ROTATE_TO_SQUARE }
+                else if (selection!.text == self.SELECTION_SQUARE)
+                    { type = ImageProvider.ExportType.SQUARE }
+                else
+                    { type = ImageProvider.ExportType.COPY }
+            }
+            
+            self.dismiss(animated: true, completion: nil)
+            self.exportClicked2(type)
+        }))
+        
+        present(popup, animated: true, completion: nil)
+    }
+
+    func exportClicked2(_ type:ImageProvider.ExportType)
+    {
+        var toShare = [ImageProvider]()
+        let file = files[index]
+        let img = Files.assetToImage(file)
+        toShare.append( ImageProvider(placeholderItem: img, type: type ) )
+        
+        let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
         present(shareCtrl, animated: true, completion: nil)
     }
     
@@ -156,77 +225,6 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         
         let w = view.frame.width
         scroller.contentSize.width = w * CGFloat(files.count)
-    }
-    
-    class ImageProvider : UIActivityItemProvider
-    {
-        var parent:GalleryPlaybackCtrl
-        var target:UIImage
-    
-        init(parent:GalleryPlaybackCtrl, placeholderItem:UIImage)
-        {
-            self.parent = parent
-            self.target = placeholderItem
-            super.init(placeholderItem: placeholderItem)
-        }
-    
-        override var item: Any
-        {
-            get
-            {
-                print ("for activity type " + activityType.debugDescription)
-                
-                let title = activityType?.rawValue
-                if (title == "com.burbn.instagram.shareextension")
-                {
-                    return getInstagramImage()
-                }
-                else
-                {
-                    return target
-                }
-            }
-        }
-                
-        func getInstagramImage() -> UIImage
-        {
-            print ("converting export image")
-            //convert the preview image to a mutable image
-            let ciImag = CIImage(image: target)
-            guard ciImag != nil else { return target }
-            let ciImage = ciImag!
-            
-            let context = CIContext(options: nil)
-            let cgImag = context.createCGImage(ciImage, from: ciImage.extent)
-            guard cgImag != nil else { return target }
-            let cgImage = cgImag!
-
-            //setup the drawing context and match the source image encoding parameters
-            let outDims = CGSize(width: 1080, height: 1350) //instagram max portrait dimensions
-            let outContex = CGContext.init(data: nil, width: Int(outDims.width), height: Int(outDims.height), bitsPerComponent: cgImage.bitsPerComponent, bytesPerRow: cgImage.bitsPerPixel * Int(outDims.width), space: cgImage.colorSpace!, bitmapInfo: cgImage.bitmapInfo.rawValue)
-            
-            guard outContex != nil else { return target }
-            let outContext = outContex!
-            
-            //draw a white background
-            let outRect = CGRect(x: 0, y: 0, width: outDims.width, height: outDims.height)
-            outContext.setFillColor(UIColor.white.cgColor)
-            outContext.fill(outRect)
-            
-            //draw the source image to scale and rotate to Instagram image sizing parameters
-            //guess n' check matrix rotation and translation
-            let scaledHeight = outDims.height / CGFloat(cgImage.width) * CGFloat(cgImage.height)
-            outContext.rotate(by: -CGFloat.pi / 2.0)
-            outContext.translateBy(x: -outDims.height, y: (outDims.width - scaledHeight) * 0.5)
-            let imgRect = CGRect(x: 0, y: 0, width: outDims.height, height: scaledHeight)
-            outContext.draw(cgImage, in: imgRect)
-            
-            let newImg = outContext.makeImage()
-            let ret = UIImage(cgImage: newImg!)
-
-            print ("converted!")
-            return ret
-        }
     }
     
     struct ImageView
@@ -338,29 +336,17 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         let idim = CGFloat.maximum(isz.width, isz.height)
         
         let top = (navigationController?.navigationBar.frame.size.height)!
+        let bottom = toolbar.frame.size.height
         let w = view.frame.width
-        var h = view.frame.height
-        let fdim = CGFloat.minimum(w, h)
-        
-        img.widthConst?.constant = fdim
-        img.heightConst?.constant = fdim
+        let h = view.frame.height
 
-        if (isz.width > isz.height)
-        {
-            let margin = (h - fdim) * 0.5 - top
-            img.topConst?.constant = margin
-            
-            let offset = w * CGFloat(page)
-            img.leadConst?.constant = offset
-        }
-        else
-        {
-            img.topConst?.constant = 0
-            
-            let margin = (w - fdim) * 0.5
-            let offset = w * CGFloat(page)
-            img.leadConst?.constant = margin + offset
-        }
+        img.widthConst?.constant = w
+        img.heightConst?.constant = h - top - bottom
+        img.topConst?.constant = 0
+        
+        let offset = w * CGFloat(page)
+        img.leadConst?.constant = offset
+        img.leadConst?.constant = offset
         
         img.imgView!.setNeedsLayout()
     }
@@ -369,21 +355,36 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         if (index == slides.centerIndex)
             { return }
-    
-        if (index > slides.centerIndex)
+        
+        var bigdiff = index - slides.centerIndex
+        bigdiff = (bigdiff > 0) ? bigdiff : -bigdiff
+        
+        if (bigdiff < 3)
         {
-            let diff = index - slides.centerIndex
-            for _ in 1 ... diff
+            if (index > slides.centerIndex)
             {
-                shiftRight()
+                let diff = index - slides.centerIndex
+                for _ in 1 ... diff
+                {
+                    shiftRight()
+                }
+            }
+            else if (index < slides.centerIndex)
+            {
+                let diff = slides.centerIndex - index
+                for _ in 1 ... diff
+                {
+                    shiftLeft()
+                }
             }
         }
-        else if (index < slides.centerIndex)
+        else
         {
-            let diff = slides.centerIndex - index
-            for _ in 1 ... diff
+            slides.centerIndex = index
+            for i in 0 ... 4
             {
-                shiftLeft()
+                let idx = index + ( i - 2 )
+                setImage(page: idx, image: slides.slides[i])
             }
         }
     }
@@ -420,6 +421,8 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
     {
+        cancelPlay()
+    
         let offset = scroller.contentOffset
         let pageRaw = offset.x / view.frame.width
         index = Int(pageRaw.rounded())

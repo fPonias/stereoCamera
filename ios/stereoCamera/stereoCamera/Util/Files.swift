@@ -59,6 +59,80 @@ public class Files
         return files
     }
     
+    static func dateToLabel(_ date:Date) -> String
+    {
+        let fmt = DateFormatter()
+        
+        let cal = Calendar(identifier: .gregorian)
+        let year = cal.component(.year, from: date)
+        let now = Date(timeIntervalSinceNow: 0)
+        let thisYear = cal.component(.year, from: now)
+        
+        let ret:String
+        if (thisYear != year)
+        {
+            fmt.dateFormat = "MMM d yyyy"
+            ret = fmt.string(from: date)
+        }
+        else
+        {
+            fmt.dateFormat = "MMM d"
+            ret = fmt.string(from: date)
+        }
+        
+        return ret
+    }
+    
+    static func getGroupedGalleryFiles() -> ([String], [[PHAsset]])
+    {
+        var headers = [String]()
+        var files = [[PHAsset]]()
+    
+        let data = getGalleryFiles()
+        var currentLabel = ""
+        var currentList = [PHAsset]()
+        
+        for asset in data
+        {
+            let label = dateToLabel(asset.creationDate!)
+            
+            if (label != currentLabel)
+            {
+                if (currentLabel != "")
+                {
+                    headers.insert(currentLabel, at: 0)
+                    files.insert(currentList, at: 0)
+                }
+            
+                currentLabel = label
+                currentList = [PHAsset]()
+            }
+            
+            currentList.append(asset)
+        }
+        
+        if (currentLabel != "")
+        {
+            headers.insert(currentLabel, at: 0)
+            files.insert(currentList, at: 0)
+        }
+        
+        return (headers, files)
+    }
+    
+    static func getSortedGalleryFiles() -> [PHAsset]
+    {
+        let (_, files) = getGroupedGalleryFiles()
+        var ret = [PHAsset]()
+    
+        for group in files
+        {
+            ret.append(contentsOf: group)
+        }
+        
+        return ret
+    }
+    
     static func assetToImage(_ asset: PHAsset, asThumbnail:Bool = false) -> UIImage
     {
         let manager = PHImageManager.default()
