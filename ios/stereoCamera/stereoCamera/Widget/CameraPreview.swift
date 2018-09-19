@@ -116,9 +116,13 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         guard captureSession.canAddOutput(videoOutput) else {return}
         
         if (quality == .HIGH)
-            { captureSession.sessionPreset = .photo }
+        {
+            captureSession.sessionPreset = .photo
+        }
         else
-            { captureSession.sessionPreset = .hd1920x1080 }
+        {
+            captureSession.sessionPreset = .high
+        }
             
         captureSession.addOutput(photoOutput)
         captureSession.addOutput(videoOutput)
