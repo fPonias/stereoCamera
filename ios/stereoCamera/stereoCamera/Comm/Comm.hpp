@@ -17,6 +17,7 @@ private:
     int serverSocket;
     int clientSocket;
     unsigned int port;
+    int connectAttempt;
     
     struct in_addr stringToAddr(const char* address);
 public:
@@ -37,7 +38,7 @@ extern "C"
     void commCleanUp(const void* ptr)
     {
         ((CommCpp*) ptr)->cleanUp();
-        delete (CommCpp*) ptr;
+        //delete (CommCpp*) ptr;
     }
     
     int commIsConnected(const void* ptr) { return ((CommCpp*) ptr)->isConnected(); }

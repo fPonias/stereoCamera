@@ -115,12 +115,16 @@ class CameraBaseCtrl : UIViewController
     
     func disconnect()
     {
+        var doReturn = false
         disconnectCond.lock()
             if (didDisconnect)
-                { return }
+                { doReturn = true }
         
             didDisconnect = true
         disconnectCond.unlock()
+    
+        if (doReturn)
+            { return }
     
         DispatchQueue.main.async
         {

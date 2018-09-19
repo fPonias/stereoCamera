@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class CommManager
 {
@@ -24,10 +25,27 @@ class CommManager
         get { return _localAddresses }
     }
     
-    private var _comm:Comm = Comm()
+    private var _commServer:Comm = Comm(master: true)
+    var commServer:Comm
+    {
+        get { return _commServer }
+    }
+    
+    private var _commClient:Comm = Comm(master: false)
+    var commClient:Comm
+    {
+        get { return _commClient }
+    }
+    
     var comm:Comm
     {
-        get { return _comm }
+        get
+        {
+            if (_commClient.isConnected())
+                { return _commClient }
+            else
+                { return _commServer }
+        }
     }
     
     private let _slaveState:SlaveState = SlaveState()
@@ -40,25 +58,41 @@ class CommManager
     {
         get
         {
-            return comm.isMaster
+            return (comm != nil && comm === _commServer)
         }
     }
     
-    var address:String
+    class AppListener : UIResponder, UIApplicationDelegate
     {
-        get
+        private var _parent:CommManager
+        init (parent: CommManager)
         {
-            return comm.address
+            _parent = parent
+        }
+        
+        func applicationDidBecomeActive(_ application: UIApplication)
+        {
+            _parent.fetchLocalAddresses()
+        }
+        
+        func applicationWillTerminate(_ application: UIApplication)
+        {
+            _parent._commClient.disconnect()
+            _parent._commServer.disconnect()
         }
     }
+    private var listener:AppListener? = nil
     
     private init()
     {
+        listener = AppListener(parent: self)
+        AppDelegate.instance?.addListener(listener!)
         fetchLocalAddresses()
     }
     
     func fetchLocalAddresses()
     {
+        _localAddresses.removeAll()
         let addresses:[IFAddress] = getIFAddresses()
         
         for address:IFAddress in addresses

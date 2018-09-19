@@ -20,33 +20,47 @@ void CommCpp::startServer(unsigned int port)
         return;
     
     this->port = port;
-    serverSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     
-    struct sockaddr_in sin, cli;
-    memset(&sin, 0, sizeof(sin));
-    sin.sin_len = sizeof(sin);
-    sin.sin_family = AF_INET;
-    sin.sin_port = port;
-    sin.sin_addr.s_addr = INADDR_ANY;
-    
-    if (bind(serverSocket, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+    if (serverSocket == 0)
     {
-        cleanUp();
-        return;
+        serverSocket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+        
+        struct sockaddr_in sin;
+        memset(&sin, 0, sizeof(sin));
+        sin.sin_len = sizeof(sin);
+        sin.sin_family = AF_INET;
+        sin.sin_port = port;
+        sin.sin_addr.s_addr = INADDR_ANY;
+        
+        if (bind(serverSocket, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+        {
+            cleanUp();
+            return;
+        }
     }
     
     if (listen(serverSocket, 1) == -1)
     {
         cleanUp();
+        serverSocket = 0;
+        connectAttempt++;
+        
+        if (connectAttempt < 2)
+            startServer(port);
+            
         return;
     }
     
+    connectAttempt = 0;
+    struct sockaddr_in cli;
     size_t clisz = sizeof(cli);
     clientSocket = accept(serverSocket, (struct sockaddr*) &cli, (socklen_t*)&clisz);
     
     if (clientSocket == -1)
     {
         cleanUp();
+        
+        serverSocket = 0;
         return;
     }
 }
@@ -60,7 +74,7 @@ void CommCpp::startClient(const char *host, unsigned int port)
     sin.sin_port = port;
     sin.sin_addr = stringToAddr(host);
     
-    serverSocket = 0;
+    //serverSocket = 0;
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     int sz = connect(clientSocket, (const sockaddr*) &sin, sizeof(sin));
     
@@ -107,12 +121,14 @@ struct in_addr CommCpp::stringToAddr(const char* address)
 }
 
 void CommCpp::cleanUp()
-{    
-    if (serverSocket > 0)
-    {
-        shutdown(serverSocket, SHUT_RDWR);
-        close(serverSocket);
-    }
+{
+    //don't shutdown the server socket as getting it back up immediately almost always fails.
+    //if (serverSocket > 0)
+    //{
+    //    shutdown(serverSocket, SHUT_RDWR);
+    //    close(serverSocket);
+    //}
+    //serverSocket = 0;
     
     if (clientSocket > 0)
     {
@@ -120,7 +136,6 @@ void CommCpp::cleanUp()
     }
     
     clientSocket = 0;
-    serverSocket = 0;
 }
 
 bool CommCpp::isConnected()

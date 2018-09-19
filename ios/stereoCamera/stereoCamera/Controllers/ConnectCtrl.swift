@@ -18,7 +18,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     @IBOutlet weak var galleryBtn: GalleryBtn!
     @IBOutlet weak var scrollView: UIScrollView!
     
-    private let listenTimeout = 60.0
+    private let listenTimeout = 0.0
     private let connectTimeout = 2.5
     
     private var addressGuess = CommManager.instance.guessAddress()
@@ -46,11 +46,36 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         CommManager.instance.comm.disconnect()
     }
     
+    
+    
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+    
+        addressGuess = CommManager.instance.guessAddress()
+        setupLabels()
+    }
+    
+    class AppListener : UIResponder, UIApplicationDelegate
+    {
+        private var parent:ConnectCtrl
+        init(parent:ConnectCtrl)
+        {
+            self.parent = parent
+        }
+    
+        func applicationDidBecomeActive(_ application: UIApplication)
+        {
+            parent.addressGuess = CommManager.instance.guessAddress()
+            parent.setupLabels()
+        }
+    }
+    
+    var appListener:AppListener? = nil
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
-        
-        setupLabels()
         
         if (Cookie.instance.introSeen)
             { firstConnect() }
@@ -70,6 +95,9 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         connectPrimaryInput.addDoneButtonToKeyboard(target: self, myAction: #selector(inputReturn))
         
         galleryBtn.setNavigationController(ctrl: navigationController)
+        
+        appListener = AppListener(parent: self)
+        AppDelegate.instance?.addListener(appListener!)
     }
     
     func welcomeOkay(_ action:UIAlertAction)
@@ -156,14 +184,24 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         return true
     }
     
+    var addressLabels = [UIView]()
+    
     func setupLabels()
     {
+        for label in addressLabels
+        {
+            layout.removeArrangedSubview(label)
+        }
+        addressLabels.removeAll()
+        
+        
         let commMgr = CommManager.instance
         for address in commMgr.localAddresses
         {
             let label = UILabel()
             label.text = address
             layout.insertArrangedSubview(label, at: 1)
+            addressLabels.append(label)
         }
         
         if (!addressGuess.isMaster)
@@ -177,31 +215,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     
     func firstConnect()
     {
-        var master = false
-        var address = addressGuess.address
-        var timeout = connectTimeout
-        var message = "Connecting to " + address
-        
-        if (Cookie.instance.master || addressGuess.isMaster)
-        {
-            master = true
-            address = ""
-            timeout = listenTimeout
-            message = "Listening for connections"
-        }
-        else if (Cookie.instance.client != "")
-        {
-            address = Cookie.instance.client
-        }
-        
-        showLoader(true, message: message)
-        
-        CommManager.instance.comm.connect(
-            master: master, address: address,
-            onConnected: onConnected,
-            onFail: onFail,
-            timeout: timeout
-        )
+        CommManager.instance.commServer.connect(onConnected: onConnected, onFail: onFail, timeout: 0)
     }
     
     override func didReceiveMemoryWarning() {
@@ -269,7 +283,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     @IBAction func listenSecondaryAction(_ sender: Any)
     {
         showLoader(true, message: "Listening")
-        CommManager.instance.comm.connect(master: true, address: "", onConnected: onConnected, onFail: onFail, timeout: listenTimeout)
+        CommManager.instance.commServer.connect(onConnected: onConnected, onFail: onFail, timeout: listenTimeout)
     }
     
     @IBAction func connectPrimaryAction(_ sender: Any)
@@ -280,7 +294,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
             { address = addressGuess.address }
         
         showLoader(true, message: "Connecting to: " + address!)
-        CommManager.instance.comm.connect(master: false, address: address!, onConnected: onConnected, onFail: onFail, timeout: connectTimeout)
+        CommManager.instance.commClient.connect(address: address!, onConnected: onConnected, onFail: onFail, timeout: connectTimeout)
     }
     
     @IBAction func openFaq(_ sender: Any)

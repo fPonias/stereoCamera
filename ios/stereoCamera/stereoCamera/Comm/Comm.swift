@@ -10,6 +10,11 @@ import Foundation
 
 class Comm
 {
+    init(master:Bool)
+    {
+        _isMaster = master
+    }
+
     private var cppPtr:UnsafeRawPointer = commNew()
     
     deinit
@@ -41,21 +46,27 @@ class Comm
     func disconnect()
     {
         print("disconnect triggered")
+        killProcessors()
+    
         connectCnd.lock()
             if (isConnecting || commIsConnected(self.cppPtr) != 0)
             {
                 print("disconnecting")
                 
                 commCleanUp(self.cppPtr)
-                self.cppPtr = commNew()
+                //self.cppPtr = commNew()
 
                 self.isConnecting = false
                 
                 connectCnd.signal()
             }
         connectCnd.unlock()
-        
-        killProcessors()
+    }
+    
+    func isConnected() -> Bool
+    {
+        let ret = commIsConnected(self.cppPtr)
+        return (ret != 0) ? true : false
     }
     
     private func killProcessors()
@@ -70,6 +81,10 @@ class Comm
             commandRepliesCnd.lock()
                 commandRepliesCnd.signal()
             commandRepliesCnd.unlock()
+            
+            commandResponseCondition.lock()
+                commandResponseCondition.signal()
+            commandResponseCondition.unlock()
         }
         
         if(commandSenderIsRunning)
@@ -84,52 +99,74 @@ class Comm
     func connect(onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
     {
         let guess = CommManager.instance.guessAddress()
-        connect(master: guess.isMaster, address: guess.address, onConnected: connected, onFail: fail, timeout: timeout)
+        connect(address: guess.address, onConnected: connected, onFail: fail, timeout: timeout)
     }
     
-    func connect(master:Bool, address:String, onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
+    func connect(address:String, onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void, timeout:TimeInterval = 2.5)
     {
         var doReturn = false
         connectCnd.lock()
-            if (isConnecting || commIsConnected(self.cppPtr) > 0)
-                { doReturn = true }
+            if (isConnecting)
+            {
+                if (commIsConnected(self.cppPtr) == 0)
+                {
+                    self.onConnected = connected
+                    self.onConnectFail = fail
+                }
+                else
+                {
+                    connected(_address)
+                }
+                
+                doReturn = true
+            }
             else
-                { isConnecting = true }
+            {
+                isConnecting = true
+                self.onConnected = connected
+                self.onConnectFail = fail
+            }
         connectCnd.unlock()
         
         if (doReturn)
             { return }
         
-        _isMaster = master
         _address = address
         
-        DispatchQueue.global(qos: .userInitiated).async
+        Thread.detachNewThread
         { [unowned self] in
-            self.connectThread(master: master, address: address, onConnected: connected, onFail: fail)
+            Thread.current.name = "Connect Thread"
+            self.connectThread(address: address)
         }
         
-        DispatchQueue.global(qos: .userInitiated).async
-        { [unowned self] in
-            self.connectCnd.lock()
-                self.connectCnd.wait(until: Date(timeIntervalSinceNow: timeout))
-            
-                if (commIsConnected(self.cppPtr) == 0)
-                {
-                    print("connect timed out")
-                    
-                    commCleanUp(self.cppPtr)
-                    self.cppPtr = commNew()
-                    
-                    self.isConnecting = false
-                    fail()
-                }
-            self.connectCnd.unlock()
+        if (timeout > 0)
+        {
+            DispatchQueue.global(qos: .userInitiated).async
+            { [unowned self] in
+                self.connectCnd.lock()
+                    self.connectCnd.wait(until: Date(timeIntervalSinceNow: timeout))
+                
+                    if (commIsConnected(self.cppPtr) == 0)
+                    {
+                        print("connect timed out")
+                        
+                        commCleanUp(self.cppPtr)
+                        //self.cppPtr = commNew()
+                        
+                        self.isConnecting = false
+                        fail()
+                    }
+                self.connectCnd.unlock()
+            }
         }
     }
     
-    func connectThread(master:Bool, address:String, onConnected connected: @escaping (_ client: String) -> Void, onFail fail: @escaping () -> Void)
+    private var onConnected:Optional<(_ client: String) -> Void> = nil
+    private var onConnectFail:Optional<() -> Void> = nil
+    
+    func connectThread(address:String)
     {
-        if (master)
+        if (_isMaster)
             { commStartServer(cppPtr, CommManager.PORT) }
         else
             { commStartClient(cppPtr, address, CommManager.PORT) }
@@ -148,19 +185,20 @@ class Comm
         if (doReturn)
         {
             print("connect failed")
-            fail()
+            onConnectFail?()
             return
         }
         
         print("comm connected starting sender and receiver")
         startCommandSender()
         startCommandReceiver()
+        startCommandTimeoutThread()
         
         while (!self.commandReceiverIsRunning && !self.commandSenderIsRunning)
             { usleep(100000) }
         
         print("comm connected")
-        connected(address)
+        onConnected?(address)
     }
     
     func read(buffer:[UInt8]) -> Int32
@@ -170,7 +208,6 @@ class Comm
         
         if (sz <= 0 || !commandReceiverIsRunning)
         {
-            commandReceiverIsRunning = false
             commandListener?.onDisconnect()
         }
         
@@ -185,7 +222,6 @@ class Comm
         
         if (sz <= 0 || !commandReceiverIsRunning)
         {
-            commandReceiverIsRunning = false
             commandListener?.onDisconnect()
         }
         
@@ -200,7 +236,6 @@ class Comm
         
         if (szWritten <= 0 || !commandReceiverIsRunning)
         {
-            commandReceiverIsRunning = false
             commandListener?.onDisconnect()
         }
         
@@ -240,13 +275,6 @@ class Comm
         }
     }
     
-    func getReceiveSender(command:Command) -> CommandResponseListenerStr?
-    {
-        let idx:String = self.getCommandIndex(command)
-        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
-        return str
-    }
-    
     private func receiveCommand(buffer:[UInt8])
     {
         let bufferPtr = UnsafeMutablePointer<UInt8>(mutating: buffer)
@@ -254,8 +282,9 @@ class Comm
         
         if (sz != 1 || !self.commandReceiverIsRunning)
         {
-            self.commandReceiverIsRunning = false
             self.commandListener?.onDisconnect()
+            disconnect()
+            usleep(10000)
             return
         }
 
@@ -264,7 +293,7 @@ class Comm
 
         if (cmdType == nil)
         {
-            self.commandReceiverIsRunning = false
+            self.commandListener?.onDisconnect()
             return
         }
 
@@ -272,8 +301,14 @@ class Comm
 
         if (cmd.cmdtype != CommandTypes.NONE)
         {
+            
             let success = cmd.receive(comm: self)
-                let str = getReceiveSender(command: cmd)
+            var str:CommandResponseListenerStr? = nil
+            
+            commandResponseCondition.lock()
+                let idx:String = self.getCommandIndex(cmd)
+                str = self.commandResponseListeners[idx]
+            commandResponseCondition.unlock()
             
             if (!success)
             {
@@ -301,6 +336,85 @@ class Comm
                     self.commandsReceivedCnd.signal()
                 self.commandsReceivedCnd.unlock()
             }
+        }
+    }
+    
+    private func startCommandTimeoutThread()
+    {
+        Thread.detachNewThread
+        { [unowned self] in
+            Thread.current.name = "Command Timeout Checker"
+            while (self.commandReceiverIsRunning)
+            {
+                self.checkTimeouts()
+            }
+        }
+    }
+    
+    private func checkTimeouts()
+    {
+        var smallestWait = -1.0
+        commandResponseCondition.lock()
+            var doWait = true
+            for key in commandResponseListeners.keys
+            {
+                let listener = commandResponseListeners[key]
+                
+                if (listener != nil && listener!.start > 0)
+                {
+                    doWait = false
+                    break
+                }
+            }
+        
+            if (doWait)
+            {
+                commandResponseCondition.wait()
+            }
+        
+            print("checking timeouts")
+        
+            var events = [CommandResponseListenerStr]()
+            let now = Date().timeIntervalSince1970
+            for key in commandResponseListeners.keys
+            {
+                let listener = commandResponseListeners[key]
+                
+                if (listener != nil && listener!.start > 0)
+                {
+                    let then = listener!.start + listener!.timeout
+                    let diff = then - now
+                    
+                    if (diff <= 0)
+                    {
+                        events.append(listener!)
+                        commandResponseListeners.removeValue(forKey: key)
+                    }
+                    else
+                    {
+                        if (smallestWait < 0 || diff < smallestWait)
+                            { smallestWait = diff }
+                    }
+                }
+            }
+        commandResponseCondition.unlock()
+        
+        if (!commandReceiverIsRunning)
+            { return }
+        
+        for listener in events
+        {
+            print("command " + listener.command.cmdtype.description + " timed out")
+            listener.listener.onReceiveFailed(listener.command)
+        }
+        
+        if (smallestWait > 0)
+        {
+            print("waiting " + String(smallestWait) + " for next possible timeout")
+            commandResponseCondition.lock()
+                let until = Date(timeIntervalSinceNow: smallestWait)
+                commandResponseCondition.wait(until: until)
+            commandResponseCondition.unlock()
         }
     }
     
@@ -336,8 +450,12 @@ class Comm
         if (cmd == nil)
             { return }
         
-        let idx:String = self.getCommandIndex(cmd!)
-        let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+        self.commandResponseCondition.lock()
+            let idx:String = self.getCommandIndex(cmd!)
+            let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+            self.commandResponseListeners.removeValue(forKey: idx)
+        self.commandResponseCondition.unlock()
+    
         if (str != nil)
         {
             print ("reply: handling command " + cmd!.cmdtype.description)
@@ -383,6 +501,7 @@ class Comm
     private var commandSenderCondition = NSCondition()
     private var commandSenderIsRunning:Bool = false
     private var commandQueue = [Command]()
+    private var commandResponseCondition = NSCondition()
     private var commandResponseListeners = [String: CommandResponseListenerStr]()
     private weak var _commandListener:CommandListener? = nil
     
@@ -435,7 +554,7 @@ class Comm
         sendCommand(command: command, listener: DefaultCommandResponseListener(listenerFunc))
     }
     
-    func sendCommand(command:Command, listener: CommandResponseListener? = nil)
+    func sendCommand(command:Command, listener: CommandResponseListener? = nil, timeout:Double = 5.0)
     {
         if (!commandSenderIsRunning)
             { return }
@@ -444,9 +563,12 @@ class Comm
         
         if (listener != nil)
         {
-            commandResponseListeners[idx] = CommandResponseListenerStr(
-                index: idx, command: command, listener: listener!
-            )
+            commandResponseCondition.lock()
+                commandResponseListeners[idx] = CommandResponseListenerStr(
+                    index: idx, command: command, listener: listener!, start: 0, timeout: timeout
+                )
+                commandResponseCondition.signal()
+            commandResponseCondition.unlock()
         }
         
         commandSenderCondition.lock()
@@ -496,8 +618,13 @@ class Comm
 
         if (nextCommand != nil)
         {
-            let idx:String = self.getCommandIndex(nextCommand!)
-            let str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+            commandResponseCondition.lock()
+                let idx:String = self.getCommandIndex(nextCommand!)
+                var str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
+                str?.start = Date().timeIntervalSince1970
+            
+                commandResponseCondition.signal()
+            commandResponseCondition.unlock()
         
             print("send: sending command " + nextCommand!.cmdtype.description)
             let success = nextCommand!.send(comm: self)
@@ -518,6 +645,8 @@ protocol CommandListener: class
 
 class CommandResponseListener
 {
+    var timeout:Float = 0.0
+
     func onReceivingStarted(_ command:Command) {}
     func onReceiving(_ command:Command, origCommand:Command?, progress:Float) {}
     func onReceived(_ command:Command, origCommand:Command?) {}
@@ -533,4 +662,6 @@ struct CommandResponseListenerStr
     var index:String
     var command:Command
     var listener: CommandResponseListener
+    var start:Double
+    var timeout:Double
 }
