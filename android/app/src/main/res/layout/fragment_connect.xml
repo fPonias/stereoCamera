@@ -8,49 +8,124 @@
 
     tools:context="com.munger.stereocamera.MainActivity">
 
-    <LinearLayout
+
+    <RadioGroup
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/connectChooser">
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connect_bluetooth"
+            android:id="@+id/connectBluetooth"
+            android:checked="true" android:layout_marginEnd="20dp">
+
+        </RadioButton>
+        <RadioButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connect_wifi"
+            android:id="@+id/connectWifi">
+
+        </RadioButton>
+    </RadioGroup>
+
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:gravity="center"
-        android:orientation="vertical"
         android:id="@+id/buttons_layout"
     >
-        <TextView
+        <LinearLayout android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/bluetoothButtons"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/restore_buttons_title"
+                android:id="@+id/restoreTitle"
+                android:textSize="20sp"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/connectButton"
+                android:text="@string/connect_button"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/listenButton"
+                android:text="@string/listen_button"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/discover_buttons_title"
+                android:layout_marginTop="20dp"
+                android:textSize="20sp"
+                android:id="@+id/discoverTitle"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/discoverButton"
+                android:text="@string/discover_connect_button"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/listenDiscoverButton"
+                android:text="@string/discover_listen_button"/>
+        </LinearLayout>
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/restore_buttons_title"
-            android:id="@+id/restoreTitle"
-            android:textSize="20sp"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/connectButton"
-            android:text="@string/connect_button"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/listenButton"
-            android:text="@string/listen_button"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/discover_buttons_title"
-            android:layout_marginTop="20dp"
-            android:textSize="20sp"
-            android:id="@+id/discoverTitle"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/discoverButton"
-            android:text="@string/discover_connect_button"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/listenDiscoverButton"
-            android:text="@string/discover_listen_button"/>
-    </LinearLayout>
+            android:orientation="vertical"
+            android:id="@+id/wifiButtons"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:visibility="gone">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="@string/ip_addresses_title"/>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:id="@+id/ipAddressList">
+
+            </LinearLayout>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ipListenButton"
+                android:text="@string/connect_button"
+                android:layout_marginBottom="20dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:text="@string/ip_address_target_title"/>
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:id="@+id/ipAddressTarget"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ipConnectButton"
+                android:text="@string/connect_button"/>
+        </LinearLayout>
+
+    </RelativeLayout>
 
     <com.munger.stereocamera.widget.ThumbnailWidget
         android:layout_width="120dp"

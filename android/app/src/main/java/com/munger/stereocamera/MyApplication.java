@@ -6,7 +6,8 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 
 import com.google.android.gms.ads.MobileAds;
-import com.munger.stereocamera.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
 import com.munger.stereocamera.utility.Preferences;
 
 import java.util.jar.Attributes;
@@ -55,6 +56,12 @@ public class MyApplication extends Application
 	{
 		this.btCtrl = btCtrl;
 	}
+
+	private EthernetCtrl ethCtrl;
+
+	public EthernetCtrl getEthCtrl() { return ethCtrl; }
+
+	public void setEthCtrl(EthernetCtrl ethCtrl) { this.ethCtrl = ethCtrl; }
 
 	private Preferences prefs;
 

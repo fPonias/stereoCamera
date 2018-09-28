@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;

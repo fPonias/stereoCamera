@@ -15,6 +15,10 @@
     <string name="ok_button">Okay</string>
     <string name="tilt_sensor_label">Tilt</string>
     <string name="level_sensor_label">Level</string>
+    <string name="connect_bluetooth">Bluetooth</string>
+    <string name="connect_wifi">Wi-fi</string>
+    <string name="ip_addresses_title">Local IP addresses</string>
+    <string name="ip_address_target_title">Secondary IP address</string>
 
     <string name="menu_zoom">Zoom</string>
     <string name="menu_flip">Flip</string>

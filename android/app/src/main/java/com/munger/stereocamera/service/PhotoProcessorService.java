@@ -9,7 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
 
 public class PhotoProcessorService extends IntentService
 {

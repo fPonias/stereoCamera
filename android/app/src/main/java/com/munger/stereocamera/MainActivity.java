@@ -8,7 +8,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -17,32 +16,34 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.munger.stereocamera.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.bluetooth.BluetoothMaster;
-import com.munger.stereocamera.bluetooth.BluetoothSlave;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
-import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.commands.Disconnect;
-import com.munger.stereocamera.bluetooth.command.master.commands.SendProcessedPhoto;
-import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendDisconnect;
+import com.munger.stereocamera.ip.IPListeners;
+import com.munger.stereocamera.ip.SocketCtrl;
+import com.munger.stereocamera.ip.SocketCtrlCtrl;
+import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
+import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.master.MasterComm;
+import com.munger.stereocamera.ip.command.master.commands.Disconnect;
+import com.munger.stereocamera.ip.command.master.commands.SendProcessedPhoto;
+import com.munger.stereocamera.ip.command.slave.SlaveComm;
+import com.munger.stereocamera.ip.command.slave.senders.SendDisconnect;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.HelpFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.fragment.SettingsFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
+import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.service.PhotoProcessorServiceReceiver;
 import com.munger.stereocamera.utility.InteractiveReceiver;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
-import com.munger.stereocamera.widget.OrientationCtrl;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends BaseActivity
 {
@@ -60,10 +61,12 @@ public class MainActivity extends BaseActivity
 
 	public static final String BT_SERVICE_NAME = "stereoCamera";
 
+	private SocketCtrlCtrl ctrl;
 	private BluetoothCtrl btCtrl;
+	private EthernetCtrl ethCtrl;
 	private Preferences prefs;
 
-	public void setupBTServer(BluetoothCtrl.SetupListener listener)
+	public void setupBTServer(IPListeners.SetupListener listener)
 	{
 		if (btCtrl == null)
 		{
@@ -80,9 +83,41 @@ public class MainActivity extends BaseActivity
 		listener.onSetup();
 	}
 
+	public void setCtrl(SocketCtrlCtrl ctrl)
+	{
+		this.ctrl = ctrl;
+	}
+
+	public SocketCtrlCtrl getCtrl()
+	{
+		return ctrl;
+	}
+
 	public BluetoothCtrl getBtCtrl()
 	{
 		return btCtrl;
+	}
+
+	public EthernetCtrl getEthCtrl()
+	{
+		return ethCtrl;
+	}
+
+	public void setupEthernetServer(IPListeners.SetupListener listener)
+	{
+		if (ethCtrl == null)
+		{
+			ethCtrl = new EthernetCtrl();
+			MyApplication.getInstance().setEthCtrl(ethCtrl);
+		}
+
+		if (!ethCtrl.getIsSetup())
+		{
+			ethCtrl.setup(listener);
+			return;
+		}
+
+		listener.onSetup();
 	}
 
 	public Preferences getPrefs()
@@ -198,6 +233,7 @@ public class MainActivity extends BaseActivity
 	protected void onStart()
 	{
 		btCtrl = MyApplication.getInstance().getBtCtrl();
+		ethCtrl = MyApplication.getInstance().getEthCtrl();
 
 		FragmentManager ft = getSupportFragmentManager();
 		backStackListener = new BackStackListener(ft);
@@ -213,6 +249,7 @@ public class MainActivity extends BaseActivity
 
 		isRunning = true;
 		btCtrl = MyApplication.getInstance().getBtCtrl();
+		ethCtrl = MyApplication.getInstance().getEthCtrl();
 		prefs = MyApplication.getInstance().getPrefs();
 
 		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
@@ -230,12 +267,12 @@ public class MainActivity extends BaseActivity
 	public void reconnect()
 	{
 		Preferences.Roles role = prefs.getRole();
-		if (btCtrl != null && btCtrl.getIsSetup())
+		if (ctrl != null && ctrl.getIsSetup())
 		{
 			if (role == Preferences.Roles.MASTER)
 			{
-				BluetoothMaster btMaster = btCtrl.getMaster();
-				if (btMaster != null && btMaster.isConnected())
+				SocketCtrl master = ctrl.getMaster();
+				if (master != null && master.isConnected())
 				{
 					startMasterView();
 					return;
@@ -243,8 +280,8 @@ public class MainActivity extends BaseActivity
 			}
 			else
 			{
-				BluetoothSlave btSlave = btCtrl.getSlave();
-				if (btSlave != null && btSlave.isConnected())
+				SocketCtrl slave = ctrl.getSlave();
+				if (slave != null && slave.isConnected())
 				{
 					startSlaveView();
 					return;
@@ -257,14 +294,7 @@ public class MainActivity extends BaseActivity
 			if (prefs.getFirstTime() == true)
 				return;
 
-			if (role == Preferences.Roles.MASTER)
-			{
-				connectFragment.connect();
-			}
-			else if (role == Preferences.Roles.SLAVE)
-			{
-				connectFragment.listen();
-			}
+			connectFragment.reconnect();
 		}
 	}
 
@@ -413,14 +443,10 @@ public class MainActivity extends BaseActivity
 
 	private void sendMasterDisconnect()
 	{
-		if (btCtrl == null)
+		if (ctrl == null)
 			return;
 
-		BluetoothMaster master = btCtrl.getMaster();
-		if (master == null)
-			return;
-
-		BluetoothMasterComm comm = master.getComm();
+		MasterComm comm = ctrl.getMasterComm();
 		if (comm == null)
 			return;
 
@@ -429,14 +455,10 @@ public class MainActivity extends BaseActivity
 
 	private void sendSlaveDisconnect()
 	{
-		if (btCtrl == null)
+		if (ctrl == null)
 			return;
 
-		BluetoothSlave slave = btCtrl.getSlave();
-		if (slave == null)
-			return;
-
-		BluetoothSlaveComm comm = slave.getComm();
+		SlaveComm comm = ctrl.getSlaveComm();
 		if (comm == null)
 			return;
 
@@ -492,9 +514,9 @@ public class MainActivity extends BaseActivity
 
 		Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
 
-		if (btCtrl != null && btCtrl.getMaster() != null && btCtrl.getMaster().getComm() != null)
+		if (ctrl != null && ctrl.getMasterComm() != null)
 		{
-			BluetoothMasterComm comm = btCtrl.getMaster().getComm();
+			MasterComm comm = ctrl.getMasterComm();
 			comm.runCommand(new SendProcessedPhoto(newPath), null);
 		}
 
@@ -541,10 +563,10 @@ public class MainActivity extends BaseActivity
 
 	public boolean isMasterConnected()
 	{
-		if (btCtrl == null)
+		if (ctrl == null)
 			return false;
 
-		BluetoothMaster master = btCtrl.getMaster();
+		SocketCtrl master = ctrl.getMaster();
 
 		if (master == null)
 			return false;
@@ -554,10 +576,10 @@ public class MainActivity extends BaseActivity
 
 	public boolean isSlaveConnected()
 	{
-		if (btCtrl == null)
+		if (ctrl == null)
 			return false;
 
-		BluetoothSlave slave = btCtrl.getSlave();
+		SocketCtrl slave = ctrl.getSlave();
 
 		if (slave == null)
 			return false;
@@ -567,16 +589,16 @@ public class MainActivity extends BaseActivity
 
 	public void cleanUpConnections()
 	{
-		if (btCtrl == null)
+		if (ctrl == null)
 			return;
 
-		BluetoothMaster btmaster = btCtrl.getMaster();
-		if (btmaster != null && isMasterConnected())
-			btmaster.cleanUp();
+		SocketCtrl master = ctrl.getMaster();
+		if (master != null && isMasterConnected())
+			master.cleanUp();
 
-		BluetoothSlave btslave = btCtrl.getSlave();
-		if (btslave != null && isSlaveConnected())
-			btslave.cleanUp();
+		SocketCtrl slave = ctrl.getSlave();
+		if (slave != null && isSlaveConnected())
+			slave.cleanUp();
 	}
 
 	public PhotoOrientation getCurrentOrientation()

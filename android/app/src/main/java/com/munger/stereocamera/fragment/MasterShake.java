@@ -3,14 +3,14 @@ package com.munger.stereocamera.fragment;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
-import com.munger.stereocamera.bluetooth.command.master.commands.Handshake;
-import com.munger.stereocamera.bluetooth.command.master.commands.Ping;
-import com.munger.stereocamera.bluetooth.command.master.commands.SendVersion;
-import com.munger.stereocamera.bluetooth.command.master.commands.SetOverlay;
-import com.munger.stereocamera.bluetooth.utility.RemoteState;
-import com.munger.stereocamera.bluetooth.utility.TimedCommand;
+import com.munger.stereocamera.ip.command.master.MasterComm;
+import com.munger.stereocamera.ip.command.master.MasterIncoming;
+import com.munger.stereocamera.ip.command.master.commands.Handshake;
+import com.munger.stereocamera.ip.command.master.commands.Ping;
+import com.munger.stereocamera.ip.command.master.commands.SendVersion;
+import com.munger.stereocamera.ip.command.master.commands.SetOverlay;
+import com.munger.stereocamera.ip.utility.RemoteState;
+import com.munger.stereocamera.ip.utility.TimedCommand;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 
 import java.util.ArrayList;
@@ -226,7 +226,7 @@ public class MasterShake
 		versionCheckStep = new Step("check version") { public void execute(final StepListener listener)
 		{
 			final SendVersion cmd = new SendVersion();
-			target.masterComm.runCommand(cmd, new BluetoothMasterComm.SlaveListener()
+			target.masterComm.runCommand(cmd, new MasterComm.SlaveListener()
 			{
 				@Override
 				public void onResponse(MasterIncoming response)

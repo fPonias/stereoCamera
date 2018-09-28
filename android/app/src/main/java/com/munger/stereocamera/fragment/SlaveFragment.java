@@ -15,31 +15,30 @@ import android.widget.Toast;
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.bluetooth.command.BluetoothCommands;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
-import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
-import com.munger.stereocamera.bluetooth.command.slave.BluetoothSlaveComm;
-import com.munger.stereocamera.bluetooth.command.slave.commands.GetLatency;
-import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveFacing;
-import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveOverlay;
-import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveProcessedPhoto;
-import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveVersion;
-import com.munger.stereocamera.bluetooth.command.slave.commands.ReceiveZoom;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendConnectionPause;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendGravity;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendOrientation;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendStatus;
-import com.munger.stereocamera.bluetooth.command.slave.commands.Shutter;
-import com.munger.stereocamera.bluetooth.command.slave.SlaveCommand;
-import com.munger.stereocamera.bluetooth.command.slave.senders.SendZoom;
-import com.munger.stereocamera.bluetooth.utility.PreviewSender;
+import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
+import com.munger.stereocamera.ip.command.slave.SlaveComm;
+import com.munger.stereocamera.ip.command.slave.commands.GetLatency;
+import com.munger.stereocamera.ip.command.slave.commands.ReceiveFacing;
+import com.munger.stereocamera.ip.command.slave.commands.ReceiveOverlay;
+import com.munger.stereocamera.ip.command.slave.commands.ReceiveProcessedPhoto;
+import com.munger.stereocamera.ip.command.slave.commands.ReceiveVersion;
+import com.munger.stereocamera.ip.command.slave.commands.ReceiveZoom;
+import com.munger.stereocamera.ip.command.slave.senders.SendConnectionPause;
+import com.munger.stereocamera.ip.command.slave.senders.SendGravity;
+import com.munger.stereocamera.ip.command.slave.senders.SendOrientation;
+import com.munger.stereocamera.ip.command.slave.senders.SendStatus;
+import com.munger.stereocamera.ip.command.slave.commands.Shutter;
+import com.munger.stereocamera.ip.command.slave.SlaveCommand;
+import com.munger.stereocamera.ip.command.slave.senders.SendZoom;
+import com.munger.stereocamera.ip.utility.PreviewSender;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -150,7 +149,7 @@ public class SlaveFragment extends PreviewFragment
 		}
 	}
 
-	private BluetoothSlaveComm slaveComm;
+	private SlaveComm slaveComm;
 	private byte[] imgBytes;
 	private OrientationCtrl gravityCtrl;
 
@@ -179,7 +178,7 @@ public class SlaveFragment extends PreviewFragment
 		});
 		gravityCtrl.start();
 
-		slaveComm = MainActivity.getInstance().getBtCtrl().getSlave().getComm();
+		slaveComm = MainActivity.getInstance().getCtrl().getSlaveComm();
 
 		if (slaveComm == null)
 		{
@@ -188,7 +187,7 @@ public class SlaveFragment extends PreviewFragment
 			return;
 		}
 
-		slaveComm.addListener(BluetoothCommands.SET_ZOOM, new BluetoothSlaveComm.Listener()
+		slaveComm.addListener(BluetoothCommands.SET_ZOOM, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -200,7 +199,7 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.SET_FACING, new BluetoothSlaveComm.Listener()
+		slaveComm.addListener(BluetoothCommands.SET_FACING, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -210,19 +209,19 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.SET_OVERLAY, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(BluetoothCommands.SET_OVERLAY, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			ReceiveOverlay cmd = (ReceiveOverlay) command;
 			SlaveFragment.this.setOverlay(cmd.getType());
 		}});
 
-		slaveComm.addListener(BluetoothCommands.SEND_VERSION, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(BluetoothCommands.SEND_VERSION, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			ReceiveVersion cmd = (ReceiveVersion) command;
 			SlaveFragment.this.checkVersion(cmd.getVersion());
 		}});
 
-		slaveComm.addListener(BluetoothCommands.LATENCY_CHECK, new BluetoothSlaveComm.Listener()
+		slaveComm.addListener(BluetoothCommands.LATENCY_CHECK, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -236,7 +235,7 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.FIRE_SHUTTER, new BluetoothSlaveComm.Listener()
+		slaveComm.addListener(BluetoothCommands.FIRE_SHUTTER, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -252,7 +251,7 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.HANDSHAKE, new BluetoothSlaveComm.Listener()
+		slaveComm.addListener(BluetoothCommands.HANDSHAKE, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -269,17 +268,17 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.CONNECTION_PAUSE, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(BluetoothCommands.CONNECTION_PAUSE, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			cancelConnection();
 		}});
 
-		slaveComm.addListener(BluetoothCommands.DISCONNECT, new BluetoothSlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(BluetoothCommands.DISCONNECT, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			disconnect();
 		}});
 
-		slaveComm.addListener(BluetoothCommands.SEND_PROCESSED_PHOTO, new BluetoothSlaveComm.Listener() {public void onCommand(SlaveCommand command)
+		slaveComm.addListener(BluetoothCommands.SEND_PROCESSED_PHOTO, new SlaveComm.Listener() {public void onCommand(SlaveCommand command)
 		{
 			ReceiveProcessedPhoto cmd = (ReceiveProcessedPhoto) command;
 			saveProcessedPhoto(cmd);
@@ -468,7 +467,7 @@ public class SlaveFragment extends PreviewFragment
 		}
 	}
 
-	private byte[] doFireShutter(com.munger.stereocamera.bluetooth.command.master.commands.Shutter.SHUTTER_TYPE type)
+	private byte[] doFireShutter(com.munger.stereocamera.ip.command.master.commands.Shutter.SHUTTER_TYPE type)
 	{
 		final Object lock = new Object();
 		imgBytes = null;

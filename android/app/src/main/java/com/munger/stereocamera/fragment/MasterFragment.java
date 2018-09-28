@@ -22,19 +22,19 @@ import android.widget.Toast;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.bluetooth.command.master.MasterIncoming;
-import com.munger.stereocamera.bluetooth.command.master.commands.ConnectionPause;
-import com.munger.stereocamera.bluetooth.command.master.commands.Shutter;
+import com.munger.stereocamera.ip.command.master.MasterComm;
+import com.munger.stereocamera.ip.command.master.MasterIncoming;
+import com.munger.stereocamera.ip.command.master.commands.ConnectionPause;
+import com.munger.stereocamera.ip.command.master.commands.Shutter;
 import com.munger.stereocamera.utility.Preferences;
-import com.munger.stereocamera.bluetooth.command.PhotoOrientation;
-import com.munger.stereocamera.bluetooth.command.master.BluetoothMasterComm;
-import com.munger.stereocamera.bluetooth.command.master.commands.SetFacing;
-import com.munger.stereocamera.bluetooth.command.master.commands.SetOverlay;
-import com.munger.stereocamera.bluetooth.command.master.listeners.ReceiveGravity;
-import com.munger.stereocamera.bluetooth.command.master.commands.SetZoom;
-import com.munger.stereocamera.bluetooth.utility.CalculateSync;
-import com.munger.stereocamera.bluetooth.utility.FireShutter;
-import com.munger.stereocamera.bluetooth.utility.RemoteState;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.master.commands.SetFacing;
+import com.munger.stereocamera.ip.command.master.commands.SetOverlay;
+import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
+import com.munger.stereocamera.ip.command.master.commands.SetZoom;
+import com.munger.stereocamera.ip.utility.CalculateSync;
+import com.munger.stereocamera.ip.utility.FireShutter;
+import com.munger.stereocamera.ip.utility.RemoteState;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
@@ -54,7 +54,7 @@ public class MasterFragment extends PreviewFragment
 	SlavePreviewOverlayWidget slavePreview;
 	private ZoomWidget zoomSlider;
 
-	BluetoothMasterComm masterComm;
+	MasterComm masterComm;
 	RemoteState remoteState;
 
 	private long shutterDelay;
@@ -253,7 +253,7 @@ public class MasterFragment extends PreviewFragment
 		setFacing(isFacing);
 		MainActivity.getInstance().getPrefs().setIsFacing(isFacing);
 
-		masterComm.runCommand(new SetFacing(isFacing), new BluetoothMasterComm.SlaveListener()
+		masterComm.runCommand(new SetFacing(isFacing), new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -271,7 +271,7 @@ public class MasterFragment extends PreviewFragment
 		setZoom(localZoom);
 
 		float zoom = prefs.getRemoteZoom(cameraId);
-		masterComm.runCommand(new SetZoom(zoom), new BluetoothMasterComm.SlaveListener()
+		masterComm.runCommand(new SetZoom(zoom), new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -512,10 +512,10 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		masterComm = MainActivity.getInstance().getBtCtrl().getMaster().getComm();
+		masterComm = MainActivity.getInstance().getCtrl().getMasterComm();
 		handler = new Handler(Looper.getMainLooper());
 
-		remoteState = MainActivity.getInstance().getBtCtrl().getMaster().getRemoteState();
+		remoteState = MainActivity.getInstance().getCtrl().getMaster().getRemoteState();
 		remoteState.addListener(remoteListener);
 		remoteState.start();
 
