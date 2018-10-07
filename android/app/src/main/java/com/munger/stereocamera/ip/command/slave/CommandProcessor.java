@@ -2,7 +2,7 @@ package com.munger.stereocamera.ip.command.slave;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -52,9 +52,9 @@ public class CommandProcessor
 		consumer.start();
 	}
 
-	private HashMap<BluetoothCommands, SlaveComm.Listener> commandListeners = new HashMap<>();
+	private HashMap<Command.Type, SlaveComm.Listener> commandListeners = new HashMap<>();
 
-	public void addListener(BluetoothCommands command, SlaveComm.Listener listener)
+	public void addListener(Command.Type command, SlaveComm.Listener listener)
 	{
 		commandListeners.put(command, listener);
 	}

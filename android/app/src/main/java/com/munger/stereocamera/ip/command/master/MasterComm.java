@@ -1,21 +1,17 @@
 package com.munger.stereocamera.ip.command.master;
 
-import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
-import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.commands.MasterCommand;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.LinkedList;
 
 public class MasterComm
 {
@@ -229,7 +225,7 @@ public class MasterComm
 		public void onFail() {}
 	}
 
-	public void registerListener(BluetoothCommands command, SlaveListener listener)
+	public void registerListener(Command.Type command, SlaveListener listener)
 	{
 		inputProcessor.registerListener(command, listener);
 	}

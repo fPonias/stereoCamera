@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class GetLatency extends SlaveCommand
 	{
 		super();
 		this.id = id;
-		this.command = BluetoothCommands.LATENCY_CHECK;
+		this.command = Command.Type.LATENCY_CHECK;
 	}
 
 	private long latency;

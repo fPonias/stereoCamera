@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -8,24 +8,24 @@ import java.util.HashMap;
 
 public class MasterCommandFactory
 {
-	private static HashMap<BluetoothCommands, Class> classMap;
+	private static HashMap<Command.Type, Class> classMap;
 
 	private static void populateClassMap()
 	{
 		classMap = new HashMap<>();
-		classMap.put(BluetoothCommands.CONNECTION_PAUSE, ConnectionPause.class);
-		classMap.put(BluetoothCommands.DISCONNECT, Disconnect.class);
-		classMap.put(BluetoothCommands.LATENCY_CHECK, GetRemoteLatency.class);
-		classMap.put(BluetoothCommands.PING, Ping.class);
-		classMap.put(BluetoothCommands.SEND_PROCESSED_PHOTO, SendProcessedPhoto.class);
-		classMap.put(BluetoothCommands.SET_FACING, SetFacing.class);
-		classMap.put(BluetoothCommands.SET_OVERLAY, SetOverlay.class);
-		classMap.put(BluetoothCommands.SET_ZOOM, SetZoom.class);
-		classMap.put(BluetoothCommands.FIRE_SHUTTER, Shutter.class);
-		classMap.put(BluetoothCommands.HANDSHAKE, Handshake.class);
+		classMap.put(Command.Type.CONNECTION_PAUSE, ConnectionPause.class);
+		classMap.put(Command.Type.DISCONNECT, Disconnect.class);
+		classMap.put(Command.Type.LATENCY_CHECK, GetRemoteLatency.class);
+		classMap.put(Command.Type.PING, Ping.class);
+		classMap.put(Command.Type.SEND_PROCESSED_PHOTO, SendProcessedPhoto.class);
+		classMap.put(Command.Type.SET_FACING, SetFacing.class);
+		classMap.put(Command.Type.SET_OVERLAY, SetOverlay.class);
+		classMap.put(Command.Type.SET_ZOOM, SetZoom.class);
+		classMap.put(Command.Type.FIRE_SHUTTER, Shutter.class);
+		classMap.put(Command.Type.HANDSHAKE, Handshake.class);
 	}
 
-	public static MasterCommand get(BluetoothCommands command, int id)
+	public static MasterCommand get(Command.Type command, int id)
 	{
 		if (classMap == null)
 			populateClassMap();
@@ -37,7 +37,7 @@ public class MasterCommandFactory
 
 		try
 		{
-			Constructor<?> constr = cls.getConstructor(BluetoothCommands.class, Integer.class);
+			Constructor<?> constr = cls.getConstructor(Command.Type.class, Integer.class);
 			MasterCommand ret = (MasterCommand) constr.newInstance(command, id);
 			return ret;
 		}

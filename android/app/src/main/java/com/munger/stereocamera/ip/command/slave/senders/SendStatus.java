@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.senders;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 import com.munger.stereocamera.fragment.PreviewFragment;
 
@@ -17,7 +17,7 @@ public class SendStatus extends SlaveCommand
 	public SendStatus(PreviewFragment.Status status)
 	{
 		this.id = -1;
-		this.command = BluetoothCommands.RECEIVE_STATUS;
+		this.command = Command.Type.RECEIVE_STATUS;
 		this.status = status;
 	}
 

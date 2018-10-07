@@ -2,7 +2,7 @@ package com.munger.stereocamera.ip.command.master;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -92,7 +92,7 @@ public class OutputProcessor
 
 	private void sendCommand(MasterComm.CommandArg arg) throws IOException
 	{
-		BluetoothCommands comm = arg.command.getCommand();
+		Command.Type comm = arg.command.getCommand();
 		Log.d("MasterComm", "command: " + comm.name() + " started");
 		sendBuffer.put(0, (byte) comm.ordinal());
 		sendBuffer.putInt(1, arg.command.getId());

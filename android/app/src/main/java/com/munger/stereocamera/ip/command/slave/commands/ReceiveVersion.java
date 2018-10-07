@@ -1,11 +1,7 @@
 package com.munger.stereocamera.ip.command.slave.commands;
 
-import android.content.pm.PackageInfo;
-import android.os.Build;
-
 import com.munger.stereocamera.BuildConfig;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
-import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 import java.io.IOException;
@@ -20,7 +16,7 @@ public class ReceiveVersion extends SlaveCommand
 	{
 		super();
 		this.id = id;
-		this.command = BluetoothCommands.SEND_VERSION;
+		this.command = Command.Type.SEND_VERSION;
 	}
 
 	private int version;

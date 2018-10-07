@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.senders;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
@@ -13,7 +13,7 @@ public class SendOrientation extends SlaveCommand
 	public SendOrientation(PhotoOrientation orientation)
 	{
 		this.id = -1;
-		this.command = BluetoothCommands.RECEIVE_ORIENTATION;
+		this.command = Command.Type.RECEIVE_ORIENTATION;
 		this.orientation = orientation;
 	}
 

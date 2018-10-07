@@ -2,7 +2,7 @@ package com.munger.stereocamera.ip.command.master.listeners;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 import com.munger.stereocamera.fragment.PreviewFragment;
 
@@ -14,7 +14,7 @@ public class ReceiveStatus extends MasterIncoming
 
 	public ReceiveStatus()
 	{
-		super(BluetoothCommands.RECEIVE_STATUS, -1);
+		super(Command.Type.RECEIVE_STATUS, -1);
 	}
 
 	@Override
@@ -23,6 +23,6 @@ public class ReceiveStatus extends MasterIncoming
 		int ret = parent.readInt();
 		status = PreviewFragment.Status.values()[ret];
 
-		Log.d("MasterComm", "command: " + BluetoothCommands.RECEIVE_STATUS.name() + " success");
+		Log.d("MasterComm", "command: " + Command.Type.RECEIVE_STATUS.name() + " success");
 	}
 }

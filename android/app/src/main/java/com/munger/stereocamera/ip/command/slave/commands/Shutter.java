@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
@@ -16,7 +16,7 @@ public class Shutter extends SlaveCommand
 	{
 		super();
 		this.id = id;
-		this.command = BluetoothCommands.FIRE_SHUTTER;
+		this.command = Command.Type.FIRE_SHUTTER;
 	}
 
 	private com.munger.stereocamera.ip.command.master.commands.Shutter.SHUTTER_TYPE type;

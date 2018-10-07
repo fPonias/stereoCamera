@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.senders;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 /**
@@ -12,6 +12,6 @@ public class SendDisconnect extends SlaveCommand
 	public SendDisconnect()
 	{
 		this.id = -1;
-		this.command = BluetoothCommands.RECEIVE_DISCONNECT;
+		this.command = Command.Type.RECEIVE_DISCONNECT;
 	}
 }

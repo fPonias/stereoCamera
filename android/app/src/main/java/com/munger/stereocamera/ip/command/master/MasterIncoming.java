@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.io.IOException;
 
@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class MasterIncoming
 {
-	protected BluetoothCommands type;
+	protected Command.Type type;
 	protected MasterComm parent;
 	protected int id;
 
@@ -19,11 +19,11 @@ public class MasterIncoming
 		this.parent = parent;
 	}
 
-	public BluetoothCommands getType()
+	public Command.Type getType()
 	{
 		return type;
 	}
-	public void setType(BluetoothCommands type)
+	public void setType(Command.Type type)
 	{
 		this.type = type;
 	}
@@ -41,7 +41,7 @@ public class MasterIncoming
 		id = -1;
 	}
 
-	public MasterIncoming(BluetoothCommands type, int id)
+	public MasterIncoming(Command.Type type, int id)
 	{
 		this.type = type;
 		this.id = id;

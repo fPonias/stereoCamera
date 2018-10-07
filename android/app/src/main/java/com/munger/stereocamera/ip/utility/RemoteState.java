@@ -2,7 +2,7 @@ package com.munger.stereocamera.ip.utility;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.master.MasterComm;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
@@ -67,7 +67,7 @@ public class RemoteState
 
 	public void start()
 	{
-		comm.registerListener(BluetoothCommands.RECEIVE_STATUS, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_STATUS, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -90,7 +90,7 @@ public class RemoteState
 
 		listeners.add(readyListener);
 
-		comm.registerListener(BluetoothCommands.RECEIVE_ANGLE_OF_VIEW, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_ANGLE_OF_VIEW, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -107,7 +107,7 @@ public class RemoteState
 			}
 		});
 
-		comm.registerListener(BluetoothCommands.RECEIVE_GRAVITY, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_GRAVITY, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -123,7 +123,7 @@ public class RemoteState
 			}
 		});
 
-		comm.registerListener(BluetoothCommands.RECEIVE_ZOOM, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_ZOOM, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -139,7 +139,7 @@ public class RemoteState
 			}
 		});
 
-		comm.registerListener(BluetoothCommands.RECEIVE_ORIENTATION, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_ORIENTATION, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -155,7 +155,7 @@ public class RemoteState
 			}
 		});
 
-		comm.registerListener(BluetoothCommands.RECEIVE_CONNECTION_PAUSE, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_CONNECTION_PAUSE, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -168,7 +168,7 @@ public class RemoteState
 			}
 		});
 
-		comm.registerListener(BluetoothCommands.RECEIVE_DISCONNECT, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_DISCONNECT, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)
@@ -181,7 +181,7 @@ public class RemoteState
 			}
 		});
 
-		comm.registerListener(BluetoothCommands.RECEIVE_PREVIEW_FRAME, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_PREVIEW_FRAME, new MasterComm.SlaveListener()
 		{
 			@Override
 			public void onResponse(MasterIncoming response)

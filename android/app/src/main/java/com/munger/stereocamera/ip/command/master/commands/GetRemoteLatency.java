@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
 import java.io.IOException;
@@ -15,9 +15,9 @@ public class GetRemoteLatency extends MasterCommand
 	{}
 
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.LATENCY_CHECK;
+		return Command.Type.LATENCY_CHECK;
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class GetRemoteLatency extends MasterCommand
 
 		public Response(int id)
 		{
-			super(BluetoothCommands.LATENCY_CHECK, id);
+			super(Command.Type.LATENCY_CHECK, id);
 		}
 
 		@Override

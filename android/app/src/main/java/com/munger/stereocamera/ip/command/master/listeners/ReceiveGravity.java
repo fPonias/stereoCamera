@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.listeners;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ public class ReceiveGravity extends MasterIncoming
 
 	public ReceiveGravity()
 	{
-		super(BluetoothCommands.RECEIVE_GRAVITY, -1);
+		super(Command.Type.RECEIVE_GRAVITY, -1);
 	}
 
 	@Override

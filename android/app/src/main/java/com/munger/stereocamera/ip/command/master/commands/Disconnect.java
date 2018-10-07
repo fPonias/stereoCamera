@@ -1,10 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
-import com.munger.stereocamera.fragment.MasterFragment;
-
-import java.io.IOException;
+import com.munger.stereocamera.ip.command.Command;
 
 /**
  * Created by hallmarklabs on 3/28/18.
@@ -13,8 +9,8 @@ import java.io.IOException;
 public class Disconnect extends MasterCommand
 {
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.DISCONNECT;
+		return Command.Type.DISCONNECT;
 	}
 }

@@ -1,13 +1,11 @@
 package com.munger.stereocamera.ip.command.slave;
 
-import android.bluetooth.BluetoothSocket;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
-import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,7 +91,7 @@ public class SlaveComm
 		void onCommand(SlaveCommand command);
 	}
 
-	public void addListener(BluetoothCommands command, Listener listener)
+	public void addListener(Command.Type command, Listener listener)
 	{
 		commandProcessor.addListener(command, listener);
 	}
@@ -119,7 +117,7 @@ public class SlaveComm
 			}
 			else
 			{
-				if (command.command != BluetoothCommands.PING)
+				if (command.command != Command.Type.PING)
 				{
 					commandBacklog.add(command);
 					return;

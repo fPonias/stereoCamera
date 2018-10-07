@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.commands.MasterCommand;
 import com.munger.stereocamera.ip.command.master.commands.MasterCommandFactory;
 
@@ -13,7 +13,7 @@ public class InputProcessor
 	private MasterComm parent;
 	private boolean cancelled = false;
 	private final Object lock = new Object();
-	private HashMap<BluetoothCommands, MasterComm.SlaveListener> slaveListeners = new HashMap<>();
+	private HashMap<Command.Type, MasterComm.SlaveListener> slaveListeners = new HashMap<>();
 	private Thread slaveProcessor;
 
 	public InputProcessor(MasterComm parent)
@@ -38,7 +38,7 @@ public class InputProcessor
 
 	private class commandStruct
 	{
-		public BluetoothCommands command;
+		public Command.Type command;
 		public int id;
 	}
 
@@ -85,9 +85,9 @@ public class InputProcessor
 
 		byte actionInt = parent.readByte();
 
-		BluetoothCommands[] cmds = BluetoothCommands.values();
+		Command.Type[] cmds = Command.Type.values();
 		if (actionInt < 0 || actionInt >= cmds.length)
-			throw new IOException("Unknown BluetoothCommands command " + actionInt);
+			throw new IOException("Unknown Type command " + actionInt);
 
 		ret.command = cmds[actionInt];
 		ret.id = parent.readInt();
@@ -129,7 +129,7 @@ public class InputProcessor
 			listener.onResponse(response);
 	}
 
-	public void registerListener(BluetoothCommands command, MasterComm.SlaveListener listener)
+	public void registerListener(Command.Type command, MasterComm.SlaveListener listener)
 	{
 		slaveListeners.put(command, listener);
 	}

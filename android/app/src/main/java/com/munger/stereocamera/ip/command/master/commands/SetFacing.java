@@ -1,9 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
-
-import java.io.IOException;
+import com.munger.stereocamera.ip.command.Command;
 
 /**
  * Created by hallmarklabs on 3/7/18.
@@ -17,9 +14,9 @@ public class SetFacing extends MasterCommand
 	}
 
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.SET_FACING;
+		return Command.Type.SET_FACING;
 	}
 
 	private boolean facing;

@@ -1,12 +1,12 @@
 package com.munger.stereocamera.ip.command.slave;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.io.IOException;
 
 public class SlaveCommand
 {
-	public BluetoothCommands command;
+	public Command.Type command;
 	public int id = -1;
 
 	protected SlaveComm comm;

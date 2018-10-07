@@ -1,9 +1,7 @@
 package com.munger.stereocamera.ip.command.master.listeners;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
-
-import java.io.IOException;
 
 /**
  * Created by hallmarklabs on 3/12/18.
@@ -13,6 +11,6 @@ public class ReceiveConnectionPause extends MasterIncoming
 {
 	public ReceiveConnectionPause()
 	{
-		super(BluetoothCommands.RECEIVE_CONNECTION_PAUSE, -1);
+		super(Command.Type.RECEIVE_CONNECTION_PAUSE, -1);
 	}
 }

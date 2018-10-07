@@ -1,7 +1,6 @@
 package com.munger.stereocamera.ip.command.master;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
-import com.munger.stereocamera.ip.command.master.commands.MasterCommand;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveAngleOfView;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveConnectionPause;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveDisconnect;
@@ -11,8 +10,6 @@ import com.munger.stereocamera.ip.command.master.listeners.ReceivePreviewFrame;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveStatus;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveZoom;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 
 /**
@@ -21,22 +18,22 @@ import java.util.HashMap;
 
 public class InputProcessorFactory
 {
-	private static HashMap<BluetoothCommands, Class> classMap;
+	private static HashMap<Command.Type, Class> classMap;
 
 	private static void populateClassMap()
 	{
 		classMap = new HashMap<>();
-		classMap.put(BluetoothCommands.RECEIVE_ANGLE_OF_VIEW, ReceiveAngleOfView.class);
-		classMap.put(BluetoothCommands.RECEIVE_CONNECTION_PAUSE, ReceiveConnectionPause.class);
-		classMap.put(BluetoothCommands.RECEIVE_DISCONNECT, ReceiveDisconnect.class);
-		classMap.put(BluetoothCommands.RECEIVE_GRAVITY, ReceiveGravity.class);
-		classMap.put(BluetoothCommands.RECEIVE_ORIENTATION, ReceiveOrientation.class);
-		classMap.put(BluetoothCommands.RECEIVE_PREVIEW_FRAME, ReceivePreviewFrame.class);
-		classMap.put(BluetoothCommands.RECEIVE_STATUS, ReceiveStatus.class);
-		classMap.put(BluetoothCommands.RECEIVE_ZOOM, ReceiveZoom.class);
+		classMap.put(Command.Type.RECEIVE_ANGLE_OF_VIEW, ReceiveAngleOfView.class);
+		classMap.put(Command.Type.RECEIVE_CONNECTION_PAUSE, ReceiveConnectionPause.class);
+		classMap.put(Command.Type.RECEIVE_DISCONNECT, ReceiveDisconnect.class);
+		classMap.put(Command.Type.RECEIVE_GRAVITY, ReceiveGravity.class);
+		classMap.put(Command.Type.RECEIVE_ORIENTATION, ReceiveOrientation.class);
+		classMap.put(Command.Type.RECEIVE_PREVIEW_FRAME, ReceivePreviewFrame.class);
+		classMap.put(Command.Type.RECEIVE_STATUS, ReceiveStatus.class);
+		classMap.put(Command.Type.RECEIVE_ZOOM, ReceiveZoom.class);
 	}
 
-	public static MasterIncoming getCommand(BluetoothCommands command)
+	public static MasterIncoming getCommand(Command.Type command)
 	{
 		if (classMap == null)
 			populateClassMap();

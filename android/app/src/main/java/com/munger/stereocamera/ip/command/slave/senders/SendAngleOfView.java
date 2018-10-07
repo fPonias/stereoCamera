@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.senders;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ public class SendAngleOfView extends SlaveCommand
 	public SendAngleOfView(float vert, float horiz)
 	{
 		this.id = -1;
-		this.command = BluetoothCommands.RECEIVE_ANGLE_OF_VIEW;
+		this.command = Command.Type.RECEIVE_ANGLE_OF_VIEW;
 		this.vert = vert;
 		this.horiz = horiz;
 	}

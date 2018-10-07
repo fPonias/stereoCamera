@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.listeners;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
 import java.io.IOException;
@@ -15,7 +15,7 @@ public class ReceiveZoom extends MasterIncoming
 
 	public ReceiveZoom()
 	{
-		super(BluetoothCommands.RECEIVE_ZOOM, -1);
+		super(Command.Type.RECEIVE_ZOOM, -1);
 	}
 
 	@Override

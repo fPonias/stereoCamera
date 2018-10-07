@@ -3,7 +3,7 @@ package com.munger.stereocamera.ip.utility;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterComm;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 import com.munger.stereocamera.ip.command.master.commands.GetRemoteLatency;
@@ -55,7 +55,7 @@ public class GetLatency
 	{
 		localLatency = -1;
 		remoteLatency = -1;
-		Log.d("MasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " called");
+		Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " called");
 
 		getLocalLatency(localDelay);
 		getRemoteLatency();
@@ -74,13 +74,13 @@ public class GetLatency
 				localLatency = System.currentTimeMillis() - localNow;
 			}
 
-			Log.d("MasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " local check success");
+			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " local check success");
 		}
 
 		@Override
 		public void done()
 		{
-			Log.d("MasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " local check finished");
+			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " local check finished");
 
 			synchronized (latencyLock)
 			{
@@ -179,12 +179,12 @@ public class GetLatency
 
 		if (localLatency == -1 || remoteLatency == -1)
 		{
-			Log.d("MasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " failed");
+			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " failed");
 			listener.fail();
 		}
 		else
 		{
-			Log.d("MasterComm", "command: " + BluetoothCommands.LATENCY_CHECK.name() + " success");
+			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " success");
 			listener.pong(localLatency, remoteLatency);
 		}
 	}

@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.senders;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
@@ -17,7 +17,7 @@ public class SendGravity extends SlaveCommand
 	public SendGravity(ReceiveGravity.Gravity value)
 	{
 		this.id = -1;
-		this.command = BluetoothCommands.RECEIVE_GRAVITY;
+		this.command = Command.Type.RECEIVE_GRAVITY;
 		this.gravity = value;
 	}
 

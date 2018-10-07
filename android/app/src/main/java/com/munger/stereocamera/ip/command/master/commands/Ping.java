@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
 import java.io.IOException;
@@ -12,9 +12,9 @@ import java.io.IOException;
 public class Ping extends MasterCommand
 {
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.PING;
+		return Command.Type.PING;
 	}
 
 	private long then;
@@ -37,7 +37,7 @@ public class Ping extends MasterCommand
 
 		public Response(int id)
 		{
-			super(BluetoothCommands.PING, id);
+			super(Command.Type.PING, id);
 		}
 
 		@Override

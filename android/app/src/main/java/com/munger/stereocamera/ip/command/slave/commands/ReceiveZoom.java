@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class ReceiveZoom extends SlaveCommand
 	{
 		super();
 		this.id = id;
-		this.command = BluetoothCommands.SET_ZOOM;
+		this.command = Command.Type.SET_ZOOM;
 	}
 
 	@Override

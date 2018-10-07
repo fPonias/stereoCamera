@@ -1,10 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import android.content.SharedPreferences;
-import android.support.v7.preference.PreferenceManager;
-
-import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
@@ -21,17 +17,11 @@ public class Shutter extends MasterCommand
 	}
 
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.FIRE_SHUTTER;
+		return Command.Type.FIRE_SHUTTER;
 	}
 
-	public enum SHUTTER_TYPE
-	{
-		PREVIEW,
-		LO_RES,
-		HI_RES
-	};
 
 	@Override
 	public byte[] getArguments()
@@ -55,7 +45,7 @@ public class Shutter extends MasterCommand
 
 		public Response(int id)
 		{
-			super(BluetoothCommands.FIRE_SHUTTER, id);
+			super(Command.Type.FIRE_SHUTTER, id);
 		}
 
 		@Override

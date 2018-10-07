@@ -1,12 +1,12 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 public class Handshake extends MasterCommand
 {
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.HANDSHAKE;
+		return Command.Type.HANDSHAKE;
 	}
 }

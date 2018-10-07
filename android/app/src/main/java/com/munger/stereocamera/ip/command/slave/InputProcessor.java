@@ -2,7 +2,7 @@ package com.munger.stereocamera.ip.command.slave;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.commands.Handshake;
 import com.munger.stereocamera.ip.command.slave.commands.ReceiveConnectionPause;
 import com.munger.stereocamera.ip.command.slave.commands.GetLatency;
@@ -71,11 +71,11 @@ public class InputProcessor
 	{
 		byte actionInt = parent.getByte();
 
-		BluetoothCommands[] cmds = BluetoothCommands.values();
+		Command.Type[] cmds = Command.Type.values();
 		if (actionInt < 0 || actionInt >= cmds.length)
-			throw new IOException("Unknown BluetoothCommands command " + actionInt);
+			throw new IOException("Unknown Type command " + actionInt);
 
-		BluetoothCommands currentAction = cmds[actionInt];
+		Command.Type currentAction = cmds[actionInt];
 		int id = parent.getInt();
 
 		if (isCancelled)

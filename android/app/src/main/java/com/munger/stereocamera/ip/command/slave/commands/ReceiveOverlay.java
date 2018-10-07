@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 
@@ -23,7 +23,7 @@ public class ReceiveOverlay extends SlaveCommand
 	{
 		super();
 		this.id = i;
-		this.command = BluetoothCommands.SET_OVERLAY;
+		this.command = Command.Type.SET_OVERLAY;
 	}
 
 	@Override

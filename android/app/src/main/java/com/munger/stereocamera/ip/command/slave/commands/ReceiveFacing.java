@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.slave.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class ReceiveFacing extends SlaveCommand
 	{
 		super();
 		this.id = i;
-		this.command = BluetoothCommands.SET_FACING;
+		this.command = Command.Type.SET_FACING;
 	}
 
 	@Override

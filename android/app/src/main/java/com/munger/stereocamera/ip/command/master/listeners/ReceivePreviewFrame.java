@@ -1,10 +1,7 @@
 package com.munger.stereocamera.ip.command.master.listeners;
 
-import android.util.Log;
-
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
-import com.munger.stereocamera.fragment.PreviewFragment;
 
 import java.io.IOException;
 
@@ -16,7 +13,7 @@ public class ReceivePreviewFrame extends MasterIncoming
 
 	public ReceivePreviewFrame()
 	{
-		super(BluetoothCommands.RECEIVE_PREVIEW_FRAME, -1);
+		super(Command.Type.RECEIVE_PREVIEW_FRAME, -1);
 	}
 
 	@Override

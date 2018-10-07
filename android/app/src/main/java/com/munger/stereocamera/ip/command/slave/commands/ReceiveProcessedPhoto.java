@@ -2,7 +2,7 @@ package com.munger.stereocamera.ip.command.slave.commands;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.slave.SlaveCommand;
 
 import java.io.File;
@@ -29,7 +29,7 @@ public class ReceiveProcessedPhoto extends SlaveCommand
 	{
 		super();
 		this.id = id;
-		this.command = BluetoothCommands.SEND_PROCESSED_PHOTO;
+		this.command = Command.Type.SEND_PROCESSED_PHOTO;
 	}
 
 	@Override

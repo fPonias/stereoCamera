@@ -1,12 +1,7 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-
 import com.munger.stereocamera.BuildConfig;
-import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
 import java.io.IOException;
@@ -19,9 +14,9 @@ import java.nio.ByteBuffer;
 public class SendVersion extends MasterCommand
 {
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.SEND_VERSION;
+		return Command.Type.SEND_VERSION;
 	}
 
 	public int getVersion()
@@ -49,7 +44,7 @@ public class SendVersion extends MasterCommand
 
 		public Response(int id)
 		{
-			super(BluetoothCommands.SEND_VERSION, id);
+			super(Command.Type.SEND_VERSION, id);
 		}
 
 		@Override

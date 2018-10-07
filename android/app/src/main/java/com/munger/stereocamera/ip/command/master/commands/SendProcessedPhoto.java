@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 
 import java.io.File;
 
@@ -16,9 +16,9 @@ public class SendProcessedPhoto extends MasterCommand
 	}
 
 	@Override
-	public BluetoothCommands getCommand()
+	public Command.Type getCommand()
 	{
-		return BluetoothCommands.SEND_PROCESSED_PHOTO;
+		return Command.Type.SEND_PROCESSED_PHOTO;
 	}
 
 	@Override

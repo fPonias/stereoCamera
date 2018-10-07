@@ -15,7 +15,7 @@ import android.widget.Toast;
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
 import com.munger.stereocamera.ip.command.slave.SlaveComm;
@@ -187,7 +187,7 @@ public class SlaveFragment extends PreviewFragment
 			return;
 		}
 
-		slaveComm.addListener(BluetoothCommands.SET_ZOOM, new SlaveComm.Listener()
+		slaveComm.addListener(Command.Type.SET_ZOOM, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -199,7 +199,7 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.SET_FACING, new SlaveComm.Listener()
+		slaveComm.addListener(Command.Type.SET_FACING, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -209,19 +209,19 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.SET_OVERLAY, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(Command.Type.SET_OVERLAY, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			ReceiveOverlay cmd = (ReceiveOverlay) command;
 			SlaveFragment.this.setOverlay(cmd.getType());
 		}});
 
-		slaveComm.addListener(BluetoothCommands.SEND_VERSION, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(Command.Type.SEND_VERSION, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			ReceiveVersion cmd = (ReceiveVersion) command;
 			SlaveFragment.this.checkVersion(cmd.getVersion());
 		}});
 
-		slaveComm.addListener(BluetoothCommands.LATENCY_CHECK, new SlaveComm.Listener()
+		slaveComm.addListener(Command.Type.LATENCY_CHECK, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -235,7 +235,7 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.FIRE_SHUTTER, new SlaveComm.Listener()
+		slaveComm.addListener(Command.Type.FIRE_SHUTTER, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -251,7 +251,7 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.HANDSHAKE, new SlaveComm.Listener()
+		slaveComm.addListener(Command.Type.HANDSHAKE, new SlaveComm.Listener()
 		{
 			@Override
 			public void onCommand(SlaveCommand command)
@@ -268,17 +268,17 @@ public class SlaveFragment extends PreviewFragment
 			}
 		});
 
-		slaveComm.addListener(BluetoothCommands.CONNECTION_PAUSE, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(Command.Type.CONNECTION_PAUSE, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			cancelConnection();
 		}});
 
-		slaveComm.addListener(BluetoothCommands.DISCONNECT, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.addListener(Command.Type.DISCONNECT, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
 		{
 			disconnect();
 		}});
 
-		slaveComm.addListener(BluetoothCommands.SEND_PROCESSED_PHOTO, new SlaveComm.Listener() {public void onCommand(SlaveCommand command)
+		slaveComm.addListener(Command.Type.SEND_PROCESSED_PHOTO, new SlaveComm.Listener() {public void onCommand(SlaveCommand command)
 		{
 			ReceiveProcessedPhoto cmd = (ReceiveProcessedPhoto) command;
 			saveProcessedPhoto(cmd);

@@ -1,6 +1,6 @@
 package com.munger.stereocamera.ip.command.master.commands;
 
-import com.munger.stereocamera.ip.command.BluetoothCommands;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.master.MasterComm;
 import com.munger.stereocamera.ip.command.master.MasterIncoming;
 
@@ -30,7 +30,7 @@ public abstract class MasterCommand
 		this.id = id;
 	}
 
-	public abstract BluetoothCommands getCommand();
+	public abstract Command.Type getCommand();
 	public byte[] getArguments()
 	{
 		return null;
