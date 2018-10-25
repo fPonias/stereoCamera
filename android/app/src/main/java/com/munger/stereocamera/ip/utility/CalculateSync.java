@@ -84,7 +84,7 @@ public class CalculateSync
 			return;
 		}
 
-		RemoteState remoteState = MainActivity.getInstance().getCtrl().getMaster().getRemoteState();
+		RemoteState remoteState = MainActivity.getInstance().getCtrl().getRemoteState();
 		remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, TIMEOUT, new RemoteState.ReadyListener()
 		{
 			@Override

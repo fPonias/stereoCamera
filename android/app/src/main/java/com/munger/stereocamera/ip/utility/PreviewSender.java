@@ -4,8 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.slave.SlaveComm;
-import com.munger.stereocamera.ip.command.slave.senders.SendPreviewFrame;
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 /**
@@ -17,7 +17,7 @@ public class PreviewSender
 	private final Object lock = new Object();
 	private boolean cancelled = false;
 	private PreviewWidget target;
-	private SlaveComm slaveComm;
+	private CommCtrl slaveComm;
 	private Handler h;
 	private static long FRAME_RATE = 250;
 
@@ -31,7 +31,7 @@ public class PreviewSender
 		this.target = target;
 	}
 
-	public void setSlaveComm(SlaveComm slaveComm)
+	public void setSlaveComm(CommCtrl slaveComm)
 	{
 		this.slaveComm = slaveComm;
 	}
@@ -43,7 +43,7 @@ public class PreviewSender
 		if (data != null)
 		{
 			float zoom = target.getZoom();
-			slaveComm.sendCommand(new SendPreviewFrame(data, zoom));
+			//slaveComm.sendCommand(new SendPreviewFrame(data, zoom));
 		}
 	}};
 
@@ -74,7 +74,7 @@ public class PreviewSender
 
 	public void start()
 	{
-		Log.d(getLogTag(), "starting preview sender");
+		Log.d("stereoCamera", "starting preview sender");
 		synchronized (lock)
 		{
 			if (senderThread != null)
@@ -85,12 +85,12 @@ public class PreviewSender
 		}
 
 		senderThread.start();
-		Log.d(getLogTag(), "started preview sender");
+		Log.d("stereoCamera", "started preview sender");
 	}
 
 	public void cancel()
 	{
-		Log.d(getLogTag(), "cancelling preview sender");
+		Log.d("stereoCamera", "cancelling preview sender");
 		synchronized (lock)
 		{
 			cancelled = true;

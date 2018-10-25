@@ -29,15 +29,17 @@ public class ID extends Command
 	}
 
 	@Override
-	public boolean send(Comm comm)
+	public boolean receive(Comm comm)
 	{
-		boolean result = super.send(comm);
+		boolean result = super.receive(comm);
 		if (!result)
 			{ return false; }
 
 		try
 		{
 			long sz = comm.getLong();
+
+
 
 			if (sz == 0)
 			{
@@ -47,6 +49,26 @@ public class ID extends Command
 
 			byte[] data = comm.getData((int) sz);
 			phoneId = new String(data);
+		}
+		catch(IOException e){
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
+	public boolean send(Comm comm)
+	{
+		boolean result = super.send(comm);
+		if (!result)
+			{ return false; }
+
+		try
+		{
+			long sz = phoneId.length();
+			comm.putLong(sz);
+			comm.putData(phoneId.getBytes());
 		}
 		catch(IOException e){
 			return false;

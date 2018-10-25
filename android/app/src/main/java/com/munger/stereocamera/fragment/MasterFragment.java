@@ -22,16 +22,16 @@ import android.widget.Toast;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
-import com.munger.stereocamera.ip.command.master.commands.ConnectionPause;
-import com.munger.stereocamera.ip.command.master.commands.Shutter;
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
+import com.munger.stereocamera.ip.command.Command;
+import com.munger.stereocamera.ip.command.commands.ConnectionPause;
+import com.munger.stereocamera.ip.command.commands.SendGravity;
+import com.munger.stereocamera.ip.command.commands.SetFacing;
+import com.munger.stereocamera.ip.command.commands.SetOverlay;
+import com.munger.stereocamera.ip.command.commands.SetZoom;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.master.commands.SetFacing;
-import com.munger.stereocamera.ip.command.master.commands.SetOverlay;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
-import com.munger.stereocamera.ip.command.master.commands.SetZoom;
 import com.munger.stereocamera.ip.utility.CalculateSync;
 import com.munger.stereocamera.ip.utility.FireShutter;
 import com.munger.stereocamera.ip.utility.RemoteState;
@@ -39,6 +39,7 @@ import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.OrientationWidget;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
@@ -54,7 +55,7 @@ public class MasterFragment extends PreviewFragment
 	SlavePreviewOverlayWidget slavePreview;
 	private ZoomWidget zoomSlider;
 
-	MasterComm masterComm;
+	CommCtrl masterComm;
 	RemoteState remoteState;
 
 	private long shutterDelay;
@@ -253,14 +254,10 @@ public class MasterFragment extends PreviewFragment
 		setFacing(isFacing);
 		MainActivity.getInstance().getPrefs().setIsFacing(isFacing);
 
-		masterComm.runCommand(new SetFacing(isFacing), new MasterComm.SlaveListener()
+		masterComm.sendCommand(new SetFacing(isFacing), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
-			{
-				setCamera2(listener);
-			}
-		});
+			setCamera2(listener);
+		}});
 	}
 
 	private void setCamera2(final SetCameraListener listener)
@@ -271,14 +268,10 @@ public class MasterFragment extends PreviewFragment
 		setZoom(localZoom);
 
 		float zoom = prefs.getRemoteZoom(cameraId);
-		masterComm.runCommand(new SetZoom(zoom), new MasterComm.SlaveListener()
+		masterComm.sendCommand(new SetZoom(zoom), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
-			{
-				listener.done();
-			}
-		});
+			listener.done();
+		}});
 	}
 
 	@Override
@@ -328,7 +321,7 @@ public class MasterFragment extends PreviewFragment
 			previewView.stopPreview();
 
 		if ((status == Status.READY || status == Status.BUSY) && (remoteState.status == Status.READY || remoteState.status == Status.BUSY))
-			masterComm.runCommand(new ConnectionPause(), null);
+			masterComm.sendCommand(new ConnectionPause(), null);
 
 		setStatus(Status.CREATED);
 	}
@@ -336,13 +329,18 @@ public class MasterFragment extends PreviewFragment
 	private void disconnect()
 	{
 		pauseConnection();
-		MainActivity.getInstance().cleanUpConnections();
+		masterComm.cleanUpConnections();
 		MainActivity.getInstance().popSubViews();
 	}
 
 	private void resumeConnection()
 	{
-		handshake();
+		Thread t = new Thread(new Runnable() {public void run()
+		{
+			try {Thread.sleep(1500);} catch(InterruptedException e){}
+			handshake();
+		}});
+		t.start();
 	}
 
 	private void updateOverlayFromPrefs()
@@ -367,7 +365,7 @@ public class MasterFragment extends PreviewFragment
 		overlayWidget.setType(type);
 
 		if (remoteState != null && remoteState.status == Status.READY && masterComm != null)
-			masterComm.runCommand(new SetOverlay(type), null);
+			masterComm.sendCommand(new SetOverlay(type), null);
 	}
 
 	@Override
@@ -444,18 +442,18 @@ public class MasterFragment extends PreviewFragment
 
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MyApplication.getInstance());
 		String captureTypeStr = sharedPref.getString("pref_capture", "preview");
-		Shutter.SHUTTER_TYPE captureType;
+		PreviewWidget.SHUTTER_TYPE captureType;
 
 		switch(captureTypeStr)
 		{
 			case "hi cam":
-				captureType = Shutter.SHUTTER_TYPE.HI_RES;
+				captureType = PreviewWidget.SHUTTER_TYPE.HI_RES;
 				break;
 			case "lo cam":
-				captureType = Shutter.SHUTTER_TYPE.LO_RES;
+				captureType = PreviewWidget.SHUTTER_TYPE.LO_RES;
 				break;
 			default:
-				captureType = Shutter.SHUTTER_TYPE.PREVIEW;
+				captureType = PreviewWidget.SHUTTER_TYPE.PREVIEW;
 				break;
 		}
 
@@ -512,10 +510,10 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		masterComm = MainActivity.getInstance().getCtrl().getMasterComm();
+		masterComm = MainActivity.getInstance().getCtrl();
 		handler = new Handler(Looper.getMainLooper());
 
-		remoteState = MainActivity.getInstance().getCtrl().getMaster().getRemoteState();
+		remoteState = masterComm.getRemoteState();
 		remoteState.addListener(remoteListener);
 		remoteState.start();
 
@@ -539,7 +537,7 @@ public class MasterFragment extends PreviewFragment
 		}
 
 		@Override
-		public void onGravity(ReceiveGravity.Gravity value)
+		public void onGravity(SendGravity.Gravity value)
 		{
 			final double az = OrientationCtrl.verticalOrientation(value.x, value.y, value.z);
 			final double ax = OrientationCtrl.horizontalOrientation(remoteState.orientation, value.x, value.y, value.z);
@@ -561,12 +559,6 @@ public class MasterFragment extends PreviewFragment
 		public void onDisconnect()
 		{
 			disconnect();
-		}
-
-		@Override
-		public void onPreviewFrame(byte[] data, float zoom)
-		{
-			slavePreview.render(data, zoom);
 		}
 
 		@Override
@@ -619,7 +611,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void handshakeSuccess()
 	{
-		Log.d(getTag(), "slave ready");
+		Log.d("stereoCamera", "slave ready");
 		setStatus(PreviewFragment.Status.READY);
 
 		Context c = MainActivity.getInstance();
@@ -636,7 +628,7 @@ public class MasterFragment extends PreviewFragment
 	{
 		handler.post(new Runnable() {public void run()
 		{
-			Log.d(getTag(), "slave setup failed");
+			Log.d("stereoCamera", "slave setup failed");
 			Toast.makeText(MainActivity.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
 			pauseConnection();
 			MainActivity.getInstance().popSubViews();

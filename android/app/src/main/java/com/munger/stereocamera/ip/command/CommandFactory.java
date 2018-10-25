@@ -67,7 +67,7 @@ public class CommandFactory
 			case ID:
 				return new ID();
 			default:
-				Log.w("Command Factory", "Warning: default command generated");
+				Log.w("stereoCamera", "Warning: default command generated");
 				return new DefaultCommand();
 		}
 	}

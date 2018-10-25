@@ -1,152 +1,22 @@
 package com.munger.stereocamera.ip.ethernet;
 
+import android.util.Log;
+
+import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.IPListeners;
+import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketFactory;
-import com.munger.stereocamera.ip.command.master.MasterComm;
+import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.utility.RemoteState;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.ServerSocket;
 
 public class EthernetMaster implements SocketCtrl
 {
-	private String targetAddress = null;
-	private int targetPort;
-	private Socket socket;
-	private IPListeners.ConnectListener connectListener;
-	private Thread connectThread;
-	private Object lock = new Object();
-	private MasterComm masterComm;
-	private RemoteState remoteState;
-
-	public void connect(String address, int port, IPListeners.ConnectListener listener)
-	{
-		if (targetAddress != null && socket != null)
-		{
-			if (!address.equals(targetAddress) || targetPort != port)
-				cleanUp();
-		}
-
-		this.connectListener = listener;
-		this.targetPort = port;
-		this.targetAddress = address;
-
-		connectThread = new Thread(new Runnable() { public void run()
-		{
-			connect2();
-			connectThread = null;
-		}});
-		connectThread.start();
-	}
-
-	private void connect2()
-	{
-		try
-		{
-			byte[] bytes = getUTF8Bytes(targetAddress);
-			InetAddress addr = InetAddress.getByAddress(bytes);
-			socket = new Socket(addr, targetPort);
-			masterComm = new MasterComm(this);
-		}
-		catch (IOException e)
-		{
-			synchronized (lock)
-			{
-				if (connectListener != null)
-					connectListener.onFailed();
-
-				return;
-			}
-		}
-
-		synchronized (lock)
-		{
-			if (connectListener == null)
-				return;
-		}
-
-		remoteState = new RemoteState(masterComm);
-
-		connectListener.onConnected();
-	}
-
-	public static boolean checkIP(String ip)
-	{
-		try
-		{
-			byte[] bytes = getUTF8Bytes(ip);
-			InetAddress addr = InetAddress.getByAddress(bytes);
-		}
-		catch(UnknownHostException e){
-			return false;
-		}
-
-		return true;
-	}
-
-	public static byte[] getUTF8Bytes(String str)
-	{
-		String[] parts = str.split("\\.");
-
-		if (parts.length != 4)
-			return null;
-
-		byte[] ret = new byte[4];
-		for (int i = 0; i < 4; i++)
-		{
-			String part = parts[i];
-			int num = -1;
-
-			try
-			{
-				num = Integer.parseInt(part);
-			}
-			catch(NumberFormatException e){
-				return null;
-			}
-
-			if (num < 0 || num > 255)
-				return null;
-
-			ret[i] = (byte) num;
-		}
-
-		return ret;
-	}
-
-	public RemoteState getRemoteState()
-	{
-		return remoteState;
-	}
-
-	public void cleanUp()
-	{
-		try
-		{
-			if (masterComm != null)
-			{
-				masterComm.cleanUp();
-				masterComm = null;
-			}
-
-			if (socket != null)
-			{
-				socket.close();
-				socket = null;
-			}
-		}
-		catch(IOException e){}
-
-		connectListener.onDisconnected();
-	}
-
 	@Override
-	public com.munger.stereocamera.ip.Socket getSocket()
+	public Socket getSocket()
 	{
 		try
 		{
@@ -157,9 +27,201 @@ public class EthernetMaster implements SocketCtrl
 		}
 	}
 
-	@Override
+	private Object listenLock = new Object();
+	private Object lock = new Object();
+	private Thread listenThread;
+	private Thread cancelThread;
+	private int timeout;
+	private int targetPort;
+	private ServerSocket serverSocket;
+	private java.net.Socket socket;
+	private IPListeners.ConnectListener listenListener;
+	private boolean isCancelled;
+	private Comm slaveComm;
+
+
+	public EthernetMaster(IPListeners.ConnectListener listener)
+	{
+		super();
+		this.listenListener = listener;
+	}
+
+	public void setConnectListener(IPListeners.ConnectListener listener)
+	{
+		this.listenListener = listener;
+	}
+
+	public void listen(final int port)
+	{
+		synchronized (listenLock)
+		{
+			if (listenThread != null)
+				return;
+
+			listenThread = new Thread(new Runnable() { public void run()
+			{
+				targetPort = port;
+				doListen();
+
+				synchronized (listenLock)
+				{
+					listenThread = null;
+					cancelThread = null;
+					listenLock.notify();
+				}
+			}});
+
+			cancelThread = new Thread(new Runnable() { public void run()
+			{
+				boolean runCancel = false;
+
+				synchronized (listenLock)
+				{
+					try {listenLock.wait(timeout);} catch(InterruptedException e){}
+
+					Log.d("stereoCamera", "checking bluetooth cancel");
+					runCancel = (cancelThread != null);
+
+					listenThread = null;
+					cancelThread = null;
+				}
+
+				if (runCancel)
+				{
+					Log.d("stereoCamera", "failed to run bluetooth socket, cancelling");
+					doCancel();
+				}
+				else
+					Log.d("stereoCamera", "no bluetooth cancel");
+
+			}});
+		}
+
+		listenThread.start();
+		cancelThread.start();
+	}
+
+	private void doCancel()
+	{
+		boolean doCleanUp = false;
+		synchronized (lock)
+		{
+			if (serverSocket == null || socket == null)
+				doCleanUp = true;
+			else if (socket != null && !socket.isConnected())
+				doCleanUp = true;
+		}
+
+		if (doCleanUp)
+		{
+			listenListener.onFailed();
+			cleanUp();
+		}
+	}
+
+	private String getTag()
+	{
+		return "EthernetMaster";
+	}
+
+	private void doListen()
+	{
+		try
+		{
+			Log.d("stereoCamera", "starting server socket");
+			serverSocket = new ServerSocket(targetPort);
+
+			Log.d("stereoCamera", "starting ethernet socket");
+			socket = serverSocket.accept();
+			Log.d("stereoCamera", "ethernet socket connected?");
+			synchronized (lock)
+			{
+				if (isCancelled)
+				{
+					Log.d("stereoCamera", "ethernet socket not connected");
+					cleanUp();
+				}
+			}
+
+			cleanUpServerSocket();
+
+			if (socket != null)
+			{
+				Log.d("stereoCamera", "ethernet socket connected");
+				slaveComm = new Comm(this);
+				listenListener.onConnected();
+			}
+			else
+			{
+				Log.d("stereoCamera", "failed to run ethernet socket");
+				cleanUp();
+				listenListener.onFailed();
+			}
+		}
+		catch(IOException e){
+			Log.d("stereoCamera", "failed to run ethernet socket");
+
+			synchronized (lock)
+			{
+				if (isCancelled)
+					return;
+			}
+
+			listenListener.onFailed();
+		}
+	}
+
 	public boolean isConnected()
 	{
-		return (socket != null) ? socket.isConnected() : false;
+		if (slaveComm != null)
+			return true;
+		else
+			return false;
+	}
+
+	public void cleanUp()
+	{
+		synchronized (lock)
+		{
+			if (isCancelled)
+				return;
+
+			isCancelled = true;
+		}
+
+		if (slaveComm != null)
+		{
+			slaveComm = null;
+		}
+
+		if (socket != null)
+		{
+			try
+			{
+				socket.close();
+			}
+			catch(IOException e){}
+
+			socket = null;
+		}
+
+		cleanUpServerSocket();
+	}
+
+	private void cleanUpServerSocket()
+	{
+		if (serverSocket == null)
+			return;
+
+		try
+		{
+			serverSocket.close();
+		}
+		catch (IOException e)
+		{
+			Log.d("stereoCamera", "failed to close ethernet socket");
+		}
+
+		serverSocket = null;
 	}
 }

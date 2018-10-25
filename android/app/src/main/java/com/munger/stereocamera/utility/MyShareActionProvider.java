@@ -118,7 +118,7 @@ import android.view.View;
 public class MyShareActionProvider extends ActionProvider {
 
 	/**
-	 * Listener for the event of selecting a share target.
+	 * StateListener for the event of selecting a share target.
 	 */
 	public interface OnShareTargetSelectedListener {
 
@@ -155,7 +155,7 @@ public class MyShareActionProvider extends ActionProvider {
 	private int mMaxShownActivityCount = DEFAULT_INITIAL_ACTIVITY_COUNT;
 
 	/**
-	 * Listener for handling menu item clicks.
+	 * StateListener for handling menu item clicks.
 	 */
 	private final ShareMenuItemOnMenuItemClickListener mOnMenuItemClickListener =
 			new ShareMenuItemOnMenuItemClickListener();

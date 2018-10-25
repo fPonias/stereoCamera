@@ -6,6 +6,8 @@ import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,6 +27,47 @@ public class Comm
 		ins = ctrl.getSocket().getInputStream();
 	}
 
+	public void putFile(File file) throws IOException
+	{
+		FileInputStream fis = null;
+		long sz = 0;
+		try
+		{
+			fis = new FileInputStream(file);
+			byte[] buf = new byte[4096];
+			sz = file.length();
+			long count = 0;
+			long read = 0;
+
+			while (read > -1)
+			{
+				long diff = sz - count;
+				long toRead = Math.min(diff, 4096);
+				read = fis.read(buf, 0, (int) toRead);
+
+				count += read;
+				outs.write(buf, 0, (int) toRead);
+			}
+
+			outs.flush();
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d("stereoCamera", "slave socket no longer open");
+
+			Log.d("stereoCamera", "slave failed to send file of size " + sz);
+
+			MainActivity.getInstance().handleDisconnection();
+			throw e;
+		}
+		finally{
+			if (fis != null)
+			{
+				try { fis.close(); } catch(IOException e) {}
+			}
+		}
+	}
+
 	public void putData(byte[] arr) throws IOException
 	{
 		try
@@ -37,9 +80,9 @@ public class Comm
 		}
 		catch(IOException e){
 			if (!socket.isConnected())
-				Log.d(getTag(), "slave socket no longer open");
+				Log.d("stereoCamera", "slave socket no longer open");
 
-			Log.d(getTag(), "slave failed to send array of size " + arr.length);
+			Log.d("stereoCamera", "slave failed to send array of size " + arr.length);
 
 			MainActivity.getInstance().handleDisconnection();
 			throw e;
@@ -63,13 +106,44 @@ public class Comm
 				total += read;
 			}
 
+			Log.d("stereoCamera", "comm read " + total + " bytes");
+
 			return ret;
 		}
 		catch(IOException e){
 			if (!socket.isConnected())
-				Log.d(getTag(), "slave socket no longer open");
+				Log.d("stereoCamera", "slave socket no longer open");
 
-			Log.d(getTag(), "slave failed to read array of size " + sz);
+			Log.d("stereoCamera", "slave failed to read array of size " + sz);
+
+			MainActivity.getInstance().handleDisconnection();
+			throw e;
+		}
+	}
+
+	public void pipeData(int sz, OutputStream pipe) throws IOException
+	{
+		byte[] buf = new byte[4096];
+		int total = 0;
+		int read = 0;
+
+		try
+		{
+			while (total < sz)
+			{
+				int diff = sz - total;
+				int toRead = Math.min(diff, 4096);
+
+				read = ins.read(buf, 0, toRead);
+				pipe.write(buf, 0, toRead);
+				total += read;
+			}
+		}
+		catch(IOException e){
+			if (!socket.isConnected())
+				Log.d("stereoCamera", "slave socket no longer open");
+
+			Log.d("stereoCamera", "slave failed to send file of size " + sz);
 
 			MainActivity.getInstance().handleDisconnection();
 			throw e;
@@ -99,18 +173,21 @@ public class Comm
 		putByte(data);
 	}
 
+	//bytes are reversed for long and int to accomodate ios integer encoding.
 	public int getInt() throws IOException
 	{
 		byte[] data = getData(4);
 		ByteBuffer bb = ByteBuffer.wrap(data);
-		return bb.getInt(0);
+		int ret = bb.getInt(0);
+		return Integer.reverseBytes(ret);
 	}
 
 	public long getLong() throws IOException
 	{
 		byte[] data = getData(8);
 		ByteBuffer bb = ByteBuffer.wrap(data);
-		return bb.getLong(0);
+		long ret = bb.getLong(0);
+		return Long.reverseBytes(ret);
 	}
 
 	public float getFloat() throws IOException
@@ -121,9 +198,11 @@ public class Comm
 	}
 
 	private ByteBuffer ointbb = ByteBuffer.allocate(4);
+	private int iNewVal;
 	public void putInt(int val) throws IOException
 	{
-		ointbb.putInt(0, val);
+		iNewVal = Integer.reverseBytes(val);
+		ointbb.putInt(0, iNewVal);
 		putData(ointbb.array());
 	}
 
@@ -134,9 +213,13 @@ public class Comm
 	}
 
 	private ByteBuffer olongbb = ByteBuffer.allocate(8);
+	private long lNewVal;
 	public void putLong(long val) throws IOException
 	{
-		olongbb.putLong(0, val);
+		lNewVal = Long.reverseBytes(val);
+		olongbb.putLong(0, lNewVal);
 		putData(olongbb.array());
 	}
+
+
 }

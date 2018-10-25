@@ -2,13 +2,19 @@ package com.munger.stereocamera.ip.command.commands;
 
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.Command;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
 
 import java.io.IOException;
 
 public class SendGravity extends Command
 {
-	public ReceiveGravity.Gravity gravity;
+	public static class Gravity
+	{
+		public float x;
+		public float y;
+		public float z;
+	}
+
+	public Gravity gravity;
 
 	public SendGravity()
 	{
@@ -16,7 +22,7 @@ public class SendGravity extends Command
 		doInit();
 	}
 
-	public SendGravity(ReceiveGravity.Gravity gravity)
+	public SendGravity(Gravity gravity)
 	{
 		super();
 		this.gravity = gravity;
@@ -58,7 +64,7 @@ public class SendGravity extends Command
 
 		try
 		{
-			gravity = new ReceiveGravity.Gravity();
+			gravity = new Gravity();
 			gravity.x = comm.getFloat();
 			gravity.y = comm.getFloat();
 			gravity.z = comm.getFloat();

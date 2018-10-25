@@ -27,7 +27,7 @@ public class HelpFragment extends Fragment
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url)
 		{
-			Log.d(getTag(), "mywebview attempting to load " + url);
+			Log.d("stereoCamera", "mywebview attempting to load " + url);
 
 			if (url.startsWith("http"))
 			{

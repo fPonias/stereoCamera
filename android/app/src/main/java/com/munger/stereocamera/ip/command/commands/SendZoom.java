@@ -4,6 +4,16 @@ import com.munger.stereocamera.ip.command.Command;
 
 public class SendZoom extends SetZoom
 {
+	public SendZoom()
+	{
+		super();
+	}
+
+	public SendZoom(float value)
+	{
+		super(value);
+	}
+
 	@Override
 	protected void doInit()
 	{

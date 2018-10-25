@@ -12,7 +12,7 @@ import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketFactory;
-import com.munger.stereocamera.ip.command.slave.SlaveComm;
+import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.utility.RemoteState;
 
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class BluetoothSlave implements SocketCtrl
 	private BluetoothSocket socket;
 	private long timeout;
 
-	private SlaveComm slaveComm;
+	private Comm slaveComm;
 
 	public Socket getSocket()
 	{
@@ -66,11 +66,11 @@ public class BluetoothSlave implements SocketCtrl
 		}
 	}
 
-	public SlaveComm getComm() { return slaveComm; }
+	public Comm getComm() { return slaveComm; }
 
 	private void startDiscovery()
 	{
-		Log.d(getTag(), "starting bluetooth discovery");
+		Log.d("stereoCamera", "starting bluetooth discovery");
 		Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
 		//timeout isn't working ...
 		//discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout);
@@ -80,7 +80,7 @@ public class BluetoothSlave implements SocketCtrl
 			@Override
 			public void onResult(int resultCode, Intent data)
 			{
-				Log.d(getTag(), "bluetooth discovery startup returned with " + resultCode);
+				Log.d("stereoCamera", "bluetooth discovery startup returned with " + resultCode);
 				if (resultCode == 0)
 					listenListener.onFailed();
 				else
@@ -144,7 +144,7 @@ public class BluetoothSlave implements SocketCtrl
 				{
 					try {listenLock.wait(timeout);} catch(InterruptedException e){}
 
-					Log.d(MainActivity.BT_SERVICE_NAME, "checking bluetooth cancel");
+					Log.d("stereoCamera", "checking bluetooth cancel");
 					runCancel = (cancelThread != null);
 
 					listenThread = null;
@@ -153,11 +153,11 @@ public class BluetoothSlave implements SocketCtrl
 
 				if (runCancel)
 				{
-					Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket, cancelling");
+					Log.d("stereoCamera", "failed to run bluetooth socket, cancelling");
 					doCancel();
 				}
 				else
-					Log.d(MainActivity.BT_SERVICE_NAME, "no bluetooth cancel");
+					Log.d("stereoCamera", "no bluetooth cancel");
 
 			}});
 		}
@@ -200,27 +200,41 @@ public class BluetoothSlave implements SocketCtrl
 	{
 		try
 		{
-			Log.d(getTag(), "starting server socket");
+			Log.d("stereoCamera", "starting server socket");
 			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MainActivity.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
 
 			lastConnected = null;
 
-			Log.d(getTag(), "starting bluetooth socket");
+			Log.d("stereoCamera", "starting bluetooth socket");
 			socket = serverSocket.accept();
-			Log.d(getTag(), "bluetooth socket connected?");
+			Log.d("stereoCamera", "bluetooth socket connected?");
 			synchronized (lock)
 			{
 				if (isCancelled)
 				{
-					Log.d(getTag(), "bluetooth socket not connected");
+					Log.d("stereoCamera", "bluetooth socket not connected");
 					cleanUp();
 				}
 			}
 
 			cleanUpServerSocket();
+
+			if (socket != null)
+			{
+				Log.d("stereoCamera", "bluetooth socket connected");
+				lastConnected = socket.getRemoteDevice();
+				slaveComm = new Comm(this);
+				listenListener.onConnected();
+			}
+			else
+			{
+				Log.d("stereoCamera", "failed to run bluetooth socket");
+				cleanUp();
+				listenListener.onFailed();
+			}
 		}
 		catch(IOException e){
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket");
+			Log.d("stereoCamera", "failed to run bluetooth socket");
 
 			synchronized (lock)
 			{
@@ -228,20 +242,6 @@ public class BluetoothSlave implements SocketCtrl
 					return;
 			}
 
-			listenListener.onFailed();
-		}
-
-		if (socket != null)
-		{
-			Log.d(getTag(), "bluetooth socket connected");
-			lastConnected = socket.getRemoteDevice();
-			slaveComm = new SlaveComm(this);
-			listenListener.onConnected();
-		}
-		else
-		{
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket");
-			cleanUp();
 			listenListener.onFailed();
 		}
 	}
@@ -252,12 +252,6 @@ public class BluetoothSlave implements SocketCtrl
 			return true;
 		else
 			return false;
-	}
-
-	@Override
-	public RemoteState getRemoteState()
-	{
-		return null;
 	}
 
 	public void cleanUp()
@@ -272,7 +266,6 @@ public class BluetoothSlave implements SocketCtrl
 
 		if (slaveComm != null)
 		{
-			slaveComm.cleanUp();
 			slaveComm = null;
 		}
 
@@ -301,7 +294,7 @@ public class BluetoothSlave implements SocketCtrl
 		}
 		catch (IOException e)
 		{
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to close bluetooth socket");
+			Log.d("stereoCamera", "failed to close bluetooth socket");
 		}
 
 		serverSocket = null;

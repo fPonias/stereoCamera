@@ -26,6 +26,6 @@ public class Ping extends Command
 		long end = System.currentTimeMillis();
 		value = end - start;
 
-		Log.d("Command", "ping took " + value + " millis");
+		Log.d("stereoCamera", "ping took " + value + " millis");
 	}
 }

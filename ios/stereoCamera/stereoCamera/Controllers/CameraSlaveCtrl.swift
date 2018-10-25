@@ -69,6 +69,8 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             cameraPosition = newPos
             cameraPreview.stopCamera()
             cameraPreview.startCamera(cameraPosition: newPos, quality: captureQuality)
+            
+            self.setStatus(Status.READY)
         case CommandTypes.SET_CAPTURE_QUALITY:
             let retCmd = SetCaptureQuality((command as! SetCaptureQuality).quality)
             retCmd.id = command.id
@@ -258,6 +260,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     
     override func setStatus(_ status: Status)
     {
+        super.setStatus(status)
         let sendStatus = SendStatus(status)
         CommManager.instance.comm.sendCommand(command: sendStatus)
     }

@@ -2,12 +2,18 @@ package com.munger.stereocamera.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Environment;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class PhotoProcessor
 {
@@ -37,12 +43,12 @@ public class PhotoProcessor
 				Thread t = new Thread(new Runnable() { public void run()
 				{
 					PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
-					localData.jpegPath = "/data/local/tmp/left.jpg";
+					localData.jpegPath = "/storage/emulated/0/Download/left.jpg";
 					localData.orientation = PhotoOrientation.DEG_90;
 					localData.zoom = 1.5f;
 
 					PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
-					remoteData.jpegPath = "/data/local/tmp/left.jpg";
+					remoteData.jpegPath = "/storage/emulated/0/Download/left.jpg";
 					remoteData.orientation = PhotoOrientation.DEG_180;
 					remoteData.zoom = 1.0f;
 
@@ -60,6 +66,40 @@ public class PhotoProcessor
 		});
 	}
 
+	public static void copy(File src, File dst) throws IOException
+	{
+		if  (src.getPath().equals(dst.getPath()))
+			return;
+
+		InputStream in = new FileInputStream(src);
+		try
+		{
+			OutputStream out = new FileOutputStream(dst);
+			try
+			{
+				// Transfer bytes from in to out
+				byte[] buf = new byte[1024];
+				int len;
+				while ((len = in.read(buf)) > 0)
+				{
+					out.write(buf, 0, len);
+				}
+			}
+			catch(Exception e){
+
+			}
+			finally {
+				out.close();
+			}
+		}
+		catch(Exception e){
+
+		}
+		finally {
+			in.close();
+		}
+	}
+
 	public void setData(boolean isRight, byte[] data, PhotoOrientation orientation, float zoom)
 	{
 		String path = photoFiles.saveDataToCache(data);
@@ -68,6 +108,16 @@ public class PhotoProcessor
 
 	public void setData(boolean isRight, String path, PhotoOrientation orientation, float zoom)
 	{
+		try
+		{
+			File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+			if (isRight)
+				copy(new File(path), new File(dir.getPath() + "/right.jpg"));
+			else
+				copy(new File(path), new File(dir.getPath() + "/left.jpg"));
+		}
+		catch(IOException e){}
+
 		setImageN(isRight, path, orientation.ordinal(), zoom);
 	}
 

@@ -4,6 +4,7 @@ import com.munger.stereocamera.ip.SocketCtrl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class Command
 {
@@ -49,14 +50,11 @@ public class Command
 
 	public boolean send(Comm comm)
 	{
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		baos.write((byte) cmdtype.ordinal());
-		baos.write(id);
-		baos.write((byte) ((isResponse) ? 1 : 0));
-
 		try
 		{
-			comm.putData(baos.toByteArray());
+			comm.putByte((byte) cmdtype.ordinal());
+			comm.putLong(id);
+			comm.putByte((byte) ((isResponse) ? 1 : 0));
 		}
 		catch (IOException e){
 			return false;
@@ -69,8 +67,7 @@ public class Command
 	{
 		try
 		{
-			comm.getData(9);
-			id = comm.getInt();
+			id = (int) comm.getLong();
 			isResponse = comm.getBoolean();
 		}
 		catch(IOException e){

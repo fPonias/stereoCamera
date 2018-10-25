@@ -9,13 +9,13 @@ import android.support.v4.util.ArraySet;
 import android.support.v7.preference.PreferenceManager;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
 import com.munger.stereocamera.fragment.MasterFragment;
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
+import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.ip.command.master.commands.Shutter;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.PreviewWidget;
 
@@ -29,13 +29,13 @@ public class FireShutter
 	private PhotoProcessorService.PhotoArgument localData;
 	private PhotoProcessorService.PhotoArgument remoteData;
 
-	private MasterComm masterComm;
+	private CommCtrl masterComm;
 	private MasterFragment fragment;
 
 	public FireShutter(MasterFragment fragment)
 	{
 		this.fragment = fragment;
-		masterComm = MainActivity.getInstance().getCtrl().getMasterComm();
+		masterComm = MainActivity.getInstance().getCtrl();
 		photoFiles = new PhotoFiles(fragment.getContext());
 	}
 
@@ -48,7 +48,7 @@ public class FireShutter
 
 	private Listener listener;
 
-	public void execute(final long delay, Shutter.SHUTTER_TYPE type, final Listener listener)
+	public void execute(final long delay, PreviewWidget.SHUTTER_TYPE type, final Listener listener)
 	{
 		synchronized (lock)
 		{
@@ -63,7 +63,7 @@ public class FireShutter
 		fireRemote(type);
 	}
 
-	private void fireLocal(final Shutter.SHUTTER_TYPE type, final long wait)
+	private void fireLocal(final PreviewWidget.SHUTTER_TYPE type, final long wait)
 	{
 		synchronized (lock)
 		{
@@ -129,16 +129,15 @@ public class FireShutter
 			done();
 	}
 
-	private void fireRemote(Shutter.SHUTTER_TYPE type)
+	private void fireRemote(PreviewWidget.SHUTTER_TYPE type)
 	{
-		masterComm.runCommand(new Shutter(type), new MasterComm.SlaveListener()
+		masterComm.sendCommand(new com.munger.stereocamera.ip.command.commands.FireShutter(), new CommCtrl.ResponseListener()
 		{
 			@Override
-			public void onResponse(MasterIncoming response)
+			public void onReceived(Command command, Command origCommand)
 			{
-				Shutter.Response r = (Shutter.Response) response;
+				com.munger.stereocamera.ip.command.commands.FireShutter r = (com.munger.stereocamera.ip.command.commands.FireShutter) command;
 				remoteData = new PhotoProcessorService.PhotoArgument();
-				remoteData.orientation = r.orientation;
 				remoteData.zoom = r.zoom;
 
 				String remotePath = photoFiles.saveDataToCache(r.data);
@@ -161,7 +160,7 @@ public class FireShutter
 			}
 
 			@Override
-			public void onFail()
+			public void onReceiveFailed(Command command)
 			{
 				remoteData = null;
 				boolean doNext = false;
@@ -177,7 +176,7 @@ public class FireShutter
 				if (doNext)
 					done();
 			}
-		});
+		}, 30000);
 	}
 
 	private PhotoFiles photoFiles;

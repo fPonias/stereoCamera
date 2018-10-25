@@ -1,22 +1,152 @@
 package com.munger.stereocamera.ip.ethernet;
 
-import android.util.Log;
-
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.IPListeners;
-import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketFactory;
-import com.munger.stereocamera.ip.command.slave.SlaveComm;
+import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.utility.RemoteState;
 
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class EthernetSlave implements SocketCtrl
 {
+	private String targetAddress = null;
+	private int targetPort;
+	private Socket socket;
+	private IPListeners.ConnectListener connectListener;
+	private Thread connectThread;
+	private Object lock = new Object();
+	private Comm masterComm;
+	private RemoteState remoteState;
+
+	public void connect(String address, int port, IPListeners.ConnectListener listener)
+	{
+		if (targetAddress != null && socket != null)
+		{
+			if (!address.equals(targetAddress) || targetPort != port)
+				cleanUp();
+		}
+
+		this.connectListener = listener;
+		this.targetPort = port;
+		this.targetAddress = address;
+
+		connectThread = new Thread(new Runnable() { public void run()
+		{
+			connect2();
+			connectThread = null;
+		}});
+		connectThread.start();
+	}
+
+	private void connect2()
+	{
+		try
+		{
+			byte[] bytes = getUTF8Bytes(targetAddress);
+			InetAddress addr = InetAddress.getByAddress(bytes);
+			socket = new Socket(addr, targetPort);
+			masterComm = new Comm(this);
+		}
+		catch (IOException e)
+		{
+			synchronized (lock)
+			{
+				if (connectListener != null)
+					connectListener.onFailed();
+
+				return;
+			}
+		}
+
+		synchronized (lock)
+		{
+			if (connectListener == null)
+				return;
+		}
+
+		remoteState = new RemoteState(MainActivity.getInstance().getCtrl());
+
+		connectListener.onConnected();
+	}
+
+	public static boolean checkIP(String ip)
+	{
+		try
+		{
+			byte[] bytes = getUTF8Bytes(ip);
+			InetAddress addr = InetAddress.getByAddress(bytes);
+		}
+		catch(UnknownHostException e){
+			return false;
+		}
+
+		return true;
+	}
+
+	public static byte[] getUTF8Bytes(String str)
+	{
+		String[] parts = str.split("\\.");
+
+		if (parts.length != 4)
+			return null;
+
+		byte[] ret = new byte[4];
+		for (int i = 0; i < 4; i++)
+		{
+			String part = parts[i];
+			int num = -1;
+
+			try
+			{
+				num = Integer.parseInt(part);
+			}
+			catch(NumberFormatException e){
+				return null;
+			}
+
+			if (num < 0 || num > 255)
+				return null;
+
+			ret[i] = (byte) num;
+		}
+
+		return ret;
+	}
+
+	public RemoteState getRemoteState()
+	{
+		return remoteState;
+	}
+
+	public void cleanUp()
+	{
+		try
+		{
+			if (masterComm != null)
+			{
+				masterComm = null;
+			}
+
+			if (socket != null)
+			{
+				socket.close();
+				socket = null;
+			}
+		}
+		catch(IOException e){}
+
+		connectListener.onDisconnected();
+	}
+
 	@Override
-	public Socket getSocket()
+	public com.munger.stereocamera.ip.Socket getSocket()
 	{
 		try
 		{
@@ -27,196 +157,9 @@ public class EthernetSlave implements SocketCtrl
 		}
 	}
 
-	private Object listenLock = new Object();
-	private Object lock = new Object();
-	private Thread listenThread;
-	private Thread cancelThread;
-	private int timeout;
-	private int targetPort;
-	private ServerSocket serverSocket;
-	private java.net.Socket socket;
-	private IPListeners.ConnectListener listenListener;
-	private boolean isCancelled;
-	private SlaveComm slaveComm;
-
-	public void listen(final int port)
-	{
-		synchronized (listenLock)
-		{
-			if (listenThread != null)
-				return;
-
-			listenThread = new Thread(new Runnable() { public void run()
-			{
-				targetPort = port;
-				doListen();
-
-				synchronized (listenLock)
-				{
-					listenThread = null;
-					cancelThread = null;
-					listenLock.notify();
-				}
-			}});
-
-			cancelThread = new Thread(new Runnable() { public void run()
-			{
-				boolean runCancel = false;
-
-				synchronized (listenLock)
-				{
-					try {listenLock.wait(timeout);} catch(InterruptedException e){}
-
-					Log.d(MainActivity.BT_SERVICE_NAME, "checking bluetooth cancel");
-					runCancel = (cancelThread != null);
-
-					listenThread = null;
-					cancelThread = null;
-				}
-
-				if (runCancel)
-				{
-					Log.d(MainActivity.BT_SERVICE_NAME, "failed to run bluetooth socket, cancelling");
-					doCancel();
-				}
-				else
-					Log.d(MainActivity.BT_SERVICE_NAME, "no bluetooth cancel");
-
-			}});
-		}
-
-		listenThread.start();
-		cancelThread.start();
-	}
-
-	private void doCancel()
-	{
-		boolean doCleanUp = false;
-		synchronized (lock)
-		{
-			if (serverSocket == null || socket == null)
-				doCleanUp = true;
-			else if (socket != null && !socket.isConnected())
-				doCleanUp = true;
-		}
-
-		if (doCleanUp)
-		{
-			listenListener.onFailed();
-			cleanUp();
-		}
-	}
-
-	private String getTag()
-	{
-		return "EthernetSlave";
-	}
-
-	private void doListen()
-	{
-		try
-		{
-			Log.d(getTag(), "starting server socket");
-			serverSocket = new ServerSocket(targetPort);
-
-			Log.d(getTag(), "starting ethernet socket");
-			socket = serverSocket.accept();
-			Log.d(getTag(), "ethernet socket connected?");
-			synchronized (lock)
-			{
-				if (isCancelled)
-				{
-					Log.d(getTag(), "ethernet socket not connected");
-					cleanUp();
-				}
-			}
-
-			cleanUpServerSocket();
-		}
-		catch(IOException e){
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run ethernet socket");
-
-			synchronized (lock)
-			{
-				if (isCancelled)
-					return;
-			}
-
-			listenListener.onFailed();
-		}
-
-		if (socket != null)
-		{
-			Log.d(getTag(), "ethernet socket connected");
-			slaveComm = new SlaveComm(this);
-			listenListener.onConnected();
-		}
-		else
-		{
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to run ethernet socket");
-			cleanUp();
-			listenListener.onFailed();
-		}
-	}
-
+	@Override
 	public boolean isConnected()
 	{
-		if (slaveComm != null)
-			return true;
-		else
-			return false;
-	}
-
-	public void cleanUp()
-	{
-		synchronized (lock)
-		{
-			if (isCancelled)
-				return;
-
-			isCancelled = true;
-		}
-
-		if (slaveComm != null)
-		{
-			slaveComm.cleanUp();
-			slaveComm = null;
-		}
-
-		if (socket != null)
-		{
-			try
-			{
-				socket.close();
-			}
-			catch(IOException e){}
-
-			socket = null;
-		}
-
-		cleanUpServerSocket();
-	}
-
-	@Override
-	public RemoteState getRemoteState()
-	{
-		return null;
-	}
-
-	private void cleanUpServerSocket()
-	{
-		if (serverSocket == null)
-			return;
-
-		try
-		{
-			serverSocket.close();
-		}
-		catch (IOException e)
-		{
-			Log.d(MainActivity.BT_SERVICE_NAME, "failed to close ethernet socket");
-		}
-
-		serverSocket = null;
+		return (socket != null) ? socket.isConnected() : false;
 	}
 }

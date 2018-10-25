@@ -37,6 +37,7 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
+import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
@@ -263,12 +264,14 @@ public class ConnectFragment extends Fragment
 				if (checkedId == R.id.connectBluetooth)
 				{
 					wifiControls.setVisibility(View.GONE);
+					ethernetCtrl.cleanUp();
 					bluetoothControls.setVisibility(View.VISIBLE);
 				}
 				else
 				{
 					wifiControls.setVisibility(View.VISIBLE);
 					bluetoothControls.setVisibility(View.GONE);
+					bluetoothCtrl.cleanUp();
 				}
 
 			}
@@ -316,14 +319,21 @@ public class ConnectFragment extends Fragment
 		if (prefs.getFirstTime() == true)
 			return;
 
-		Preferences.Roles role = prefs.getRole();
-		if (role == Preferences.Roles.MASTER)
+		if (bluetoothControls.getVisibility() == View.VISIBLE)
 		{
-			bluetoothCtrl.connect();
+			Preferences.Roles role = prefs.getRole();
+			if (role == Preferences.Roles.MASTER)
+			{
+				bluetoothCtrl.connect();
+			}
+			else if (role == Preferences.Roles.SLAVE)
+			{
+				bluetoothCtrl.listen();
+			}
 		}
-		else if (role == Preferences.Roles.SLAVE)
+		else
 		{
-			bluetoothCtrl.listen();
+
 		}
 	}
 

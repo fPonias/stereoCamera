@@ -97,7 +97,11 @@ class MasterShake
             CommManager.instance.comm.sendCommand(command: cmd, listener: StepListener(
                 received: {(_ respCmd: Command, _ origCmd: Command?) -> Void
                 in
-                    if ((origCmd as! Version).version == (respCmd as! Version).version)
+                    let orig = origCmd as! Version
+                    let resp = respCmd as! Version
+                    if (orig.platform == .IOS && orig.version == resp.version)
+                        { listener(true) }
+                    else if (orig.platform == .ANDROID && resp.version == 1200)
                         { listener(true) }
                     else
                         { listener(false) }

@@ -112,7 +112,7 @@ public class MyActivityChooserModel extends DataSetObservable
 	}
 
 	/**
-	 * Listener for choosing an activity.
+	 * StateListener for choosing an activity.
 	 */
 	public static class OnChooseActivityListener
 	{
@@ -757,7 +757,7 @@ public class MyActivityChooserModel extends DataSetObservable
 		for (int i = 0; i < pruneCount; i++) {
 			MyActivityChooserModel.HistoricalRecord prunedRecord = mHistoricalRecords.remove(0);
 			if (DEBUG) {
-				Log.i(LOG_TAG, "Pruned: " + prunedRecord);
+				Log.i("stereoCamera", "Pruned: " + prunedRecord);
 			}
 		}
 	}
@@ -965,7 +965,7 @@ public class MyActivityChooserModel extends DataSetObservable
 
 			if (DEBUG) {
 				for (int i = 0; i < activityCount; i++) {
-					Log.i(LOG_TAG, "Sorted: " + activities.get(i));
+					Log.i("stereoCamera", "Sorted: " + activities.get(i));
 				}
 			}
 		}
@@ -977,7 +977,7 @@ public class MyActivityChooserModel extends DataSetObservable
 			fis = mContext.openFileInput(mHistoryFileName);
 		} catch (FileNotFoundException fnfe) {
 			if (DEBUG) {
-				Log.i(LOG_TAG, "Could not open historical records file: " + mHistoryFileName);
+				Log.i("stereoCamera", "Could not open historical records file: " + mHistoryFileName);
 			}
 			return;
 		}
@@ -1020,17 +1020,17 @@ public class MyActivityChooserModel extends DataSetObservable
 				historicalRecords.add(readRecord);
 
 				if (DEBUG) {
-					Log.i(LOG_TAG, "Read " + readRecord.toString());
+					Log.i("stereoCamera", "Read " + readRecord.toString());
 				}
 			}
 
 			if (DEBUG) {
-				Log.i(LOG_TAG, "Read " + historicalRecords.size() + " historical records.");
+				Log.i("stereoCamera", "Read " + historicalRecords.size() + " historical records.");
 			}
 		} catch (XmlPullParserException xppe) {
-			Log.e(LOG_TAG, "Error reading historical recrod file: " + mHistoryFileName, xppe);
+			Log.e("stereoCamera", "Error reading historical recrod file: " + mHistoryFileName, xppe);
 		} catch (IOException ioe) {
-			Log.e(LOG_TAG, "Error reading historical recrod file: " + mHistoryFileName, ioe);
+			Log.e("stereoCamera", "Error reading historical recrod file: " + mHistoryFileName, ioe);
 		} finally {
 			if (fis != null) {
 				try {
@@ -1061,7 +1061,7 @@ public class MyActivityChooserModel extends DataSetObservable
 			try {
 				fos = mContext.openFileOutput(historyFileName, Context.MODE_PRIVATE);
 			} catch (FileNotFoundException fnfe) {
-				Log.e(LOG_TAG, "Error writing historical record file: " + historyFileName, fnfe);
+				Log.e("stereoCamera", "Error writing historical record file: " + historyFileName, fnfe);
 				return null;
 			}
 
@@ -1082,7 +1082,7 @@ public class MyActivityChooserModel extends DataSetObservable
 					serializer.attribute(null, ATTRIBUTE_WEIGHT, String.valueOf(record.weight));
 					serializer.endTag(null, TAG_HISTORICAL_RECORD);
 					if (DEBUG) {
-						Log.i(LOG_TAG, "Wrote " + record.toString());
+						Log.i("stereoCamera", "Wrote " + record.toString());
 					}
 				}
 
@@ -1090,14 +1090,14 @@ public class MyActivityChooserModel extends DataSetObservable
 				serializer.endDocument();
 
 				if (DEBUG) {
-					Log.i(LOG_TAG, "Wrote " + recordCount + " historical records.");
+					Log.i("stereoCamera", "Wrote " + recordCount + " historical records.");
 				}
 			} catch (IllegalArgumentException iae) {
-				Log.e(LOG_TAG, "Error writing historical record file: " + mHistoryFileName, iae);
+				Log.e("stereoCamera", "Error writing historical record file: " + mHistoryFileName, iae);
 			} catch (IllegalStateException ise) {
-				Log.e(LOG_TAG, "Error writing historical record file: " + mHistoryFileName, ise);
+				Log.e("stereoCamera", "Error writing historical record file: " + mHistoryFileName, ise);
 			} catch (IOException ioe) {
-				Log.e(LOG_TAG, "Error writing historical record file: " + mHistoryFileName, ioe);
+				Log.e("stereoCamera", "Error writing historical record file: " + mHistoryFileName, ioe);
 			} finally {
 				mCanReadHistoricalData = true;
 				if (fos != null) {

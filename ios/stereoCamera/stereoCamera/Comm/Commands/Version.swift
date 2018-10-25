@@ -10,7 +10,14 @@ import Foundation
 
 class Version : Command
 {
-    var version:Int32 = -1
+    public enum Platform:UInt8
+    {
+        case IOS = 1,
+        ANDROID = 2
+    }
+
+    var version:UInt32 = 0
+    var platform:Platform = .IOS
 
     override init()
     {
@@ -26,6 +33,8 @@ class Version : Command
         let result = super.send(comm: comm)
         if (!result ) { return false }
         
+        _ = comm.write(buf: [platform.rawValue])
+        
         var bytes:[UInt8] = []
         bytes += Bytes.toByteArray(version)
         
@@ -39,28 +48,42 @@ class Version : Command
         let result = super.receive(comm: comm)
         if (!result) { return false }
         
+        let (buf1, sz1) = comm.read(sz: 1)
+        if (sz1 <= 0) {return false}
+        
+        let platformVal = buf1[0]
+        if (platformVal <= 0 || platformVal > 2)
+            { return false }
+        platform = Platform.init(rawValue: buf1[0])!
+        
         let (buf, sz) = comm.read(sz: 4)
         if (sz <= 0) { return false }
         
         version = Bytes.fromByteArray(buf)
+        
+        if (platform == .ANDROID)
+        {
+            version = CFSwapInt32BigToHost(version)
+        }
+        
         return true
     }
     
-    static func getVersion() -> Int32
+    static func getVersion() -> UInt32
     {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
         let parts = version.split(separator: ".")
         let sz = parts.count
-        var ret:Int32 = 0
+        var ret:UInt32 = 0
         
         for i in 0 ... (sz - 1)
         {
             if (i == 0)
-                { ret += Int32(parts[i])! * 1000 }
+                { ret += UInt32(parts[i])! * 1000 }
             else if (i == 1)
-                { ret += Int32(parts[i])! * 100 }
+                { ret += UInt32(parts[i])! * 100 }
             else
-                { ret += Int32(parts[i])! }
+                { ret += UInt32(parts[i])! }
         }
         
         return ret

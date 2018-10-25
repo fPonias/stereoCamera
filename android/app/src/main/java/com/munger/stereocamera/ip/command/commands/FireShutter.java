@@ -9,6 +9,8 @@ import java.io.IOException;
 
 public class FireShutter extends Command
 {
+
+
 	public byte[] data;
 	public float zoom;
 
@@ -42,11 +44,17 @@ public class FireShutter extends Command
 		try
 		{
 			comm.putFloat(zoom);
-			comm.putLong(data.length);
-			if (data.length > 0)
+
+			if (data != null)
 			{
-				comm.putData(data);
+				comm.putLong(data.length);
+				if (data.length > 0)
+				{
+					comm.putData(data);
+				}
 			}
+			else
+				comm.putLong(0);
 		}
 		catch(IOException e){
 			return false;
@@ -65,10 +73,10 @@ public class FireShutter extends Command
 		try
 		{
 			zoom = comm.getFloat();
-			Log.d("StereoCamera", "read zoom value: " + zoom);
+			Log.d("stereoCamera", "read zoom value: " + zoom);
 
 			long sz = comm.getLong();
-			Log.d("StereoCamera", "read size value: " + sz);
+			Log.d("stereoCamera", "read size value: " + sz);
 
 			if (sz == 0)
 			{

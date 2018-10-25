@@ -19,8 +19,6 @@ import android.view.ViewGroup;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
-import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.master.commands.Shutter;
 import com.munger.stereocamera.widget.LoadingWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 
@@ -212,7 +210,7 @@ public class PreviewFragment extends Fragment
 	}
 
 
-	public void fireShutter(Shutter.SHUTTER_TYPE type, PreviewWidget.ImageListener listener)
+	public void fireShutter(PreviewWidget.SHUTTER_TYPE type, PreviewWidget.ImageListener listener)
 	{
 		previewView.takePicture(type, listener);
 	}

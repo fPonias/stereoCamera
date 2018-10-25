@@ -43,6 +43,7 @@ class ID : Command
         let sz = strBytes.count
         let szBytes:[UInt8] = Bytes.toByteArray(sz)
         
+        
         let sz1 = comm.write(buf: szBytes)
         if (sz1 <= 0)
             { return false }

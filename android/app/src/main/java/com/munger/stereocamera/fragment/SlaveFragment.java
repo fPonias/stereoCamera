@@ -15,23 +15,20 @@ import android.widget.Toast;
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
-import com.munger.stereocamera.ip.command.slave.SlaveComm;
-import com.munger.stereocamera.ip.command.slave.commands.GetLatency;
-import com.munger.stereocamera.ip.command.slave.commands.ReceiveFacing;
-import com.munger.stereocamera.ip.command.slave.commands.ReceiveOverlay;
-import com.munger.stereocamera.ip.command.slave.commands.ReceiveProcessedPhoto;
-import com.munger.stereocamera.ip.command.slave.commands.ReceiveVersion;
-import com.munger.stereocamera.ip.command.slave.commands.ReceiveZoom;
-import com.munger.stereocamera.ip.command.slave.senders.SendConnectionPause;
-import com.munger.stereocamera.ip.command.slave.senders.SendGravity;
-import com.munger.stereocamera.ip.command.slave.senders.SendOrientation;
-import com.munger.stereocamera.ip.command.slave.senders.SendStatus;
-import com.munger.stereocamera.ip.command.slave.commands.Shutter;
-import com.munger.stereocamera.ip.command.slave.SlaveCommand;
-import com.munger.stereocamera.ip.command.slave.senders.SendZoom;
+import com.munger.stereocamera.ip.command.commands.FireShutter;
+import com.munger.stereocamera.ip.command.commands.LatencyTest;
+import com.munger.stereocamera.ip.command.commands.SendConnectionPause;
+import com.munger.stereocamera.ip.command.commands.SendGravity;
+import com.munger.stereocamera.ip.command.commands.SendPhoto;
+import com.munger.stereocamera.ip.command.commands.SendStatus;
+import com.munger.stereocamera.ip.command.commands.SendZoom;
+import com.munger.stereocamera.ip.command.commands.SetFacing;
+import com.munger.stereocamera.ip.command.commands.SetOverlay;
+import com.munger.stereocamera.ip.command.commands.SetZoom;
+import com.munger.stereocamera.ip.command.commands.Version;
 import com.munger.stereocamera.ip.utility.PreviewSender;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.OrientationCtrl;
@@ -113,7 +110,7 @@ public class SlaveFragment extends PreviewFragment
 			touched = false;
 
 			float value = seekToValue(seekBar);
-			slaveComm.sendCommand(new SendZoom(value));
+			slaveComm.sendCommand(new SendZoom(value), null);
 		}
 	}
 
@@ -149,9 +146,8 @@ public class SlaveFragment extends PreviewFragment
 		}
 	}
 
-	private SlaveComm slaveComm;
+	private CommCtrl slaveComm;
 	private byte[] imgBytes;
-	private OrientationCtrl gravityCtrl;
 
 	private ViewGroup controls;
 	private ZoomWidget zoomSlider;
@@ -167,18 +163,7 @@ public class SlaveFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		gravityCtrl = new OrientationCtrl();
-		gravityCtrl.setChangeListener(new OrientationCtrl.ChangeListener()
-		{
-			@Override
-			public void change(float[] values)
-			{
-				gravityLoop(values);
-			}
-		});
-		gravityCtrl.start();
-
-		slaveComm = MainActivity.getInstance().getCtrl().getSlaveComm();
+		slaveComm = MainActivity.getInstance().getCtrl();
 
 		if (slaveComm == null)
 		{
@@ -187,145 +172,83 @@ public class SlaveFragment extends PreviewFragment
 			return;
 		}
 
-		slaveComm.addListener(Command.Type.SET_ZOOM, new SlaveComm.Listener()
+		slaveComm.registerListener(Command.Type.SET_ZOOM, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onCommand(SlaveCommand command)
-			{
-				ReceiveZoom zoomCommand = (ReceiveZoom) command;
-				float zoom = zoomCommand.getZoom();
-				SlaveFragment.this.setZoom(zoom);
-				zoomSlider.set(zoom);
-			}
-		});
-
-		slaveComm.addListener(Command.Type.SET_FACING, new SlaveComm.Listener()
-		{
-			@Override
-			public void onCommand(SlaveCommand command)
-			{
-				ReceiveFacing facingCommand = (ReceiveFacing) command;
-				SlaveFragment.this.setFacing(facingCommand.getFacing());
-			}
-		});
-
-		slaveComm.addListener(Command.Type.SET_OVERLAY, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
-		{
-			ReceiveOverlay cmd = (ReceiveOverlay) command;
-			SlaveFragment.this.setOverlay(cmd.getType());
+			SetZoom zoomCommand = (SetZoom) command;
+			float zoom = zoomCommand.zoom;
+			SlaveFragment.this.setZoom(zoom);
+			zoomSlider.set(zoom);
 		}});
 
-		slaveComm.addListener(Command.Type.SEND_VERSION, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.registerListener(Command.Type.SET_FACING, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			ReceiveVersion cmd = (ReceiveVersion) command;
-			SlaveFragment.this.checkVersion(cmd.getVersion());
+			SetFacing facingCommand = (SetFacing) command;
+			SlaveFragment.this.setFacing(facingCommand.facing);
 		}});
 
-		slaveComm.addListener(Command.Type.LATENCY_CHECK, new SlaveComm.Listener()
+		slaveComm.registerListener(Command.Type.SET_OVERLAY, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onCommand(SlaveCommand command)
-			{
-				long now = System.currentTimeMillis();
-				doLatencyCheck();
-				long then = System.currentTimeMillis();
-				long diff = then - now;
+			SetOverlay cmd = (SetOverlay) command;
+			SlaveFragment.this.setOverlay(cmd.type);
+		}});
 
-				((GetLatency) command).setLatency(diff);
-			}
-		});
-
-		slaveComm.addListener(Command.Type.FIRE_SHUTTER, new SlaveComm.Listener()
+		slaveComm.registerListener(Command.Type.SEND_VERSION, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onCommand(SlaveCommand command)
-			{
+			Version cmd = (Version) command;
+			SlaveFragment.this.checkVersion(cmd.version);
+		}});
 
-				Shutter cmd = (Shutter) command;
-
-				cmd.setOrientation(MainActivity.getInstance().getCurrentOrientation());
-				cmd.setZoom(zoomSlider.get());
-
-				byte[] data = doFireShutter(cmd.getType());
-				cmd.setData(data);
-			}
-		});
-
-		slaveComm.addListener(Command.Type.HANDSHAKE, new SlaveComm.Listener()
+		slaveComm.registerListener(Command.Type.LATENCY_CHECK, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onCommand(SlaveCommand command)
+			long now = System.currentTimeMillis();
+			doLatencyCheck();
+			long then = System.currentTimeMillis();
+			long diff = then - now;
+
+			((LatencyTest) command).elapsed = diff;
+		}});
+
+		slaveComm.registerListener(Command.Type.FIRE_SHUTTER, new CommCtrl.Listener() { public void onCommand(Command command)
+		{
+			FireShutter cmd = (FireShutter) command;
+
+			cmd.zoom = (zoomSlider.get());
+
+			byte[] data = doFireShutter(PreviewWidget.SHUTTER_TYPE.PREVIEW);
+			cmd.data = data;
+		}});
+
+		slaveComm.registerListener(Command.Type.HANDSHAKE, new CommCtrl.Listener() { public void onCommand(Command command)
+		{
+			cancelConnection();
+
+			synchronized (pingLock)
 			{
-				cancelConnection();
-
-				synchronized (pingLock)
-				{
-					pingReceived = true;
-					pingLock.notify();
-				}
-
-				setStatus(Status.LISTENING);
+				pingReceived = true;
+				pingLock.notify();
 			}
-		});
 
-		slaveComm.addListener(Command.Type.CONNECTION_PAUSE, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+			setStatus(Status.LISTENING);
+		}});
+
+		slaveComm.registerListener(Command.Type.CONNECTION_PAUSE, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
 			cancelConnection();
 		}});
 
-		slaveComm.addListener(Command.Type.DISCONNECT, new SlaveComm.Listener() { public void onCommand(SlaveCommand command)
+		slaveComm.registerListener(Command.Type.DISCONNECT, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
 			disconnect();
 		}});
 
-		slaveComm.addListener(Command.Type.SEND_PROCESSED_PHOTO, new SlaveComm.Listener() {public void onCommand(SlaveCommand command)
+		slaveComm.registerListener(Command.Type.SEND_PROCESSED_PHOTO, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			ReceiveProcessedPhoto cmd = (ReceiveProcessedPhoto) command;
+			SendPhoto cmd = (SendPhoto) command;
 			saveProcessedPhoto(cmd);
 		}});
 
-		slaveComm.sendCommand(new SendOrientation(orientation));
-
 		previewSender.setPreviewWidget(previewView);
 		previewSender.setSlaveComm(slaveComm);
-	}
-
-	private void gravityLoop(float[] values)
-	{
-		synchronized (gravityLock)
-		{
-			long diff = System.currentTimeMillis() - lastSent;
-
-			if (sending || diff < 200)
-				return;
-
-			sending = true;
-		}
-
-		ReceiveGravity.Gravity value = new ReceiveGravity.Gravity();
-		value.x = values[0];
-		value.y = values[1];
-		value.z = values[2];
-		SendGravity command = new SendGravity(value);
-		command.setListener(new SlaveCommand.Listener()
-		{
-			@Override
-			public void onStarted()
-			{}
-
-			@Override
-			public void onFinished()
-			{
-				synchronized (gravityLock)
-				{
-					lastSent = System.currentTimeMillis();
-					sending = false;
-				}
-			}
-		});
-
-		if (slaveComm != null)
-			slaveComm.sendCommand(command);
 	}
 
 	private MainActivity.Listener appListener;
@@ -408,7 +331,7 @@ public class SlaveFragment extends PreviewFragment
 		stopPreview();
 
 		if (status == Status.READY || status == Status.BUSY)
-			slaveComm.sendCommand(new SendConnectionPause());
+			slaveComm.sendCommand(new SendConnectionPause(), null);
 
 		setStatus(Status.CREATED);
 	}
@@ -416,7 +339,7 @@ public class SlaveFragment extends PreviewFragment
 	private void disconnect()
 	{
 		cancelConnection();
-		MainActivity.getInstance().cleanUpConnections();
+		slaveComm.cleanUpConnections();
 		MainActivity.getInstance().popSubViews();
 	}
 
@@ -467,7 +390,7 @@ public class SlaveFragment extends PreviewFragment
 		}
 	}
 
-	private byte[] doFireShutter(com.munger.stereocamera.ip.command.master.commands.Shutter.SHUTTER_TYPE type)
+	private byte[] doFireShutter(PreviewWidget.SHUTTER_TYPE type)
 	{
 		final Object lock = new Object();
 		imgBytes = null;
@@ -507,15 +430,15 @@ public class SlaveFragment extends PreviewFragment
 
 		if (slaveComm != null)
 		{
-			Log.d("Slave", "sending " + status.name() + " status");
-			slaveComm.sendCommand(new SendStatus(status));
+			Log.d("stereoCamera", "sending " + status.name() + " status");
+			slaveComm.sendCommand(new SendStatus(status), null);
 		}
 	}
 
 	PhotoFiles photoFiles = null;
 	Handler handler = null;
 
-	private void saveProcessedPhoto(final ReceiveProcessedPhoto cmd)
+	private void saveProcessedPhoto(final SendPhoto cmd)
 	{
 		if (photoFiles == null)
 			 photoFiles = new PhotoFiles(getContext());
@@ -534,7 +457,7 @@ public class SlaveFragment extends PreviewFragment
 		});
 	}
 
-	private void saveProcessedPhoto2(final ReceiveProcessedPhoto cmd)
+	private void saveProcessedPhoto2(final SendPhoto cmd)
 	{
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{

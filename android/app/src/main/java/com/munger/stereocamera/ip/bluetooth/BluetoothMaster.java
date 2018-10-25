@@ -7,7 +7,8 @@ import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketFactory;
-import com.munger.stereocamera.ip.command.master.MasterComm;
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.utility.RemoteState;
 
 import java.io.IOException;
@@ -29,14 +30,13 @@ public class BluetoothMaster implements SocketCtrl
 	private BluetoothCtrl server;
 	private BluetoothDevice targetDevice;
 	private BluetoothSocket socket;
-	private RemoteState remoteState;
 	private Thread connectThread;
 	private IPListeners.ConnectListener connectListener;
 	private final Object lock = new Object();
 
-	private MasterComm masterComm;
+	private Comm masterComm;
 
-	public MasterComm getComm()
+	public Comm getComm()
 	{
 		return masterComm;
 	}
@@ -93,7 +93,7 @@ public class BluetoothMaster implements SocketCtrl
 			socket = targetDevice.createRfcommSocketToServiceRecord(BluetoothCtrl.APP_ID);
 
 			socket.connect();
-			masterComm = new MasterComm(this);
+			masterComm = new Comm(this);
 		}
 		catch (ConnectException ce)
 		{
@@ -131,14 +131,7 @@ public class BluetoothMaster implements SocketCtrl
 				return;
 		}
 
-		remoteState = new RemoteState(masterComm);
-
 		connectListener.onConnected();
-	}
-
-	public RemoteState getRemoteState()
-	{
-		return remoteState;
 	}
 
 	public void cleanUp()
@@ -147,7 +140,6 @@ public class BluetoothMaster implements SocketCtrl
 		{
 			if (masterComm != null)
 			{
-				masterComm.cleanUp();
 				masterComm = null;
 			}
 

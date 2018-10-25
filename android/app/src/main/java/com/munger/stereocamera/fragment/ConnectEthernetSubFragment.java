@@ -11,12 +11,12 @@ import android.widget.TextView;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.IPListeners;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
-import com.munger.stereocamera.ip.ethernet.EthernetMaster;
 import com.munger.stereocamera.ip.ethernet.EthernetSlave;
 import com.munger.stereocamera.utility.Preferences;
 
-import java.net.InetAddress;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class ConnectEthernetSubFragment
@@ -94,6 +94,15 @@ public class ConnectEthernetSubFragment
 		});
 	}
 
+	public void cleanUp()
+	{
+		if (ethCtrl != null)
+		{
+			ethCtrl.cancelConnect();
+			ethCtrl.cancelListen();
+		}
+	}
+
 	private void listenIPClicked()
 	{
 		ethCtrl = MainActivity.getInstance().getEthCtrl();
@@ -140,7 +149,7 @@ public class ConnectEthernetSubFragment
 			public void onSetup()
 			{
 				String addrStr =  ipAddressTarget.getText().toString().trim();
-				boolean isValid = EthernetMaster.checkIP(addrStr);
+				boolean isValid = EthernetSlave.checkIP(addrStr);
 
 				if (!isValid)
 					return;
@@ -163,6 +172,15 @@ public class ConnectEthernetSubFragment
 		@Override
 		public void onConnected()
 		{
+			try
+			{
+				CommCtrl ctrl = new CommCtrl(ethCtrl);
+				MainActivity.getInstance().setCtrl(ctrl);
+			}
+			catch(IOException e){
+				return;
+			}
+
 			parent.handler.post(new Runnable() {public void run()
 			{
 				if (listenDialog == null)
@@ -172,10 +190,20 @@ public class ConnectEthernetSubFragment
 				listenDialog.dismiss();
 				listenDialog = null;
 
-				parent.prefs.setRole(Preferences.Roles.SLAVE);
-				parent.prefs.setClient(null);
+				if (ethCtrl.isMaster())
+				{
+					parent.prefs.setRole(Preferences.Roles.MASTER);
+					parent.prefs.setClient(ethCtrl.getIpAddress());
 
-				MainActivity.getInstance().startSlaveView();
+					MainActivity.getInstance().startMasterView();
+				}
+				else
+				{
+					parent.prefs.setRole(Preferences.Roles.SLAVE);
+					parent.prefs.setClient(null);
+
+					MainActivity.getInstance().startSlaveView();
+				}
 			}});
 		}
 

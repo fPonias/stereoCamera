@@ -2,17 +2,14 @@ package com.munger.stereocamera.ip.utility;
 
 import android.util.Log;
 
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveAngleOfView;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveGravity;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveOrientation;
-import com.munger.stereocamera.ip.command.master.listeners.ReceivePreviewFrame;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveStatus;
-import com.munger.stereocamera.ip.command.master.listeners.ReceiveZoom;
 import com.munger.stereocamera.fragment.PreviewFragment;
+import com.munger.stereocamera.ip.command.commands.SendGravity;
+import com.munger.stereocamera.ip.command.commands.SendStatus;
+import com.munger.stereocamera.ip.command.commands.SendZoom;
 
 import java.util.ArrayList;
 
@@ -22,28 +19,25 @@ public class RemoteState
 	public float zoom;
 	public float horizFov;
 	public float vertFov;
-	public ReceiveGravity.Gravity gravity;
+	public SendGravity.Gravity gravity;
 	public PhotoOrientation orientation;
 
 	public static class Listener
 	{
 		public void onStatus(PreviewFragment.Status status) {}
 		public void onZoom(float zoom) {}
-		public void onFov(float horiz, float vert) {}
-		public void onGravity(ReceiveGravity.Gravity gravity) {}
-		public void onOrientation(PhotoOrientation orientation) {}
+		public void onGravity(SendGravity.Gravity gravity) {}
 		public void onConnectionPause() {}
 		public void onDisconnect() {}
-		public void onPreviewFrame(byte[] data, float zoom) {}
 	}
 
-	public RemoteState(MasterComm comm)
+	public RemoteState(CommCtrl comm)
 	{
 		this.comm = comm;
 		orientation = PhotoOrientation.DEG_0;
 	}
 
-	private MasterComm comm;
+	private CommCtrl comm;
 	private ArrayList<Listener> listeners = new ArrayList<>();
 	private final Object listenerLock = new Object();
 
@@ -67,134 +61,66 @@ public class RemoteState
 
 	public void start()
 	{
-		comm.registerListener(Command.Type.RECEIVE_STATUS, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_STATUS, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
+			SendStatus r = (SendStatus) command;
+			RemoteState.this.status = r.status;
+
+			synchronized (lock)
 			{
-				ReceiveStatus r = (ReceiveStatus) response;
-				RemoteState.this.status = r.status;
-
-				synchronized (lock)
-				{
-					lock.notify();
-				}
-
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onStatus(r.status);
-				}
+				lock.notify();
 			}
-		});
+
+			synchronized (listenerLock)
+			{
+				for (Listener listener : listeners)
+					listener.onStatus(r.status);
+			}
+		}});
 
 		listeners.add(readyListener);
 
-		comm.registerListener(Command.Type.RECEIVE_ANGLE_OF_VIEW, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_GRAVITY, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
+			SendGravity r = (SendGravity) command;
+			gravity = r.gravity;
+
+			synchronized (listenerLock)
 			{
-				ReceiveAngleOfView r = (ReceiveAngleOfView) response;
-				RemoteState.this.horizFov = r.x;
-				RemoteState.this.vertFov = r.y;
-
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onFov(r.x, r.y);
-				}
+				for (Listener listener : listeners)
+					listener.onGravity(gravity);
 			}
-		});
+		}});
 
-		comm.registerListener(Command.Type.RECEIVE_GRAVITY, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_ZOOM, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
+			SendZoom r = (SendZoom) command;
+			RemoteState.this.zoom = r.zoom;
+
+			synchronized (listenerLock)
 			{
-				ReceiveGravity r = (ReceiveGravity) response;
-				gravity = r.gravity;
-
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onGravity(gravity);
-				}
+				for (Listener listener : listeners)
+					listener.onZoom(r.zoom);
 			}
-		});
+		}});
 
-		comm.registerListener(Command.Type.RECEIVE_ZOOM, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.RECEIVE_CONNECTION_PAUSE, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
+			synchronized (listenerLock)
 			{
-				ReceiveZoom r = (ReceiveZoom) response;
-				RemoteState.this.zoom = r.zoom;
-
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onZoom(r.zoom);
-				}
+				for (Listener listener : listeners)
+					listener.onConnectionPause();
 			}
-		});
+		}});
 
-		comm.registerListener(Command.Type.RECEIVE_ORIENTATION, new MasterComm.SlaveListener()
+		comm.registerListener(Command.Type.DISCONNECT, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
-			@Override
-			public void onResponse(MasterIncoming response)
+			synchronized (listenerLock)
 			{
-				ReceiveOrientation r = (ReceiveOrientation) response;
-				RemoteState.this.orientation = r.orientation;
-
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onOrientation(r.orientation);
-				}
+				for (Listener listener : listeners)
+					listener.onDisconnect();
 			}
-		});
-
-		comm.registerListener(Command.Type.RECEIVE_CONNECTION_PAUSE, new MasterComm.SlaveListener()
-		{
-			@Override
-			public void onResponse(MasterIncoming response)
-			{
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onConnectionPause();
-				}
-			}
-		});
-
-		comm.registerListener(Command.Type.RECEIVE_DISCONNECT, new MasterComm.SlaveListener()
-		{
-			@Override
-			public void onResponse(MasterIncoming response)
-			{
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onDisconnect();
-				}
-			}
-		});
-
-		comm.registerListener(Command.Type.RECEIVE_PREVIEW_FRAME, new MasterComm.SlaveListener()
-		{
-			@Override
-			public void onResponse(MasterIncoming response)
-			{
-				ReceivePreviewFrame r = (ReceivePreviewFrame) response;
-
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onPreviewFrame(r.data, r.zoom);
-				}
-			}
-		});
+		}});
 	}
 
 	private final Object lock = new Object();
@@ -203,7 +129,7 @@ public class RemoteState
 		@Override
 		public void onStatus(PreviewFragment.Status status)
 		{
-			Log.d("Remote State", "status " + status.name() + " received");
+			Log.d("stereoCamera", "status " + status.name() + " received");
 			synchronized (lock)
 			{
 				if (RemoteState.this.status == PreviewFragment.Status.READY)

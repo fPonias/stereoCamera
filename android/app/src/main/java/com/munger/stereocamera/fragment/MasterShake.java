@@ -3,14 +3,17 @@ package com.munger.stereocamera.fragment;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
-import com.munger.stereocamera.ip.command.master.commands.Handshake;
-import com.munger.stereocamera.ip.command.master.commands.Ping;
-import com.munger.stereocamera.ip.command.master.commands.SendVersion;
-import com.munger.stereocamera.ip.command.master.commands.SetOverlay;
+import com.munger.stereocamera.ip.command.CommCtrl;
+import com.munger.stereocamera.ip.command.Command;
+import com.munger.stereocamera.ip.command.commands.Handshake;
+import com.munger.stereocamera.ip.command.commands.ID;
+import com.munger.stereocamera.ip.command.commands.Ping;
+import com.munger.stereocamera.ip.command.commands.SetCaptureQuality;
+import com.munger.stereocamera.ip.command.commands.SetFacing;
+import com.munger.stereocamera.ip.command.commands.SetOverlay;
+import com.munger.stereocamera.ip.command.commands.SetZoom;
+import com.munger.stereocamera.ip.command.commands.Version;
 import com.munger.stereocamera.ip.utility.RemoteState;
-import com.munger.stereocamera.ip.utility.TimedCommand;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 
 import java.util.ArrayList;
@@ -29,22 +32,25 @@ public class MasterShake
 	private final long READY_STATUS_TIMEOUT = 6000;
 
 	private MasterFragment target;
+	private CommCtrl comm;
 
 	public MasterShake(MasterFragment target)
 	{
-		Log.d(getTag(), "new handshake created");
+		Log.d("stereoCamera", "new handshake created");
 
 		this.target = target;
 
 		init();
 
 		steps.add(pingStep);
+		steps.add(handshakeStep);
 		steps.add(versionCheckStep);
-		steps.add(createdStatusStep);
-		steps.add(initStep);
-		steps.add(listenStatusStep);
+		steps.add(idStep);
 		steps.add(setCameraStep);
+		steps.add(setQualityStep);
+		steps.add(setZoomStep);
 		steps.add(overlayStep);
+		steps.add(readyStep);
 	}
 
 	public void start(Listener listener)
@@ -63,14 +69,14 @@ public class MasterShake
 			@Override
 			public void success()
 			{
-				Log.d(getTag(), "step success");
+				Log.d("stereoCamera", "step success");
 				nextStep();
 			}
 
 			@Override
 			public void fail()
 			{
-				Log.d(getTag(), "step fail");
+				Log.d("stereoCamera", "step fail");
 				runFail();
 			}
 		};
@@ -90,13 +96,13 @@ public class MasterShake
 				handshaking = false;
 			}
 
-			Log.d(getTag(), "handshake success");
+			Log.d("stereoCamera", "handshake success");
 			finalListener.success();
 			return;
 		}
 
 		Step step = steps.get(currentStep);
-		Log.d(getTag(), "executing handshake step " + currentStep + " : " + step.name);
+		Log.d("stereoCamera", "executing handshake step " + currentStep + " : " + step.name);
 		step.execute(stepListener);
 	}
 
@@ -142,68 +148,95 @@ public class MasterShake
 	}
 
 	private Step pingStep;
-	private Step initStep;
-	private Step createdStatusStep;
-	private Step listenStatusStep;
 	private Step versionCheckStep;
 	private Step setCameraStep;
 	private Step overlayStep;
+	private Step handshakeStep;
+	private Step idStep;
+	private Step setQualityStep;
+	private Step setZoomStep;
+	private Step readyStep;
 
 	private void init()
 	{
+		comm = MainActivity.getInstance().getCtrl();
+
 		pingStep = new Step("ping") { public void execute(final StepListener listener)
 		{
-			Log.d(getTag(), "pinging slave phone");
-			TimedCommand tp = new TimedCommand(PING_TIMEOUT, new TimedCommand.Listener() { public void done(boolean success, MasterIncoming response)
+			Log.d("stereoCamera", "pinging slave phone");
+			comm.sendCommand(new Ping(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() { public void r(boolean success, Command command, Command originalCmd)
 			{
 				if (success)
 				{
-					Log.d(getTag(), "ping success");
+					Log.d("stereoCamera", "ping success");
 					listener.success();
 				}
 				else
 					listener.fail();
-			}});
-			tp.run(new Ping());
+			}}), PING_TIMEOUT);
 		}};
 
-		initStep = new Step("init") { public void execute(final StepListener listener)
-			{
-				Log.d(getTag(), "initiating handshake to slave phone");
-				TimedCommand tp = new TimedCommand(HANDSHAKE_TIMEOUT, new TimedCommand.Listener() { public void done(boolean success, MasterIncoming response)
-				{
-					if (success)
-					{
-						Log.d(getTag(), "handshake initiated on slave phone");
-						listener.success();
-					}
-					else
-						listener.fail();
-				}});
-				tp.run(new Handshake());
-			}
-		};
-
-		createdStatusStep = new Step("listen created") { public void execute(final StepListener listener)
+		handshakeStep = new Step("handshake") { public void execute(final StepListener listener)
 		{
-			PreviewFragment.Status[] statuss = new PreviewFragment.Status[]{PreviewFragment.Status.RESUMED, PreviewFragment.Status.CREATED};
-			target.remoteState.waitOnStatusAsync(statuss, LISTEN_STATUS_TIMEOUT, new RemoteState.ReadyListener()
-			{
+			Log.d("stereoCamera", "initiating handshake");
+			comm.sendCommand(new Handshake(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
 				@Override
-				public void done()
+				public void r(boolean success, Command command, Command originalCmd) {
+				if (success)
 				{
+					Log.d("stereoCamera", "handshake started");
 					listener.success();
 				}
-
-				@Override
-				public void fail()
-				{
+				else
 					listener.fail();
-				}
-			});
+			}}), HANDSHAKE_TIMEOUT);
 		}};
 
-		listenStatusStep = new Step("listen ready") { public void execute(final StepListener listener)
+		idStep = new Step("id") { public void execute(final StepListener listener)
+		{
+			Log.d("stereoCamera", "fetching id");
+			comm.sendCommand(new ID(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
+				@Override
+				public void r(boolean success, Command command, Command originalCmd) {
+				if (success)
+				{
+					ID cmd = (ID) command;
+					Log.d("stereoCamera", "remote camera ID " + cmd.phoneId);
+					listener.success();
+				}
+				else
+					listener.fail();
+			}}), 3000);
+		}};
+
+		setQualityStep = new Step("quality") { public void execute(final StepListener listener)
+		{
+			Log.d("stereoCamera", "setting image quality");
+			comm.sendCommand(new SetCaptureQuality(SetCaptureQuality.ImageQuality.LO_RES), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
+				@Override
+				public void r(boolean success, Command command, Command originalCmd) {
+				if (success)
+					listener.success();
+				else
+					listener.fail();
+				}
+			}), HANDSHAKE_TIMEOUT);
+		}};
+
+		setZoomStep = new Step("zoom") { public void execute(final StepListener listener) {
+			Log.d("stereoCamera", "setting zoom value");
+			comm.sendCommand(new SetZoom(1.0f), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
+				@Override
+				public void r(boolean success, Command command, Command originalCmd) {
+					if (success)
+						listener.success();
+					else
+						listener.fail();
+				}
+			}), HANDSHAKE_TIMEOUT);
+		}};
+
+		readyStep = new Step("listen ready") { public void execute(final StepListener listener)
 			{
 				PreviewFragment.Status[] statuss = new PreviewFragment.Status[]{PreviewFragment.Status.LISTENING, PreviewFragment.Status.READY};
 				target.remoteState.waitOnStatusAsync(statuss, LISTEN_STATUS_TIMEOUT, new RemoteState.ReadyListener()
@@ -225,47 +258,140 @@ public class MasterShake
 
 		versionCheckStep = new Step("check version") { public void execute(final StepListener listener)
 		{
-			final SendVersion cmd = new SendVersion();
-			target.masterComm.runCommand(cmd, new MasterComm.SlaveListener()
+			comm.sendCommand(new Version(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() { public void r(boolean success, Command command, Command originalCmd)
 			{
-				@Override
-				public void onResponse(MasterIncoming response)
-				{
-					SendVersion.Response resp = (SendVersion.Response) response;
-					int remoteVersion = resp.version;
-
-					if (remoteVersion > cmd.getVersion())
-						listener.fail();
-					else
-						listener.success();
-				}
-			});
-		}};
-
-		setCameraStep = new Step("setup camera") { public void execute(final StepListener listener)
-		{
-			boolean isFacing = MainActivity.getInstance().getPrefs().getIsFacing();
-			target.startPreview();
-			target.setCamera(isFacing, new MasterFragment.SetCameraListener()
-			{
-				@Override
-				public void done()
-				{
-					listener.success();
-				}
-
-				@Override
-				public void fail()
+				if (!success)
 				{
 					listener.fail();
+					return;
 				}
-			});
+
+				Version resp = (Version) command;
+				int remoteVersion = resp.version;
+
+				if (resp.platform == Version.Platform.ANDROID && remoteVersion > ((Version)originalCmd).version)
+					listener.fail();
+				else if (resp.platform == Version.Platform.IOS && remoteVersion > 1000)
+					listener.fail();
+				else
+					listener.success();
+				}
+			}), 1000);
 		}};
+
+		class SetupCameraStep extends Step
+		{
+			private boolean localFacing = false;
+			private boolean remoteFacing = false;
+			private final Object facingLock = new Object();
+			private boolean listenerCalled = false;
+			private long start;
+			private StepListener listener;
+
+			public SetupCameraStep(String name)
+			{
+				super(name);
+			}
+
+			public void execute(final StepListener listener)
+			{
+				start = System.currentTimeMillis();
+				this.listener = listener;
+				localFacing = false;
+				remoteFacing = false;
+
+				boolean isFacing = MainActivity.getInstance().getPrefs().getIsFacing();
+				target.startPreview();
+				target.setCamera(isFacing, new MasterFragment.SetCameraListener()
+				{
+					@Override
+					public void done()
+					{
+						Log.d("stereoCamera", "set local camera finished");
+						synchronized (facingLock)
+						{
+							localFacing = true;
+						}
+
+						execute2();
+					}
+
+					@Override
+					public void fail()
+					{
+						Log.d("stereoCamera", "set local camera failed");
+					}
+				});
+
+				comm.sendCommand(new SetFacing(isFacing), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() { public void r(boolean success, Command command, Command originalCmd)
+				{
+					Log.d("stereoCamera", "set remote camera finished");
+					if (success)
+					{
+						synchronized (facingLock)
+						{
+							remoteFacing = true;
+						}
+
+						execute2();
+					}
+				}}), 3000);
+
+				Thread timeoutThread = new Thread(new Runnable() {public void run()
+				{
+					synchronized (facingLock)
+					{
+						if (!listenerCalled)
+						{
+							try{facingLock.wait(3000);} catch(InterruptedException e){}
+						}
+
+						if (!listenerCalled)
+						{
+							execute2();
+						}
+					}
+				}});
+				timeoutThread.start();
+			}
+
+			private void execute2()
+			{
+				boolean doSuccess = false;
+				boolean doFail = false;
+				synchronized (facingLock)
+				{
+					if (listenerCalled)
+						return;
+
+					if (localFacing && remoteFacing)
+					{
+						doSuccess = true;
+						listenerCalled = true;
+					}
+					else if (System.currentTimeMillis() - start > 3000)
+					{
+						doFail = true;
+						listenerCalled = true;
+					}
+
+					if (listenerCalled)
+						facingLock.notify();
+				}
+
+				if (doSuccess)
+					listener.success();
+				else if (doFail)
+					listener.fail();
+			}
+		}
+
+		setCameraStep = new SetupCameraStep("setup camera");
 
 		overlayStep = new Step("overlay") { public void execute(final StepListener listener)
 		{
 			final PreviewOverlayWidget.Type type = target.overlayWidget.getType();
-			target.masterComm.runCommand(new SetOverlay(type), null);
+			target.masterComm.sendCommand(new SetOverlay(type), null);
 
 			target.remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, READY_STATUS_TIMEOUT, new RemoteState.ReadyListener()
 			{

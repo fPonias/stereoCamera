@@ -25,8 +25,7 @@ import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketCtrlCtrl;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.slave.SlaveComm;
+import com.munger.stereocamera.ip.command.CommCtrl;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -49,6 +48,7 @@ public class BluetoothCtrl implements SocketCtrlCtrl
 	private BluetoothDiscoverer discoverer;
 	private BluetoothSlave slave;
 	private BluetoothMaster master;
+	private CommCtrl commCtrl;
 
 
 	public static int LISTEN_TIMEOUT = 30000;
@@ -177,26 +177,14 @@ public class BluetoothCtrl implements SocketCtrlCtrl
 		}
 	}
 
-	public BluetoothMaster getMaster()
+	public BluetoothMaster getSlave()
 	{
 		return master;
 	}
 
-	public BluetoothSlave getSlave()
+	public BluetoothSlave getMaster()
 	{
 		return slave;
-	}
-
-	@Override
-	public MasterComm getMasterComm()
-	{
-		return master.getComm();
-	}
-
-	@Override
-	public SlaveComm getSlaveComm()
-	{
-		return slave.getComm();
 	}
 
 	public BluetoothDiscoverer getDiscoverer()
@@ -253,5 +241,16 @@ public class BluetoothCtrl implements SocketCtrlCtrl
 		}
 
 		return null;
+	}
+
+	public Boolean isMaster()
+	{
+		if (!isSetup)
+			return null;
+
+		if (master != null)
+			return true;
+		else
+			return false;
 	}
 }

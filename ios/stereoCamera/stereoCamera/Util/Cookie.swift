@@ -256,8 +256,9 @@ enum Overlay: Int
 
 enum ImageQuality: Int
 {
-    case HIGH,
-    LOW
+    case PREVIEW,
+    LOW,
+    HIGH
     
     func toString() -> String
     {
@@ -265,6 +266,7 @@ enum ImageQuality: Int
         {
             case .HIGH: return "High"
             case .LOW: return "Low"
+            case .PREVIEW: return "Preview"
         }
     }
     

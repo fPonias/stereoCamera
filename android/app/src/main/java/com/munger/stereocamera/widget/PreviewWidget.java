@@ -37,7 +37,6 @@ import android.widget.Toast;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.master.commands.Shutter;
 import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.PhotoFiles;
 
@@ -181,11 +180,11 @@ public class PreviewWidget extends TextureView
 		setupTexture(camera);
 
 		String tag = "stereoCamera";
-		Log.d(tag, "camera " + cameraId + " selected");
-		Log.d(tag, "camera focal length " + currentParameters.getFocalLength() + "mm");
-		Log.d(tag, "camera angle of view " + currentParameters.getHorizontalViewAngle() + ", " + currentParameters.getVerticalViewAngle());
-		Log.d(tag, "camera picture size " + currentParameters.getPictureSize().width + "x" + currentParameters.getPictureSize().height);
-		Log.d(tag, "camera sensor size " + p.w + "x" + p.h);
+		Log.d("stereoCamera", "camera " + cameraId + " selected");
+		Log.d("stereoCamera", "camera focal length " + currentParameters.getFocalLength() + "mm");
+		Log.d("stereoCamera", "camera angle of view " + currentParameters.getHorizontalViewAngle() + ", " + currentParameters.getVerticalViewAngle());
+		Log.d("stereoCamera", "camera picture size " + currentParameters.getPictureSize().width + "x" + currentParameters.getPictureSize().height);
+		Log.d("stereoCamera", "camera sensor size " + p.w + "x" + p.h);
 
 		updateTransform();
 		startPreview();
@@ -584,7 +583,7 @@ public class PreviewWidget extends TextureView
 			float factor = scaleGestureDetector.getScaleFactor();
 			float delta = startZoom * (factor - 1.0f);
 			float newZoom = zoom + delta;
-			Log.d("zoom", "new zoom: " + newZoom + " factor: " + factor);
+			Log.d("stereoCamera", "new zoom: " + newZoom + " factor: " + factor);
 
 			newZoom = Math.max(1.0f, Math.min(4.0f, newZoom));
 
@@ -645,12 +644,19 @@ public class PreviewWidget extends TextureView
 	protected long shutterStart;
 	protected long shutterEnd;
 
-	public void takePicture(Shutter.SHUTTER_TYPE type, ImageListener imageListener)
+	public enum SHUTTER_TYPE
+	{
+		HI_RES,
+		LO_RES,
+		PREVIEW
+	};
+
+	public void takePicture(SHUTTER_TYPE type, ImageListener imageListener)
 	{
 		this.imageListener = imageListener;
 		shutterStart = System.currentTimeMillis();
 
-		if (type == Shutter.SHUTTER_TYPE.PREVIEW)
+		if (type == SHUTTER_TYPE.PREVIEW)
 			takePreviewPicture();
 		else
 			getCamera().takePicture(shutterCallback, null, null, jpegCallback);

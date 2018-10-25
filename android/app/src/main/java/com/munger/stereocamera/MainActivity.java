@@ -18,16 +18,11 @@ import android.widget.Toast;
 
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.SocketCtrl;
-import com.munger.stereocamera.ip.SocketCtrlCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
-import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.master.commands.Disconnect;
-import com.munger.stereocamera.ip.command.master.commands.SendProcessedPhoto;
-import com.munger.stereocamera.ip.command.slave.SlaveComm;
-import com.munger.stereocamera.ip.command.slave.senders.SendDisconnect;
+import com.munger.stereocamera.ip.command.commands.Disconnect;
+import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.HelpFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
@@ -61,7 +56,7 @@ public class MainActivity extends BaseActivity
 
 	public static final String BT_SERVICE_NAME = "stereoCamera";
 
-	private SocketCtrlCtrl ctrl;
+	private CommCtrl ctrl;
 	private BluetoothCtrl btCtrl;
 	private EthernetCtrl ethCtrl;
 	private Preferences prefs;
@@ -83,12 +78,12 @@ public class MainActivity extends BaseActivity
 		listener.onSetup();
 	}
 
-	public void setCtrl(SocketCtrlCtrl ctrl)
+	public void setCtrl(CommCtrl ctrl)
 	{
 		this.ctrl = ctrl;
 	}
 
-	public SocketCtrlCtrl getCtrl()
+	public CommCtrl getCtrl()
 	{
 		return ctrl;
 	}
@@ -267,11 +262,11 @@ public class MainActivity extends BaseActivity
 	public void reconnect()
 	{
 		Preferences.Roles role = prefs.getRole();
-		if (ctrl != null && ctrl.getIsSetup())
+		if (ctrl != null && ctrl.getSocketCtrlCtrl().getIsSetup())
 		{
 			if (role == Preferences.Roles.MASTER)
 			{
-				SocketCtrl master = ctrl.getMaster();
+				SocketCtrl master = ctrl.getSocketCtrlCtrl().getSlave();
 				if (master != null && master.isConnected())
 				{
 					startMasterView();
@@ -280,7 +275,7 @@ public class MainActivity extends BaseActivity
 			}
 			else
 			{
-				SocketCtrl slave = ctrl.getSlave();
+				SocketCtrl slave = ctrl.getSocketCtrlCtrl().getMaster();
 				if (slave != null && slave.isConnected())
 				{
 					startSlaveView();
@@ -317,10 +312,7 @@ public class MainActivity extends BaseActivity
 
 			if (newCount == 0 && lastCount > 0)
 			{
-				if (masterFragment != null)
-					sendMasterDisconnect();
-				if (slaveFragment != null)
-					sendSlaveDisconnect();
+				ctrl.sendCommand(new Disconnect(), null);
 
 				slaveFragment = null;
 				masterFragment = null;
@@ -441,30 +433,6 @@ public class MainActivity extends BaseActivity
 		List<Fragment> frags = mgr.getFragments();
 	}
 
-	private void sendMasterDisconnect()
-	{
-		if (ctrl == null)
-			return;
-
-		MasterComm comm = ctrl.getMasterComm();
-		if (comm == null)
-			return;
-
-		comm.runCommand(new Disconnect(), null);
-	}
-
-	private void sendSlaveDisconnect()
-	{
-		if (ctrl == null)
-			return;
-
-		SlaveComm comm = ctrl.getSlaveComm();
-		if (comm == null)
-			return;
-
-		comm.sendCommand(new SendDisconnect());
-	}
-
 	private boolean firstConnect = true;
 
 	@Override
@@ -514,10 +482,9 @@ public class MainActivity extends BaseActivity
 
 		Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
 
-		if (ctrl != null && ctrl.getMasterComm() != null)
+		if (ctrl != null && ctrl.isMaster())
 		{
-			MasterComm comm = ctrl.getMasterComm();
-			comm.runCommand(new SendProcessedPhoto(newPath), null);
+			ctrl.sendCommand(new SendPhoto(newPath), null);
 		}
 
 		for (Listener listener : listeners)
@@ -558,47 +525,6 @@ public class MainActivity extends BaseActivity
 			for (Listener listener : listeners)
 				listener.onBluetoothChanged(false, null);
 		}
-	}
-
-
-	public boolean isMasterConnected()
-	{
-		if (ctrl == null)
-			return false;
-
-		SocketCtrl master = ctrl.getMaster();
-
-		if (master == null)
-			return false;
-
-		return master.isConnected();
-	}
-
-	public boolean isSlaveConnected()
-	{
-		if (ctrl == null)
-			return false;
-
-		SocketCtrl slave = ctrl.getSlave();
-
-		if (slave == null)
-			return false;
-
-		return slave.isConnected();
-	}
-
-	public void cleanUpConnections()
-	{
-		if (ctrl == null)
-			return;
-
-		SocketCtrl master = ctrl.getMaster();
-		if (master != null && isMasterConnected())
-			master.cleanUp();
-
-		SocketCtrl slave = ctrl.getSlave();
-		if (slave != null && isSlaveConnected())
-			slave.cleanUp();
 	}
 
 	public PhotoOrientation getCurrentOrientation()

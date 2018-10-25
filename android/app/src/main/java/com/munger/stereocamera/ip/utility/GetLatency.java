@@ -3,11 +3,11 @@ package com.munger.stereocamera.ip.utility;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
-import com.munger.stereocamera.ip.command.master.MasterComm;
-import com.munger.stereocamera.ip.command.master.MasterIncoming;
-import com.munger.stereocamera.ip.command.master.commands.GetRemoteLatency;
 import com.munger.stereocamera.fragment.PreviewFragment;
+import com.munger.stereocamera.ip.command.commands.LatencyTest;
 
 /**
  * Created by hallmarklabs on 3/2/18.
@@ -16,7 +16,7 @@ import com.munger.stereocamera.fragment.PreviewFragment;
 public class GetLatency
 {
 	private Listener listener;
-	private MasterComm masterComm;
+	private CommCtrl masterComm;
 	private PreviewFragment target;
 
 	public GetLatency(Listener listener, PreviewFragment fragment, long timeout)
@@ -25,7 +25,7 @@ public class GetLatency
 		this.target = fragment;
 		this.timeout = timeout;
 
-		masterComm = MainActivity.getInstance().getCtrl().getMasterComm();
+		masterComm = MainActivity.getInstance().getCtrl();
 	}
 
 	private long localLatency;
@@ -55,7 +55,7 @@ public class GetLatency
 	{
 		localLatency = -1;
 		remoteLatency = -1;
-		Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " called");
+		Log.d("stereoCamera", "command: " + Command.Type.LATENCY_CHECK.name() + " called");
 
 		getLocalLatency(localDelay);
 		getRemoteLatency();
@@ -74,13 +74,13 @@ public class GetLatency
 				localLatency = System.currentTimeMillis() - localNow;
 			}
 
-			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " local check success");
+			Log.d("stereoCamera", "command: " + Command.Type.LATENCY_CHECK.name() + " local check success");
 		}
 
 		@Override
 		public void done()
 		{
-			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " local check finished");
+			Log.d("stereoCamera", "command: " + Command.Type.LATENCY_CHECK.name() + " local check finished");
 
 			synchronized (latencyLock)
 			{
@@ -120,15 +120,15 @@ public class GetLatency
 
 	private void getRemoteLatency()
 	{
-		masterComm.runCommand(new GetRemoteLatency(), new MasterComm.SlaveListener()
+		masterComm.sendCommand(new LatencyTest(), new CommCtrl.ResponseListener()
 		{
 			@Override
-			public void onResponse(MasterIncoming response)
+			public void onReceived(Command command, Command origCommand)
 			{
-				GetRemoteLatency.Response r = (GetRemoteLatency.Response) response;
+				LatencyTest r = (LatencyTest) command;
 				synchronized (latencyLock)
 				{
-					remoteLatency = r.latency;
+					remoteLatency = r.elapsed;
 					remoteDone = true;
 				}
 
@@ -136,7 +136,7 @@ public class GetLatency
 			}
 
 			@Override
-			public void onFail()
+			public void onReceiveFailed(Command command)
 			{
 				synchronized (latencyLock)
 				{
@@ -145,7 +145,7 @@ public class GetLatency
 
 				GetLatency.this.fail();
 			}
-		});
+		}, 2000);
 	}
 
 	private void startTimeout()
@@ -179,12 +179,12 @@ public class GetLatency
 
 		if (localLatency == -1 || remoteLatency == -1)
 		{
-			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " failed");
+			Log.d("stereoCamera", "command: " + Command.Type.LATENCY_CHECK.name() + " failed");
 			listener.fail();
 		}
 		else
 		{
-			Log.d("MasterComm", "command: " + Command.Type.LATENCY_CHECK.name() + " success");
+			Log.d("stereoCamera", "command: " + Command.Type.LATENCY_CHECK.name() + " success");
 			listener.pong(localLatency, remoteLatency);
 		}
 	}

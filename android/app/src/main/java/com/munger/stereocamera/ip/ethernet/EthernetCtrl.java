@@ -1,18 +1,16 @@
 package com.munger.stereocamera.ip.ethernet;
 
 import com.munger.stereocamera.ip.IPListeners;
-import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
+import com.munger.stereocamera.ip.SocketCtrl;
+import com.munger.stereocamera.ip.SocketCtrlCtrl;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class EthernetCtrl
+public class EthernetCtrl implements SocketCtrlCtrl
 {
 	public String bytesToHex(byte[] bytes)
 	{
@@ -78,6 +76,18 @@ public class EthernetCtrl
 		return isSetup;
 	}
 
+	@Override
+	public SocketCtrl getSlave()
+	{
+		return slave;
+	}
+
+	@Override
+	public SocketCtrl getMaster()
+	{
+		return master;
+	}
+
 	private ArrayList<String> addresses = new ArrayList<>();
 
 	public ArrayList<String> getAddresses()
@@ -93,23 +103,57 @@ public class EthernetCtrl
 		listener.onSetup();
 	}
 
+	private String ipAddress;
 	public static final int PORT = 36111;
-	private EthernetMaster master;
 	private EthernetSlave slave;
+	private EthernetMaster master;
 	private Object lock = new Object();
+
+	public String getIpAddress()
+	{
+		return ipAddress;
+	}
 
 	public void connect(String ipAddress, IPListeners.ConnectListener listener)
 	{
 		synchronized (lock)
 		{
-			if (master == null)
-				master = new EthernetMaster();
+			if (slave == null)
+				slave = new EthernetSlave();
 		}
 
-		master.connect(ipAddress, PORT, listener);
+		this.ipAddress = ipAddress;
+		slave.connect(ipAddress, PORT, listener);
 	}
 
 	public void cancelConnect()
+	{
+		synchronized (lock)
+		{
+			if (slave != null)
+				slave.cleanUp();
+
+			this.ipAddress = null;
+			slave = null;
+		}
+	}
+
+	public void listen(IPListeners.ConnectListener listener)
+	{
+		synchronized (lock)
+		{
+			if (master == null)
+				master = new EthernetMaster(listener);
+			else
+				master.setConnectListener(listener);
+
+			this.ipAddress = null;
+		}
+
+		master.listen(PORT);
+	}
+
+	public void cancelListen()
 	{
 		synchronized (lock)
 		{
@@ -120,25 +164,14 @@ public class EthernetCtrl
 		}
 	}
 
-	public void listen(IPListeners.ConnectListener listener)
+	public Boolean isMaster()
 	{
-		synchronized (lock)
-		{
-			if (slave == null)
-				slave = new EthernetSlave();
-		}
+		if (!isSetup)
+			return null;
 
-		slave.listen(PORT);
-	}
-
-	public void cancelListen()
-	{
-		synchronized (lock)
-		{
-			if (slave != null)
-				slave.cleanUp();
-
-			slave = null;
-		}
+		if (master != null)
+			return true;
+		else
+			return false;
 	}
 }

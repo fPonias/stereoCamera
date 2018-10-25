@@ -128,7 +128,7 @@ public class MyActivityChooserView extends ViewGroup implements
 	private ListPopupWindow mListPopupWindow;
 
 	/**
-	 * Listener for the dismissal of the popup/alert.
+	 * StateListener for the dismissal of the popup/alert.
 	 */
 	PopupWindow.OnDismissListener mOnDismissListener;
 

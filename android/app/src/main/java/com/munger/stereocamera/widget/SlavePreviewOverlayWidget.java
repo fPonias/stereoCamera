@@ -42,7 +42,7 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 
 	public void cancel()
 	{
-		Log.d(getLogTag(), "cancelling slave overlay");
+		Log.d("stereoCamera", "cancelling slave overlay");
 		synchronized (lock)
 		{
 			cancelled = true;
@@ -62,7 +62,7 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 			}
 		}
 
-		Log.d(getLogTag(), "slave overlay cancelled");
+		Log.d("stereoCamera", "slave overlay cancelled");
 		Handler h = new Handler(Looper.getMainLooper());
 		h.post(new Runnable() { public void run()
 		{
@@ -200,7 +200,7 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 
 	public void start()
 	{
-		Log.d(getLogTag(), "starting slave overlay");
+		Log.d("stereoCamera", "starting slave overlay");
 		synchronized (lock)
 		{
 			if (runThread != null)
@@ -210,6 +210,6 @@ public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppComp
 			runThread = new Thread(process);
 			runThread.start();
 		}
-		Log.d(getLogTag(), "slave overlay started");
+		Log.d("stereoCamera", "slave overlay started");
 	}
 }

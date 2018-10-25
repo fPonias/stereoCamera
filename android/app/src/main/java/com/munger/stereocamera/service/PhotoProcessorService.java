@@ -57,7 +57,12 @@ public class PhotoProcessorService extends IntentService
 		public void writeToParcel(Parcel parcel, int i)
 		{
 			parcel.writeString(jpegPath);
-			parcel.writeInt(orientation.ordinal());
+
+			if (orientation != null)
+				parcel.writeInt(orientation.ordinal());
+			else
+				parcel.writeInt(-1);
+
 			parcel.writeFloat(zoom);
 		}
 
@@ -65,7 +70,12 @@ public class PhotoProcessorService extends IntentService
 		{
 			jpegPath = parcel.readString();
 			int idx = parcel.readInt();
-			orientation = PhotoOrientation.values()[idx];
+
+			if (idx > -1)
+				orientation = PhotoOrientation.values()[idx];
+			else
+				orientation = PhotoOrientation.DEG_0;
+
 			zoom = parcel.readFloat();
 		}
 	}

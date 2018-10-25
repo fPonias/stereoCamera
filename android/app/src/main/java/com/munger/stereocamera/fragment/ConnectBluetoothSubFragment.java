@@ -20,9 +20,12 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 public class ConnectBluetoothSubFragment
@@ -282,6 +285,14 @@ public class ConnectBluetoothSubFragment
 			@Override
 			public void onConnected()
 			{
+				try
+				{
+					btCtrl = MainActivity.getInstance().getBtCtrl();
+					CommCtrl ctrl = new CommCtrl(btCtrl);
+					MainActivity.getInstance().setCtrl(ctrl);
+				}
+				catch(IOException e){return;}
+
 				parent.handler.post(new Runnable() {public void run()
 				{
 					Toast.makeText(parent.getActivity(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
@@ -292,7 +303,6 @@ public class ConnectBluetoothSubFragment
 					parent.prefs.setRole(Preferences.Roles.MASTER);
 					parent.prefs.setClient(device.getAddress());
 
-					MainActivity.getInstance().setCtrl(MainActivity.getInstance().getBtCtrl());
 					BaseActivity act = MainActivity.getInstance();
 					if (act instanceof MainActivity)
 						((MainActivity) act).startMasterView();
@@ -343,6 +353,15 @@ public class ConnectBluetoothSubFragment
 		@Override
 		public void onConnected()
 		{
+			try
+			{
+				btCtrl = MainActivity.getInstance().getBtCtrl();
+				CommCtrl ctrl = new CommCtrl(btCtrl);
+				MainActivity.getInstance().setCtrl(ctrl);
+			}
+			catch(IOException e){return;}
+
+
 			parent.handler.post(new Runnable() {public void run()
 			{
 				if (listenDialog == null)
@@ -355,7 +374,6 @@ public class ConnectBluetoothSubFragment
 				parent.prefs.setRole(Preferences.Roles.SLAVE);
 				parent.prefs.setClient(null);
 
-				MainActivity.getInstance().setCtrl(MainActivity.getInstance().getBtCtrl());
 				MainActivity.getInstance().startSlaveView();
 			}});
 		}
@@ -453,5 +471,13 @@ public class ConnectBluetoothSubFragment
 				.create();
 		listenDialog.setCanceledOnTouchOutside(false);
 		listenDialog.show();
+	}
+
+	public void cleanUp()
+	{
+		discovering = false;
+
+		if (btCtrl != null)
+			btCtrl.cleanUp();
 	}
 }

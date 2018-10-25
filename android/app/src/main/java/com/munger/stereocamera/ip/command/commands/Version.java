@@ -9,6 +9,14 @@ import java.io.IOException;
 public class Version extends Command
 {
 	public int version = -1;
+	public Platform platform = Platform.ANDROID;
+
+	public enum Platform
+	{
+		NONE,
+		IOS,
+		ANDROID
+	}
 
 	public Version()
 	{
@@ -34,6 +42,7 @@ public class Version extends Command
 
 		try
 		{
+			comm.putByte((byte) platform.ordinal());
 			comm.putInt(version);
 		}
 		catch(IOException e){
@@ -53,6 +62,12 @@ public class Version extends Command
 
 		try
 		{
+			byte idx = comm.getByte();
+			if (idx < 0 || idx > 2)
+				return false;
+
+			platform = Platform.values()[idx];
+
 			version = comm.getInt();
 		}
 		catch(IOException e){

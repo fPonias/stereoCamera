@@ -40,7 +40,7 @@ public class SetCaptureQuality extends Command
 	@Override
 	public boolean receive(Comm comm)
 	{
-		boolean result = super.send(comm);
+		boolean result = super.receive(comm);
 		if (!result)
 			{ return false; }
 
@@ -70,7 +70,8 @@ public class SetCaptureQuality extends Command
 
 		try
 		{
-			comm.putByte((byte) quality.ordinal());
+			byte val = (byte) quality.ordinal();
+			comm.putByte(val);
 		}
 		catch(IOException e){
 			return false;
