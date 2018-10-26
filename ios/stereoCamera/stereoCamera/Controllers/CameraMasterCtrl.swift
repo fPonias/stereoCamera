@@ -331,7 +331,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                     self.shutterLock.signal()
                 }
             self.shutterLock.unlock()
-        })
+        }, timeout: 30.0)
     }
     
     func shutterReset()

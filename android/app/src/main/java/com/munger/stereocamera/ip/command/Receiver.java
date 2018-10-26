@@ -44,23 +44,33 @@ public class Receiver
 
 			if (!success)
 			{
-				ctrl.setCommandReceiverIsRunning(false);
+				CommCtrl.StateListener listener = ctrl.getListener();
+				if (listener != null)
+					listener.onDisconnect();
 
-				synchronized (commandRepliesCnd)
-				{
-					commandRepliesQueue.clear();
-					commandRepliesCnd.notifyAll();
-				}
-
-				synchronized (commandsReceivedCnd)
-				{
-					commandsReceivedQueue.clear();
-					commandsReceivedCnd.notifyAll();
-				}
+				ctrl.disconnect();
 			}
 		}});
 
 		t.start();
+	}
+
+	public void stopAll()
+	{
+		if (ctrl.getCommandReceiverIsRunning())
+			ctrl.setCommandReceiverIsRunning(false);
+
+		synchronized (commandRepliesCnd)
+		{
+			commandRepliesQueue.clear();
+			commandRepliesCnd.notifyAll();
+		}
+
+		synchronized (commandsReceivedCnd)
+		{
+			commandsReceivedQueue.clear();
+			commandsReceivedCnd.notifyAll();
+		}
 	}
 
 	private boolean receiveCommand()
@@ -86,11 +96,6 @@ public class Receiver
 			}
 		}
 		catch(IOException e){
-			CommCtrl.StateListener listener = ctrl.getListener();
-			if (listener != null)
-				listener.onDisconnect();
-
-			ctrl.disconnect();
 			return false;
 		}
 

@@ -63,6 +63,16 @@ public class Sender
 		t.start();
 	}
 
+	public void stopAll()
+	{
+		synchronized (commandSenderCondition)
+		{
+			commandSenderIsRunning = false;
+			commandQueue.clear();
+			commandSenderCondition.notify();
+		}
+	}
+
 	private void sendCommand()
 	{
 		Command nextCommand = null;

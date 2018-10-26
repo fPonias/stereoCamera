@@ -19,23 +19,29 @@ import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.commands.FireShutter;
+import com.munger.stereocamera.ip.command.commands.Handshake;
+import com.munger.stereocamera.ip.command.commands.ID;
 import com.munger.stereocamera.ip.command.commands.LatencyTest;
+import com.munger.stereocamera.ip.command.commands.Ping;
 import com.munger.stereocamera.ip.command.commands.SendConnectionPause;
 import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.ip.command.commands.SendStatus;
 import com.munger.stereocamera.ip.command.commands.SendZoom;
+import com.munger.stereocamera.ip.command.commands.SetCaptureQuality;
 import com.munger.stereocamera.ip.command.commands.SetFacing;
 import com.munger.stereocamera.ip.command.commands.SetOverlay;
 import com.munger.stereocamera.ip.command.commands.SetZoom;
 import com.munger.stereocamera.ip.command.commands.Version;
 import com.munger.stereocamera.ip.utility.PreviewSender;
 import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -157,6 +163,7 @@ public class SlaveFragment extends PreviewFragment
 	private long lastSent = 0;
 	private final Object gravityLock = new Object();
 	private boolean sending = false;
+	private PreviewWidget.SHUTTER_TYPE captureQuality = PreviewWidget.SHUTTER_TYPE.PREVIEW;
 
 	@Override
 	public void onStart()
@@ -195,7 +202,14 @@ public class SlaveFragment extends PreviewFragment
 		slaveComm.registerListener(Command.Type.SEND_VERSION, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
 			Version cmd = (Version) command;
-			SlaveFragment.this.checkVersion(cmd.version);
+			cmd.platform = Version.Platform.ANDROID;
+			cmd.version = Version.getVersion();
+		}});
+
+		slaveComm.registerListener(Command.Type.ID, new CommCtrl.Listener() { public void onCommand(Command command)
+		{
+			ID cmd = (ID) command;
+			cmd.phoneId = MainActivity.getInstance().getPrefs().getId();
 		}});
 
 		slaveComm.registerListener(Command.Type.LATENCY_CHECK, new CommCtrl.Listener() { public void onCommand(Command command)
@@ -208,15 +222,23 @@ public class SlaveFragment extends PreviewFragment
 			((LatencyTest) command).elapsed = diff;
 		}});
 
-		slaveComm.registerListener(Command.Type.FIRE_SHUTTER, new CommCtrl.Listener() { public void onCommand(Command command)
+
+		slaveComm.registerListener(Command.Type.SET_CAPTURE_QUALITY, new CommCtrl.Listener() {public void onCommand(Command command)
 		{
-			FireShutter cmd = (FireShutter) command;
-
-			cmd.zoom = (zoomSlider.get());
-
-			byte[] data = doFireShutter(PreviewWidget.SHUTTER_TYPE.PREVIEW);
-			cmd.data = data;
+			SetCaptureQuality qual = (SetCaptureQuality) command;
+			captureQuality = qual.quality;
 		}});
+
+		slaveComm.registerListener(Command.Type.FIRE_SHUTTER, new CommCtrl.Listener() {
+			public void onCommand(Command command) {
+				FireShutter cmd = (FireShutter) command;
+
+				cmd.zoom = (zoomSlider.get());
+
+				byte[] data = doFireShutter(captureQuality);
+				cmd.data = data;
+			}
+		});
 
 		slaveComm.registerListener(Command.Type.HANDSHAKE, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
@@ -443,12 +465,15 @@ public class SlaveFragment extends PreviewFragment
 		if (photoFiles == null)
 			 photoFiles = new PhotoFiles(getContext());
 
+		final File tmpFile = cmd.file;
+		cmd.file = null;  //set file to null so we don't send it back with the response
+
 		photoFiles.checkPermissions(new PhotoFiles.Listener()
 		{
 			@Override
 			public void done()
 			{
-				saveProcessedPhoto2(cmd);
+				saveProcessedPhoto2(tmpFile);
 			}
 
 			@Override
@@ -457,7 +482,7 @@ public class SlaveFragment extends PreviewFragment
 		});
 	}
 
-	private void saveProcessedPhoto2(final SendPhoto cmd)
+	private void saveProcessedPhoto2(final File tmpFile)
 	{
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
 		{
@@ -470,7 +495,7 @@ public class SlaveFragment extends PreviewFragment
 				try
 				{
 					String path = photoFiles.getNewFilePath();
-					String tmpPath = cmd.getTmpPath();
+					String tmpPath = tmpFile.getPath();
 					byte[] buffer = new byte[1024];
 					int read = 1;
 

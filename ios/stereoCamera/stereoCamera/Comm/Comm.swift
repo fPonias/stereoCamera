@@ -549,7 +549,7 @@ class Comm
         }
     }
     
-    func sendCommand(command:Command, listenerFunc: @escaping (Bool, Command, Command?) -> Void)
+    func sendCommand(command:Command, listenerFunc: @escaping (Bool, Command, Command?) -> Void, timeout:Double = 5.0)
     {
         sendCommand(command: command, listener: DefaultCommandResponseListener(listenerFunc))
     }
@@ -622,6 +622,7 @@ class Comm
                 let idx:String = self.getCommandIndex(nextCommand!)
                 var str: CommandResponseListenerStr? = self.commandResponseListeners[idx]
                 str?.start = Date().timeIntervalSince1970
+                self.commandResponseListeners[idx] = str
             
                 commandResponseCondition.signal()
             commandResponseCondition.unlock()

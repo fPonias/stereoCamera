@@ -122,7 +122,9 @@ public class CommCtrl
 	}
 
 	public void disconnect()
-	{}
+	{
+		setCommandReceiverIsRunning(false);
+	}
 
 	public String getCommandIndex(Command command)
 	{
@@ -138,6 +140,17 @@ public class CommCtrl
 	public void setCommandReceiverIsRunning(boolean value)
 	{
 		commandReceiverIsRunning = value;
+
+		if (value == true)
+			return;
+
+		receiver.stopAll();
+		sender.stopAll();
+
+		synchronized (commandResponseCondition)
+		{
+			commandResponseCondition.notify();
+		}
 	}
 
 	private final Object commandResponseCondition = new Object();
@@ -239,12 +252,16 @@ public class CommCtrl
 			if (doWait)
 			{
 				try {commandResponseCondition.wait();} catch(InterruptedException e) {return;}
+
+				if (!commandReceiverIsRunning)
+					return;
 			}
 
 			Log.d("stereoCamera", "checking timeouts");
 
 
 			long now = System.currentTimeMillis();
+			ArrayList<String> toRemove = new ArrayList<>();
 			for (String key : keys)
 			{
 				ResponseListenerStr listener = commandResponseListeners.get(key);
@@ -257,7 +274,7 @@ public class CommCtrl
 					if (diff <= 0)
 					{
 						events.add(listener);
-						commandResponseListeners.remove(key);
+						toRemove.add(key);
 					}
 					else
 					{
@@ -265,6 +282,12 @@ public class CommCtrl
 							{ smallestWait = diff; }
 					}
 				}
+			}
+
+			//avoid concurrentModificationException
+			for (String key : toRemove)
+			{
+				commandResponseListeners.remove(key);
 			}
 		}
 
@@ -284,6 +307,9 @@ public class CommCtrl
 			synchronized(commandResponseCondition)
 			{
 				try {commandResponseCondition.wait(smallestWait); } catch(InterruptedException e) { return; }
+
+				if (!commandReceiverIsRunning)
+					return;
 			}
 		}
 	}
@@ -331,7 +357,11 @@ public class CommCtrl
 
 	public void sendCommand(Command command, CommCtrl.IDefaultResponseListener listenerFunc)
 	{
-		sendCommand(command, new CommCtrl.DefaultResponseListener(listenerFunc), 5000);
+		CommCtrl.DefaultResponseListener listener = null;
+		if (listenerFunc != null)
+			listener = new DefaultResponseListener(listenerFunc);
+
+		sendCommand(command, listener, 5000);
 	}
 
 	public void sendCommand(Command command, CommCtrl.ResponseListener listener, long timeout)
@@ -352,6 +382,12 @@ public class CommCtrl
 			{
 				responder.onCommand(command);
 			}
+		}
+
+		if (command.expectsResponse && !command.isResponse)
+		{
+			command.isResponse = true;
+			sendCommand(command, null);
 		}
 	}
 

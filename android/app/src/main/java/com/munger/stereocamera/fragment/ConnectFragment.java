@@ -316,7 +316,8 @@ public class ConnectFragment extends Fragment
 
 	public void reconnect()
 	{
-		if (prefs.getFirstTime() == true)
+		//if (prefs.getFirstTime() == true)
+		if (true)
 			return;
 
 		if (bluetoothControls.getVisibility() == View.VISIBLE)

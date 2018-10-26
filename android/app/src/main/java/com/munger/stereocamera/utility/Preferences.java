@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import com.munger.stereocamera.MainActivity;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 
 public class Preferences
@@ -22,6 +23,7 @@ public class Preferences
 	private static final String SIDE_KEY = "side";
 	private static final String FACING_KEY = "facing";
 	private static final String FIRST_TIME = "first_time";
+	private static final String ID = "id";
 
 	private enum CameraKeysEnum
 	{
@@ -57,6 +59,7 @@ public class Preferences
 	private boolean isFacing = true;
 	private boolean firstTime = true;
 	private HashMap<String, cameraPrefs> cameras = new HashMap<>();
+	private String id = null;
 
 	public Preferences()
 	{
@@ -135,6 +138,15 @@ public class Preferences
 		{
 			boolean value = preferences.getBoolean(FIRST_TIME, true);
 			firstTime = value;
+		}
+
+		id = preferences.getString(ID, null);
+
+		if (id == null)
+		{
+			UUID uuid = UUID.randomUUID();
+			id = uuid.toString();
+			preferences.edit().putString(ID, id).apply();
 		}
 	}
 
@@ -241,5 +253,10 @@ public class Preferences
 	{
 		firstTime = first;
 		preferences.edit().putBoolean(FIRST_TIME, firstTime).apply();
+	}
+
+	public String getId()
+	{
+		return id;
 	}
 }

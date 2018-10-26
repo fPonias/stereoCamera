@@ -61,11 +61,6 @@ class Version : Command
         
         version = Bytes.fromByteArray(buf)
         
-        if (platform == .ANDROID)
-        {
-            version = CFSwapInt32BigToHost(version)
-        }
-        
         return true
     }
     

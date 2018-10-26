@@ -15,6 +15,7 @@ import com.munger.stereocamera.ip.command.commands.SetZoom;
 import com.munger.stereocamera.ip.command.commands.Version;
 import com.munger.stereocamera.ip.utility.RemoteState;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.PreviewWidget;
 
 import java.util.ArrayList;
 
@@ -212,7 +213,7 @@ public class MasterShake
 		setQualityStep = new Step("quality") { public void execute(final StepListener listener)
 		{
 			Log.d("stereoCamera", "setting image quality");
-			comm.sendCommand(new SetCaptureQuality(SetCaptureQuality.ImageQuality.LO_RES), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
+			comm.sendCommand(new SetCaptureQuality(PreviewWidget.SHUTTER_TYPE.LO_RES), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
 				@Override
 				public void r(boolean success, Command command, Command originalCmd) {
 				if (success)

@@ -75,6 +75,8 @@ class MasterShake
     
     class PingStep : MasterShakeStep
     {
+        var attempt:Int = 0
+    
         var name:String
         {
             get { return "ping" }
@@ -83,7 +85,22 @@ class MasterShake
         func execute(listener: @escaping MasterShakeListener)
         {
             let cmd = Ping()
-            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
+            CommManager.instance.comm.sendCommand(command: cmd, listener: StepListener(
+                received: { (command:Command, origCmd:Command?) in
+                    listener(true)
+                },
+                failed: { [unowned self] in
+                    self.attempt += 1
+            
+                    if (self.attempt == 3)
+                        { listener (false) }
+                    else
+                    {
+                        Thread.sleep(forTimeInterval: 1000)
+                        self.execute(listener: listener)
+                    }
+                })
+            )
         }
     }
     
@@ -99,9 +116,9 @@ class MasterShake
                 in
                     let orig = origCmd as! Version
                     let resp = respCmd as! Version
-                    if (orig.platform == .IOS && orig.version == resp.version)
+                    if (resp.platform == .IOS && orig.version == resp.version)
                         { listener(true) }
-                    else if (orig.platform == .ANDROID && resp.version == 1200)
+                    else if (resp.platform == .ANDROID && resp.version == 1200)
                         { listener(true) }
                     else
                         { listener(false) }

@@ -11,7 +11,6 @@ import java.io.IOException;
 
 public class SendPhoto extends Command
 {
-	public byte[] data;
 	public File file;
 
 	public SendPhoto()
@@ -25,13 +24,6 @@ public class SendPhoto extends Command
 		super();
 
 		file = new File(path);
-		doInit();
-	}
-
-	public SendPhoto(byte[] data)
-	{
-		super();
-		this.data = data;
 		doInit();
 	}
 
@@ -50,21 +42,13 @@ public class SendPhoto extends Command
 
 		try
 		{
-			if (data != null)
-			{
-				comm.putLong(data.length);
+			long sz = 0;
+			if (file != null)
+				sz = file.length();
+			comm.putLong(sz);
 
-				if (data.length > 0)
-					comm.putData(data);
-			}
-			else if (file != null)
-			{
-				long sz = file.length();
-				comm.putLong(sz);
-
-				if (sz > 0)
-					comm.putFile(file);
-			}
+			if (sz > 0)
+				comm.putFile(file);
 		}
 		catch(IOException e){
 			return false;
@@ -86,7 +70,7 @@ public class SendPhoto extends Command
 
 			if (sz == 0)
 			{
-				data = new byte[0];
+				file = null;
 				return true;
 			}
 
@@ -99,20 +83,13 @@ public class SendPhoto extends Command
 			fos.close();
 			Log.d("stereoCamera", "wrote " + sz + " bytes to tmp");
 
-			tmpPath = tmp.getPath();
-			data = comm.getData((int) sz);
+			String tmpPath = tmp.getPath();
+			file = new File(tmpPath);
 		}
 		catch(IOException e){
 			return false;
 		}
 
 		return true;
-	}
-
-	private String tmpPath;
-
-	public String getTmpPath()
-	{
-		return tmpPath;
 	}
 }
