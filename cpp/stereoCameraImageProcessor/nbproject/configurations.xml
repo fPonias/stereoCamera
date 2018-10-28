@@ -1,0 +1,1083 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="100">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <logicalFolder name="include" displayName="include" projectFiles="true">
+      </logicalFolder>
+      <logicalFolder name="jpeg-9c" displayName="jpeg-9c" projectFiles="true">
+        <logicalFolder name=".deps" displayName=".deps" projectFiles="true">
+        </logicalFolder>
+      </logicalFolder>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <logicalFolder name="src" displayName="src" projectFiles="true">
+        <logicalFolder name="include" displayName="include" projectFiles="true">
+          <itemPath>src/include/AnaglyphCompositeImage.h</itemPath>
+          <itemPath>src/include/CompositeImage.h</itemPath>
+          <itemPath>src/include/GreenMagentaCompositeImage.h</itemPath>
+          <itemPath>src/include/Image.h</itemPath>
+          <itemPath>src/include/RedCyanCompositeImage.h</itemPath>
+          <itemPath>src/include/SplitCompositeImage.h</itemPath>
+          <itemPath>src/include/jpegCtrl.hpp</itemPath>
+          <itemPath>src/include/util.h</itemPath>
+        </logicalFolder>
+        <logicalFolder name="jpeg-9c" displayName="jpeg-9c" projectFiles="true">
+          <logicalFolder name=".deps" displayName=".deps" projectFiles="true">
+          </logicalFolder>
+          <itemPath>src/jpeg-9c/.directory</itemPath>
+          <itemPath>src/jpeg-9c/Android.mk</itemPath>
+          <itemPath>src/jpeg-9c/Makefile</itemPath>
+          <itemPath>src/jpeg-9c/Makefile.am</itemPath>
+          <itemPath>src/jpeg-9c/Makefile.in</itemPath>
+          <itemPath>src/jpeg-9c/aclocal.m4</itemPath>
+          <itemPath>src/jpeg-9c/ar-lib</itemPath>
+          <itemPath>src/jpeg-9c/cderror.h</itemPath>
+          <itemPath>src/jpeg-9c/cdjpeg.c</itemPath>
+          <itemPath>src/jpeg-9c/cdjpeg.h</itemPath>
+          <itemPath>src/jpeg-9c/change.log</itemPath>
+          <itemPath>src/jpeg-9c/cjpeg.1</itemPath>
+          <itemPath>src/jpeg-9c/coderules.txt</itemPath>
+          <itemPath>src/jpeg-9c/compile</itemPath>
+          <itemPath>src/jpeg-9c/config.guess</itemPath>
+          <itemPath>src/jpeg-9c/config.log</itemPath>
+          <itemPath>src/jpeg-9c/config.status</itemPath>
+          <itemPath>src/jpeg-9c/config.sub</itemPath>
+          <itemPath>src/jpeg-9c/configure</itemPath>
+          <itemPath>src/jpeg-9c/configure.ac</itemPath>
+          <itemPath>src/jpeg-9c/depcomp</itemPath>
+          <itemPath>src/jpeg-9c/djpeg.1</itemPath>
+          <itemPath>src/jpeg-9c/filelist.txt</itemPath>
+          <itemPath>src/jpeg-9c/install-sh</itemPath>
+          <itemPath>src/jpeg-9c/install.txt</itemPath>
+          <itemPath>src/jpeg-9c/jaricom.c</itemPath>
+          <itemPath>src/jpeg-9c/jcapimin.c</itemPath>
+          <itemPath>src/jpeg-9c/jcapistd.c</itemPath>
+          <itemPath>src/jpeg-9c/jcarith.c</itemPath>
+          <itemPath>src/jpeg-9c/jccoefct.c</itemPath>
+          <itemPath>src/jpeg-9c/jccolor.c</itemPath>
+          <itemPath>src/jpeg-9c/jcdctmgr.c</itemPath>
+          <itemPath>src/jpeg-9c/jchuff.c</itemPath>
+          <itemPath>src/jpeg-9c/jcinit.c</itemPath>
+          <itemPath>src/jpeg-9c/jcmainct.c</itemPath>
+          <itemPath>src/jpeg-9c/jcmarker.c</itemPath>
+          <itemPath>src/jpeg-9c/jcmaster.c</itemPath>
+          <itemPath>src/jpeg-9c/jcomapi.c</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.bcc</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.cfg</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.dj</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.h</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.mac</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.manx</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.mc6</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.sas</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.st</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.txt</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.vc</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.vms</itemPath>
+          <itemPath>src/jpeg-9c/jconfig.wat</itemPath>
+          <itemPath>src/jpeg-9c/jcparam.c</itemPath>
+          <itemPath>src/jpeg-9c/jcprepct.c</itemPath>
+          <itemPath>src/jpeg-9c/jcsample.c</itemPath>
+          <itemPath>src/jpeg-9c/jctrans.c</itemPath>
+          <itemPath>src/jpeg-9c/jdapimin.c</itemPath>
+          <itemPath>src/jpeg-9c/jdapistd.c</itemPath>
+          <itemPath>src/jpeg-9c/jdarith.c</itemPath>
+          <itemPath>src/jpeg-9c/jdatadst.c</itemPath>
+          <itemPath>src/jpeg-9c/jdatasrc.c</itemPath>
+          <itemPath>src/jpeg-9c/jdcoefct.c</itemPath>
+          <itemPath>src/jpeg-9c/jdcolor.c</itemPath>
+          <itemPath>src/jpeg-9c/jdct.h</itemPath>
+          <itemPath>src/jpeg-9c/jddctmgr.c</itemPath>
+          <itemPath>src/jpeg-9c/jdhuff.c</itemPath>
+          <itemPath>src/jpeg-9c/jdinput.c</itemPath>
+          <itemPath>src/jpeg-9c/jdmainct.c</itemPath>
+          <itemPath>src/jpeg-9c/jdmarker.c</itemPath>
+          <itemPath>src/jpeg-9c/jdmaster.c</itemPath>
+          <itemPath>src/jpeg-9c/jdmerge.c</itemPath>
+          <itemPath>src/jpeg-9c/jdpostct.c</itemPath>
+          <itemPath>src/jpeg-9c/jdsample.c</itemPath>
+          <itemPath>src/jpeg-9c/jdtrans.c</itemPath>
+          <itemPath>src/jpeg-9c/jerror.c</itemPath>
+          <itemPath>src/jpeg-9c/jerror.h</itemPath>
+          <itemPath>src/jpeg-9c/jfdctflt.c</itemPath>
+          <itemPath>src/jpeg-9c/jfdctfst.c</itemPath>
+          <itemPath>src/jpeg-9c/jfdctint.c</itemPath>
+          <itemPath>src/jpeg-9c/jidctflt.c</itemPath>
+          <itemPath>src/jpeg-9c/jidctfst.c</itemPath>
+          <itemPath>src/jpeg-9c/jidctint.c</itemPath>
+          <itemPath>src/jpeg-9c/jinclude.h</itemPath>
+          <itemPath>src/jpeg-9c/jmemansi.c</itemPath>
+          <itemPath>src/jpeg-9c/jmemmgr.c</itemPath>
+          <itemPath>src/jpeg-9c/jmemsys.h</itemPath>
+          <itemPath>src/jpeg-9c/jmorecfg.h</itemPath>
+          <itemPath>src/jpeg-9c/jpegint.h</itemPath>
+          <itemPath>src/jpeg-9c/jpeglib.h</itemPath>
+          <itemPath>src/jpeg-9c/jpegtran.1</itemPath>
+          <itemPath>src/jpeg-9c/jquant1.c</itemPath>
+          <itemPath>src/jpeg-9c/jquant2.c</itemPath>
+          <itemPath>src/jpeg-9c/jutils.c</itemPath>
+          <itemPath>src/jpeg-9c/jversion.h</itemPath>
+          <itemPath>src/jpeg-9c/libjpeg.map</itemPath>
+          <itemPath>src/jpeg-9c/libjpeg.pc</itemPath>
+          <itemPath>src/jpeg-9c/libjpeg.pc.in</itemPath>
+          <itemPath>src/jpeg-9c/libjpeg.txt</itemPath>
+          <itemPath>src/jpeg-9c/libtool</itemPath>
+          <itemPath>src/jpeg-9c/ltmain.sh</itemPath>
+          <itemPath>src/jpeg-9c/makcjpeg.st</itemPath>
+          <itemPath>src/jpeg-9c/makdjpeg.st</itemPath>
+          <itemPath>src/jpeg-9c/makeadsw.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makeasln.v15</itemPath>
+          <itemPath>src/jpeg-9c/makecdep.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makecdsp.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makecfil.v15</itemPath>
+          <itemPath>src/jpeg-9c/makecmak.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makecvcx.v15</itemPath>
+          <itemPath>src/jpeg-9c/makeddep.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makeddsp.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makedfil.v15</itemPath>
+          <itemPath>src/jpeg-9c/makedmak.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makedvcx.v15</itemPath>
+          <itemPath>src/jpeg-9c/makefile.ansi</itemPath>
+          <itemPath>src/jpeg-9c/makefile.b32</itemPath>
+          <itemPath>src/jpeg-9c/makefile.bcc</itemPath>
+          <itemPath>src/jpeg-9c/makefile.dj</itemPath>
+          <itemPath>src/jpeg-9c/makefile.manx</itemPath>
+          <itemPath>src/jpeg-9c/makefile.mc6</itemPath>
+          <itemPath>src/jpeg-9c/makefile.mms</itemPath>
+          <itemPath>src/jpeg-9c/makefile.sas</itemPath>
+          <itemPath>src/jpeg-9c/makefile.unix</itemPath>
+          <itemPath>src/jpeg-9c/makefile.vc</itemPath>
+          <itemPath>src/jpeg-9c/makefile.vms</itemPath>
+          <itemPath>src/jpeg-9c/makefile.vs</itemPath>
+          <itemPath>src/jpeg-9c/makefile.wat</itemPath>
+          <itemPath>src/jpeg-9c/makejdep.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makejdsp.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makejdsw.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makejfil.v15</itemPath>
+          <itemPath>src/jpeg-9c/makejmak.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makejsln.v15</itemPath>
+          <itemPath>src/jpeg-9c/makejvcx.v15</itemPath>
+          <itemPath>src/jpeg-9c/makeproj.mac</itemPath>
+          <itemPath>src/jpeg-9c/makerdep.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makerdsp.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makerfil.v15</itemPath>
+          <itemPath>src/jpeg-9c/makermak.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makervcx.v15</itemPath>
+          <itemPath>src/jpeg-9c/maketdep.vc6</itemPath>
+          <itemPath>src/jpeg-9c/maketdsp.vc6</itemPath>
+          <itemPath>src/jpeg-9c/maketfil.v15</itemPath>
+          <itemPath>src/jpeg-9c/maketmak.vc6</itemPath>
+          <itemPath>src/jpeg-9c/maketvcx.v15</itemPath>
+          <itemPath>src/jpeg-9c/makewdep.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makewdsp.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makewfil.v15</itemPath>
+          <itemPath>src/jpeg-9c/makewmak.vc6</itemPath>
+          <itemPath>src/jpeg-9c/makewvcx.v15</itemPath>
+          <itemPath>src/jpeg-9c/makljpeg.st</itemPath>
+          <itemPath>src/jpeg-9c/maktjpeg.st</itemPath>
+          <itemPath>src/jpeg-9c/makvms.opt</itemPath>
+          <itemPath>src/jpeg-9c/missing</itemPath>
+          <itemPath>src/jpeg-9c/rdbmp.c</itemPath>
+          <itemPath>src/jpeg-9c/rdcolmap.c</itemPath>
+          <itemPath>src/jpeg-9c/rdgif.c</itemPath>
+          <itemPath>src/jpeg-9c/rdjpgcom.1</itemPath>
+          <itemPath>src/jpeg-9c/rdppm.c</itemPath>
+          <itemPath>src/jpeg-9c/rdrle.c</itemPath>
+          <itemPath>src/jpeg-9c/rdswitch.c</itemPath>
+          <itemPath>src/jpeg-9c/rdtarga.c</itemPath>
+          <itemPath>src/jpeg-9c/stamp-h1</itemPath>
+          <itemPath>src/jpeg-9c/structure.txt</itemPath>
+          <itemPath>src/jpeg-9c/testimg.bmp</itemPath>
+          <itemPath>src/jpeg-9c/testimg.jpg</itemPath>
+          <itemPath>src/jpeg-9c/testimg.ppm</itemPath>
+          <itemPath>src/jpeg-9c/testimgp.jpg</itemPath>
+          <itemPath>src/jpeg-9c/testorig.jpg</itemPath>
+          <itemPath>src/jpeg-9c/testprog.jpg</itemPath>
+          <itemPath>src/jpeg-9c/transupp.c</itemPath>
+          <itemPath>src/jpeg-9c/transupp.h</itemPath>
+          <itemPath>src/jpeg-9c/usage.txt</itemPath>
+          <itemPath>src/jpeg-9c/wizard.txt</itemPath>
+          <itemPath>src/jpeg-9c/wrbmp.c</itemPath>
+          <itemPath>src/jpeg-9c/wrgif.c</itemPath>
+          <itemPath>src/jpeg-9c/wrjpgcom.1</itemPath>
+          <itemPath>src/jpeg-9c/wrppm.c</itemPath>
+          <itemPath>src/jpeg-9c/wrrle.c</itemPath>
+          <itemPath>src/jpeg-9c/wrtarga.c</itemPath>
+        </logicalFolder>
+        <itemPath>src/AnaglyphCompositeImage.cpp</itemPath>
+        <itemPath>src/GreenMagentaCompositeImage.cpp</itemPath>
+        <itemPath>src/Image.cpp</itemPath>
+        <itemPath>src/RedCyanCompositeImage.cpp</itemPath>
+        <itemPath>src/SplitCompositeImage.cpp</itemPath>
+        <itemPath>src/jpegCtrl.cpp</itemPath>
+        <itemPath>src/util.cpp</itemPath>
+      </logicalFolder>
+      <itemPath>main.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceRootList>
+    <Elem>src</Elem>
+  </sourceRootList>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>arm|GNU</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <incDir>
+            <pElem>src/include</pElem>
+            <pElem>src/jpeg-9c</pElem>
+          </incDir>
+        </cTool>
+        <ccTool>
+          <incDir>
+            <pElem>src/include</pElem>
+            <pElem>src/jpeg-9c</pElem>
+          </incDir>
+        </ccTool>
+      </compileType>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AnaglyphCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GreenMagentaCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Image.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RedCyanCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/SplitCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/include/AnaglyphCompositeImage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/include/CompositeImage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/GreenMagentaCompositeImage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/include/Image.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/RedCyanCompositeImage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/include/SplitCompositeImage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/jpegCtrl.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/util.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/.directory" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Android.mk" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Makefile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Makefile.am" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Makefile.in" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/aclocal.m4" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/ar-lib" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cderror.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cdjpeg.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cdjpeg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/change.log" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cjpeg.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/coderules.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/compile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.guess" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.log" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.status" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.sub" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/configure" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/configure.ac" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/depcomp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/djpeg.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/filelist.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/install-sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/install.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jaricom.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcapimin.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcapistd.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcarith.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jccoefct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jccolor.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcdctmgr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jchuff.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcinit.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcmainct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcmarker.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcmaster.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcomapi.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.bcc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.cfg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.dj" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.mac" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.manx" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.mc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.sas" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.vc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.vms" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.wat" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcparam.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcprepct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcsample.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jctrans.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdapimin.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdapistd.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdarith.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdatadst.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdatasrc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdcoefct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdcolor.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdct.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jddctmgr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdhuff.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdinput.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmainct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmarker.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmaster.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmerge.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdpostct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdsample.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdtrans.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jerror.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jerror.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jfdctflt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jfdctfst.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jfdctint.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jidctflt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jidctfst.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jidctint.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jinclude.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmemansi.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmemmgr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmemsys.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmorecfg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jpegint.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jpeglib.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jpegtran.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jquant1.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jquant2.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jversion.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.map" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.pc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.pc.in" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libtool" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/ltmain.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makcjpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makdjpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeadsw.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeasln.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeddep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeddsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makedfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makedmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makedvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.ansi" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.b32" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.bcc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.dj" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.manx" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.mc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.mms" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.sas" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.unix" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.vc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.vms" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.vs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.wat" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejdsw.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejsln.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeproj.mac" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makerdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makerdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makerfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makermak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makervcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makljpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maktjpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makvms.opt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/missing" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdbmp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdcolmap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdgif.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdjpgcom.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdppm.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdrle.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdswitch.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdtarga.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/stamp-h1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/structure.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimg.bmp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimg.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimg.ppm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimgp.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testorig.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testprog.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/transupp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/transupp.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/usage.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wizard.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrbmp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrgif.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrjpgcom.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrppm.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrrle.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrtarga.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpegCtrl.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/util.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>true</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+      </compileType>
+      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/AnaglyphCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/GreenMagentaCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/Image.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/RedCyanCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/SplitCompositeImage.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/include/AnaglyphCompositeImage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/include/CompositeImage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/GreenMagentaCompositeImage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/include/Image.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/RedCyanCompositeImage.h"
+            ex="false"
+            tool="3"
+            flavor2="0">
+      </item>
+      <item path="src/include/SplitCompositeImage.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/jpegCtrl.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/include/util.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/.directory" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Android.mk" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Makefile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Makefile.am" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/Makefile.in" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/aclocal.m4" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/ar-lib" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cderror.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cdjpeg.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cdjpeg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/change.log" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/cjpeg.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/coderules.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/compile" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.guess" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.log" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.status" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/config.sub" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/configure" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/configure.ac" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/depcomp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/djpeg.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/filelist.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/install-sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/install.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jaricom.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcapimin.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcapistd.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcarith.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jccoefct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jccolor.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcdctmgr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jchuff.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcinit.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcmainct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcmarker.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcmaster.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcomapi.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.bcc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.cfg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.dj" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.mac" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.manx" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.mc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.sas" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.vc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.vms" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jconfig.wat" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcparam.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcprepct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jcsample.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jctrans.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdapimin.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdapistd.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdarith.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdatadst.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdatasrc.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdcoefct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdcolor.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdct.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jddctmgr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdhuff.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdinput.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmainct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmarker.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmaster.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdmerge.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdpostct.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdsample.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jdtrans.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jerror.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jerror.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jfdctflt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jfdctfst.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jfdctint.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jidctflt.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jidctfst.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jidctint.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jinclude.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmemansi.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmemmgr.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmemsys.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jmorecfg.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jpegint.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jpeglib.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jpegtran.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jquant1.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jquant2.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jutils.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/jversion.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.map" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.pc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.pc.in" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libjpeg.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/libtool" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/ltmain.sh" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makcjpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makdjpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeadsw.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeasln.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makecvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeddep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeddsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makedfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makedmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makedvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.ansi" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.b32" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.bcc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.dj" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.manx" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.mc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.mms" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.sas" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.unix" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.vc" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.vms" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.vs" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makefile.wat" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejdsw.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejsln.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makejvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makeproj.mac" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makerdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makerdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makerfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makermak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makervcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maketvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewdep.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewdsp.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewfil.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewmak.vc6" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makewvcx.v15" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makljpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/maktjpeg.st" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/makvms.opt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/missing" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdbmp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdcolmap.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdgif.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdjpgcom.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdppm.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdrle.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdswitch.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/rdtarga.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/stamp-h1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/structure.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimg.bmp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimg.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimg.ppm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testimgp.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testorig.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/testprog.jpg" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/transupp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/transupp.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/usage.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wizard.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrbmp.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrgif.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrjpgcom.1" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrppm.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrrle.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpeg-9c/wrtarga.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="src/jpegCtrl.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="src/util.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

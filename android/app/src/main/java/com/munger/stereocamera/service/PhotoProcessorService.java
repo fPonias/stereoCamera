@@ -110,7 +110,8 @@ public class PhotoProcessorService extends IntentService
 			return;
 
 
-		PhotoProcessor proc = new PhotoProcessor(this, type);
+		//PhotoProcessor proc = new PhotoProcessor(this, type);
+		PhotoProcessorExec proc = new PhotoProcessorExec(this, PhotoProcessorExec.CompositeImageType.SPLIT);
 
 		proc.setData(false, left.jpegPath, left.orientation, left.zoom);
 		proc.setData(true, right.jpegPath, right.orientation, right.zoom);

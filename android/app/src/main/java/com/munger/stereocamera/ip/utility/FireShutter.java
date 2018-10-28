@@ -13,11 +13,15 @@ import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
+import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.service.PhotoProcessor;
+import com.munger.stereocamera.service.PhotoProcessorExec;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.PreviewWidget;
+
+import java.io.File;
 
 public class FireShutter
 {
@@ -28,6 +32,7 @@ public class FireShutter
 
 	private PhotoProcessorService.PhotoArgument localData;
 	private PhotoProcessorService.PhotoArgument remoteData;
+	private boolean flip = false;
 
 	private CommCtrl masterComm;
 	private MasterFragment fragment;
@@ -205,42 +210,9 @@ public class FireShutter
 					localData = tmp;
 				}
 
-				Context c = MainActivity.getInstance();
-				SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(c);
-
-				ArraySet<String> defaults = new ArraySet<>();
-				defaults.add("split");
-				Intent i = PhotoProcessorService.getIntent(localData, remoteData, fragment.getFacing(), PhotoProcessor.CompositeImageType.SPLIT);
-				MainActivity.getInstance().startService(i);
-
-				/*Set<String> formats = sharedPref.getStringSet("pref_formats", defaults);
-
-				Iterator<String> iter = formats.iterator();
-				while(iter.hasNext())
-				{
-					String key = iter.next();
-					PhotoProcessor.CompositeImageType type;
-					switch(key)
-					{
-						case "split":
-						default:
-							type = PhotoProcessor.CompositeImageType.SPLIT;
-							break;
-						case "red blue":
-							type = PhotoProcessor.CompositeImageType.RED_CYAN;
-							break;
-						case "green mag":
-							type = PhotoProcessor.CompositeImageType.GREEN_MAGENTA;
-							break;
-					}
-
-					Intent i = PhotoProcessorService.getIntent(localData, remoteData, fragment.getFacing(), type);
-					MainActivity.getInstance().startService(i);
-				}
-				*/
-
-				listener.done();
+				done2();
 			}
+
 
 			@Override
 			public void fail()
@@ -255,5 +227,60 @@ public class FireShutter
 				dialog.show();
 			}
 		});
+	}
+
+	private void done2()
+	{
+		//PhotoProcessor proc = new PhotoProcessor(this, type);
+		PhotoProcessorExec proc = new PhotoProcessorExec(MainActivity.getInstance(), PhotoProcessorExec.CompositeImageType.SPLIT);
+
+		proc.setData(false, localData.jpegPath, localData.orientation, localData.zoom);
+		proc.setData(true, remoteData.jpegPath, remoteData.orientation, remoteData.zoom);
+
+		String out = proc.processData(flip);
+
+		if (out == null)
+		{
+			listener.fail();
+			return;
+		}
+
+		handleProcessedPhoto(out);
+
+		listener.done();
+	}
+
+	public void handleProcessedPhoto(final String path)
+	{
+		if (photoFiles == null)
+			photoFiles = new PhotoFiles(MainActivity.getInstance());
+
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		{
+			@Override
+			public void done()
+			{
+				handlePhotoProcessed2(path);
+			}
+
+			@Override
+			public void fail()
+			{
+
+			}
+		});
+	}
+
+	private void handlePhotoProcessed2(String path)
+	{
+		File fl = new File(path);
+		String newPath = photoFiles.saveNewFile(fl);
+
+		masterComm.sendCommand(new SendPhoto(newPath), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
+		{
+
+		}}), 30000);
+
+		MainActivity.getInstance().onNewPhoto(newPath);
 	}
 }

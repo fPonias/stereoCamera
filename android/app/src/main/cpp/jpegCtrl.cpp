@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <setjmp.h>
-#include <memory.h>
+#include <memory>
 #include "jpegCtrl.hpp"
 
 void JpegCtrl::write_JPEG_file (const char * filename, int quality, ImageData* data)

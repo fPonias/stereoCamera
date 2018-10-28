@@ -454,7 +454,7 @@ public class MainActivity extends BaseActivity
 
 	private PhotoFiles photoFiles = null;
 
-	private void handleProcessedPhoto(final String path)
+	public void handleProcessedPhoto(final String path)
 	{
 		if (photoFiles == null)
 			photoFiles = new PhotoFiles(this);
@@ -480,15 +480,14 @@ public class MainActivity extends BaseActivity
 		File fl = new File(path);
 		String newPath = photoFiles.saveNewFile(fl);
 
-		Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
+		//Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
 
 		if (ctrl != null && ctrl.isMaster())
 		{
 			ctrl.sendCommand(new SendPhoto(newPath), null);
 		}
 
-		for (Listener listener : listeners)
-			listener.onNewPhoto(newPath);
+		onNewPhoto(newPath);
 	}
 
 
@@ -516,6 +515,12 @@ public class MainActivity extends BaseActivity
 		{
 			listeners.remove(listener);
 		}
+	}
+
+	public void onNewPhoto(String path)
+	{
+		for (Listener listener : listeners)
+			listener.onNewPhoto(path);
 	}
 
 	public void handleDisconnection()

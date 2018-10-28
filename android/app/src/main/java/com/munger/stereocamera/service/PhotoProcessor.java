@@ -110,7 +110,8 @@ public class PhotoProcessor
 	{
 		try
 		{
-			File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+			//File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+			File dir = new File("/data/local/tmp");
 			if (isRight)
 				copy(new File(path), new File(dir.getPath() + "/right.jpg"));
 			else
