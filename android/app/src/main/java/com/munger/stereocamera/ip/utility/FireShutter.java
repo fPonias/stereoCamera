@@ -246,8 +246,6 @@ public class FireShutter
 		}
 
 		handleProcessedPhoto(out);
-
-		listener.done();
 	}
 
 	public void handleProcessedPhoto(final String path)
@@ -266,7 +264,7 @@ public class FireShutter
 			@Override
 			public void fail()
 			{
-
+				listener.fail();
 			}
 		});
 	}
@@ -278,7 +276,10 @@ public class FireShutter
 
 		masterComm.sendCommand(new SendPhoto(newPath), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
 		{
-
+			if (success)
+				listener.done();
+			else
+				listener.fail();
 		}}), 30000);
 
 		MainActivity.getInstance().onNewPhoto(newPath);

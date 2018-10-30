@@ -39,7 +39,7 @@ public class Comm
 			long count = 0;
 			long read = 0;
 
-			while (read > -1)
+			while (read > -1 && count < sz)
 			{
 				long diff = sz - count;
 				long toRead = Math.min(diff, 4096);

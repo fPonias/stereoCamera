@@ -117,7 +117,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                     }
                 }
                 
-                CommManager.instance.comm.sendCommand(command: fireShutter, listener: Foo(self))
+                CommManager.instance.comm.sendCommand(command: fireShutter)
             })
         case CommandTypes.SEND_PROCESSED_PHOTO:
             let sendPhotoReply = SendPhoto()

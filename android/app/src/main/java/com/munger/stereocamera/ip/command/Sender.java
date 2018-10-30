@@ -79,6 +79,9 @@ public class Sender
 
 		synchronized (commandSenderCondition)
 		{
+			if (!commandSenderIsRunning)
+				return;
+
 			if (commandQueue.size() == 0)
 			{
 				Log.d("stereoCamera", "send: waiting");
