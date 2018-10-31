@@ -47,8 +47,7 @@ import com.munger.stereocamera.widget.ZoomWidget;
 public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
-	private OrientationWidget verticalIndicator;
-	private OrientationWidget horizontalIndicator;
+	private ImageButton swapButton;
 	private ViewGroup controls;
 	PreviewOverlayWidget overlayWidget;
 	private ThumbnailWidget thumbnailWidget;
@@ -78,8 +77,9 @@ public class MasterFragment extends PreviewFragment
 
 		clickButton = rootView.findViewById(R.id.shutter);
 		updateShutterButton();
-		verticalIndicator = rootView.findViewById(R.id.vert_level);
-		horizontalIndicator = rootView.findViewById(R.id.horiz_level);
+
+		swapButton = rootView.findViewById(R.id.hand);
+		updateHandPhoneButton();
 
 		zoomSlider = rootView.findViewById(R.id.zoom_slider);
 		zoomSlider.setListener(new ZoomWidget.Listener() {public void onChange(float value)
@@ -93,6 +93,11 @@ public class MasterFragment extends PreviewFragment
 		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
 		{
 			doShutter();
+		}});
+
+		swapButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
+		{
+			swapHand();
 		}});
 
 		startLocalGravity();
@@ -154,7 +159,6 @@ public class MasterFragment extends PreviewFragment
 	}
 
 	private MenuItem flipItem;
-	private MenuItem swapItem;
 	private MenuItem debugItem;
 	private MenuItem galleryItem;
 	private MenuItem prefsItem;
@@ -167,7 +171,6 @@ public class MasterFragment extends PreviewFragment
 		inflater.inflate(R.menu.master_menu, menu);
 
 		flipItem = menu.findItem(R.id.flip);
-		swapItem = menu.findItem(R.id.swap);
 		debugItem = menu.findItem(R.id.test);
 		galleryItem = menu.findItem(R.id.gallery);
 		prefsItem = menu.findItem(R.id.prefs);
@@ -178,18 +181,6 @@ public class MasterFragment extends PreviewFragment
 		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
 			onFlip();
-
-			return true;
-		}});
-
-		swapItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
-		{
-			Preferences prefs = MainActivity.getInstance().getPrefs();
-			boolean val = !prefs.getIsOnLeft();
-			prefs.setIsOnLeft(val);
-
-			updateHandPhoneButton();
-			updateShutterButton();
 
 			return true;
 		}});
@@ -382,15 +373,49 @@ public class MasterFragment extends PreviewFragment
 		}
 	}
 
+	private void swapHand()
+	{
+		Preferences prefs = MainActivity.getInstance().getPrefs();
+		boolean val = prefs.getIsOnLeft();
+		val = !val;
+		prefs.setIsOnLeft(val);
+
+		updateHandPhoneButton();
+	}
+
 	private void updateHandPhoneButton()
 	{
 		Preferences prefs = MainActivity.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 
 		if (val)
-			swapItem.setIcon(R.drawable.hand_phone_white);
+		{
+			swapButton.setImageResource(R.drawable.hand_phone_white);
+
+			RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) swapButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			swapButton.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			clickButton.setLayoutParams(lp);
+		}
 		else
-			swapItem.setIcon(R.drawable.hand_phone_white_right);
+		{
+			swapButton.setImageResource(R.drawable.hand_phone_white_right);
+
+			RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) swapButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			swapButton.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			clickButton.setLayoutParams(lp);
+		}
 	}
 
 	private void updateShutterButton()
@@ -420,7 +445,7 @@ public class MasterFragment extends PreviewFragment
 	private OrientationCtrl orientationCtrl;
 	private void startLocalGravity()
 	{
-		orientationCtrl = new OrientationCtrl();
+		/*orientationCtrl = new OrientationCtrl();
 		orientationCtrl.setChangeListener(new OrientationCtrl.ChangeListener()
 		{
 			@Override
@@ -433,7 +458,7 @@ public class MasterFragment extends PreviewFragment
 				horizontalIndicator.setRotation((float) ax);
 			}
 		});
-		orientationCtrl.start();
+		orientationCtrl.start();*/
 	}
 
 	private void doShutter()
@@ -502,7 +527,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void openThumbnail()
 	{
-		MainActivity.getInstance().startThumbnailView();
+		MainActivity.getInstance().startGalleryView();
 	}
 
 	@Override
@@ -539,14 +564,14 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onGravity(SendGravity.Gravity value)
 		{
-			final double az = OrientationCtrl.verticalOrientation(value.x, value.y, value.z);
+			/*final double az = OrientationCtrl.verticalOrientation(value.x, value.y, value.z);
 			final double ax = OrientationCtrl.horizontalOrientation(remoteState.orientation, value.x, value.y, value.z);
 
 			handler.post(new Runnable() {public void run()
 			{
 				verticalIndicator.setRotation2((float) az - 90.0f);
 				horizontalIndicator.setRotation2((float) ax);
-			}});
+			}});*/
 		}
 
 		@Override

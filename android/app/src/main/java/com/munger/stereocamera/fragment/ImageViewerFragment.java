@@ -214,6 +214,13 @@ public class ImageViewerFragment extends Fragment
 		}
 	}
 
+	private String startingPath = null;
+
+	public void setStartingPath(String path)
+	{
+		startingPath = path;
+	}
+
 	private int pageIndex = 0;
 	private final Object lock = new Object();
 	private Thread playbackThread = null;
@@ -424,10 +431,6 @@ public class ImageViewerFragment extends Fragment
 		{
 			pageIndex = savedInstanceState.getInt("index", 0);
 		}
-		else
-		{
-			pageIndex = 0;
-		}
 
 		updateShareMenuItemCtrl();
 	}
@@ -586,7 +589,7 @@ public class ImageViewerFragment extends Fragment
 		});
 	}
 
-	public static class ImagePagerAdapter extends PagerAdapter
+	public class ImagePagerAdapter extends PagerAdapter
 	{
 		private Context context;
 		private PhotoFiles photoFiles;
@@ -610,7 +613,23 @@ public class ImageViewerFragment extends Fragment
 
 		public void update()
 		{
-			files = photoFiles.getFiles();
+			updateData();
+
+			if (startingPath != null)
+			{
+				int sz = files.length;
+				for (int i = 0; i < sz; i++)
+				{
+					String file = files[i];
+					if (file.equals(startingPath))
+					{
+						pageIndex = i;
+						break;
+					}
+				}
+
+				startingPath = null;
+			}
 
 			synchronized (lock)
 			{
@@ -629,6 +648,34 @@ public class ImageViewerFragment extends Fragment
 			}
 
 			notifyDataSetChanged();
+		}
+
+		private void updateData()
+		{
+			PhotoFiles.DatedFiles data = photoFiles.getFilesByDate();
+			int count = 0;
+			int sz = data.dates.size();
+			for (int i = 0; i < sz; i++)
+			{
+				ArrayList<String> list = data.files.get(data.dates.get(i));
+				count += list.size();
+			}
+
+			files = new String[count];
+			int filei = 0;
+
+			for (int i = 0; i < sz; i++)
+			{
+				ArrayList<String> list = data.files.get(data.dates.get(i));
+				int listSz = list.size();
+				for (int j = 0; j < listSz; j++)
+				{
+					files[filei] = list.get(j);
+					filei++;
+				}
+			}
+
+			files = photoFiles.getFiles();
 		}
 
 		public void cleanUp()

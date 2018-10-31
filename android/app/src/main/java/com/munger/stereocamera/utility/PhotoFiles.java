@@ -24,7 +24,13 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 public class PhotoFiles
 {
@@ -207,6 +213,82 @@ public class PhotoFiles
 		Arrays.sort(arr, comparator);
 
 		return arr;
+	}
+
+	public static class DatedFiles
+	{
+		public ArrayList<Long> dates = new ArrayList<>();
+		public HashMap<Long, ArrayList<String>> files = new HashMap<>();
+	}
+
+	private Long getIndexFromLong(long dt)
+	{
+		long ret = 0;
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(dt);
+
+		int year = cal.get(Calendar.YEAR);
+		ret += year * 10000;
+
+		int month = cal.get(Calendar.MONTH);
+		ret += month * 100;
+
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		ret += day;
+
+		return ret;
+	}
+
+	public DatedFiles getFilesByDate()
+	{
+		DatedFiles ret = new DatedFiles();
+
+		long lastIndex = 0;
+		ArrayList<String> list = null;
+		String[] files = getFiles();
+		HashMap<Long, Integer> indexMap = new HashMap<>();
+
+		for (String  fileStr : files)
+		{
+			File file = new File(fileStr);
+			long dt = file.lastModified();
+			long index = getIndexFromLong(dt);
+
+			if (lastIndex != index)
+			{
+				if (!indexMap.containsKey(index))
+				{
+					int i = ret.dates.size();
+					ret.dates.add(index);
+
+					list = new ArrayList<>();
+					ret.files.put(index, list);
+
+					indexMap.put(index, i);
+				}
+				else
+				{
+					int i = indexMap.get(index);
+					long dateIdx = ret.dates.get(i);
+					list = ret.files.get(dateIdx);
+				}
+
+				lastIndex = index;
+			}
+
+			list.add(fileStr);
+		}
+
+		int sz = ret.dates.size();
+		Long[] keyArr = new Long[sz];
+		ret.dates.toArray(keyArr);
+		Arrays.sort(keyArr);
+
+		ret.dates = new ArrayList<>();
+		for (int i = sz - 1; i >= 0; i--)
+			ret.dates.add(keyArr[i]);
+
+		return ret;
 	}
 
 	public boolean hasFiles()

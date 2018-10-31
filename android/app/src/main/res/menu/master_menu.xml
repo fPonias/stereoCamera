@@ -8,12 +8,6 @@
             app:showAsAction="ifRoom"
             android:title="@string/menu_flip"
             />
-        <item
-            android:id="@+id/swap"
-            android:icon="@drawable/hand_phone_white"
-            app:showAsAction="ifRoom"
-            android:title="@string/menu_swap"
-            />
 
     </group>
     <group android:id="@+id/menu_group_imaging">

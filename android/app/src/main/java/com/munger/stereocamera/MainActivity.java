@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+import com.munger.stereocamera.fragment.Gallery;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
@@ -178,7 +179,9 @@ public class MainActivity extends BaseActivity
 					else if (fragment instanceof HelpFragment)
 						helpFragment = (HelpFragment) fragment;
 					else if (fragment instanceof ImageViewerFragment)
-						imgViewFragment = (ImageViewerFragment) fragment;
+						imageViewerFragment = (ImageViewerFragment) fragment;
+					else if (fragment instanceof Gallery)
+						galleryFragment = (Gallery) fragment;
 					else if (fragment instanceof SettingsFragment)
 						settingsFragment = (SettingsFragment) fragment;
 				}
@@ -312,7 +315,8 @@ public class MainActivity extends BaseActivity
 
 			if (newCount == 0 && lastCount > 0)
 			{
-				ctrl.sendCommand(new Disconnect(), null);
+				if (ctrl != null)
+					ctrl.sendCommand(new Disconnect(), null);
 
 				slaveFragment = null;
 				masterFragment = null;
@@ -344,7 +348,8 @@ public class MainActivity extends BaseActivity
 	private BackStackListener backStackListener;
 	private MasterFragment masterFragment;
 	private SlaveFragment slaveFragment;
-	private ImageViewerFragment imgViewFragment;
+	private Gallery galleryFragment;
+	private ImageViewerFragment imageViewerFragment;
 	private SettingsFragment settingsFragment;
 	private HelpFragment helpFragment;
 
@@ -376,7 +381,7 @@ public class MainActivity extends BaseActivity
 		ft.commit();
 	}
 
-	public void startThumbnailView()
+	public void startThumbnailView(final String path)
 	{
 		final PhotoFiles photoFiles = new PhotoFiles(this);
 		photoFiles.openTargetDir(new PhotoFiles.Listener()
@@ -387,10 +392,44 @@ public class MainActivity extends BaseActivity
 				if (!photoFiles.hasFiles())
 					return;
 
-				imgViewFragment = new ImageViewerFragment();
+				imageViewerFragment = new ImageViewerFragment();
+				imageViewerFragment.setStartingPath(path);
 				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
 				ft.addToBackStack("imgView");
-				ft.replace(android.R.id.content, imgViewFragment, imgViewFragment.getTag());
+				ft.replace(android.R.id.content, imageViewerFragment, imageViewerFragment.getTag());
+				ft.commit();
+			}
+
+			@Override
+			public void fail()
+			{
+				final AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
+						.setMessage(R.string.thumbnail_filesystem_error)
+						.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
+						{
+							dialogInterface.dismiss();
+						}})
+						.create();
+				dialog.show();
+			}
+		});
+	}
+
+	public void startGalleryView()
+	{
+		final PhotoFiles photoFiles = new PhotoFiles(this);
+		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		{
+			@Override
+			public void done()
+			{
+				if (!photoFiles.hasFiles())
+					return;
+
+				galleryFragment = new Gallery();
+				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+				ft.addToBackStack("imgView");
+				ft.replace(android.R.id.content, galleryFragment, galleryFragment.getTag());
 				ft.commit();
 			}
 

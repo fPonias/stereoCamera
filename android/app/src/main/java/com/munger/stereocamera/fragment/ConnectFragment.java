@@ -340,6 +340,6 @@ public class ConnectFragment extends Fragment
 
 	private void thumbnailClicked()
 	{
-		MainActivity.getInstance().startThumbnailView();
+		MainActivity.getInstance().startGalleryView();
 	}
 }
