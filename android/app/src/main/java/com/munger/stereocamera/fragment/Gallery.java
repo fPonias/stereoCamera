@@ -7,15 +7,21 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatImageButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
+import android.view.ActionProvider;
 import android.view.Display;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Adapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -29,9 +35,11 @@ import com.munger.stereocamera.utility.PhotoFiles;
 import java.io.File;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 
@@ -42,6 +50,10 @@ public class Gallery extends Fragment
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
     private PhotoFiles.DatedFiles imageFiles;
     private PhotoFiles files;
+
+    private ViewGroup bottomMenu;
+    private AppCompatImageButton shareButton;
+    private AppCompatImageButton trashButton;
 
     public enum Types
     {
@@ -77,6 +89,40 @@ public class Gallery extends Fragment
             firstShownIndex = savedInstanceState.getInt("firstIndex");
         }
 
+        setHasOptionsMenu(true);
+    }
+
+    private MenuItem editItem;
+    private boolean isEditing = false;
+    private HashSet<Integer> selected = new HashSet<>();
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+    {
+        inflater.inflate(R.menu.gallery_menu, menu);
+
+        editItem = menu.findItem(R.id.editBtn);
+
+        editItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {public boolean onMenuItemClick(MenuItem item)
+        {
+            toggleEditing();
+            return true;
+        }});
+    }
+
+    private void toggleEditing()
+    {
+        isEditing = !isEditing;
+
+        if (isEditing)
+        {
+            bottomMenu.setVisibility(View.VISIBLE);
+            selected.clear();
+        }
+        else
+        {
+            bottomMenu.setVisibility(View.GONE);
+        }
     }
 
     private int firstShownIndex = 0;
@@ -147,7 +193,7 @@ public class Gallery extends Fragment
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
         View ret = inflater.inflate(R.layout.fragment_gallery, container, false);
-        grid = (RecyclerView) ret;
+        grid = ret.findViewById(R.id.daysList);
         layoutMgr = new LayoutMgr();
         grid.setLayoutManager(layoutMgr);
 
@@ -157,7 +203,86 @@ public class Gallery extends Fragment
         if (firstShownIndex > 0)
             layoutMgr.scrollToIndex(firstShownIndex);
 
+
+        bottomMenu = ret.findViewById(R.id.bottom_menu);
+        shareButton = ret.findViewById(R.id.share_btn);
+        trashButton = ret.findViewById(R.id.trash_btn);
+
+        trashButton.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
+        {
+            deleteSelected();
+        }});
+
         return ret;
+    }
+
+    private void deleteSelected()
+    {
+        int[] toDelete = new int[selected.size()];
+        int i = 0;
+        Iterator<Integer> iter = selected.iterator();
+        while(iter.hasNext())
+        {
+            int position = iter.next();
+            toDelete[i] = position;
+            int idx = getIdx(position);
+            int subidx = getSubIdx(position);
+
+            String path = imageFiles.files.get(imageFiles.dates.get(idx)).get(subidx);
+            File file = new File(path);
+            file.delete();
+            i++;
+        }
+
+        Arrays.sort(toDelete);
+        int sz = toDelete.length;
+        for (i = sz - 1; i >= 0; i--)
+        {
+            int position = toDelete[i];
+            int idx = getIdx(position);
+            int subidx = getSubIdx(position);
+
+            long hash = imageFiles.dates.get(idx);
+            ArrayList<String> paths = imageFiles.files.get(hash);
+
+            paths.remove(subidx);
+            if (paths.size() == 0)
+            {
+                imageFiles.files.remove(hash);
+                imageFiles.dates.remove(idx);
+            }
+        }
+
+        selected.clear();
+        toggleEditing();
+
+        layoutMgr.reset();
+        adapter.notifyDataSetChanged();
+    }
+
+    private void openThumbnail(int position)
+    {
+        int idx = getIdx(position);
+        int subIdx = getSubIdx(position);
+        long dt = imageFiles.dates.get(idx);
+        String path = imageFiles.files.get(dt).get(subIdx);
+
+        MainActivity.getInstance().startThumbnailView(path);
+    }
+
+    private void toggleSelected(View view, int position)
+    {
+        ImageView selectedIcon = view.findViewById(R.id.check);
+        if (selected.contains(position))
+        {
+            selectedIcon.setVisibility(View.INVISIBLE);
+            selected.remove(position);
+        }
+        else
+        {
+            selectedIcon.setVisibility(View.VISIBLE);
+            selected.add(position);
+        }
     }
 
     private static int tag = 0;
@@ -203,12 +328,10 @@ public class Gallery extends Fragment
                 int tag = (int) view.getTag();
                 int position = widgetIndex.get(tag);
 
-                int idx = getIdx(position);
-                int subIdx = getSubIdx(position);
-                long dt = imageFiles.dates.get(idx);
-                String path = imageFiles.files.get(dt).get(subIdx);
-
-                MainActivity.getInstance().startThumbnailView(path);
+                if (!isEditing)
+                    openThumbnail(position);
+                else
+                    toggleSelected(view, position);
             }
         };
 
@@ -322,6 +445,11 @@ public class Gallery extends Fragment
                 String path = imageFiles.files.get(dt).get(subIdx);
                 Bitmap bmp = getBitmap(path);
                 imageHolder.thumbnail.setImageBitmap(bmp);
+
+                if (selected.contains(position))
+                    imageHolder.selectedIcon.setVisibility(View.VISIBLE);
+                else
+                    imageHolder.selectedIcon.setVisibility(View.INVISIBLE);
             }
         }
 
@@ -425,9 +553,23 @@ public class Gallery extends Fragment
             maxY = curY - height;
         }
 
+        private boolean resetOnLayout = false;
+
+        public void reset()
+        {
+            resetOnLayout = true;
+        }
+
         @Override
         public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state)
         {
+            if (resetOnLayout)
+            {
+                resetOnLayout = false;
+                removeAndRecycleAllViews(recycler);
+                placedViews.clear();
+            }
+
             calculatePositions(state);
 
             if (delayedScroll > 0)
