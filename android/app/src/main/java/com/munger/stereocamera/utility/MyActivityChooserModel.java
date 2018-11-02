@@ -352,9 +352,11 @@ public class MyActivityChooserModel extends DataSetObservable
 	}
 
 	private String shareType;
+	private boolean multiple;
 
-	public void setShareType(String type)
+	public void setShareType(String type, boolean isMultiple)
 	{
+		multiple = isMultiple;
 		shareType = type;
 		mReloadActivities = true;
 		ensureConsistentState();
@@ -684,9 +686,20 @@ public class MyActivityChooserModel extends DataSetObservable
 		mReloadActivities = false;
 		mActivities.clear();
 
-		Intent i = new Intent(Intent.ACTION_SEND);
+		Intent i;
+
+		if (multiple)
+		{
+			i = new Intent(Intent.ACTION_SEND_MULTIPLE);
+			i.putExtra(Intent.EXTRA_STREAM, new ArrayList(){{add(Uri.fromFile(new File(".")));}});
+		}
+		else
+		{
+			i = new Intent(Intent.ACTION_SEND);
+			i.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(".")));
+		}
+
 		i.setType(shareType);
-		i.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(new File(".")));
 
 		if (Build.VERSION.SDK_INT >= 21) {
 			// If we're on Lollipop, we can open the intent as a document

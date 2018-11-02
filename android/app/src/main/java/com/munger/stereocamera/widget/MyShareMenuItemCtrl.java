@@ -19,6 +19,8 @@ import com.munger.stereocamera.utility.MyActivityChooserView;
 import com.munger.stereocamera.utility.MyShareActionProvider;
 
 import java.io.File;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 public class MyShareMenuItemCtrl
 {
@@ -26,7 +28,8 @@ public class MyShareMenuItemCtrl
 	private Intent shareIntent;
 	private MyActivityChooserView actionView;
 	private Context context;
-	private MenuItem menuItem;
+	private Object menuItem;
+	private View menuButton;
 
 	private MyActivityChooserModel.OnChooseActivityListener shareListener = new MyActivityChooserModel.OnChooseActivityListener()
 	{
@@ -37,17 +40,17 @@ public class MyShareMenuItemCtrl
 		@Override
 		public void onActivityChosen(MyActivityChooserModel host, ComponentName componentName, MyActivityChooserModel.OnChooseActivityResponder responder)
 		{
-			if (path == null)
+			if (paths == null || paths.length == 0)
 				return;
 
 			this.host = host;
 			this.componentName = componentName;
 			this.responder = responder;
 
-			if (componentName.getClassName().contains("instagram"))
+			if (componentName.getClassName().contains("instagram") && paths.length == 1)
 			{
 				InstagramTransform transform = new InstagramTransform(context);
-				File file = new File(path);
+				File file = new File(paths[0]);
 				transform.transform(file, new InstagramTransform.Listener()
 				{
 					@Override
@@ -66,7 +69,7 @@ public class MyShareMenuItemCtrl
 			}
 			else
 			{
-				sendIntent(getShareUri());
+				sendIntent();
 			}
 		}
 
@@ -81,6 +84,25 @@ public class MyShareMenuItemCtrl
 			responder.sendIntent(shareIntent);
 		}
 
+		private void sendIntent()
+		{
+			if (paths.length == 1)
+			{
+				sendIntent(getShareUri(new File(paths[0])));
+				return;
+			}
+
+			ArrayList<Uri> uris = getShareUris();
+
+			shareIntent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+			shareIntent.setType(host.getShareType());
+			shareIntent.setComponent(componentName);
+			shareIntent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+			MyShareActionProvider.updateIntent(shareIntent);
+
+			responder.sendIntent(shareIntent);
+		}
+
 		@Override
 		public void onActivityStarted(MyActivityChooserModel host, Intent intent)
 		{
@@ -88,53 +110,80 @@ public class MyShareMenuItemCtrl
 		}
 	};
 
-	public MyShareMenuItemCtrl(final Context context, MenuItem shareMenuItem, final int itemId)
+	public MyShareMenuItemCtrl(final Context context, View shareItem, int itemId)
+	{
+		this.context = context;
+		this.menuItem = shareItem;
+		shareItem.setOnClickListener(new View.OnClickListener() {public void onClick(View v)
+		{
+			MyShareMenuItemCtrl.this.onClick();
+		}});
+
+		doInit(itemId);
+	}
+
+	public MyShareMenuItemCtrl(final Context context, MenuItem shareMenuItem, int itemId)
 	{
 		this.context = context;
 		this.menuItem = shareMenuItem;
+		shareMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
+		{
+			onClick();
+			return true;
+		}});
+
+		doInit(itemId);
+	}
+
+	private void doInit(final int itemId)
+	{
+		this.context = context;
 
 		actionView = new MyActivityChooserView(MainActivity.getInstance());
-
-		menuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener()
-		{
-			@Override
-			public boolean onMenuItemClick(MenuItem item)
-			{
-				if (!actionView.isInEditMode())
-				{
-					MyActivityChooserModel dataModel = MyActivityChooserModel.get(context, "share_history.xml");
-					dataModel.setShareType("image/jpeg");
-					shareListener.setModel(dataModel);
-					actionView.setActivityChooserModel(dataModel);
-				}
-
-				actionView.showPopup();
-
-				return true;
-			}
-		});
-
 
 		MainActivity mainActivity = MainActivity.getInstance();
 		final ViewTreeObserver viewTreeObserver = mainActivity.getWindow().getDecorView().getViewTreeObserver();
 		viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() { public void onGlobalLayout()
 		{
-			View menuButton = MainActivity.getInstance().findViewById(itemId);
+			menuButton = MainActivity.getInstance().findViewById(itemId);
 
 			if (menuButton != null)
 			{
-				// Found it! Do what you need with the button
-				int[] location = new int[2];
-				menuButton.getLocationInWindow(location);
-				int height = menuButton.getMeasuredHeight();
-
-				actionView.setVerticalOffset(location[1] + height);
-				actionView.setHorizontalOffset(location[0]);
+				updateMenuPosition();
 
 				// Now you can get rid of this listener
 				viewTreeObserver.removeOnGlobalLayoutListener(this);
 			}
 		}});
+	}
+
+	public void updateMenuPosition()
+	{
+		if (menuButton == null)
+			return;
+
+		// Found it! Do what you need with the button
+		int[] location = new int[2];
+		menuButton.getLocationInWindow(location);
+		int height = menuButton.getMeasuredHeight();
+
+		actionView.setVerticalOffset(location[1] + height);
+		actionView.setHorizontalOffset(location[0]);
+	}
+
+	private void onClick()
+	{
+		if (!actionView.isInEditMode())
+		{
+			boolean isMultiple = (paths.length > 1) ? true : false;
+
+			MyActivityChooserModel dataModel = MyActivityChooserModel.get(context, "share_history.xml");
+			dataModel.setShareType("image/jpeg", isMultiple);
+			shareListener.setModel(dataModel);
+			actionView.setActivityChooserModel(dataModel);
+		}
+
+		actionView.showPopup();
 	}
 
 	private Uri getShareUri(File shareFile)
@@ -143,16 +192,29 @@ public class MyShareMenuItemCtrl
 		return uri;
 	}
 
-	private String path;
+	private String[] paths;
 
-	private Uri getShareUri()
+	private ArrayList<Uri> getShareUris()
 	{
-		File shareFile = new File(path);
-		return getShareUri(shareFile);
+		int sz = paths.length;
+		ArrayList<Uri> ret = new ArrayList<>();
+		for (int i = 0; i < sz; i++)
+		{
+			File shareFile = new File(paths[i]);
+			Uri item = getShareUri(shareFile);
+			ret.add(item);
+		}
+
+		return ret;
 	}
 
 	public void setCurrentPath(String path)
 	{
-		this.path = path;
+		this.paths = new String[] {path};
+	}
+
+	public void setCurrentPaths(String[] paths)
+	{
+		this.paths = paths;
 	}
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path
-        path="Pictures/StereoCamera/"
+        path="Pictures/3D Camera for 2/"
         name="saveImages" />
     <cache-path
         name="cacheImages"

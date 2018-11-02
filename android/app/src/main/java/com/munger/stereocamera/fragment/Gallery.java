@@ -4,6 +4,8 @@ import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -30,7 +32,9 @@ import android.widget.TextView;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.ip.command.commands.Handshake;
 import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.widget.MyShareMenuItemCtrl;
 
 import java.io.File;
 import java.lang.reflect.Array;
@@ -54,6 +58,7 @@ public class Gallery extends Fragment
     private ViewGroup bottomMenu;
     private AppCompatImageButton shareButton;
     private AppCompatImageButton trashButton;
+    private MyShareMenuItemCtrl shareMenuItemCtrl;
 
     public enum Types
     {
@@ -87,6 +92,13 @@ public class Gallery extends Fragment
         if (savedInstanceState != null && savedInstanceState.containsKey("firstIndex"))
         {
             firstShownIndex = savedInstanceState.getInt("firstIndex");
+            isEditing = savedInstanceState.getBoolean("isEditing");
+            int[] arr = savedInstanceState.getIntArray("selected");
+
+            selected = new HashSet<>();
+            int sz = arr.length;
+            for (int i = 0; i < sz; i++)
+                selected.add(arr[i]);
         }
 
         setHasOptionsMenu(true);
@@ -105,23 +117,28 @@ public class Gallery extends Fragment
 
         editItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {public boolean onMenuItemClick(MenuItem item)
         {
-            toggleEditing();
+            setIsEditing(!isEditing);
             return true;
         }});
     }
 
-    private void toggleEditing()
+    private void setIsEditing(boolean isEditing)
     {
-        isEditing = !isEditing;
+        this.isEditing = isEditing;
 
         if (isEditing)
         {
             bottomMenu.setVisibility(View.VISIBLE);
-            selected.clear();
+
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {public void run()
+            {
+                shareMenuItemCtrl.updateMenuPosition();
+            }}, 250);
         }
         else
         {
             bottomMenu.setVisibility(View.GONE);
+            selected.clear();
         }
     }
 
@@ -134,6 +151,17 @@ public class Gallery extends Fragment
 
         int idx = layoutMgr.getFirstShownIndex();
         outState.putInt("firstIndex", idx);
+        outState.putBoolean("isEditing", isEditing);
+
+        int[] arr = new int[selected.size()];
+        Iterator<Integer> iter = selected.iterator();
+        int i = 0;
+        while(iter.hasNext())
+        {
+            arr[i] = iter.next();
+            i++;
+        }
+        outState.putIntArray("selected", arr);
     }
 
     private int getIdx(int position)
@@ -193,16 +221,6 @@ public class Gallery extends Fragment
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
         View ret = inflater.inflate(R.layout.fragment_gallery, container, false);
-        grid = ret.findViewById(R.id.daysList);
-        layoutMgr = new LayoutMgr();
-        grid.setLayoutManager(layoutMgr);
-
-        if (adapter != null)
-            grid.setAdapter(adapter);
-
-        if (firstShownIndex > 0)
-            layoutMgr.scrollToIndex(firstShownIndex);
-
 
         bottomMenu = ret.findViewById(R.id.bottom_menu);
         shareButton = ret.findViewById(R.id.share_btn);
@@ -212,6 +230,22 @@ public class Gallery extends Fragment
         {
             deleteSelected();
         }});
+
+        shareMenuItemCtrl = new MyShareMenuItemCtrl(getContext(), shareButton, R.id.share_btn);
+        updateShareMenuItemCtrl();
+
+        setIsEditing(isEditing);
+
+
+        grid = ret.findViewById(R.id.daysList);
+        layoutMgr = new LayoutMgr();
+        grid.setLayoutManager(layoutMgr);
+
+        if (adapter != null)
+            grid.setAdapter(adapter);
+
+        if (firstShownIndex > 0)
+            layoutMgr.scrollToIndex(firstShownIndex);
 
         return ret;
     }
@@ -254,10 +288,34 @@ public class Gallery extends Fragment
         }
 
         selected.clear();
-        toggleEditing();
+        setIsEditing(false);
 
         layoutMgr.reset();
         adapter.notifyDataSetChanged();
+    }
+
+    private void updateShareMenuItemCtrl()
+    {
+        if (shareMenuItemCtrl != null && adapter != null)
+        {
+            int sz = selected.size();
+            Iterator<Integer> iter = selected.iterator();
+            String[] list = new String[sz];
+            int i = 0;
+
+            while(iter.hasNext())
+            {
+                int pos = iter.next();
+                int idx = getIdx(pos);
+                int subidx = getSubIdx(pos);
+
+                Long hash = imageFiles.dates.get(idx);
+                list[i] = imageFiles.files.get(hash).get(subidx);
+                i++;
+            }
+
+            shareMenuItemCtrl.setCurrentPaths(list);
+        }
     }
 
     private void openThumbnail(int position)
@@ -282,6 +340,7 @@ public class Gallery extends Fragment
         {
             selectedIcon.setVisibility(View.VISIBLE);
             selected.add(position);
+            updateShareMenuItemCtrl();
         }
     }
 
