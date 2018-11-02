@@ -62,4 +62,12 @@
     <string name="delete_confirm_message">Delete the selected image?</string>
 
     <string name="new_photo_available">Your photo has successfully been processed.</string>
+
+    <string name="insta_title">Export Actions</string>
+    <string name="insta_copy">Copy</string>
+    <string name="insta_rotate">Rotate for Instagram</string>
+    <string name="insta_square">Square aspect</string>
+    <string name="insta_squarerot">Square aspect - rotated</string>
+    <string name="insta_cancel">Cancel</string>
+    <string name="insta_okay">Export</string>
 </resources>

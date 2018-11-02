@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="80dp"
         android:layout_centerHorizontal="true"
         android:id="@+id/connectChooser">
         <RadioButton
@@ -117,6 +117,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="20sp"
+                android:inputType="number|numberDecimal"
+                android:digits="0123456789."
                 android:id="@+id/ipAddressTarget"/>
             <Button
                 android:layout_width="wrap_content"

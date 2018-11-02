@@ -2,6 +2,8 @@ package com.munger.stereocamera.fragment;
 
 import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -18,6 +20,7 @@ import com.munger.stereocamera.utility.Preferences;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 public class ConnectEthernetSubFragment
 {
@@ -32,6 +35,9 @@ public class ConnectEthernetSubFragment
 	private EthernetCtrl ethCtrl;
 	private AlertDialog listenDialog = null;
 	private AlertDialog againDialog;
+
+	private static final Pattern ipMatcher = Pattern.compile("^((25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[0-9])\\.){0,3}" +
+															  "((25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[0-9])){0,1}$");
 
 	public ConnectEthernetSubFragment(ConnectFragment parent, ViewGroup target)
 	{
@@ -51,9 +57,12 @@ public class ConnectEthernetSubFragment
 				ArrayList<String> addresses = MainActivity.getInstance().getEthCtrl().getAddresses();
 				for(String address : addresses)
 				{
-					TextView tv = new TextView(MainActivity.getInstance());
-					tv.setText(address);
-					ipAddressList.addView(tv);
+					if (!address.equals("127.0.0.1") && !address.startsWith("169.254"))
+					{
+						TextView tv = new TextView(MainActivity.getInstance());
+						tv.setText(address);
+						ipAddressList.addView(tv);
+					}
 				}
 
 				if (addresses.size() > 0)
@@ -90,6 +99,25 @@ public class ConnectEthernetSubFragment
 			public void onClick(View v)
 			{
 				listenIPClicked();
+			}
+		});
+
+		ipAddressTarget.addTextChangedListener(new TextWatcher()
+		{
+			@Override
+			public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) { }
+
+			@Override
+			public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+			private String previousText = "";
+			@Override
+			public void afterTextChanged(Editable s)
+			{
+				if (ipMatcher.matcher(s).matches())
+					previousText = s.toString();
+				else
+					s.replace(0, s.length(), previousText);
 			}
 		});
 	}

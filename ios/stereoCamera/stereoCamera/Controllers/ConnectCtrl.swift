@@ -17,6 +17,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     @IBOutlet weak var connectPrimaryBtn: UIButton!
     @IBOutlet weak var galleryBtn: GalleryBtn!
     @IBOutlet weak var scrollView: UIScrollView!
+    @IBOutlet weak var ipAddressList: UIStackView!
     
     private let listenTimeout = 0.0
     private let connectTimeout = 2.5
@@ -184,24 +185,22 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         return true
     }
     
-    var addressLabels = [UIView]()
-    
     func setupLabels()
     {
-        for label in addressLabels
+        let sz = ipAddressList.arrangedSubviews.count;
+        for i in stride(from: sz - 1, through: 0, by: -1)
         {
-            layout.removeArrangedSubview(label)
+            let view = ipAddressList.arrangedSubviews[i]
+            ipAddressList.removeArrangedSubview(view)
+            view.removeFromSuperview()
         }
-        addressLabels.removeAll()
-        
         
         let commMgr = CommManager.instance
         for address in commMgr.localAddresses
         {
             let label = UILabel()
             label.text = address
-            layout.insertArrangedSubview(label, at: 1)
-            addressLabels.append(label)
+            ipAddressList.addArrangedSubview(label)
         }
         
         if (!addressGuess.isMaster)

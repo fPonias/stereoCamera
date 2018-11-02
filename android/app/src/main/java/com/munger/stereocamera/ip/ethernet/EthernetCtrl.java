@@ -35,38 +35,40 @@ public class EthernetCtrl implements SocketCtrlCtrl
 
 			for (NetworkInterface intf : interfaces)
 			{
-				List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
-
-				for (InetAddress addr : addrs)
-				{
-					if (!addr.isLoopbackAddress())
-					{
-						String sAddr = addr.getHostAddress();
-						//boolean isIPv4 = InetAddressUtils.isIPv4Address(sAddr);
-						boolean isIPv4 = sAddr.indexOf(':')<0;
-
-						if (useIPv4)
-						{
-							if (isIPv4)
-								ret.add(sAddr);
-						}
-						else
-						{
-							if (!isIPv4)
-							{
-								int delim = sAddr.indexOf('%'); // drop ip6 zone suffix
-								String entry = delim < 0 ? sAddr.toUpperCase() : sAddr.substring(0, delim).toUpperCase();
-								ret.add(entry);
-							}
-						}
-					}
-				}
+				getAddressesFromInterface(intf, ret, useIPv4);
 			}
 		}
 		catch (Exception ignored)
 		{ } // for now eat exceptions
 
 		return ret;
+	}
+
+	private void getAddressesFromInterface(NetworkInterface intf, ArrayList<String> ret, boolean useIPv4)
+	{
+		List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+
+		for (InetAddress addr : addrs)
+		{
+			if (!addr.isLoopbackAddress())
+			{
+				String sAddr = addr.getHostAddress();
+				//boolean isIPv4 = InetAddressUtils.isIPv4Address(sAddr);
+				boolean isIPv4 = sAddr.indexOf(':')<0;
+
+				if (useIPv4 && isIPv4)
+				{
+					if (!sAddr.startsWith("169.254"))
+						ret.add(sAddr);
+				}
+				else if (!useIPv4 && !isIPv4)
+				{
+					int delim = sAddr.indexOf('%'); // drop ip6 zone suffix
+					String entry = delim < 0 ? sAddr.toUpperCase() : sAddr.substring(0, delim).toUpperCase();
+					ret.add(entry);
+				}
+			}
+		}
 	}
 
 	private boolean isSetup = false;

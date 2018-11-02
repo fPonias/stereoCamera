@@ -59,7 +59,6 @@
 		7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416A20D4F0F6005BE7A8 /* Bytes.swift */; };
 		7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */; };
 		7CDC417020D75C16005BE7A8 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416F20D75C16005BE7A8 /* CameraPreview.swift */; };
-		7CDC417220D82649005BE7A8 /* SVGKitFramework-iOS in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC417120D82649005BE7A8 /* SVGKitFramework-iOS */; };
 		7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */; };
 		7CDC454820DA8FF2005BE7A8 /* coderules.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC443020DA8FF0005BE7A8 /* coderules.txt */; };
 		7CDC454920DA8FF2005BE7A8 /* jconfig.dj in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC443120DA8FF0005BE7A8 /* jconfig.dj */; };
@@ -156,71 +155,6 @@
 		7CDC45DC20DA8FF3005BE7A8 /* maketvcx.v15 in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44D320DA8FF0005BE7A8 /* maketvcx.v15 */; };
 		7CDC45DD20DA8FF3005BE7A8 /* structure.txt in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44D420DA8FF0005BE7A8 /* structure.txt */; };
 		7CDC45DE20DA8FF3005BE7A8 /* testorig.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44D520DA8FF0005BE7A8 /* testorig.jpg */; };
-		7CDC45E320DA8FF3005BE7A8 /* rdgif.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44DB20DA8FF0005BE7A8 /* rdgif.Po */; };
-		7CDC45E420DA8FF3005BE7A8 /* wrppm.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44DC20DA8FF0005BE7A8 /* wrppm.Po */; };
-		7CDC45E520DA8FF3005BE7A8 /* jdmainct.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44DD20DA8FF0005BE7A8 /* jdmainct.Plo */; };
-		7CDC45E620DA8FF3005BE7A8 /* jidctflt.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44DE20DA8FF0005BE7A8 /* jidctflt.Plo */; };
-		7CDC45E720DA8FF3005BE7A8 /* jdarith.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44DF20DA8FF0005BE7A8 /* jdarith.Plo */; };
-		7CDC45E820DA8FF3005BE7A8 /* jdmaster.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E020DA8FF0005BE7A8 /* jdmaster.Plo */; };
-		7CDC45E920DA8FF3005BE7A8 /* jcapistd.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E120DA8FF0005BE7A8 /* jcapistd.Plo */; };
-		7CDC45EA20DA8FF3005BE7A8 /* cjpeg.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E220DA8FF0005BE7A8 /* cjpeg.Po */; };
-		7CDC45EB20DA8FF3005BE7A8 /* jcprepct.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E320DA8FF0005BE7A8 /* jcprepct.Plo */; };
-		7CDC45EC20DA8FF3005BE7A8 /* jcapimin.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E420DA8FF0005BE7A8 /* jcapimin.Plo */; };
-		7CDC45ED20DA8FF3005BE7A8 /* jmemmgr.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E520DA8FF0005BE7A8 /* jmemmgr.Plo */; };
-		7CDC45EE20DA8FF3005BE7A8 /* jdhuff.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E620DA8FF0005BE7A8 /* jdhuff.Plo */; };
-		7CDC45EF20DA8FF3005BE7A8 /* jquant2.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E720DA8FF0005BE7A8 /* jquant2.Plo */; };
-		7CDC45F020DA8FF3005BE7A8 /* jidctfst.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E820DA8FF0005BE7A8 /* jidctfst.Plo */; };
-		7CDC45F120DA8FF3005BE7A8 /* jdapimin.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44E920DA8FF0005BE7A8 /* jdapimin.Plo */; };
-		7CDC45F220DA8FF3005BE7A8 /* jcparam.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44EA20DA8FF0005BE7A8 /* jcparam.Plo */; };
-		7CDC45F320DA8FF3005BE7A8 /* jquant1.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44EB20DA8FF0005BE7A8 /* jquant1.Plo */; };
-		7CDC45F420DA8FF3005BE7A8 /* rdppm.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44EC20DA8FF0005BE7A8 /* rdppm.Po */; };
-		7CDC45F520DA8FF3005BE7A8 /* wrgif.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44ED20DA8FF0005BE7A8 /* wrgif.Po */; };
-		7CDC45F620DA8FF3005BE7A8 /* cdjpeg.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44EE20DA8FF0005BE7A8 /* cdjpeg.Po */; };
-		7CDC45F720DA8FF3005BE7A8 /* jcomapi.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44EF20DA8FF0005BE7A8 /* jcomapi.Plo */; };
-		7CDC45F820DA8FF3005BE7A8 /* jcmainct.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F020DA8FF0005BE7A8 /* jcmainct.Plo */; };
-		7CDC45F920DA8FF3005BE7A8 /* jdpostct.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F120DA8FF0005BE7A8 /* jdpostct.Plo */; };
-		7CDC45FA20DA8FF3005BE7A8 /* jdatadst.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F220DA8FF0005BE7A8 /* jdatadst.Plo */; };
-		7CDC45FB20DA8FF3005BE7A8 /* jcarith.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F320DA8FF0005BE7A8 /* jcarith.Plo */; };
-		7CDC45FC20DA8FF3005BE7A8 /* jidctint.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F420DA8FF0005BE7A8 /* jidctint.Plo */; };
-		7CDC45FD20DA8FF3005BE7A8 /* jdapistd.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F520DA8FF0005BE7A8 /* jdapistd.Plo */; };
-		7CDC45FE20DA8FF3005BE7A8 /* jcmaster.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F620DA8FF0005BE7A8 /* jcmaster.Plo */; };
-		7CDC45FF20DA8FF3005BE7A8 /* jmemnobs.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F720DA8FF0005BE7A8 /* jmemnobs.Plo */; };
-		7CDC460020DA8FF3005BE7A8 /* rdswitch.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F820DA8FF0005BE7A8 /* rdswitch.Po */; };
-		7CDC460120DA8FF3005BE7A8 /* wrtarga.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44F920DA8FF0005BE7A8 /* wrtarga.Po */; };
-		7CDC460220DA8FF3005BE7A8 /* wrrle.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44FA20DA8FF0005BE7A8 /* wrrle.Po */; };
-		7CDC460320DA8FF3005BE7A8 /* jdcoefct.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44FB20DA8FF0005BE7A8 /* jdcoefct.Plo */; };
-		7CDC460420DA8FF3005BE7A8 /* jfdctflt.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44FC20DA8FF0005BE7A8 /* jfdctflt.Plo */; };
-		7CDC460520DA8FF3005BE7A8 /* jcsample.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44FD20DA8FF0005BE7A8 /* jcsample.Plo */; };
-		7CDC460620DA8FF3005BE7A8 /* transupp.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44FE20DA8FF0005BE7A8 /* transupp.Po */; };
-		7CDC460720DA8FF3005BE7A8 /* wrbmp.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC44FF20DA8FF0005BE7A8 /* wrbmp.Po */; };
-		7CDC460820DA8FF3005BE7A8 /* rdjpgcom.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450020DA8FF0005BE7A8 /* rdjpgcom.Po */; };
-		7CDC460920DA8FF3005BE7A8 /* jcdctmgr.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450120DA8FF0005BE7A8 /* jcdctmgr.Plo */; };
-		7CDC460A20DA8FF3005BE7A8 /* jutils.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450220DA8FF0005BE7A8 /* jutils.Plo */; };
-		7CDC460B20DA8FF3005BE7A8 /* jdatasrc.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450320DA8FF0005BE7A8 /* jdatasrc.Plo */; };
-		7CDC460C20DA8FF3005BE7A8 /* jdinput.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450420DA8FF0005BE7A8 /* jdinput.Plo */; };
-		7CDC460D20DA8FF3005BE7A8 /* jctrans.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450520DA8FF0005BE7A8 /* jctrans.Plo */; };
-		7CDC460E20DA8FF3005BE7A8 /* jccolor.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450620DA8FF0005BE7A8 /* jccolor.Plo */; };
-		7CDC460F20DA8FF3005BE7A8 /* jchuff.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450720DA8FF0005BE7A8 /* jchuff.Plo */; };
-		7CDC461020DA8FF3005BE7A8 /* jdmarker.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450820DA8FF0005BE7A8 /* jdmarker.Plo */; };
-		7CDC461120DA8FF3005BE7A8 /* rdbmp.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450920DA8FF0005BE7A8 /* rdbmp.Po */; };
-		7CDC461220DA8FF3005BE7A8 /* jddctmgr.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450A20DA8FF0005BE7A8 /* jddctmgr.Plo */; };
-		7CDC461320DA8FF3005BE7A8 /* jdtrans.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450B20DA8FF0005BE7A8 /* jdtrans.Plo */; };
-		7CDC461420DA8FF3005BE7A8 /* jdcolor.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450C20DA8FF0005BE7A8 /* jdcolor.Plo */; };
-		7CDC461520DA8FF3005BE7A8 /* jpegtran.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450D20DA8FF0005BE7A8 /* jpegtran.Po */; };
-		7CDC461620DA8FF3005BE7A8 /* jcmarker.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450E20DA8FF0005BE7A8 /* jcmarker.Plo */; };
-		7CDC461720DA8FF3005BE7A8 /* wrjpgcom.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC450F20DA8FF0005BE7A8 /* wrjpgcom.Po */; };
-		7CDC461820DA8FF3005BE7A8 /* jfdctfst.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451020DA8FF0005BE7A8 /* jfdctfst.Plo */; };
-		7CDC461920DA8FF3005BE7A8 /* rdrle.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451120DA8FF0005BE7A8 /* rdrle.Po */; };
-		7CDC461A20DA8FF3005BE7A8 /* djpeg.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451220DA8FF0005BE7A8 /* djpeg.Po */; };
-		7CDC461B20DA8FF3005BE7A8 /* jccoefct.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451320DA8FF0005BE7A8 /* jccoefct.Plo */; };
-		7CDC461C20DA8FF3005BE7A8 /* jfdctint.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451420DA8FF0005BE7A8 /* jfdctint.Plo */; };
-		7CDC461D20DA8FF3005BE7A8 /* rdcolmap.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451520DA8FF0005BE7A8 /* rdcolmap.Po */; };
-		7CDC461E20DA8FF3005BE7A8 /* jaricom.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451620DA8FF0005BE7A8 /* jaricom.Plo */; };
-		7CDC461F20DA8FF3005BE7A8 /* jerror.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451720DA8FF0005BE7A8 /* jerror.Plo */; };
-		7CDC462020DA8FF3005BE7A8 /* jdmerge.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451820DA8FF0005BE7A8 /* jdmerge.Plo */; };
-		7CDC462120DA8FF3005BE7A8 /* rdtarga.Po in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451920DA8FF0005BE7A8 /* rdtarga.Po */; };
-		7CDC462220DA8FF3005BE7A8 /* jdsample.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451A20DA8FF0005BE7A8 /* jdsample.Plo */; };
-		7CDC462320DA8FF3005BE7A8 /* jcinit.Plo in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451B20DA8FF0005BE7A8 /* jcinit.Plo */; };
 		7CDC462720DA8FF3005BE7A8 /* Makefile.in in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC451F20DA8FF0005BE7A8 /* Makefile.in */; };
 		7CDC462820DA8FF3005BE7A8 /* aclocal.m4 in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC452020DA8FF0005BE7A8 /* aclocal.m4 */; };
 		7CDC462920DA8FF3005BE7A8 /* makejdsw.vc6 in Resources */ = {isa = PBXBuildFile; fileRef = 7CDC452120DA8FF0005BE7A8 /* makejdsw.vc6 */; };
@@ -353,7 +287,6 @@
 		7CDC416A20D4F0F6005BE7A8 /* Bytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bytes.swift; sourceTree = "<group>"; };
 		7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraMasterCtrl.swift; sourceTree = "<group>"; };
 		7CDC416F20D75C16005BE7A8 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
-		7CDC417120D82649005BE7A8 /* SVGKitFramework-iOS */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "SVGKitFramework-iOS"; path = "../../../SVGKit/SVGKitFrameworks/SVGKitFramework-iOS"; sourceTree = "<group>"; };
 		7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignableWidget.swift; sourceTree = "<group>"; };
 		7CDC442F20DA8FF0005BE7A8 /* rdcolmap.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rdcolmap.c; sourceTree = "<group>"; };
 		7CDC443020DA8FF0005BE7A8 /* coderules.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = coderules.txt; sourceTree = "<group>"; };
@@ -524,71 +457,6 @@
 		7CDC44D720DA8FF0005BE7A8 /* jmemmgr.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jmemmgr.c; sourceTree = "<group>"; };
 		7CDC44D820DA8FF0005BE7A8 /* jcmarker.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jcmarker.c; sourceTree = "<group>"; };
 		7CDC44D920DA8FF0005BE7A8 /* jquant2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jquant2.c; sourceTree = "<group>"; };
-		7CDC44DB20DA8FF0005BE7A8 /* rdgif.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdgif.Po; sourceTree = "<group>"; };
-		7CDC44DC20DA8FF0005BE7A8 /* wrppm.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wrppm.Po; sourceTree = "<group>"; };
-		7CDC44DD20DA8FF0005BE7A8 /* jdmainct.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdmainct.Plo; sourceTree = "<group>"; };
-		7CDC44DE20DA8FF0005BE7A8 /* jidctflt.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jidctflt.Plo; sourceTree = "<group>"; };
-		7CDC44DF20DA8FF0005BE7A8 /* jdarith.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdarith.Plo; sourceTree = "<group>"; };
-		7CDC44E020DA8FF0005BE7A8 /* jdmaster.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdmaster.Plo; sourceTree = "<group>"; };
-		7CDC44E120DA8FF0005BE7A8 /* jcapistd.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcapistd.Plo; sourceTree = "<group>"; };
-		7CDC44E220DA8FF0005BE7A8 /* cjpeg.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cjpeg.Po; sourceTree = "<group>"; };
-		7CDC44E320DA8FF0005BE7A8 /* jcprepct.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcprepct.Plo; sourceTree = "<group>"; };
-		7CDC44E420DA8FF0005BE7A8 /* jcapimin.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcapimin.Plo; sourceTree = "<group>"; };
-		7CDC44E520DA8FF0005BE7A8 /* jmemmgr.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jmemmgr.Plo; sourceTree = "<group>"; };
-		7CDC44E620DA8FF0005BE7A8 /* jdhuff.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdhuff.Plo; sourceTree = "<group>"; };
-		7CDC44E720DA8FF0005BE7A8 /* jquant2.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jquant2.Plo; sourceTree = "<group>"; };
-		7CDC44E820DA8FF0005BE7A8 /* jidctfst.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jidctfst.Plo; sourceTree = "<group>"; };
-		7CDC44E920DA8FF0005BE7A8 /* jdapimin.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdapimin.Plo; sourceTree = "<group>"; };
-		7CDC44EA20DA8FF0005BE7A8 /* jcparam.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcparam.Plo; sourceTree = "<group>"; };
-		7CDC44EB20DA8FF0005BE7A8 /* jquant1.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jquant1.Plo; sourceTree = "<group>"; };
-		7CDC44EC20DA8FF0005BE7A8 /* rdppm.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdppm.Po; sourceTree = "<group>"; };
-		7CDC44ED20DA8FF0005BE7A8 /* wrgif.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wrgif.Po; sourceTree = "<group>"; };
-		7CDC44EE20DA8FF0005BE7A8 /* cdjpeg.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = cdjpeg.Po; sourceTree = "<group>"; };
-		7CDC44EF20DA8FF0005BE7A8 /* jcomapi.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcomapi.Plo; sourceTree = "<group>"; };
-		7CDC44F020DA8FF0005BE7A8 /* jcmainct.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcmainct.Plo; sourceTree = "<group>"; };
-		7CDC44F120DA8FF0005BE7A8 /* jdpostct.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdpostct.Plo; sourceTree = "<group>"; };
-		7CDC44F220DA8FF0005BE7A8 /* jdatadst.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdatadst.Plo; sourceTree = "<group>"; };
-		7CDC44F320DA8FF0005BE7A8 /* jcarith.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcarith.Plo; sourceTree = "<group>"; };
-		7CDC44F420DA8FF0005BE7A8 /* jidctint.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jidctint.Plo; sourceTree = "<group>"; };
-		7CDC44F520DA8FF0005BE7A8 /* jdapistd.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdapistd.Plo; sourceTree = "<group>"; };
-		7CDC44F620DA8FF0005BE7A8 /* jcmaster.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcmaster.Plo; sourceTree = "<group>"; };
-		7CDC44F720DA8FF0005BE7A8 /* jmemnobs.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jmemnobs.Plo; sourceTree = "<group>"; };
-		7CDC44F820DA8FF0005BE7A8 /* rdswitch.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdswitch.Po; sourceTree = "<group>"; };
-		7CDC44F920DA8FF0005BE7A8 /* wrtarga.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wrtarga.Po; sourceTree = "<group>"; };
-		7CDC44FA20DA8FF0005BE7A8 /* wrrle.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wrrle.Po; sourceTree = "<group>"; };
-		7CDC44FB20DA8FF0005BE7A8 /* jdcoefct.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdcoefct.Plo; sourceTree = "<group>"; };
-		7CDC44FC20DA8FF0005BE7A8 /* jfdctflt.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jfdctflt.Plo; sourceTree = "<group>"; };
-		7CDC44FD20DA8FF0005BE7A8 /* jcsample.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcsample.Plo; sourceTree = "<group>"; };
-		7CDC44FE20DA8FF0005BE7A8 /* transupp.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = transupp.Po; sourceTree = "<group>"; };
-		7CDC44FF20DA8FF0005BE7A8 /* wrbmp.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wrbmp.Po; sourceTree = "<group>"; };
-		7CDC450020DA8FF0005BE7A8 /* rdjpgcom.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdjpgcom.Po; sourceTree = "<group>"; };
-		7CDC450120DA8FF0005BE7A8 /* jcdctmgr.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcdctmgr.Plo; sourceTree = "<group>"; };
-		7CDC450220DA8FF0005BE7A8 /* jutils.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jutils.Plo; sourceTree = "<group>"; };
-		7CDC450320DA8FF0005BE7A8 /* jdatasrc.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdatasrc.Plo; sourceTree = "<group>"; };
-		7CDC450420DA8FF0005BE7A8 /* jdinput.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdinput.Plo; sourceTree = "<group>"; };
-		7CDC450520DA8FF0005BE7A8 /* jctrans.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jctrans.Plo; sourceTree = "<group>"; };
-		7CDC450620DA8FF0005BE7A8 /* jccolor.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jccolor.Plo; sourceTree = "<group>"; };
-		7CDC450720DA8FF0005BE7A8 /* jchuff.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jchuff.Plo; sourceTree = "<group>"; };
-		7CDC450820DA8FF0005BE7A8 /* jdmarker.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdmarker.Plo; sourceTree = "<group>"; };
-		7CDC450920DA8FF0005BE7A8 /* rdbmp.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdbmp.Po; sourceTree = "<group>"; };
-		7CDC450A20DA8FF0005BE7A8 /* jddctmgr.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jddctmgr.Plo; sourceTree = "<group>"; };
-		7CDC450B20DA8FF0005BE7A8 /* jdtrans.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdtrans.Plo; sourceTree = "<group>"; };
-		7CDC450C20DA8FF0005BE7A8 /* jdcolor.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdcolor.Plo; sourceTree = "<group>"; };
-		7CDC450D20DA8FF0005BE7A8 /* jpegtran.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jpegtran.Po; sourceTree = "<group>"; };
-		7CDC450E20DA8FF0005BE7A8 /* jcmarker.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcmarker.Plo; sourceTree = "<group>"; };
-		7CDC450F20DA8FF0005BE7A8 /* wrjpgcom.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wrjpgcom.Po; sourceTree = "<group>"; };
-		7CDC451020DA8FF0005BE7A8 /* jfdctfst.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jfdctfst.Plo; sourceTree = "<group>"; };
-		7CDC451120DA8FF0005BE7A8 /* rdrle.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdrle.Po; sourceTree = "<group>"; };
-		7CDC451220DA8FF0005BE7A8 /* djpeg.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = djpeg.Po; sourceTree = "<group>"; };
-		7CDC451320DA8FF0005BE7A8 /* jccoefct.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jccoefct.Plo; sourceTree = "<group>"; };
-		7CDC451420DA8FF0005BE7A8 /* jfdctint.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jfdctint.Plo; sourceTree = "<group>"; };
-		7CDC451520DA8FF0005BE7A8 /* rdcolmap.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdcolmap.Po; sourceTree = "<group>"; };
-		7CDC451620DA8FF0005BE7A8 /* jaricom.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jaricom.Plo; sourceTree = "<group>"; };
-		7CDC451720DA8FF0005BE7A8 /* jerror.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jerror.Plo; sourceTree = "<group>"; };
-		7CDC451820DA8FF0005BE7A8 /* jdmerge.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdmerge.Plo; sourceTree = "<group>"; };
-		7CDC451920DA8FF0005BE7A8 /* rdtarga.Po */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = rdtarga.Po; sourceTree = "<group>"; };
-		7CDC451A20DA8FF0005BE7A8 /* jdsample.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jdsample.Plo; sourceTree = "<group>"; };
-		7CDC451B20DA8FF0005BE7A8 /* jcinit.Plo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = jcinit.Plo; sourceTree = "<group>"; };
 		7CDC451C20DA8FF0005BE7A8 /* jidctint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jidctint.c; sourceTree = "<group>"; };
 		7CDC451D20DA8FF0005BE7A8 /* jdapimin.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jdapimin.c; sourceTree = "<group>"; };
 		7CDC451E20DA8FF0005BE7A8 /* jctrans.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jctrans.c; sourceTree = "<group>"; };
@@ -721,7 +589,6 @@
 		7C6CD13720D1C2870010F6B1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7CDC417120D82649005BE7A8 /* SVGKitFramework-iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -976,7 +843,6 @@
 				7CDC44D720DA8FF0005BE7A8 /* jmemmgr.c */,
 				7CDC44D820DA8FF0005BE7A8 /* jcmarker.c */,
 				7CDC44D920DA8FF0005BE7A8 /* jquant2.c */,
-				7CDC44DA20DA8FF0005BE7A8 /* .deps */,
 				7CDC451C20DA8FF0005BE7A8 /* jidctint.c */,
 				7CDC451D20DA8FF0005BE7A8 /* jdapimin.c */,
 				7CDC451E20DA8FF0005BE7A8 /* jctrans.c */,
@@ -1010,78 +876,6 @@
 			children = (
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		7CDC44DA20DA8FF0005BE7A8 /* .deps */ = {
-			isa = PBXGroup;
-			children = (
-				7CDC44DB20DA8FF0005BE7A8 /* rdgif.Po */,
-				7CDC44DC20DA8FF0005BE7A8 /* wrppm.Po */,
-				7CDC44DD20DA8FF0005BE7A8 /* jdmainct.Plo */,
-				7CDC44DE20DA8FF0005BE7A8 /* jidctflt.Plo */,
-				7CDC44DF20DA8FF0005BE7A8 /* jdarith.Plo */,
-				7CDC44E020DA8FF0005BE7A8 /* jdmaster.Plo */,
-				7CDC44E120DA8FF0005BE7A8 /* jcapistd.Plo */,
-				7CDC44E220DA8FF0005BE7A8 /* cjpeg.Po */,
-				7CDC44E320DA8FF0005BE7A8 /* jcprepct.Plo */,
-				7CDC44E420DA8FF0005BE7A8 /* jcapimin.Plo */,
-				7CDC44E520DA8FF0005BE7A8 /* jmemmgr.Plo */,
-				7CDC44E620DA8FF0005BE7A8 /* jdhuff.Plo */,
-				7CDC44E720DA8FF0005BE7A8 /* jquant2.Plo */,
-				7CDC44E820DA8FF0005BE7A8 /* jidctfst.Plo */,
-				7CDC44E920DA8FF0005BE7A8 /* jdapimin.Plo */,
-				7CDC44EA20DA8FF0005BE7A8 /* jcparam.Plo */,
-				7CDC44EB20DA8FF0005BE7A8 /* jquant1.Plo */,
-				7CDC44EC20DA8FF0005BE7A8 /* rdppm.Po */,
-				7CDC44ED20DA8FF0005BE7A8 /* wrgif.Po */,
-				7CDC44EE20DA8FF0005BE7A8 /* cdjpeg.Po */,
-				7CDC44EF20DA8FF0005BE7A8 /* jcomapi.Plo */,
-				7CDC44F020DA8FF0005BE7A8 /* jcmainct.Plo */,
-				7CDC44F120DA8FF0005BE7A8 /* jdpostct.Plo */,
-				7CDC44F220DA8FF0005BE7A8 /* jdatadst.Plo */,
-				7CDC44F320DA8FF0005BE7A8 /* jcarith.Plo */,
-				7CDC44F420DA8FF0005BE7A8 /* jidctint.Plo */,
-				7CDC44F520DA8FF0005BE7A8 /* jdapistd.Plo */,
-				7CDC44F620DA8FF0005BE7A8 /* jcmaster.Plo */,
-				7CDC44F720DA8FF0005BE7A8 /* jmemnobs.Plo */,
-				7CDC44F820DA8FF0005BE7A8 /* rdswitch.Po */,
-				7CDC44F920DA8FF0005BE7A8 /* wrtarga.Po */,
-				7CDC44FA20DA8FF0005BE7A8 /* wrrle.Po */,
-				7CDC44FB20DA8FF0005BE7A8 /* jdcoefct.Plo */,
-				7CDC44FC20DA8FF0005BE7A8 /* jfdctflt.Plo */,
-				7CDC44FD20DA8FF0005BE7A8 /* jcsample.Plo */,
-				7CDC44FE20DA8FF0005BE7A8 /* transupp.Po */,
-				7CDC44FF20DA8FF0005BE7A8 /* wrbmp.Po */,
-				7CDC450020DA8FF0005BE7A8 /* rdjpgcom.Po */,
-				7CDC450120DA8FF0005BE7A8 /* jcdctmgr.Plo */,
-				7CDC450220DA8FF0005BE7A8 /* jutils.Plo */,
-				7CDC450320DA8FF0005BE7A8 /* jdatasrc.Plo */,
-				7CDC450420DA8FF0005BE7A8 /* jdinput.Plo */,
-				7CDC450520DA8FF0005BE7A8 /* jctrans.Plo */,
-				7CDC450620DA8FF0005BE7A8 /* jccolor.Plo */,
-				7CDC450720DA8FF0005BE7A8 /* jchuff.Plo */,
-				7CDC450820DA8FF0005BE7A8 /* jdmarker.Plo */,
-				7CDC450920DA8FF0005BE7A8 /* rdbmp.Po */,
-				7CDC450A20DA8FF0005BE7A8 /* jddctmgr.Plo */,
-				7CDC450B20DA8FF0005BE7A8 /* jdtrans.Plo */,
-				7CDC450C20DA8FF0005BE7A8 /* jdcolor.Plo */,
-				7CDC450D20DA8FF0005BE7A8 /* jpegtran.Po */,
-				7CDC450E20DA8FF0005BE7A8 /* jcmarker.Plo */,
-				7CDC450F20DA8FF0005BE7A8 /* wrjpgcom.Po */,
-				7CDC451020DA8FF0005BE7A8 /* jfdctfst.Plo */,
-				7CDC451120DA8FF0005BE7A8 /* rdrle.Po */,
-				7CDC451220DA8FF0005BE7A8 /* djpeg.Po */,
-				7CDC451320DA8FF0005BE7A8 /* jccoefct.Plo */,
-				7CDC451420DA8FF0005BE7A8 /* jfdctint.Plo */,
-				7CDC451520DA8FF0005BE7A8 /* rdcolmap.Po */,
-				7CDC451620DA8FF0005BE7A8 /* jaricom.Plo */,
-				7CDC451720DA8FF0005BE7A8 /* jerror.Plo */,
-				7CDC451820DA8FF0005BE7A8 /* jdmerge.Plo */,
-				7CDC451920DA8FF0005BE7A8 /* rdtarga.Po */,
-				7CDC451A20DA8FF0005BE7A8 /* jdsample.Plo */,
-				7CDC451B20DA8FF0005BE7A8 /* jcinit.Plo */,
-			);
-			path = .deps;
 			sourceTree = "<group>";
 		};
 		7CDC453920DA8FF2005BE7A8 /* include */ = {
@@ -1183,47 +977,33 @@
 			buildActionMask = 2147483647;
 			files = (
 				7CDC45BE20DA8FF3005BE7A8 /* compile in Resources */,
-				7CDC460A20DA8FF3005BE7A8 /* jutils.Plo in Resources */,
 				7CDC456320DA8FF3005BE7A8 /* makefile.mms in Resources */,
-				7CDC45FE20DA8FF3005BE7A8 /* jcmaster.Plo in Resources */,
 				7CDC463820DA8FF3005BE7A8 /* filelist.txt in Resources */,
 				7CDC45A220DA8FF3005BE7A8 /* jconfig.bcc in Resources */,
-				7CDC461520DA8FF3005BE7A8 /* jpegtran.Po in Resources */,
 				7CDC45CB20DA8FF3005BE7A8 /* jconfig.cfg in Resources */,
 				7CDC458620DA8FF3005BE7A8 /* testprog.jpg in Resources */,
 				7CDC457E20DA8FF3005BE7A8 /* testimg.bmp in Resources */,
 				7CDC455120DA8FF2005BE7A8 /* makeddep.vc6 in Resources */,
-				7CDC461920DA8FF3005BE7A8 /* rdrle.Po in Resources */,
-				7CDC460D20DA8FF3005BE7A8 /* jctrans.Plo in Resources */,
-				7CDC460E20DA8FF3005BE7A8 /* jccolor.Plo in Resources */,
 				7CDC45AF20DA8FF3005BE7A8 /* makervcx.v15 in Resources */,
 				7CDC455F20DA8FF3005BE7A8 /* maktjpeg.st in Resources */,
-				7CDC45EF20DA8FF3005BE7A8 /* jquant2.Plo in Resources */,
 				7CDC45CE20DA8FF3005BE7A8 /* makeasln.v15 in Resources */,
 				7CDC456F20DA8FF3005BE7A8 /* makecmak.vc6 in Resources */,
 				7CDC45A720DA8FF3005BE7A8 /* jconfig.wat in Resources */,
 				7CDC458420DA8FF3005BE7A8 /* jconfig.manx in Resources */,
-				7CDC45E920DA8FF3005BE7A8 /* jcapistd.Plo in Resources */,
 				7CDC459C20DA8FF3005BE7A8 /* config.guess in Resources */,
 				7CDC45D720DA8FF3005BE7A8 /* makerdsp.vc6 in Resources */,
 				7CDC45CF20DA8FF3005BE7A8 /* libjpeg.txt in Resources */,
 				7CDC45B120DA8FF3005BE7A8 /* config.status in Resources */,
 				7CDC454920DA8FF2005BE7A8 /* jconfig.dj in Resources */,
-				7CDC45E720DA8FF3005BE7A8 /* jdarith.Plo in Resources */,
 				7CDC459B20DA8FF3005BE7A8 /* maketdep.vc6 in Resources */,
 				7CDC45C620DA8FF3005BE7A8 /* makecfil.v15 in Resources */,
 				7CDC45DC20DA8FF3005BE7A8 /* maketvcx.v15 in Resources */,
-				7CDC45E520DA8FF3005BE7A8 /* jdmainct.Plo in Resources */,
-				7CDC460220DA8FF3005BE7A8 /* wrrle.Po in Resources */,
 				7CDC454820DA8FF2005BE7A8 /* coderules.txt in Resources */,
-				7CDC461C20DA8FF3005BE7A8 /* jfdctint.Plo in Resources */,
 				7CDC45B220DA8FF3005BE7A8 /* change.log in Resources */,
 				7CDC458820DA8FF3005BE7A8 /* stamp-h1 in Resources */,
 				7CDC455320DA8FF3005BE7A8 /* maketfil.v15 in Resources */,
-				7CDC45E320DA8FF3005BE7A8 /* rdgif.Po in Resources */,
 				7CDC455D20DA8FF3005BE7A8 /* configure.ac in Resources */,
 				7CDC458520DA8FF3005BE7A8 /* jconfig.mac in Resources */,
-				7CDC45EA20DA8FF3005BE7A8 /* cjpeg.Po in Resources */,
 				7CDC45B620DA8FF3005BE7A8 /* maketmak.vc6 in Resources */,
 				7CDC45D320DA8FF3005BE7A8 /* makejmak.vc6 in Resources */,
 				7CDC456720DA8FF3005BE7A8 /* jconfig.vms in Resources */,
@@ -1231,131 +1011,79 @@
 				7CDC459020DA8FF3005BE7A8 /* makefile.mc6 in Resources */,
 				7CDC458E20DA8FF3005BE7A8 /* djpeg.1 in Resources */,
 				7CDC457720DA8FF3005BE7A8 /* makejdep.vc6 in Resources */,
-				7CDC45F620DA8FF3005BE7A8 /* cdjpeg.Po in Resources */,
-				7CDC45FA20DA8FF3005BE7A8 /* jdatadst.Plo in Resources */,
-				7CDC45F320DA8FF3005BE7A8 /* jquant1.Plo in Resources */,
 				7CDC45C120DA8FF3005BE7A8 /* makewfil.v15 in Resources */,
 				7CDC463020DA8FF3005BE7A8 /* jconfig.txt in Resources */,
-				7CDC45EE20DA8FF3005BE7A8 /* jdhuff.Plo in Resources */,
 				7CDC462D20DA8FF3005BE7A8 /* wrjpgcom.1 in Resources */,
 				7CDC45C920DA8FF3005BE7A8 /* makedvcx.v15 in Resources */,
 				7CDC463420DA8FF3005BE7A8 /* usage.txt in Resources */,
-				7CDC45F520DA8FF3005BE7A8 /* wrgif.Po in Resources */,
-				7CDC461020DA8FF3005BE7A8 /* jdmarker.Plo in Resources */,
-				7CDC460620DA8FF3005BE7A8 /* transupp.Po in Resources */,
-				7CDC45FC20DA8FF3005BE7A8 /* jidctint.Plo in Resources */,
 				7CDC456120DA8FF3005BE7A8 /* libjpeg.pc in Resources */,
-				7CDC461120DA8FF3005BE7A8 /* rdbmp.Po in Resources */,
 				7CDC462720DA8FF3005BE7A8 /* Makefile.in in Resources */,
 				7CDC462F20DA8FF3005BE7A8 /* makedmak.vc6 in Resources */,
-				7CDC45F220DA8FF3005BE7A8 /* jcparam.Plo in Resources */,
 				7CDC457220DA8FF3005BE7A8 /* makecdsp.vc6 in Resources */,
 				7CDC458F20DA8FF3005BE7A8 /* makejfil.v15 in Resources */,
 				7CDC457B20DA8FF3005BE7A8 /* jconfig.mc6 in Resources */,
 				7C6CD12B20D1B1A70010F6B1 /* Main.storyboard in Resources */,
 				7CDC459820DA8FF3005BE7A8 /* makedfil.v15 in Resources */,
-				7CDC460820DA8FF3005BE7A8 /* rdjpgcom.Po in Resources */,
 				7CDC456820DA8FF3005BE7A8 /* cjpeg.1 in Resources */,
 				7CDC459520DA8FF3005BE7A8 /* jconfig.sas in Resources */,
 				7CDC457320DA8FF3005BE7A8 /* makerdep.vc6 in Resources */,
 				7CDC462920DA8FF3005BE7A8 /* makejdsw.vc6 in Resources */,
-				7CDC45FD20DA8FF3005BE7A8 /* jdapistd.Plo in Resources */,
 				7CDC45D620DA8FF3005BE7A8 /* makecdep.vc6 in Resources */,
 				7CDC458220DA8FF3005BE7A8 /* makefile.vms in Resources */,
 				7CDC455B20DA8FF3005BE7A8 /* install-sh in Resources */,
 				7CDC456D20DA8FF3005BE7A8 /* makeadsw.vc6 in Resources */,
-				7CDC461B20DA8FF3005BE7A8 /* jccoefct.Plo in Resources */,
-				7CDC462320DA8FF3005BE7A8 /* jcinit.Plo in Resources */,
-				7CDC45FF20DA8FF3005BE7A8 /* jmemnobs.Plo in Resources */,
 				7CDC45C320DA8FF3005BE7A8 /* makefile.vs in Resources */,
-				7CDC461320DA8FF3005BE7A8 /* jdtrans.Plo in Resources */,
 				7CDC45A520DA8FF3005BE7A8 /* missing in Resources */,
-				7CDC45F420DA8FF3005BE7A8 /* rdppm.Po in Resources */,
 				7CDC45D520DA8FF3005BE7A8 /* makermak.vc6 in Resources */,
 				7CDC454A20DA8FF2005BE7A8 /* makvms.opt in Resources */,
-				7CDC460320DA8FF3005BE7A8 /* jdcoefct.Plo in Resources */,
 				7CDC456A20DA8FF3005BE7A8 /* jconfig.st in Resources */,
 				7CDC45AA20DA8FF3005BE7A8 /* libjpeg.pc.in in Resources */,
-				7CDC45EC20DA8FF3005BE7A8 /* jcapimin.Plo in Resources */,
 				7CDC454B20DA8FF2005BE7A8 /* makeproj.mac in Resources */,
-				7CDC460720DA8FF3005BE7A8 /* wrbmp.Po in Resources */,
 				7CDC457620DA8FF3005BE7A8 /* ar-lib in Resources */,
 				7CDC459F20DA8FF3005BE7A8 /* depcomp in Resources */,
 				7CDC45A920DA8FF3005BE7A8 /* makewvcx.v15 in Resources */,
 				7C1E4A0D2139A287005F1944 /* assets in Resources */,
 				7CDC458D20DA8FF3005BE7A8 /* makerfil.v15 in Resources */,
-				7CDC417220D82649005BE7A8 /* SVGKitFramework-iOS in Resources */,
-				7CDC460020DA8FF3005BE7A8 /* rdswitch.Po in Resources */,
 				7CDC45DE20DA8FF3005BE7A8 /* testorig.jpg in Resources */,
-				7CDC460F20DA8FF3005BE7A8 /* jchuff.Plo in Resources */,
 				7CDC456420DA8FF3005BE7A8 /* makefile.manx in Resources */,
-				7CDC461A20DA8FF3005BE7A8 /* djpeg.Po in Resources */,
 				7CDC45B420DA8FF3005BE7A8 /* maketdsp.vc6 in Resources */,
-				7CDC45F020DA8FF3005BE7A8 /* jidctfst.Plo in Resources */,
-				7CDC461820DA8FF3005BE7A8 /* jfdctfst.Plo in Resources */,
 				7CDC459920DA8FF3005BE7A8 /* install.txt in Resources */,
-				7CDC45ED20DA8FF3005BE7A8 /* jmemmgr.Plo in Resources */,
 				7CDC45DA20DA8FF3005BE7A8 /* makefile.b32 in Resources */,
 				7CDC454C20DA8FF2005BE7A8 /* makefile.dj in Resources */,
 				7CDC457C20DA8FF3005BE7A8 /* makewmak.vc6 in Resources */,
 				7CDC454D20DA8FF2005BE7A8 /* makefile.sas in Resources */,
-				7CDC461E20DA8FF3005BE7A8 /* jaricom.Plo in Resources */,
-				7CDC460420DA8FF3005BE7A8 /* jfdctflt.Plo in Resources */,
-				7CDC45FB20DA8FF3005BE7A8 /* jcarith.Plo in Resources */,
 				7CDC45A420DA8FF3005BE7A8 /* makecvcx.v15 in Resources */,
-				7CDC461620DA8FF3005BE7A8 /* jcmarker.Plo in Resources */,
 				7CDC45D020DA8FF3005BE7A8 /* makewdep.vc6 in Resources */,
-				7CDC45E620DA8FF3005BE7A8 /* jidctflt.Plo in Resources */,
 				7C6CD11F20D0DA550010F6B1 /* LaunchScreen.storyboard in Resources */,
 				7CDC45D220DA8FF3005BE7A8 /* testimg.ppm in Resources */,
 				7CDC457820DA8FF3005BE7A8 /* makefile.vc in Resources */,
-				7CDC45F120DA8FF3005BE7A8 /* jdapimin.Plo in Resources */,
-				7CDC461720DA8FF3005BE7A8 /* wrjpgcom.Po in Resources */,
 				7CDC463120DA8FF3005BE7A8 /* makeddsp.vc6 in Resources */,
-				7CDC461220DA8FF3005BE7A8 /* jddctmgr.Plo in Resources */,
-				7CDC461D20DA8FF3005BE7A8 /* rdcolmap.Po in Resources */,
 				7CDC462820DA8FF3005BE7A8 /* aclocal.m4 in Resources */,
 				7CDC45D420DA8FF3005BE7A8 /* makejdsp.vc6 in Resources */,
 				7CDC455920DA8FF3005BE7A8 /* makefile.bcc in Resources */,
 				7CDC45B920DA8FF3005BE7A8 /* makefile.unix in Resources */,
 				7CDC455420DA8FF3005BE7A8 /* wizard.txt in Resources */,
-				7CDC460C20DA8FF3005BE7A8 /* jdinput.Plo in Resources */,
 				7CDC457520DA8FF3005BE7A8 /* configure in Resources */,
-				7CDC45F920DA8FF3005BE7A8 /* jdpostct.Plo in Resources */,
 				7CDC456C20DA8FF3005BE7A8 /* makljpeg.st in Resources */,
-				7CDC460520DA8FF3005BE7A8 /* jcsample.Plo in Resources */,
 				7CDC45AC20DA8FF3005BE7A8 /* makejvcx.v15 in Resources */,
 				7CDC454E20DA8FF2005BE7A8 /* makejsln.v15 in Resources */,
 				7CDC45AB20DA8FF3005BE7A8 /* Makefile.am in Resources */,
 				7CDC456520DA8FF3005BE7A8 /* Android.mk in Resources */,
 				7CDC455720DA8FF3005BE7A8 /* .directory in Resources */,
-				7CDC460920DA8FF3005BE7A8 /* jcdctmgr.Plo in Resources */,
 				7CDC45DD20DA8FF3005BE7A8 /* structure.txt in Resources */,
-				7CDC45F720DA8FF3005BE7A8 /* jcomapi.Plo in Resources */,
 				7CDC45B320DA8FF3005BE7A8 /* config.sub in Resources */,
-				7CDC462020DA8FF3005BE7A8 /* jdmerge.Plo in Resources */,
 				7CDC459720DA8FF3005BE7A8 /* testimgp.jpg in Resources */,
-				7CDC461420DA8FF3005BE7A8 /* jdcolor.Plo in Resources */,
 				7CDC458720DA8FF3005BE7A8 /* makefile.ansi in Resources */,
-				7CDC460120DA8FF3005BE7A8 /* wrtarga.Po in Resources */,
-				7CDC45F820DA8FF3005BE7A8 /* jcmainct.Plo in Resources */,
-				7CDC462120DA8FF3005BE7A8 /* rdtarga.Po in Resources */,
 				7CDC457A20DA8FF3005BE7A8 /* jconfig.vc in Resources */,
 				7CDC459D20DA8FF3005BE7A8 /* rdjpgcom.1 in Resources */,
 				7CDC45CD20DA8FF3005BE7A8 /* config.log in Resources */,
-				7CDC45E820DA8FF3005BE7A8 /* jdmaster.Plo in Resources */,
 				7CDC458120DA8FF3005BE7A8 /* makdjpeg.st in Resources */,
 				7CDC45AE20DA8FF3005BE7A8 /* makcjpeg.st in Resources */,
-				7CDC461F20DA8FF3005BE7A8 /* jerror.Plo in Resources */,
 				7C6CD11C20D0DA550010F6B1 /* Assets.xcassets in Resources */,
-				7CDC460B20DA8FF3005BE7A8 /* jdatasrc.Plo in Resources */,
-				7CDC462220DA8FF3005BE7A8 /* jdsample.Plo in Resources */,
 				7CDC455A20DA8FF3005BE7A8 /* makefile.wat in Resources */,
 				7CDC457920DA8FF3005BE7A8 /* makewdsp.vc6 in Resources */,
-				7CDC45EB20DA8FF3005BE7A8 /* jcprepct.Plo in Resources */,
 				7CDC455220DA8FF2005BE7A8 /* libtool in Resources */,
 				7CDC457020DA8FF3005BE7A8 /* jpegtran.1 in Resources */,
-				7CDC45E420DA8FF3005BE7A8 /* wrppm.Po in Resources */,
 				7CDC462A20DA8FF3005BE7A8 /* testimg.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

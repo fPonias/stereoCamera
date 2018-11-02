@@ -17,8 +17,15 @@ import java.io.IOException;
 
 public class InstagramTransform
 {
-	public static final int MAX_HEIGHT = 1350;
-	public static final float RATIO = 4.0f / 5.0f;
+
+
+	public enum TransformType
+	{
+		COPY,
+		ROTATE,
+		SQUARE,
+		SQUARE_ROTATE
+	};
 
 	private Context context;
 	private Listener listener;
@@ -34,14 +41,20 @@ public class InstagramTransform
 		void onFailed();
 	}
 
-	public void transform(final File source, final Listener listener)
+	public void transform(final File source, final TransformType type, final Listener listener)
 	{
 		this.listener = listener;
 		Thread t = new Thread(new Runnable() { public void run()
 		{
-			Bitmap bmp = openScaledBitmap(source);
-			final Bitmap ret = transformBitmap(bmp);
-			bmp.recycle();
+			Transformer transform = TransformerFactory.create(type);
+
+			if (transform == null)
+            {
+                listener.onFailed();
+                return;
+            }
+
+			final Bitmap ret = transform.transform(source);
 
 			writeTmpFile(ret, new WroteTmp() { public void onFileWritten(File file)
 			{
@@ -53,52 +66,275 @@ public class InstagramTransform
 		t.start();
 	}
 
-	private Bitmap openScaledBitmap(File source)
+	private static abstract class Transformer
 	{
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
-		int skip = (int) Math.ceil((double) options.outWidth / (double) MAX_HEIGHT);
+		public static final int VERTICAL_MAX_HEIGHT = 1350;
+		public static final float VERTICAL_RATIO = 4.0f / 5.0f;
+		public static final int HORIZONTAL_MAX_WIDTH = 1080;
+		public static final float HORIZONTAL_RATIO = 1.908f;
+		public static final int SQUARE_DIM = 1080;
 
-		options = new BitmapFactory.Options();
-
-		if (skip > 1)
-			options.inSampleSize = skip;
-
-		bmp = BitmapFactory.decodeFile(source.getPath(), options);
-		return bmp;
+		abstract public Bitmap transform(File source);
 	}
 
-	private Bitmap transformBitmap(Bitmap bmp)
+	private static class TransformerFactory
 	{
-		int oHeight = bmp.getHeight();
-		int oWidth = bmp.getWidth();
+		public static Transformer create(TransformType type)
+		{
+			switch(type)
+			{
+				case ROTATE:
+					return new RotateTransform();
+				case COPY:
+					return new CopyTransform();
+				case SQUARE:
+					return new SquareTransform();
+				case SQUARE_ROTATE:
+					return new SquareRotatedTransform();
+				default:
+					return null;
+			}
+		}
+	}
 
-		int nHeight = MAX_HEIGHT;
-		int nWidth = (int) (MAX_HEIGHT * RATIO);
-		Bitmap ret = Bitmap.createBitmap(nWidth, nHeight, Bitmap.Config.ARGB_8888);
+	private static class RotateTransform extends Transformer
+	{
+		@Override
+		public Bitmap transform(File source)
+		{
+			Bitmap bmp = openScaledBitmap(source);
+			Bitmap ret = transformBitmap(bmp);
+			bmp.recycle();
+			return ret;
+		}
 
-		Canvas canvas = new Canvas(ret);
-		float scale = (float) nHeight / (float) oWidth;
-		int tHeight = (int) (oWidth * scale);
-		int tWidth = (int) (oHeight * scale);
-		int diff = (nWidth - tWidth) / 2;
+		private Bitmap openScaledBitmap(File source)
+		{
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			int skip = (int) Math.ceil((double) options.outWidth / (double) VERTICAL_MAX_HEIGHT);
 
-		Matrix transform = new Matrix();
-		transform.postRotate(90);
-		transform.postScale(scale, scale);
-		transform.postTranslate(diff + tWidth, 0);
+			options = new BitmapFactory.Options();
+
+			if (skip > 1)
+				options.inSampleSize = skip;
+
+			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			return bmp;
+		}
+
+		private Bitmap transformBitmap(Bitmap bmp)
+		{
+			int oHeight = bmp.getHeight();
+			int oWidth = bmp.getWidth();
+
+			int nHeight = VERTICAL_MAX_HEIGHT;
+			int nWidth = (int) (VERTICAL_MAX_HEIGHT * VERTICAL_RATIO);
+			Bitmap ret = Bitmap.createBitmap(nWidth, nHeight, Bitmap.Config.ARGB_8888);
+
+			Canvas canvas = new Canvas(ret);
+			float scale = (float) nHeight / (float) oWidth;
+			int tHeight = (int) (oWidth * scale);
+			int tWidth = (int) (oHeight * scale);
+			int diff = (nWidth - tWidth) / 2;
+
+			Matrix transform = new Matrix();
+			transform.postRotate(90);
+			transform.postScale(scale, scale);
+			transform.postTranslate(diff + tWidth, 0);
 
 
-		Paint whitePaint = new Paint();
-		whitePaint.setColor(Color.WHITE);
-		canvas.drawRect(0, 0, nWidth, nHeight, whitePaint);
+			Paint whitePaint = new Paint();
+			whitePaint.setColor(Color.WHITE);
+			canvas.drawRect(0, 0, nWidth, nHeight, whitePaint);
 
-		Paint paint = new Paint();
-		paint.setFilterBitmap(true);
-		canvas.drawBitmap(bmp, transform, paint);
+			Paint paint = new Paint();
+			paint.setFilterBitmap(true);
+			canvas.drawBitmap(bmp, transform, paint);
 
-		return ret;
+			return ret;
+		}
+	}
+
+	private static class CopyTransform extends Transformer
+	{
+		@Override
+		public Bitmap transform(File source)
+		{
+			Bitmap bmp = openScaledBitmap(source);
+			Bitmap ret = transformBitmap(bmp);
+			bmp.recycle();
+			return ret;
+		}
+
+		private Bitmap openScaledBitmap(File source)
+		{
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			int skip = (int) Math.ceil((double) options.outWidth / (double) HORIZONTAL_MAX_WIDTH);
+
+			options = new BitmapFactory.Options();
+
+			if (skip > 1)
+				options.inSampleSize = skip;
+
+			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			return bmp;
+		}
+
+		private Bitmap transformBitmap(Bitmap bmp)
+		{
+			int oHeight = bmp.getHeight();
+			int oWidth = bmp.getWidth();
+
+			int nHeight = (int) (HORIZONTAL_MAX_WIDTH / HORIZONTAL_RATIO);
+			int nWidth = HORIZONTAL_MAX_WIDTH;
+			Bitmap ret = Bitmap.createBitmap(nWidth, nHeight, Bitmap.Config.ARGB_8888);
+
+			Canvas canvas = new Canvas(ret);
+			float scale = (float) nWidth / (float) oWidth;
+			int tHeight = (int) (oHeight * scale);
+			int tWidth = (int) (oWidth * scale);
+			int diff = (nHeight - tHeight) / 2;
+
+			Matrix transform = new Matrix();
+			transform.postScale(scale, scale);
+			transform.postTranslate(0, diff);
+
+			Paint whitePaint = new Paint();
+			whitePaint.setColor(Color.WHITE);
+			canvas.drawRect(0, 0, nWidth, nHeight, whitePaint);
+
+			Paint paint = new Paint();
+			paint.setFilterBitmap(true);
+			canvas.drawBitmap(bmp, transform, paint);
+
+			return ret;
+		}
+	}
+
+	private static class SquareTransform extends Transformer
+	{
+		@Override
+		public Bitmap transform(File source)
+		{
+			Bitmap bmp = openScaledBitmap(source);
+			Bitmap ret = transformBitmap(bmp);
+			bmp.recycle();
+			return ret;
+		}
+
+		private Bitmap openScaledBitmap(File source)
+		{
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			int skip = (int) Math.ceil((double) options.outWidth / (double) SQUARE_DIM);
+
+			options = new BitmapFactory.Options();
+
+			if (skip > 1)
+				options.inSampleSize = skip;
+
+			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			return bmp;
+		}
+
+		private Bitmap transformBitmap(Bitmap bmp)
+		{
+			int oHeight = bmp.getHeight();
+			int oWidth = bmp.getWidth();
+
+			int nHeight = SQUARE_DIM;
+			int nWidth = SQUARE_DIM;
+			Bitmap ret = Bitmap.createBitmap(nWidth, nHeight, Bitmap.Config.ARGB_8888);
+
+			Canvas canvas = new Canvas(ret);
+			float scale = (float) nWidth / (float) oWidth;
+
+			Paint whitePaint = new Paint();
+			whitePaint.setColor(Color.WHITE);
+			canvas.drawRect(0, 0, nWidth, nHeight, whitePaint);
+
+			Matrix transform = new Matrix();
+			transform.postScale(scale, scale);
+			transform.postTranslate(0, 0);
+
+			Paint paint = new Paint();
+			paint.setFilterBitmap(true);
+			canvas.drawBitmap(bmp, transform, paint);
+
+			transform = new Matrix();
+			transform.postScale(scale, scale);
+			transform.postTranslate(0, nHeight / 2);
+			canvas.drawBitmap(bmp, transform, paint);
+
+			return ret;
+		}
+	}
+
+	private static class SquareRotatedTransform extends Transformer
+	{
+		@Override
+		public Bitmap transform(File source)
+		{
+			Bitmap bmp = openScaledBitmap(source);
+			Bitmap ret = transformBitmap(bmp);
+			bmp.recycle();
+			return ret;
+		}
+
+		private Bitmap openScaledBitmap(File source)
+		{
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			int skip = (int) Math.ceil((double) options.outWidth / (double) SQUARE_DIM);
+
+			options = new BitmapFactory.Options();
+
+			if (skip > 1)
+				options.inSampleSize = skip;
+
+			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			return bmp;
+		}
+
+		private Bitmap transformBitmap(Bitmap bmp)
+		{
+			int oHeight = bmp.getHeight();
+			int oWidth = bmp.getWidth();
+
+			int nHeight = SQUARE_DIM;
+			int nWidth = SQUARE_DIM;
+			Bitmap ret = Bitmap.createBitmap(nWidth, nHeight, Bitmap.Config.ARGB_8888);
+
+			Canvas canvas = new Canvas(ret);
+			float scale = (float) nWidth / (float) oWidth;
+
+			Paint whitePaint = new Paint();
+			whitePaint.setColor(Color.WHITE);
+			canvas.drawRect(0, 0, nWidth, nHeight, whitePaint);
+
+			Matrix transform = new Matrix();
+			transform.postScale(scale, scale);
+			transform.postRotate(90);
+			transform.postTranslate(nHeight / 2, 0);
+
+			Paint paint = new Paint();
+			paint.setFilterBitmap(true);
+			canvas.drawBitmap(bmp, transform, paint);
+
+			transform = new Matrix();
+			transform.postScale(scale, scale);
+			transform.postRotate(90);
+			transform.postTranslate(nHeight, 0);
+			canvas.drawBitmap(bmp, transform, paint);
+
+			return ret;
+		}
 	}
 
 	private static interface WroteTmp

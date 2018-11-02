@@ -100,7 +100,8 @@ class CommManager
             let parts:[Substring] = address.address.split(separator: ".")
             if (parts.count == 4)
             {
-                _localAddresses.append(address.address)
+                if (address.address != "127.0.0.1" && !address.address.starts(with: "169.254"))
+                    {_localAddresses.append(address.address)}
             }
         }
     }

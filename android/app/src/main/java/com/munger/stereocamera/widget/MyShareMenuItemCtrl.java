@@ -13,6 +13,7 @@ import android.widget.Toast;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
+import com.munger.stereocamera.fragment.InstagramExportDialog;
 import com.munger.stereocamera.service.InstagramTransform;
 import com.munger.stereocamera.utility.MyActivityChooserModel;
 import com.munger.stereocamera.utility.MyActivityChooserView;
@@ -49,29 +50,51 @@ public class MyShareMenuItemCtrl
 
 			if (componentName.getClassName().contains("instagram") && paths.length == 1)
 			{
-				InstagramTransform transform = new InstagramTransform(context);
-				File file = new File(paths[0]);
-				transform.transform(file, new InstagramTransform.Listener()
-				{
-					@Override
-					public void onProcessed(File dest)
-					{
-						Uri uri = getShareUri(dest);
-						sendIntent(uri);
-					}
-
-					@Override
-					public void onFailed()
-					{
-						Toast.makeText(context, R.string.instagram_failed_error, Toast.LENGTH_LONG).show();
-					}
-				});
+				onInstagramChosen();
 			}
 			else
 			{
 				sendIntent();
 			}
 		}
+
+		private void onInstagramChosen()
+		{
+			InstagramExportDialog dialog = new InstagramExportDialog();
+			dialog.setListener(new InstagramExportDialog.ActionListener() {
+				@Override
+				public void cancelled() {}
+
+				@Override
+				public void selected(InstagramTransform.TransformType type)
+				{
+					onInstagramChosen2(type);
+				}
+			});
+			dialog.show(MainActivity.getInstance().getSupportFragmentManager(), "instagramDialog");
+		}
+
+		private void onInstagramChosen2(InstagramTransform.TransformType type)
+		{
+			InstagramTransform transform = new InstagramTransform(context);
+			File file = new File(paths[0]);
+			transform.transform(file, type, new InstagramTransform.Listener()
+			{
+				@Override
+				public void onProcessed(File dest)
+				{
+					Uri uri = getShareUri(dest);
+					sendIntent(uri);
+				}
+
+				@Override
+				public void onFailed()
+				{
+					Toast.makeText(context, R.string.instagram_failed_error, Toast.LENGTH_LONG).show();
+				}
+			});
+		}
+
 
 		private void sendIntent(Uri file)
 		{

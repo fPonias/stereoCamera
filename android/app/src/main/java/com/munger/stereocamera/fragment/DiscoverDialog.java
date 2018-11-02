@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.munger.stereocamera.R;
+import com.munger.stereocamera.service.InstagramTransform;
 
 import java.util.HashMap;
 import java.util.LinkedList;
