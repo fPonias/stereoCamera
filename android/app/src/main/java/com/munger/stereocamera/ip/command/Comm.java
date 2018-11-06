@@ -107,6 +107,8 @@ public class Comm
 			}
 
 			Log.d("stereoCamera", "comm read " + total + " bytes");
+			if (total == -1)
+				throw new IOException("slave socket read error");
 
 			return ret;
 		}

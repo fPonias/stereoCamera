@@ -94,12 +94,8 @@ class CommandFactory
             return SendPhoto()
         case CommandTypes.DISCONNECT:
             return Disconnect()
-        case CommandTypes.RECEIVE_DISCONNECT:
-            return SendDisconnect()
         case CommandTypes.CONNECTION_PAUSE:
             return ConnectionPause()
-        case CommandTypes.RECEIVE_CONNECTION_PAUSE:
-            return SendConnectionPause()
         case CommandTypes.RECEIVE_GRAVITY:
             return SendGravity()
         case CommandTypes.SET_CAPTURE_QUALITY:

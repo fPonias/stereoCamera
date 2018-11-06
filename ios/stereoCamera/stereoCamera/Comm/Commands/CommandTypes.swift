@@ -24,9 +24,7 @@ enum CommandTypes: Int
     RECEIVE_GRAVITY,
     RECEIVE_ORIENTATION,
     CONNECTION_PAUSE,
-    RECEIVE_CONNECTION_PAUSE,
     DISCONNECT,
-    RECEIVE_DISCONNECT,
     SEND_PROCESSED_PHOTO,
     RECEIVE_PREVIEW_FRAME,
     HANDSHAKE,
@@ -50,9 +48,7 @@ enum CommandTypes: Int
         case .RECEIVE_GRAVITY: return "Receive gravity"
         case .RECEIVE_ORIENTATION: return "Receive orientation"
         case .CONNECTION_PAUSE: return "Connection pause"
-        case .RECEIVE_CONNECTION_PAUSE: return "Receive connection pause"
         case .DISCONNECT: return "Disconnect"
-        case .RECEIVE_DISCONNECT: return "Recieve disconnect"
         case .SEND_PROCESSED_PHOTO: return "Send processed photo"
         case .RECEIVE_PREVIEW_FRAME: return "Receive preview frame"
         case .HANDSHAKE: return "Handshake"

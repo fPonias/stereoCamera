@@ -55,7 +55,8 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             setOverlay.id = command.id
             setOverlay.isResponse = true
             CommManager.instance.comm.sendCommand(command: setOverlay)
-            self.showLoader(false)
+            
+            setStatus(.READY)
             
             cameraOverlay.overlay = setOverlay.overlay
         case CommandTypes.SET_FACING:
@@ -69,8 +70,6 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             cameraPosition = newPos
             cameraPreview.stopCamera()
             cameraPreview.startCamera(cameraPosition: newPos, quality: captureQuality)
-            
-            self.setStatus(Status.READY)
         case CommandTypes.SET_CAPTURE_QUALITY:
             let retCmd = SetCaptureQuality((command as! SetCaptureQuality).quality)
             retCmd.id = command.id
@@ -179,16 +178,34 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         galleryBtn.update()
     }
     
+    override func viewWillAppear(_ animated: Bool)
+    {
+        super.viewWillAppear(animated)
+        
+        DispatchQueue.global(qos: .userInitiated).async
+        { [unowned self] in
+            usleep(500000)
+            self.setStatus(.RESUMED)
+        }
+    }
+    
     override func viewWillDisappear(_ animated: Bool)
     {
         super.viewWillDisappear(animated)
     
         let idx = navigationController?.viewControllers.index(of: self)
+        let sz = navigationController?.viewControllers.count
         if (idx == nil)
         {
             let cmd = Disconnect()
             CommManager.instance.comm.sendCommand(command: cmd)
             CommManager.instance.comm.disconnect()
+        }
+        else if (idx! < sz! - 1)
+        {
+            let cmd = ConnectionPause()
+            CommManager.instance.comm.sendCommand(command: cmd)
+            setStatus(.BUSY)
         }
     }
     
@@ -255,7 +272,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         if (status == Status.READY || status == Status.BUSY)
             { /*CommManager.instance.comm.sendCommand(command: SendConnectionPause())*/ }
 
-        setStatus(Status.CREATED);
+        setStatus(Status.BUSY);
     }
     
     override func setStatus(_ status: Status)

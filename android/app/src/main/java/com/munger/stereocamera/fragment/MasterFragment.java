@@ -317,7 +317,7 @@ public class MasterFragment extends PreviewFragment
 		setStatus(Status.CREATED);
 	}
 
-	private void disconnect()
+	public void disconnect()
 	{
 		pauseConnection();
 		masterComm.cleanUpConnections();
@@ -591,15 +591,7 @@ public class MasterFragment extends PreviewFragment
 		{
 			if (status == Status.RESUMED && resumed)
 			{
-				if (!(MasterFragment.this.status == Status.CREATED || MasterFragment.this.status == Status.LISTENING))
-				{
-					handshake();
-				}
-				else
-				{
-					pauseConnection();
-					handshake();
-				}
+				handshake();
 			}
 		}
 	};
@@ -637,6 +629,7 @@ public class MasterFragment extends PreviewFragment
 	private void handshakeSuccess()
 	{
 		Log.d("stereoCamera", "slave ready");
+		masterShake = new MasterShake(this);
 		setStatus(PreviewFragment.Status.READY);
 
 		Context c = MainActivity.getInstance();

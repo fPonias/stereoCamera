@@ -9,8 +9,6 @@ import com.munger.stereocamera.ip.command.commands.Handshake;
 import com.munger.stereocamera.ip.command.commands.ID;
 import com.munger.stereocamera.ip.command.commands.LatencyTest;
 import com.munger.stereocamera.ip.command.commands.Ping;
-import com.munger.stereocamera.ip.command.commands.SendConnectionPause;
-import com.munger.stereocamera.ip.command.commands.SendDisconnect;
 import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.ip.command.commands.SendStatus;
@@ -52,12 +50,8 @@ public class CommandFactory
 				return new SendZoom();
 			case DISCONNECT:
 				return new Disconnect();
-			case RECEIVE_DISCONNECT:
-				return new SendDisconnect();
 			case CONNECTION_PAUSE:
 				return new ConnectionPause();
-			case RECEIVE_CONNECTION_PAUSE:
-				return new SendConnectionPause();
 			case RECEIVE_GRAVITY:
 				return new SendGravity();
 			case SET_CAPTURE_QUALITY:

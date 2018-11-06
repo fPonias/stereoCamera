@@ -104,7 +104,7 @@ public class RemoteState
 			}
 		}});
 
-		comm.registerListener(Command.Type.RECEIVE_CONNECTION_PAUSE, new CommCtrl.Listener() { public void onCommand(Command command)
+		comm.registerListener(Command.Type.CONNECTION_PAUSE, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
 			synchronized (listenerLock)
 			{

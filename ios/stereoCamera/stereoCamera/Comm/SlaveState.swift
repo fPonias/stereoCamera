@@ -41,10 +41,6 @@ class SlaveState : CommandListener
                 break
             case .RECEIVE_ORIENTATION:
                 break
-            case .RECEIVE_CONNECTION_PAUSE:
-                break
-            case .RECEIVE_DISCONNECT:
-                break
             case .RECEIVE_PREVIEW_FRAME:
                 break
             case .ID:

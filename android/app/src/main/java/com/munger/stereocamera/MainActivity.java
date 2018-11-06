@@ -316,7 +316,10 @@ public class MainActivity extends BaseActivity
 			if (newCount == 0 && lastCount > 0)
 			{
 				if (ctrl != null)
+				{
 					ctrl.sendCommand(new Disconnect(), null);
+					ctrl.cleanUpConnections();
+				}
 
 				slaveFragment = null;
 				masterFragment = null;
@@ -325,6 +328,17 @@ public class MainActivity extends BaseActivity
 			lastCount = newCount;
 
 		}
+	}
+
+	public boolean isOnStack(Fragment fragment)
+	{
+
+		FragmentManager mgr = getSupportFragmentManager();
+		mgr.popBackStack();
+
+		List<Fragment> frags = mgr.getFragments();
+
+		return false;
 	}
 
 	public void openSettings()

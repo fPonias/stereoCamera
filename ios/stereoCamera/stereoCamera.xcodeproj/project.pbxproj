@@ -48,9 +48,7 @@
 		7CCB729F20F024C0000BE923 /* SetZoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729E20F024C0000BE923 /* SetZoom.swift */; };
 		7CCB72A120F031BA000BE923 /* SendZoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A020F031BA000BE923 /* SendZoom.swift */; };
 		7CCB72A320F41602000BE923 /* Disconnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A220F41602000BE923 /* Disconnect.swift */; };
-		7CCB72A520F416EC000BE923 /* SendDisconnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A420F416EC000BE923 /* SendDisconnect.swift */; };
 		7CCB72A720F418F1000BE923 /* ConnectionPause.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A620F418F1000BE923 /* ConnectionPause.swift */; };
-		7CCB72A920F4193C000BE923 /* SendConnectionPause.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A820F4193C000BE923 /* SendConnectionPause.swift */; };
 		7CDC415F20D39458005BE7A8 /* Comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC415D20D39458005BE7A8 /* Comm.cpp */; };
 		7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416020D397C4005BE7A8 /* Comm.swift */; };
 		7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416320D39DD3005BE7A8 /* Ping.swift */; };
@@ -275,9 +273,7 @@
 		7CCB729E20F024C0000BE923 /* SetZoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetZoom.swift; sourceTree = "<group>"; };
 		7CCB72A020F031BA000BE923 /* SendZoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendZoom.swift; sourceTree = "<group>"; };
 		7CCB72A220F41602000BE923 /* Disconnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Disconnect.swift; sourceTree = "<group>"; };
-		7CCB72A420F416EC000BE923 /* SendDisconnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendDisconnect.swift; sourceTree = "<group>"; };
 		7CCB72A620F418F1000BE923 /* ConnectionPause.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionPause.swift; sourceTree = "<group>"; };
-		7CCB72A820F4193C000BE923 /* SendConnectionPause.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendConnectionPause.swift; sourceTree = "<group>"; };
 		7CDC415D20D39458005BE7A8 /* Comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comm.cpp; sourceTree = "<group>"; };
 		7CDC415E20D39458005BE7A8 /* Comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Comm.hpp; sourceTree = "<group>"; };
 		7CDC416020D397C4005BE7A8 /* Comm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comm.swift; sourceTree = "<group>"; };
@@ -609,9 +605,7 @@
 				7CCB729E20F024C0000BE923 /* SetZoom.swift */,
 				7CCB72A020F031BA000BE923 /* SendZoom.swift */,
 				7CCB72A220F41602000BE923 /* Disconnect.swift */,
-				7CCB72A420F416EC000BE923 /* SendDisconnect.swift */,
 				7CCB72A620F418F1000BE923 /* ConnectionPause.swift */,
-				7CCB72A820F4193C000BE923 /* SendConnectionPause.swift */,
 				7C84966E20F990CF00C50601 /* SendGravity.swift */,
 				7CF59845211234980015260C /* SetCaptureQuality.swift */,
 				7CAE81C821273B2A0022569D /* LatencyTest.swift */,
@@ -1128,7 +1122,6 @@
 				7CDC466120DA9365005BE7A8 /* jdmaster.c in Sources */,
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
 				7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */,
-				7CCB72A520F416EC000BE923 /* SendDisconnect.swift in Sources */,
 				7CDC466220DA9365005BE7A8 /* jdmainct.c in Sources */,
 				7CDC465E20DA9353005BE7A8 /* jdinput.c in Sources */,
 				7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */,
@@ -1136,7 +1129,6 @@
 				7CDC465C20DA933F005BE7A8 /* jddctmgr.c in Sources */,
 				7CDC465A20DA9335005BE7A8 /* jdcolor.c in Sources */,
 				7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */,
-				7CCB72A920F4193C000BE923 /* SendConnectionPause.swift in Sources */,
 				7CDC465B20DA9335005BE7A8 /* jdcoefct.c in Sources */,
 				7C84967320FD5B0F00C50601 /* Angles.swift in Sources */,
 				7CDC465520DA9314005BE7A8 /* jdatasrc.c in Sources */,

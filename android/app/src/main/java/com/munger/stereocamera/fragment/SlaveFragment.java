@@ -18,12 +18,12 @@ import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.commands.ConnectionPause;
 import com.munger.stereocamera.ip.command.commands.FireShutter;
 import com.munger.stereocamera.ip.command.commands.Handshake;
 import com.munger.stereocamera.ip.command.commands.ID;
 import com.munger.stereocamera.ip.command.commands.LatencyTest;
 import com.munger.stereocamera.ip.command.commands.Ping;
-import com.munger.stereocamera.ip.command.commands.SendConnectionPause;
 import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.ip.command.commands.SendStatus;
@@ -353,7 +353,7 @@ public class SlaveFragment extends PreviewFragment
 		stopPreview();
 
 		if (status == Status.READY || status == Status.BUSY)
-			slaveComm.sendCommand(new SendConnectionPause(), null);
+			slaveComm.sendCommand(new ConnectionPause(), null);
 
 		setStatus(Status.CREATED);
 	}

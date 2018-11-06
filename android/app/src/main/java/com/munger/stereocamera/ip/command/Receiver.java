@@ -206,7 +206,7 @@ public class Receiver
 
 		synchronized (commandsReceivedCnd)
 		{
-			if (commandsReceivedQueue.size() == 0 || ctrl.getListener() == null)
+			if (commandsReceivedQueue.size() == 0)
 			{
 				Log.d("stereoCamera","received: processor waiting");
 				try {commandsReceivedCnd.wait();} catch(InterruptedException e){ return; }

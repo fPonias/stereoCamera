@@ -240,7 +240,7 @@ class CameraBaseCtrl : UIViewController
         {
             case .BUSY:
                 setLoadingMessage("Camera busy")
-                showLoader(true)
+                showLoader(false)
             case .CREATED, .RESUMED:
                 setLoadingMessage("Preview created")
                 showLoader(true)

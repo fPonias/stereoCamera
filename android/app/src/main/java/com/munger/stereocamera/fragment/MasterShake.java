@@ -392,26 +392,18 @@ public class MasterShake
 		overlayStep = new Step("overlay") { public void execute(final StepListener listener)
 		{
 			final PreviewOverlayWidget.Type type = target.overlayWidget.getType();
-			target.masterComm.sendCommand(new SetOverlay(type), null);
-
-			target.remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, READY_STATUS_TIMEOUT, new RemoteState.ReadyListener()
+			target.masterComm.sendCommand(new SetOverlay(type), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
 			{
-				@Override
-				public void done()
+				if (success)
 				{
 					if (type == PreviewOverlayWidget.Type.Ghost)
 						target.slavePreview.start();
 
 					listener.success();
 				}
-
-				@Override
-				public void fail()
-				{
-					Log.d(getTag(), "slave ready timed out");
+				else
 					listener.fail();
-				}
-			});
+			}});
 		}};
 	}
 }
