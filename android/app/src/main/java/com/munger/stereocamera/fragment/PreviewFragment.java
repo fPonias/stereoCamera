@@ -201,7 +201,6 @@ public class PreviewFragment extends Fragment
 
 	protected void onPreviewStarted()
 	{
-		setStatus(Status.READY);
 	}
 
 	protected void onPreviewStopped()

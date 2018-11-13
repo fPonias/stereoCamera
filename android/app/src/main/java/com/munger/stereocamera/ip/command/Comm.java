@@ -137,7 +137,7 @@ public class Comm
 				int toRead = Math.min(diff, 4096);
 
 				read = ins.read(buf, 0, toRead);
-				pipe.write(buf, 0, toRead);
+				pipe.write(buf, 0, read);
 				total += read;
 			}
 		}
@@ -150,6 +150,8 @@ public class Comm
 			MainActivity.getInstance().handleDisconnection();
 			throw e;
 		}
+
+		Log.d("stereoCamera", "piped " + total + " bytes");
 	}
 
 	public byte getByte() throws IOException
@@ -192,11 +194,26 @@ public class Comm
 		return Long.reverseBytes(ret);
 	}
 
+	private void swapBytes(byte[] data)
+	{
+		int sz = data.length;
+		int half = sz / 2;
+		for (int i = 0; i < half; i++)
+		{
+			byte b = data[sz - 1 - i];
+			data[sz - 1 - i] = data[i];
+			data[i] = b;
+		}
+	}
+
 	public float getFloat() throws IOException
 	{
 		byte[] data = getData(4);
+		swapBytes(data);
+
 		ByteBuffer bb = ByteBuffer.wrap(data);
-		return bb.getFloat(0);
+		float ret = bb.getFloat(0);
+		return ret;
 	}
 
 	private ByteBuffer ointbb = ByteBuffer.allocate(4);
@@ -211,7 +228,9 @@ public class Comm
 	public void putFloat(float val) throws IOException
 	{
 		ointbb.putFloat(0, val);
-		putData(ointbb.array());
+		byte[] arr = ointbb.array();
+		swapBytes(arr);
+		putData(arr);
 	}
 
 	private ByteBuffer olongbb = ByteBuffer.allocate(8);

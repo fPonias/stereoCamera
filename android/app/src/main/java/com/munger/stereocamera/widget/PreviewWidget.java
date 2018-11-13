@@ -274,7 +274,6 @@ public class PreviewWidget extends TextureView
 		synchronized (lock)
 		{
 			previewStarted = false;
-			previewReady = false;
 		}
 
 		if (listener != null)

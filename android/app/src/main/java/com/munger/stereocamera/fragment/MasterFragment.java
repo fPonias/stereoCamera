@@ -601,6 +601,7 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onPreviewStarted();
 
+		setStatus(Status.READY);
 		startPreview();
 	}
 

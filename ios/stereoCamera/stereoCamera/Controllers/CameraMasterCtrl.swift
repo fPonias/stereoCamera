@@ -204,10 +204,16 @@ class CameraMasterCtrl: CameraBaseCtrl
         setStatus(.CREATED);
     }
     
+    struct ShutterStruct
+    {
+        public var zoom:Float = 1.0
+        public var tmpPath:String = ""
+    }
+    
     private let shutterLock = NSCondition()
     private var shutterEvents = 0
-    private var shutterLocal:String = ""
-    private var shutterRemote:String = ""
+    private var shutterLocal = ShutterStruct()
+    private var shutterRemote = ShutterStruct()
     
     @IBAction func shutterFired(_ sender: Any)
     {
@@ -218,8 +224,8 @@ class CameraMasterCtrl: CameraBaseCtrl
             else
             {
                 shutterEvents = 3
-                shutterLocal = ""
-                shutterRemote = ""
+                shutterLocal = ShutterStruct()
+                shutterRemote = ShutterStruct()
             }
         shutterLock.unlock()
         
@@ -270,14 +276,15 @@ class CameraMasterCtrl: CameraBaseCtrl
         if (self.cameraPreview.currentCamera == nil)
         {
             DispatchQueue.global(qos: .userInitiated).async(execute:
-            {
+            { [unowned self] in
                 let data = NSDataAsset.init(name: "img107")
                 let tmpUrl = self.saveToTmp(data: data!.data)
                 guard (tmpUrl != nil) else { self.shutterReset(); return  }
                 
                 self.shutterLock.lock()
                     self.shutterEvents -= 1
-                    self.shutterLocal = tmpUrl!.path
+                    self.shutterLocal.tmpPath = tmpUrl!.path
+                    self.shutterLocal.zoom = self.zoomSlider.value
                     self.setLoaderMessage("Waiting for remote picture ...")
                     self.shutterLock.signal()
                 self.shutterLock.unlock()
@@ -291,7 +298,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                 if (delay > 0)
                     { usleep(UInt32(delay)) }
             
-                self.cameraPreview.fireShutter(delegate: {(photo: AVCapturePhoto) -> Void
+                self.cameraPreview.fireShutter(delegate: { [unowned self] (photo: AVCapturePhoto) -> Void
                 in
                     let data = photo.fileDataRepresentation()
                     guard ( data != nil ) else { self.shutterReset();  return }
@@ -303,7 +310,8 @@ class CameraMasterCtrl: CameraBaseCtrl
                         if (self.shutterEvents > 0)
                         {
                             self.shutterEvents -= 1
-                            self.shutterLocal = tmpUrl!.path
+                            self.shutterLocal.tmpPath = tmpUrl!.path
+                            self.shutterLocal.zoom = self.zoomSlider.value
                             self.shutterLock.signal()
                         }
                     self.shutterLock.unlock()
@@ -327,7 +335,8 @@ class CameraMasterCtrl: CameraBaseCtrl
                 if (self.shutterEvents > 0)
                 {
                     self.shutterEvents -= 1
-                    self.shutterRemote = tmpUrl!.path
+                    self.shutterRemote.tmpPath = tmpUrl!.path
+                    self.shutterRemote.zoom = dataCmd.zoom
                     self.shutterLock.signal()
                 }
             self.shutterLock.unlock()
@@ -338,8 +347,8 @@ class CameraMasterCtrl: CameraBaseCtrl
     {
         self.shutterLock.lock()
             self.shutterEvents = -1
-            self.shutterLocal = ""
-            self.shutterRemote = ""
+            self.shutterLocal = ShutterStruct()
+            self.shutterRemote = ShutterStruct()
             self.shutterLock.signal()
         self.shutterLock.unlock()
     }
@@ -352,8 +361,8 @@ class CameraMasterCtrl: CameraBaseCtrl
             {
                 doReturn = true
                 self.shutterEvents = 0
-                self.shutterLocal = ""
-                self.shutterRemote = ""
+                self.shutterLocal = ShutterStruct()
+                self.shutterRemote = ShutterStruct()
             }
         self.shutterLock.unlock()
         
@@ -361,12 +370,12 @@ class CameraMasterCtrl: CameraBaseCtrl
             { return }
     
         setLoaderMessage("Combining pictures ...")
-        let localPtr = Bytes.toPointer(self.shutterLocal)
-        let remotePtr = Bytes.toPointer(self.shutterRemote)
+        let localPtr = Bytes.toPointer(self.shutterLocal.tmpPath)
+        let remotePtr = Bytes.toPointer(self.shutterRemote.tmpPath)
         
         imageProcessor_setProcessorType(Int32(SPLIT.rawValue))
-        imageProcessor_setImageN(Int32(LEFT.rawValue), localPtr, 0, 1.0)
-        imageProcessor_setImageN(Int32(RIGHT.rawValue), remotePtr, 0, 1.0)
+        imageProcessor_setImageN(Int32(LEFT.rawValue), localPtr, 0, self.shutterLocal.zoom)
+        imageProcessor_setImageN(Int32(RIGHT.rawValue), remotePtr, 0, self.shutterRemote.zoom)
         
         let outurl = Files.getRandomFile()
         guard (outurl != nil) else { shutterReset(); return }
@@ -382,8 +391,8 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         self.shutterLock.lock()
             self.shutterEvents = 0
-            self.shutterLocal = ""
-            self.shutterRemote = ""
+            self.shutterLocal = ShutterStruct()
+            self.shutterRemote = ShutterStruct()
         self.shutterLock.unlock()
         
         DispatchQueue.main.async {

@@ -142,6 +142,8 @@ public class SlaveFragment extends PreviewFragment
 			previewSender.cancel();
 
 		overlayWidget.setType(type);
+
+
 	}
 
 	private void checkVersion(int version)
@@ -197,6 +199,8 @@ public class SlaveFragment extends PreviewFragment
 		{
 			SetOverlay cmd = (SetOverlay) command;
 			SlaveFragment.this.setOverlay(cmd.type);
+
+			setStatus(Status.READY);
 		}});
 
 		slaveComm.registerListener(Command.Type.SEND_VERSION, new CommCtrl.Listener() { public void onCommand(Command command)
@@ -234,6 +238,8 @@ public class SlaveFragment extends PreviewFragment
 				FireShutter cmd = (FireShutter) command;
 
 				cmd.zoom = (zoomSlider.get());
+				setStatus(Status.PROCESSING);
+				setLoadingMessage("Taking picture");
 
 				byte[] data = doFireShutter(captureQuality);
 				cmd.data = data;
@@ -267,6 +273,7 @@ public class SlaveFragment extends PreviewFragment
 		{
 			SendPhoto cmd = (SendPhoto) command;
 			saveProcessedPhoto(cmd);
+			showLoading(false);
 		}});
 
 		previewSender.setPreviewWidget(previewView);
@@ -432,7 +439,7 @@ public class SlaveFragment extends PreviewFragment
 			@Override
 			public void onFinished()
 			{
-				setStatus(Status.READY);
+				setLoadingMessage("Waiting for image");
 			}
 		});
 
@@ -491,22 +498,28 @@ public class SlaveFragment extends PreviewFragment
 			{
 				FileOutputStream fos = null;
 				FileInputStream fis = null;
+				long total = 0;
 
 				try
 				{
 					String path = photoFiles.getNewFilePath();
 					String tmpPath = tmpFile.getPath();
-					byte[] buffer = new byte[1024];
+					byte[] buffer = new byte[4096];
 					int read = 1;
+					long target = new File(tmpPath).length();
+					Log.d("StereoCamera", "Copying " + target + " bytes from " + tmpPath + " to " + path);
 
 					fos = new FileOutputStream(path);
 					fis = new FileInputStream(tmpPath);
-					while (read > 0)
+					while (total < target)
 					{
-						read = fis.read(buffer);
+						long toRead = Math.min(4096, target - total);
+						read = fis.read(buffer, 0, (int) toRead);
 
 						if (read > 0)
-							fos.write(buffer, 0, read);
+							fos.write(buffer, 0, (int) read);
+
+						total += read;
 					}
 					fos.flush();
 				}
@@ -526,6 +539,8 @@ public class SlaveFragment extends PreviewFragment
 					}
 					catch (IOException e){}
 				}
+
+				Log.d("StereoCamera", "copied " + total + " bytes");
 
 				if (handler == null)
 					handler = new Handler(Looper.getMainLooper());
