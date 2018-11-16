@@ -27,7 +27,7 @@ class CameraBaseCtrl : UIViewController
     {
         super.viewDidLoad()
         
-        zoomSlider.maximumValue = 4.0
+        zoomSlider.maximumValue = 2.0
         zoomSlider.minimumValue = 1.0
         zoomSlider.value = 1.0
         
@@ -143,24 +143,36 @@ class CameraBaseCtrl : UIViewController
     }
     
     let galleryTitle:String = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as! String
+    var placeholder:PHObjectPlaceholder? = nil
     
-    func saveToPhotos(data:Data)
+    func saveToPhotos(data:Data, onSaved: @escaping (String?) -> Void)
     {
         PHPhotoLibrary.requestAuthorization {
-        status in
+        [unowned self, onSaved] status in
             guard status == .authorized else { return }
-            PHPhotoLibrary.shared().performChanges({ self.saveToPhotos2(data) }, completionHandler: self.photoCompletion)
+            do{ try PHPhotoLibrary.shared().performChangesAndWait({ self.saveToPhotos2(data) })}
+                catch { return; }
             
+            if (self.placeholder == nil)
+                { return; }
+            
+            let localID = self.placeholder!.localIdentifier
+            let assetID = localID.replacingOccurrences(of: "/.*", with: "", options: NSString.CompareOptions.regularExpression, range: nil)
+            let ext = "jpg"
+            let assetURLStr = "assets-library://asset/asset.\(ext)?id=\(assetID)&ext=\(ext)"
+            self.placeholder = nil
+            
+            onSaved(assetURLStr)
         }
     }
     
-    func saveToPhotos(dataPath:String)
+    func saveToPhotos(dataPath:String, onSaved: @escaping (String?) -> Void)
     {
         do
         {
             let url = URL(fileURLWithPath: dataPath)
             let data = try Data(contentsOf: url)
-            saveToPhotos(data:data)
+            saveToPhotos(data:data, onSaved: onSaved)
         }
         catch{
         }
@@ -181,6 +193,7 @@ class CameraBaseCtrl : UIViewController
         
         let createRequest = PHAssetCreationRequest.forAsset()
         createRequest.addResource(with: PHAssetResourceType.photo, data: data, options: nil)
+        placeholder = createRequest.placeholderForCreatedAsset
         
         let list = NSSet(object: createRequest.placeholderForCreatedAsset as Any)
         galleryReq.addAssets(list)
@@ -203,11 +216,6 @@ class CameraBaseCtrl : UIViewController
         }
         
         return nil
-    }
-    
-    func photoCompletion(completed:Bool, error:Error?)
-    {
-        
     }
     
     func saveToTmp(data: Data) -> URL?

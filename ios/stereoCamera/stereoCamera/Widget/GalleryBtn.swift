@@ -60,8 +60,13 @@ class GalleryBtn : UIImageView //I'd make this a UIButton but the image won't di
         if (files.count > 0)
         {
             let asset = files[files.count - 1]
-            let image = Files.assetToImage(asset)
-            self.image = image
+            update(with: asset)
         }
+    }
+    
+    func update(with: PHAsset)
+    {
+        let image = Files.assetToImage(with)
+        self.image = image
     }
 }

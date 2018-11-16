@@ -197,23 +197,40 @@ public class PreviewWidget extends TextureView
 
 		List<Camera.Size> presizes = currentParameters.getSupportedPreviewSizes();
 		List<Camera.Size> picsizes = currentParameters.getSupportedPictureSizes();
-		Camera.Size picSize = picsizes.get(0);
+
+		int sz = picsizes.size();
+		Camera.Size picSize = null;
+		for (int i = 0; i < sz; i++)
+		{
+			Camera.Size ps = picsizes.get(i);
+
+			if (ps.height >= 480)
+			{
+				picSize = ps;
+				break;
+			}
+		}
+
+		if (picSize == null)
+			picSize = picsizes.get(0);
 
 		float ratio = (float) picSize.width / (float) picSize.height;
 
 		float closestDiff = 1000000;
 		int closestIdx = -1;
-		int sz = presizes.size();
+		int closestWidth = 0;
+		sz = presizes.size();
 		for (int i = 0; i < sz; i++)
 		{
 			Camera.Size preSize = presizes.get(i);
 			float picRatio = (float) preSize.width / (float) preSize.height;
 			float diff = Math.abs(picRatio - ratio);
 
-			if (i == 0 || diff < closestDiff)
+			if (i == 0 || diff < closestDiff || (diff == closestDiff && preSize.width > closestWidth))
 			{
 				closestIdx = i;
 				closestDiff = diff;
+				closestWidth = preSize.width;
 			}
 		}
 
@@ -225,7 +242,25 @@ public class PreviewWidget extends TextureView
 		if (text != null)
 			text.setDefaultBufferSize(preSize.width, preSize.height);
 
-		currentParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+		List<String> focii = currentParameters.getSupportedFocusModes();
+		sz = focii.size();
+		String focusSelection = null;
+		for (int i = 0; i < sz; i++)
+		{
+			String focus = focii.get(i);
+
+			if (focus.equals(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE))
+			{
+				focusSelection = focus;
+				break;
+			}
+			if (focus.equals(Camera.Parameters.FOCUS_MODE_AUTO))
+				focusSelection = focus;
+		}
+
+		if (focusSelection == null)
+			focusSelection = focii.get(0);
+		currentParameters.setFocusMode(focusSelection);
 
 		camera.setParameters(currentParameters);
 	}

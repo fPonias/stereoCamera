@@ -92,7 +92,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             }
             
         case CommandTypes.FIRE_SHUTTER:
-            self.fireShutter(listener: {(data:Data?) -> Void
+            self.fireShutter(listener: {[unowned self] (data:Data?) -> Void
             in
                 let fireShutter = FireShutter()
                 
@@ -100,6 +100,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                     { fireShutter.data = [UInt8](data!) }
                 
                 fireShutter.id = command.id
+                fireShutter.zoom = self.currentZoom
                 fireShutter.isResponse = true
                 
                 class Foo : CommandResponseListener
@@ -129,13 +130,15 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             
             if (url != nil)
             {
-                saveToPhotos(dataPath: url!.path)
-                self.showLoader(false)
-                
-                DispatchQueue.main.async {
-                [ unowned self ] in
-                    self.galleryBtn.update()
-                }
+                saveToPhotos(dataPath: url!.path, onSaved: {
+                (_ path:String?) in
+                    self.showLoader(false)
+                    
+                    DispatchQueue.main.async {
+                        [ unowned self ] in
+                        self.galleryBtn.update()
+                    }
+                })
             }
         case CommandTypes.DISCONNECT:
             self.disconnect()
@@ -235,7 +238,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     
     @IBAction func zoomChanged(_ sender: Any)
     {
-        currentZoom = zoomSlider .value
+        currentZoom = zoomSlider.value
     
         //avoid spamming zoom updates during the slider drag
         if (!zoomSending)

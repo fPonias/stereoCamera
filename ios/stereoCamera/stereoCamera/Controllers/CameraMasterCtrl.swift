@@ -373,9 +373,12 @@ class CameraMasterCtrl: CameraBaseCtrl
         let localPtr = Bytes.toPointer(self.shutterLocal.tmpPath)
         let remotePtr = Bytes.toPointer(self.shutterRemote.tmpPath)
         
+        let localSideVal = Cookie.instance.side
+        let remoteSideVal = (localSideVal == LEFT) ? RIGHT : LEFT
+        
         imageProcessor_setProcessorType(Int32(SPLIT.rawValue))
-        imageProcessor_setImageN(Int32(LEFT.rawValue), localPtr, 0, self.shutterLocal.zoom)
-        imageProcessor_setImageN(Int32(RIGHT.rawValue), remotePtr, 0, self.shutterRemote.zoom)
+        imageProcessor_setImageN(Int32(localSideVal.rawValue), localPtr, 0, self.shutterLocal.zoom)
+        imageProcessor_setImageN(Int32(remoteSideVal.rawValue), remotePtr, 0, self.shutterRemote.zoom)
         
         let outurl = Files.getRandomFile()
         guard (outurl != nil) else { shutterReset(); return }
@@ -386,7 +389,13 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         imageProcessor_cleanUpN()
         
-        saveToPhotos(dataPath: outpath)
+        saveToPhotos(dataPath: outpath, onSaved:
+        {(_path:String?) in
+            DispatchQueue.main.async {
+            [ unowned self ] in
+            self.galleryBtn.update()
+            }
+        })
         sendProcessedPhoto(dataPath: outpath)
         
         self.shutterLock.lock()
@@ -394,11 +403,6 @@ class CameraMasterCtrl: CameraBaseCtrl
             self.shutterLocal = ShutterStruct()
             self.shutterRemote = ShutterStruct()
         self.shutterLock.unlock()
-        
-        DispatchQueue.main.async {
-        [ unowned self ] in
-            self.galleryBtn.update()
-        }
     }
     
     func sendProcessedPhoto(dataPath:String)
