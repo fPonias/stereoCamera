@@ -36,6 +36,7 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.utility.Preferences;
@@ -56,6 +57,7 @@ public class ConnectFragment extends Fragment
 	private ViewGroup wifiControls;
 
 	private View view;
+	private PhotoOrientation orientation;
 	private AdView adView;
 	private InterstitialAd fullAdView;
 	private RelativeLayout rootView;
@@ -109,7 +111,11 @@ public class ConnectFragment extends Fragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
 	{
-		view = inflater.inflate(R.layout.fragment_connect, container, false);
+		orientation = MainActivity.getInstance().getCurrentOrientation();
+		if (orientation.isPortait())
+			view = inflater.inflate(R.layout.fragment_connect, container, false);
+		else
+			view = inflater.inflate(R.layout.fragment_connect_horizontal, container, false);
 
 		handler = new Handler(Looper.getMainLooper());
 

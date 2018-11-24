@@ -143,6 +143,7 @@ public class FireShutter
 			{
 				com.munger.stereocamera.ip.command.commands.FireShutter r = (com.munger.stereocamera.ip.command.commands.FireShutter) command;
 				remoteData = new PhotoProcessorService.PhotoArgument();
+				remoteData.orientation = r.orientation;
 				remoteData.zoom = r.zoom;
 
 				String remotePath = photoFiles.saveDataToCache(r.data);

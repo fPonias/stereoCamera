@@ -238,6 +238,7 @@ public class SlaveFragment extends PreviewFragment
 				FireShutter cmd = (FireShutter) command;
 
 				cmd.zoom = (zoomSlider.get());
+				cmd.orientation = orientation;
 				setStatus(Status.PROCESSING);
 				setLoadingMessage("Taking picture");
 

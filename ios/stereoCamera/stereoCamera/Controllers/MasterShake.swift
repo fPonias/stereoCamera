@@ -116,6 +116,10 @@ class MasterShake
                 in
                     let orig = origCmd as! Version
                     let resp = respCmd as! Version
+                    
+                    Cookie.instance.setCurrentClientVersion(value: resp.version)
+                    Cookie.instance.setCurrentClientPlatform(value: resp.platform)
+                    
                     if (resp.platform == .IOS && orig.version == resp.version)
                         { listener(true) }
                     else if (resp.platform == .ANDROID && resp.version == 1200)
@@ -155,7 +159,18 @@ class MasterShake
         func execute(listener: @escaping MasterShakeListener)
         {
             let cmd = ID(phoneId: Cookie.instance.id)
-            CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
+            CommManager.instance.comm.sendCommand(command: cmd, listener: StepListener(
+                received:
+                { (_ respCmd: Command, _ origCmd: Command?) -> Void in
+                    let cmd:ID = respCmd as! ID
+                    Cookie.instance.setCurrentClientID(value: cmd.phoneId)
+                    listener(true)
+                },
+                failed:
+                {() -> Void in
+                    listener(false)
+                }
+            ))
         }
     }
 

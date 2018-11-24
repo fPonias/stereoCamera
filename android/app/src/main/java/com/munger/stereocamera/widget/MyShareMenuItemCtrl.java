@@ -158,6 +158,9 @@ public class MyShareMenuItemCtrl
 		doInit(itemId);
 	}
 
+	private ViewTreeObserver.OnGlobalLayoutListener layoutListener;
+	private ViewTreeObserver viewTreeObserver;
+
 	private void doInit(final int itemId)
 	{
 		this.context = context;
@@ -165,9 +168,14 @@ public class MyShareMenuItemCtrl
 		actionView = new MyActivityChooserView(MainActivity.getInstance());
 
 		MainActivity mainActivity = MainActivity.getInstance();
-		final ViewTreeObserver viewTreeObserver = mainActivity.getWindow().getDecorView().getViewTreeObserver();
-		viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() { public void onGlobalLayout()
+		viewTreeObserver = mainActivity.getWindow().getDecorView().getViewTreeObserver();
+		layoutListener = new ViewTreeObserver.OnGlobalLayoutListener() { public void onGlobalLayout()
 		{
+			if (!viewTreeObserver.isAlive())
+			{
+				return;
+			}
+
 			menuButton = MainActivity.getInstance().findViewById(itemId);
 
 			if (menuButton != null)
@@ -177,7 +185,8 @@ public class MyShareMenuItemCtrl
 				// Now you can get rid of this listener
 				viewTreeObserver.removeOnGlobalLayoutListener(this);
 			}
-		}});
+		}};
+		viewTreeObserver.addOnGlobalLayoutListener(layoutListener);
 	}
 
 	public void updateMenuPosition()

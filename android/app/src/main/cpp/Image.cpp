@@ -112,7 +112,7 @@ struct Pixel* Image::process()
                     dstX = unzoomedTarget - y - zoomMargin;
                     dstY = x - margin - zoomMargin;
                     break;
-                case 1:
+                case 3:
                     dstX = unzoomedTarget - x + margin - zoomMargin;
                     dstY = unzoomedTarget - y - zoomMargin;
                     break;
@@ -120,7 +120,7 @@ struct Pixel* Image::process()
                     dstX = y - zoomMargin;
                     dstY = unzoomedTarget - x + margin - zoomMargin;
                     break;
-                case 3:
+                case 1:
                 default:
                     dstX = x - margin - zoomMargin;
                     dstY = y - zoomMargin;

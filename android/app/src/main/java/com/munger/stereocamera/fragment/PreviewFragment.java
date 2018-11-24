@@ -21,11 +21,13 @@ import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.widget.LoadingWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
+import com.munger.stereocamera.widget.SquareLayout;
 
 public class PreviewFragment extends Fragment
 {
 	protected View rootView;
 	protected PreviewWidget previewView;
+	protected SquareLayout previewContainer;
 	protected Handler handler;
 
 	protected Status status;
@@ -89,6 +91,7 @@ public class PreviewFragment extends Fragment
 	{
 		this.rootView = rootView;
 		previewView = rootView.findViewById(R.id.preview);
+		previewContainer = rootView.findViewById(R.id.previewContainer);
 
 		previewView.setListener(previewListener);
 	}

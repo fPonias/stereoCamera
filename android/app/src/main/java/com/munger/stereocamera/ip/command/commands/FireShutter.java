@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.Command;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
 
 import java.io.IOException;
 
@@ -13,18 +14,24 @@ public class FireShutter extends Command
 
 	public byte[] data;
 	public float zoom;
+	public PhotoOrientation orientation;
 
 	public FireShutter()
 	{
 		super();
+
+		zoom = 1.0f;
+		orientation = PhotoOrientation.DEG_0;
+
 		doInit();
 	}
 
-	public FireShutter(byte[] data, float zoom)
+	public FireShutter(byte[] data, float zoom, PhotoOrientation orientation)
 	{
 		super();
 		this.data = data;
 		this.zoom = zoom;
+		this.orientation = orientation;
 		doInit();
 	}
 
@@ -44,6 +51,7 @@ public class FireShutter extends Command
 		try
 		{
 			comm.putFloat(zoom);
+			comm.putByte((byte) orientation.ordinal());
 
 			if (data != null)
 			{
@@ -75,6 +83,10 @@ public class FireShutter extends Command
 			zoom = comm.getFloat();
 			Log.d("stereoCamera", "read zoom value: " + zoom);
 
+			byte orient = comm.getByte();
+			Log.d("stereoCamera", "read orientation value: " + orient);
+			orientation = PhotoOrientation.values()[orient];
+			
 			long sz = comm.getLong();
 			Log.d("stereoCamera", "read size value: " + sz);
 

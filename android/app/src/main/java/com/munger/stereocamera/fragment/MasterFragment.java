@@ -41,6 +41,7 @@ import com.munger.stereocamera.widget.OrientationWidget;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
+import com.munger.stereocamera.widget.SquareLayout;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
@@ -48,7 +49,6 @@ public class MasterFragment extends PreviewFragment
 {
 	private ImageButton clickButton;
 	private ImageButton swapButton;
-	private ViewGroup controls;
 	PreviewOverlayWidget overlayWidget;
 	private ThumbnailWidget thumbnailWidget;
 	SlavePreviewOverlayWidget slavePreview;
@@ -73,13 +73,10 @@ public class MasterFragment extends PreviewFragment
 
 		super.onCreateView(rootView);
 
-		controls = rootView.findViewById(R.id.controls);
-
 		clickButton = rootView.findViewById(R.id.shutter);
 		updateShutterButton();
 
 		swapButton = rootView.findViewById(R.id.hand);
-		updateHandPhoneButton();
 
 		zoomSlider = rootView.findViewById(R.id.zoom_slider);
 		zoomSlider.setListener(new ZoomWidget.Listener() {public void onChange(float value)
@@ -100,18 +97,23 @@ public class MasterFragment extends PreviewFragment
 			swapHand();
 		}});
 
+		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
+		thumbnailWidget.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
+		{
+			openThumbnail();
+		}});
+
+		if (orientation.isPortait())
+			updateHandPhoneButtonVertical();
+		else
+			updateHandPhoneButtonHorizontal();
+
 		startLocalGravity();
 
 		Preferences prefs = MainActivity.getInstance().getPrefs();
 		previewView.setOrientation(orientation);
 
 		slavePreview = rootView.findViewById(R.id.slavePreview);
-
-		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
-		thumbnailWidget.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
-		{
-			openThumbnail();
-		}});
 
 		setStatus(Status.CREATED);
 
@@ -175,8 +177,6 @@ public class MasterFragment extends PreviewFragment
 		galleryItem = menu.findItem(R.id.gallery);
 		prefsItem = menu.findItem(R.id.prefs);
 		helpItem = menu.findItem(R.id.help);
-
-		updateHandPhoneButton();
 
 		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
@@ -380,10 +380,13 @@ public class MasterFragment extends PreviewFragment
 		val = !val;
 		prefs.setIsOnLeft(val);
 
-		updateHandPhoneButton();
+		if (orientation.isPortait())
+			updateHandPhoneButtonVertical();
+		else
+			updateHandPhoneButtonHorizontal();
 	}
 
-	private void updateHandPhoneButton()
+	private void updateHandPhoneButtonVertical()
 	{
 		Preferences prefs = MainActivity.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
@@ -415,6 +418,75 @@ public class MasterFragment extends PreviewFragment
 			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
 			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
 			clickButton.setLayoutParams(lp);
+		}
+	}
+
+	private void updateHandPhoneButtonHorizontal()
+	{
+		Preferences prefs = MainActivity.getInstance().getPrefs();
+		boolean val = prefs.getIsOnLeft();
+
+		if (!val)
+		{
+			swapButton.setImageResource(R.drawable.hand_phone_white);
+
+			RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) swapButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			swapButton.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			clickButton.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) previewContainer.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			previewContainer.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) thumbnailWidget.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			thumbnailWidget.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) zoomSlider.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.addRule(RelativeLayout.START_OF, R.id.previewContainer);
+			lp.removeRule(RelativeLayout.END_OF);
+			zoomSlider.setLayoutParams(lp);
+		}
+		else
+		{
+			swapButton.setImageResource(R.drawable.hand_phone_white_right);
+
+			RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) swapButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			swapButton.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			clickButton.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) previewContainer.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_END);
+			previewContainer.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) thumbnailWidget.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			thumbnailWidget.setLayoutParams(lp);
+
+			lp = (RelativeLayout.LayoutParams) zoomSlider.getLayoutParams();
+			lp.addRule(RelativeLayout.ALIGN_PARENT_END);
+			lp.removeRule(RelativeLayout.ALIGN_PARENT_START);
+			lp.addRule(RelativeLayout.END_OF, R.id.previewContainer);
+			lp.removeRule(RelativeLayout.START_OF);
+			zoomSlider.setLayoutParams(lp);
 		}
 	}
 

@@ -34,12 +34,14 @@ public class SquareLayout extends ViewGroup
 		if (!changed)
 			return;
 
+		int dim = getMeasuredWidth();
+
 		int sz = getChildCount();
 		for (int i = 0; i < sz; i++)
 		{
 			View child = getChildAt(i);
 
-			child.layout(l,t,r,b);
+			child.layout(0,0, dim, dim);
 			child.requestLayout();
 		}
 	}

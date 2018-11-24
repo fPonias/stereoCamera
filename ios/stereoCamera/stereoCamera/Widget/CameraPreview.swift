@@ -146,52 +146,133 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection)
     {
-        if (frameCount != 1)
-        {
-            frameCount += 1
-            return
+        DispatchQueue.main.async
+        { [unowned self] in
+            if (self.frameCount != 1)
+            {
+                self.frameCount += 1
+                return
+            }
+            else
+                { self.frameCount = 0 }
+            
+        
+            let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+            var image = CIImage(cvPixelBuffer: pixelBuffer! as CVPixelBuffer, options: nil)
+            image = self.rotateScaleImage(image: image)
+            
+            if self.glContext != EAGLContext.current()
+            { EAGLContext.setCurrent(self.glContext) }
+            
+            self.bindDrawable()
+            let extent = image.extent
+            let zoomMargin = (extent.width - extent.width / CGFloat(self._zoom)) / CGFloat(2.0)
+            //let scale = extent.width / (frame.width * 2.0)
+            let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
+            
+            let scale = UIScreen.main.scale
+            let dest = CGRect(x:0, y:0, width: self.frame.width * scale * CGFloat(self._zoom), height: self.frame.height * scale * CGFloat(self._zoom))
+            self.ciContext.draw(image, in:dest, from: from)
+            
+            self.display()
         }
-        else
-            { frameCount = 0 }
-        
-    
-        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-        var image = CIImage(cvPixelBuffer: pixelBuffer! as CVPixelBuffer, options: nil)
-        image = rotateScaleImage(image: image)
-        
-        if glContext != EAGLContext.current()
-        { EAGLContext.setCurrent(glContext) }
-        
-        self.bindDrawable()
-        let extent = image.extent
-        let zoomMargin = (extent.width - extent.width / CGFloat(_zoom)) / CGFloat(2.0)
-        //let scale = extent.width / (frame.width * 2.0)
-        let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
-        
-        let scale = UIScreen.main.scale
-        let dest = CGRect(x:0, y:0, width: frame.width * scale * CGFloat(_zoom), height: frame.height * scale * CGFloat(_zoom))
-        ciContext.draw(image, in:dest, from: from)
-        
-        display()
     }
     
     private var previewTransform:CGAffineTransform = CGAffineTransform()
     
-    func updateTransform()
+    public enum CameraOriention:CGFloat
     {
-        var rotation:CGFloat = 0.0
+        case DEG_0 = 0.0,
+        DEG_90 = 90.0,
+        DEG_180 = 180.0,
+        DEG_270 = 270.0
+    }
+    
+    public static func orientationToRadians(_ orientation:CameraOriention) -> CGFloat
+    {
+        switch(orientation)
+        {
+        case .DEG_0:
+            return 0.0
+        case .DEG_90:
+            return CGFloat(Double.pi)
+        case .DEG_180:
+            return CGFloat(Double.pi / 2.0)
+        case .DEG_270:
+            return CGFloat(3 * Double.pi / 2.0)
+        }
+    }
+    
+    public static func orientationToByte(_ orientation:CameraOriention) -> UInt8
+    {
+        switch(orientation)
+        {
+        case .DEG_0:
+            return 0
+        case .DEG_90:
+            return 1
+        case .DEG_180:
+            return 2
+        case .DEG_270:
+            return 3
+        }
+    }
+    
+    public static func orientationFromByte(_ b:UInt8) -> CameraOriention
+    {
+        switch(b)
+        {
+        case 0:
+            return .DEG_0
+        case 1:
+            return .DEG_90
+        case 2:
+            return .DEG_180
+        case 3:
+            return .DEG_270
+        default:
+            return .DEG_0
+        }
+    }
+    
+    public static func getScreenOrientation() -> CameraOriention
+    {
         let orient = UIDevice.current.orientation
         switch(orient)
         {
         case .portrait:
-            rotation = CGFloat(3 * Double.pi / 2.0)
+            return .DEG_270
         case .portraitUpsideDown:
-            rotation = CGFloat(Double.pi / 2.0)
+            return .DEG_180
         case .landscapeRight:
-            rotation = CGFloat(Double.pi)
+            return .DEG_90
         default:
-            rotation = 0.0
+            return .DEG_0
         }
+    }
+    
+    public static func getOrientation() -> CameraOriention
+    {
+        let orient = UIDevice.current.orientation
+        switch(orient)
+        {
+        case .portrait:
+            return .DEG_0
+        case .portraitUpsideDown:
+            return .DEG_180
+        case .landscapeRight:
+            return .DEG_270
+        case .landscapeLeft:
+            return .DEG_90
+        default:
+            return .DEG_0
+        }
+    }
+    
+    func updateTransform()
+    {
+        var orientation = CameraPreview.getScreenOrientation();
+        var rotation = CameraPreview.orientationToRadians(orientation)
         
         previewTransform = CGAffineTransform(translationX: 0, y: 0)
         

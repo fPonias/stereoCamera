@@ -76,14 +76,17 @@ void SplitCompositeImage::scaledCopy(Image* target, size_t offset)
         size_t newRow = (size_t) fmax(0, fmin(lround(dstRow / ratio), dim - 1));
         if (first || newRow > srcRow)
         {
-            first = false;
-            read = fread(buffer, jsampSz, (size_t) dim, file);
-            srcRow = newRow;
-            
-            if (read < dim)
+            while (srcRow < newRow)
             {
-                fclose(file);
-                return;
+                first = false;
+                read = fread(buffer, jsampSz, (size_t) dim, file);
+                srcRow++;
+                
+                if (read < dim)
+                {
+                    fclose(file);
+                    return;
+                }
             }
         }
         

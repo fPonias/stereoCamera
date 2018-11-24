@@ -120,6 +120,42 @@ class Cookie
         }
     }
     
+    private var currentClientID:String = ""
+    
+    func getCurrentClientID() -> String
+    {
+        return currentClientID
+    }
+    
+    func setCurrentClientID(value:String)
+    {
+        currentClientID = value
+    }
+    
+    private var currentClientVersion:UInt32 = 0
+    
+    func getCurrentClientVersion() -> UInt32
+    {
+        return currentClientVersion
+    }
+    
+    func setCurrentClientVersion(value:UInt32)
+    {
+        currentClientVersion = value
+    }
+    
+    private var currentClientPlatform:Version.Platform = .IOS
+    
+    func getCurrentClientPlatform() -> Version.Platform
+    {
+        return currentClientPlatform
+    }
+    
+    func setCurrentClientPlatform(value:Version.Platform)
+    {
+        currentClientPlatform = value
+    }
+    
     func getZoomForClient(isMaster: Bool, client: String, camera: AVCaptureDevice.Position = AVCaptureDevice.Position.back) -> Float
     {
         let dict = UserDefaults.standard.dictionary(forKey: cameraZoomsKey)
