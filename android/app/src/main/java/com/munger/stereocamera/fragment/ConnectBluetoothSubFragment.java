@@ -14,6 +14,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
@@ -115,12 +116,12 @@ public class ConnectBluetoothSubFragment
 
 	public void connect()
 	{
-		MainActivity.getInstance().setupBTServer(new IPListeners.SetupListener()
+		MyApplication.getInstance().setupBTServer(new IPListeners.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				btCtrl = MainActivity.getInstance().getBtCtrl();
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				discoverer = btCtrl.getDiscoverer();
 				String id = parent.prefs.getClient();
 
@@ -132,12 +133,12 @@ public class ConnectBluetoothSubFragment
 
 	private void discoverClicked()
 	{
-		MainActivity.getInstance().setupBTServer(new IPListeners.SetupListener()
+		MyApplication.getInstance().setupBTServer(new IPListeners.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				btCtrl = MainActivity.getInstance().getBtCtrl();
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				connectClicked2();
 			}
 		});
@@ -224,7 +225,7 @@ public class ConnectBluetoothSubFragment
 	public void deviceSelected(final BluetoothDevice device, final int retries)
 	{
 		if (btCtrl == null)
-			btCtrl = MainActivity.getInstance().getBtCtrl();
+			btCtrl = MyApplication.getInstance().getBtCtrl();
 
 		parent.handler.post(new Runnable() {public void run()
 		{
@@ -287,9 +288,9 @@ public class ConnectBluetoothSubFragment
 			{
 				try
 				{
-					btCtrl = MainActivity.getInstance().getBtCtrl();
+					btCtrl = MyApplication.getInstance().getBtCtrl();
 					CommCtrl ctrl = new CommCtrl(btCtrl);
-					MainActivity.getInstance().setCtrl(ctrl);
+					MyApplication.getInstance().setCtrl(ctrl);
 				}
 				catch(IOException e){return;}
 
@@ -321,12 +322,12 @@ public class ConnectBluetoothSubFragment
 
 	public void listen()
 	{
-		MainActivity.getInstance().setupBTServer(new IPListeners.SetupListener()
+		MyApplication.getInstance().setupBTServer(new IPListeners.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				btCtrl = MainActivity.getInstance().getBtCtrl();
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				listenForMaster();
 			}
 		});
@@ -334,12 +335,12 @@ public class ConnectBluetoothSubFragment
 
 	private void listenDiscoverClicked()
 	{
-		MainActivity.getInstance().setupBTServer(new IPListeners.SetupListener()
+		MyApplication.getInstance().setupBTServer(new IPListeners.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				btCtrl = MainActivity.getInstance().getBtCtrl();
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				listenAndEnableDiscovery();
 			}
 		});
@@ -355,9 +356,9 @@ public class ConnectBluetoothSubFragment
 		{
 			try
 			{
-				btCtrl = MainActivity.getInstance().getBtCtrl();
+				btCtrl = MyApplication.getInstance().getBtCtrl();
 				CommCtrl ctrl = new CommCtrl(btCtrl);
-				MainActivity.getInstance().setCtrl(ctrl);
+				MyApplication.getInstance().setCtrl(ctrl);
 			}
 			catch(IOException e){return;}
 
@@ -442,9 +443,9 @@ public class ConnectBluetoothSubFragment
 
 	public void listenForMaster()
 	{
-		MainActivity.getInstance().setupBTServer(new IPListeners.SetupListener() { public void onSetup()
+		MyApplication.getInstance().setupBTServer(new IPListeners.SetupListener() { public void onSetup()
 		{
-			btCtrl = MainActivity.getInstance().getBtCtrl();
+			btCtrl = MyApplication.getInstance().getBtCtrl();
 
 			showListenDialog();
 

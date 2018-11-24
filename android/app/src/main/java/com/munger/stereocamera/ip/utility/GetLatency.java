@@ -3,6 +3,7 @@ package com.munger.stereocamera.ip.utility;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
@@ -25,7 +26,7 @@ public class GetLatency
 		this.target = fragment;
 		this.timeout = timeout;
 
-		masterComm = MainActivity.getInstance().getCtrl();
+		masterComm = MyApplication.getInstance().getCtrl();
 	}
 
 	private long localLatency;

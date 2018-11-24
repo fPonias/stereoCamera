@@ -6,7 +6,10 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 
 import com.google.android.gms.ads.MobileAds;
+import com.munger.stereocamera.ip.IPListeners;
+import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
 import com.munger.stereocamera.utility.Preferences;
 
@@ -28,6 +31,8 @@ public class MyApplication extends Application
 
 		instance = this;
 
+		prefs = new Preferences();
+
 		try
 		{
 			PackageInfo pi = getPackageManager().getPackageInfo(getPackageName(), 0);
@@ -45,34 +50,69 @@ public class MyApplication extends Application
 		{}
 	}
 
+
+	private CommCtrl ctrl;
 	private BluetoothCtrl btCtrl;
+	private EthernetCtrl ethCtrl;
+	private Preferences prefs;
+
+	public static final String BT_SERVICE_NAME = "stereoCamera";
+
+	public void setupBTServer(IPListeners.SetupListener listener)
+	{
+		if (btCtrl == null)
+		{
+			btCtrl = new BluetoothCtrl(MainActivity.getInstance());
+		}
+
+		if (!btCtrl.getIsSetup())
+		{
+			btCtrl.setup(listener);
+			return;
+		}
+
+		listener.onSetup();
+	}
+
+	public CommCtrl getCtrl()
+	{
+		return ctrl;
+	}
+
+	public void setCtrl(CommCtrl value)
+	{
+		ctrl = value;
+	}
 
 	public BluetoothCtrl getBtCtrl()
 	{
 		return btCtrl;
 	}
 
-	public void setBtCtrl(BluetoothCtrl btCtrl)
+	public EthernetCtrl getEthCtrl()
 	{
-		this.btCtrl = btCtrl;
+		return ethCtrl;
 	}
 
-	private EthernetCtrl ethCtrl;
+	public void setupEthernetServer(IPListeners.SetupListener listener)
+	{
+		if (ethCtrl == null)
+		{
+			ethCtrl = new EthernetCtrl();
+		}
 
-	public EthernetCtrl getEthCtrl() { return ethCtrl; }
+		if (!ethCtrl.getIsSetup())
+		{
+			ethCtrl.setup(listener);
+			return;
+		}
 
-	public void setEthCtrl(EthernetCtrl ethCtrl) { this.ethCtrl = ethCtrl; }
-
-	private Preferences prefs;
+		listener.onSetup();
+	}
 
 	public Preferences getPrefs()
 	{
 		return prefs;
-	}
-
-	public void setPrefs(Preferences prefs)
-	{
-		this.prefs = prefs;
 	}
 
 	private boolean adsEnabled;
@@ -81,4 +121,6 @@ public class MyApplication extends Application
 	{
 		return adsEnabled;
 	}
+
+
 }

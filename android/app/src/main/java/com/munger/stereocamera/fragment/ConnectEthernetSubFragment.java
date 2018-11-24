@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.command.CommCtrl;
@@ -49,12 +50,12 @@ public class ConnectEthernetSubFragment
 		ipConnectButton = view.findViewById(R.id.ipConnectButton);
 		ipListenButton = view.findViewById(R.id.ipListenButton);
 
-		MainActivity.getInstance().setupEthernetServer(new IPListeners.SetupListener()
+		MyApplication.getInstance().setupEthernetServer(new IPListeners.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				ArrayList<String> addresses = MainActivity.getInstance().getEthCtrl().getAddresses();
+				ArrayList<String> addresses = MyApplication.getInstance().getEthCtrl().getAddresses();
 				for(String address : addresses)
 				{
 					if (!address.equals("127.0.0.1") && !address.startsWith("169.254"))
@@ -133,13 +134,13 @@ public class ConnectEthernetSubFragment
 
 	private void listenIPClicked()
 	{
-		ethCtrl = MainActivity.getInstance().getEthCtrl();
+		ethCtrl = MyApplication.getInstance().getEthCtrl();
 		ethCtrl.setup(new IPListeners.SetupListener()
 		{
 			@Override
 			public void onSetup()
 			{
-				ethCtrl = MainActivity.getInstance().getEthCtrl();
+				ethCtrl = MyApplication.getInstance().getEthCtrl();
 
 				showEthListenDialog();
 				ethCtrl.listen(ethListener);
@@ -170,7 +171,7 @@ public class ConnectEthernetSubFragment
 
 	private void connectIPClicked()
 	{
-		ethCtrl = MainActivity.getInstance().getEthCtrl();
+		ethCtrl = MyApplication.getInstance().getEthCtrl();
 		ethCtrl.setup(new IPListeners.SetupListener()
 		{
 			@Override
@@ -182,7 +183,7 @@ public class ConnectEthernetSubFragment
 				if (!isValid)
 					return;
 
-				ethCtrl = MainActivity.getInstance().getEthCtrl();
+				ethCtrl = MyApplication.getInstance().getEthCtrl();
 
 
 				parent.handler.post(new Runnable() {public void run()
@@ -203,7 +204,7 @@ public class ConnectEthernetSubFragment
 			try
 			{
 				CommCtrl ctrl = new CommCtrl(ethCtrl);
-				MainActivity.getInstance().setCtrl(ctrl);
+				MyApplication.getInstance().setCtrl(ctrl);
 			}
 			catch(IOException e){
 				return;

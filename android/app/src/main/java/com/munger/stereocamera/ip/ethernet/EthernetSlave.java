@@ -1,6 +1,7 @@
 package com.munger.stereocamera.ip.ethernet;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketFactory;
@@ -71,7 +72,7 @@ public class EthernetSlave implements SocketCtrl
 				return;
 		}
 
-		remoteState = new RemoteState(MainActivity.getInstance().getCtrl());
+		remoteState = new RemoteState(MyApplication.getInstance().getCtrl());
 
 		connectListener.onConnected();
 	}

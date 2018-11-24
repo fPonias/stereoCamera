@@ -30,6 +30,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.munger.stereocamera.BaseActivity;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
@@ -258,7 +259,7 @@ public class ConnectFragment extends Fragment
 
 	private void setupViews()
 	{
-		prefs = MainActivity.getInstance().getPrefs();
+		prefs = MyApplication.getInstance().getPrefs();
 		bluetoothCtrl = new ConnectBluetoothSubFragment(this, bluetoothControls);
 		ethernetCtrl = new ConnectEthernetSubFragment(this, wifiControls);
 

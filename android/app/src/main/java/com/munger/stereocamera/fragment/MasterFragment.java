@@ -110,7 +110,7 @@ public class MasterFragment extends PreviewFragment
 
 		startLocalGravity();
 
-		Preferences prefs = MainActivity.getInstance().getPrefs();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 		previewView.setOrientation(orientation);
 
 		slavePreview = rootView.findViewById(R.id.slavePreview);
@@ -216,7 +216,7 @@ public class MasterFragment extends PreviewFragment
 	private void onFlip()
 	{
 		setStatus(Status.BUSY);
-		boolean isFacing = MainActivity.getInstance().getPrefs().getIsFacing();
+		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
 		isFacing = !isFacing;
 		setCamera(isFacing, new SetCameraListener()
 		{
@@ -243,7 +243,7 @@ public class MasterFragment extends PreviewFragment
 	void setCamera(boolean isFacing, final SetCameraListener listener)
 	{
 		setFacing(isFacing);
-		MainActivity.getInstance().getPrefs().setIsFacing(isFacing);
+		MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
 
 		masterComm.sendCommand(new SetFacing(isFacing), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
 		{
@@ -254,7 +254,7 @@ public class MasterFragment extends PreviewFragment
 	private void setCamera2(final SetCameraListener listener)
 	{
 		String cameraId = getCameraId();
-		Preferences prefs = MainActivity.getInstance().getPrefs();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 		float localZoom = prefs.getLocalZoom(cameraId);
 		setZoom(localZoom);
 
@@ -375,7 +375,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void swapHand()
 	{
-		Preferences prefs = MainActivity.getInstance().getPrefs();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 		val = !val;
 		prefs.setIsOnLeft(val);
@@ -388,7 +388,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateHandPhoneButtonVertical()
 	{
-		Preferences prefs = MainActivity.getInstance().getPrefs();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 
 		if (val)
@@ -423,7 +423,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateHandPhoneButtonHorizontal()
 	{
-		Preferences prefs = MainActivity.getInstance().getPrefs();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 
 		if (!val)
@@ -492,7 +492,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateShutterButton()
 	{
-		Preferences prefs = MainActivity.getInstance().getPrefs();
+		Preferences prefs = MyApplication.getInstance().getPrefs();
 		boolean val = prefs.getIsOnLeft();
 
 		orientation = MainActivity.getInstance().getCurrentOrientation();
@@ -584,7 +584,7 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void result(long localDelay)
 			{
-				MainActivity.getInstance().getPrefs().setShutterDelay(getCameraId(), localDelay);
+				MyApplication.getInstance().getPrefs().setShutterDelay(getCameraId(), localDelay);
 				setStatus(Status.READY);
 			}
 
@@ -607,7 +607,7 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		masterComm = MainActivity.getInstance().getCtrl();
+		masterComm = MyApplication.getInstance().getCtrl();
 		handler = new Handler(Looper.getMainLooper());
 
 		remoteState = masterComm.getRemoteState();
@@ -630,7 +630,7 @@ public class MasterFragment extends PreviewFragment
 		@Override
 		public void onZoom(float zoom)
 		{
-			MainActivity.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
+			MyApplication.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
 		}
 
 		@Override

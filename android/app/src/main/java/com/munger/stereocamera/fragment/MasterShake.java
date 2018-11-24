@@ -3,6 +3,7 @@ package com.munger.stereocamera.fragment;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.commands.Handshake;
@@ -160,7 +161,7 @@ public class MasterShake
 
 	private void init()
 	{
-		comm = MainActivity.getInstance().getCtrl();
+		comm = MyApplication.getInstance().getCtrl();
 
 		pingStep = new Step("ping") { public void execute(final StepListener listener)
 		{
@@ -301,7 +302,7 @@ public class MasterShake
 				localFacing = false;
 				remoteFacing = false;
 
-				boolean isFacing = MainActivity.getInstance().getPrefs().getIsFacing();
+				boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
 				target.startPreview();
 				target.setCamera(isFacing, new MasterFragment.SetCameraListener()
 				{

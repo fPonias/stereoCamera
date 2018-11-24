@@ -55,72 +55,6 @@ public class MainActivity extends BaseActivity
 	private PhotoProcessorServiceReceiver photoReceiver;
 	private InteractiveReceiver interactiveReceiver;
 
-	public static final String BT_SERVICE_NAME = "stereoCamera";
-
-	private CommCtrl ctrl;
-	private BluetoothCtrl btCtrl;
-	private EthernetCtrl ethCtrl;
-	private Preferences prefs;
-
-	public void setupBTServer(IPListeners.SetupListener listener)
-	{
-		if (btCtrl == null)
-		{
-			btCtrl = new BluetoothCtrl(this);
-			MyApplication.getInstance().setBtCtrl(btCtrl);
-		}
-
-		if (!btCtrl.getIsSetup())
-		{
-			btCtrl.setup(listener);
-			return;
-		}
-
-		listener.onSetup();
-	}
-
-	public void setCtrl(CommCtrl ctrl)
-	{
-		this.ctrl = ctrl;
-	}
-
-	public CommCtrl getCtrl()
-	{
-		return ctrl;
-	}
-
-	public BluetoothCtrl getBtCtrl()
-	{
-		return btCtrl;
-	}
-
-	public EthernetCtrl getEthCtrl()
-	{
-		return ethCtrl;
-	}
-
-	public void setupEthernetServer(IPListeners.SetupListener listener)
-	{
-		if (ethCtrl == null)
-		{
-			ethCtrl = new EthernetCtrl();
-			MyApplication.getInstance().setEthCtrl(ethCtrl);
-		}
-
-		if (!ethCtrl.getIsSetup())
-		{
-			ethCtrl.setup(listener);
-			return;
-		}
-
-		listener.onSetup();
-	}
-
-	public Preferences getPrefs()
-	{
-		return prefs;
-	}
-
 	public boolean getAdsEnabled() {return MyApplication.getInstance().getAdsEnabled();}
 
 	public boolean getIsDebug() { return false; }//return BuildConfig.DEBUG; }
@@ -144,9 +78,6 @@ public class MainActivity extends BaseActivity
 		setTheme(R.style.AppTheme);
 		super.onCreate(savedInstanceState);
 
-		prefs = new Preferences();
-		MyApplication.getInstance().setPrefs(prefs);
-		prefs.setup();
 
 		View root = getLayoutInflater().inflate(R.layout.activity_main, null);
 		frame = root.findViewById(R.id.main_content);
@@ -230,9 +161,6 @@ public class MainActivity extends BaseActivity
 	@Override
 	protected void onStart()
 	{
-		btCtrl = MyApplication.getInstance().getBtCtrl();
-		ethCtrl = MyApplication.getInstance().getEthCtrl();
-
 		FragmentManager ft = getSupportFragmentManager();
 		backStackListener = new BackStackListener(ft);
 		ft.addOnBackStackChangedListener(backStackListener);
@@ -245,10 +173,9 @@ public class MainActivity extends BaseActivity
 	{
 		super.onResume();
 
+		MyApplication.getInstance().getPrefs().setup();
+
 		isRunning = true;
-		btCtrl = MyApplication.getInstance().getBtCtrl();
-		ethCtrl = MyApplication.getInstance().getEthCtrl();
-		prefs = MyApplication.getInstance().getPrefs();
 
 		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
 		registerReceiver(photoReceiver, filter, "com.munger.stereocamera.NOTIFICATION", new Handler(Looper.getMainLooper()));
@@ -260,40 +187,6 @@ public class MainActivity extends BaseActivity
 		registerReceiver(interactiveReceiver, filter);
 
 		reconnect();
-	}
-
-	public void reconnect()
-	{
-		Preferences.Roles role = prefs.getRole();
-		if (ctrl != null && ctrl.getSocketCtrlCtrl().getIsSetup())
-		{
-			if (role == Preferences.Roles.MASTER)
-			{
-				SocketCtrl master = ctrl.getSocketCtrlCtrl().getSlave();
-				if (master != null && master.isConnected())
-				{
-					startMasterView();
-					return;
-				}
-			}
-			else
-			{
-				SocketCtrl slave = ctrl.getSocketCtrlCtrl().getMaster();
-				if (slave != null && slave.isConnected())
-				{
-					startSlaveView();
-					return;
-				}
-			}
-		}
-
-		if (connectFragment != null && getCurrentFragment() == connectFragment)
-		{
-			if (prefs.getFirstTime() == true)
-				return;
-
-			connectFragment.reconnect();
-		}
 	}
 
 	private class BackStackListener implements FragmentManager.OnBackStackChangedListener
@@ -315,6 +208,7 @@ public class MainActivity extends BaseActivity
 
 			if (newCount == 0 && lastCount > 0)
 			{
+				CommCtrl ctrl = MyApplication.getInstance().getCtrl();
 				if (ctrl != null)
 				{
 					ctrl.sendCommand(new Disconnect(), null);
@@ -534,7 +428,7 @@ public class MainActivity extends BaseActivity
 		String newPath = photoFiles.saveNewFile(fl);
 
 		//Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
-
+		CommCtrl ctrl = MyApplication.getInstance().getCtrl();
 		if (ctrl != null && ctrl.isMaster())
 		{
 			ctrl.sendCommand(new SendPhoto(newPath), null);
@@ -582,6 +476,43 @@ public class MainActivity extends BaseActivity
 		{
 			for (Listener listener : listeners)
 				listener.onBluetoothChanged(false, null);
+		}
+	}
+
+	public void reconnect()
+	{
+		Preferences prefs = MyApplication.getInstance().getPrefs();
+		CommCtrl ctrl = MyApplication.getInstance().getCtrl();
+
+		Preferences.Roles role = prefs.getRole();
+		if (ctrl != null && ctrl.getSocketCtrlCtrl().getIsSetup())
+		{
+			if (role == Preferences.Roles.MASTER)
+			{
+				SocketCtrl master = ctrl.getSocketCtrlCtrl().getSlave();
+				if (master != null && master.isConnected())
+				{
+					startMasterView();
+					return;
+				}
+			}
+			else
+			{
+				SocketCtrl slave = ctrl.getSocketCtrlCtrl().getMaster();
+				if (slave != null && slave.isConnected())
+				{
+					startSlaveView();
+					return;
+				}
+			}
+		}
+
+		if (connectFragment != null && getCurrentFragment() == connectFragment)
+		{
+			if (prefs.getFirstTime() == true)
+				return;
+
+			connectFragment.reconnect();
 		}
 	}
 

@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
@@ -172,7 +173,7 @@ public class SlaveFragment extends PreviewFragment
 	{
 		super.onStart();
 
-		slaveComm = MainActivity.getInstance().getCtrl();
+		slaveComm = MyApplication.getInstance().getCtrl();
 
 		if (slaveComm == null)
 		{
@@ -213,7 +214,7 @@ public class SlaveFragment extends PreviewFragment
 		slaveComm.registerListener(Command.Type.ID, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
 			ID cmd = (ID) command;
-			cmd.phoneId = MainActivity.getInstance().getPrefs().getId();
+			cmd.phoneId = MyApplication.getInstance().getPrefs().getId();
 		}});
 
 		slaveComm.registerListener(Command.Type.LATENCY_CHECK, new CommCtrl.Listener() { public void onCommand(Command command)

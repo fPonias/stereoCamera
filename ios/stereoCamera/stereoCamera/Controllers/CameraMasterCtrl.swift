@@ -286,7 +286,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                     self.shutterEvents -= 1
                     self.shutterLocal.tmpPath = tmpUrl!.path
                     self.shutterLocal.zoom = self.zoomSlider.value
-                    self.shutterLocal.orientation = CameraPreview.getOrientation()
+                    self.shutterLocal.orientation = self.cameraPreview.getOrientation()
                     self.setLoaderMessage("Waiting for remote picture ...")
                     self.shutterLock.signal()
                 self.shutterLock.unlock()
@@ -314,7 +314,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                             self.shutterEvents -= 1
                             self.shutterLocal.tmpPath = tmpUrl!.path
                             self.shutterLocal.zoom = self.zoomSlider.value
-                            self.shutterLocal.orientation = CameraPreview.getOrientation()
+                            self.shutterLocal.orientation = self.cameraPreview.getOrientation()
                             self.shutterLock.signal()
                         }
                     self.shutterLock.unlock()
@@ -389,7 +389,14 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         let outpath = outurl!.path
         let outptr = Bytes.toPointer(outpath)
-        imageProcessor_processN(0, 0, outptr )
+        
+        var swap:Int32 = 0
+        if (cameraPreview.currentCamera?.position == AVCaptureDevice.Position.front)
+            { swap = 1 }
+        
+        let growToMaxDim:Int32 = 0
+        
+        imageProcessor_processN(growToMaxDim, swap, outptr )
         
         imageProcessor_cleanUpN()
         

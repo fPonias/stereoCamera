@@ -9,6 +9,7 @@ import android.support.v4.util.ArraySet;
 import android.support.v7.preference.PreferenceManager;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.CommCtrl;
@@ -40,7 +41,7 @@ public class FireShutter
 	public FireShutter(MasterFragment fragment)
 	{
 		this.fragment = fragment;
-		masterComm = MainActivity.getInstance().getCtrl();
+		masterComm = MyApplication.getInstance().getCtrl();
 		photoFiles = new PhotoFiles(fragment.getContext());
 	}
 
@@ -106,7 +107,7 @@ public class FireShutter
 
 			handleLocal();
 
-			MainActivity.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
+			MyApplication.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
 		}});
 		t.setPriority(Thread.MAX_PRIORITY);
 		t.start();
@@ -149,7 +150,7 @@ public class FireShutter
 				String remotePath = photoFiles.saveDataToCache(r.data);
 				remoteData.jpegPath = remotePath;
 
-				MainActivity.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
+				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
 
 				boolean doNext = false;
 
@@ -202,7 +203,7 @@ public class FireShutter
 					return;
 				}
 
-				boolean isOnLeft = MainActivity.getInstance().getPrefs().getIsOnLeft();
+				boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
 
 				if (!isOnLeft)
 				{

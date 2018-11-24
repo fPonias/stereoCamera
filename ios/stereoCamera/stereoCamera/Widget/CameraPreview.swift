@@ -235,24 +235,28 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         }
     }
     
-    public static func getScreenOrientation() -> CameraOriention
+    public func getScreenOrientation() -> CameraOriention
     {
+        let facing = (_currentCamera?.position == AVCaptureDevice.Position.front) ? true : false
         let orient = UIDevice.current.orientation
         switch(orient)
         {
         case .portrait:
             return .DEG_270
         case .portraitUpsideDown:
-            return .DEG_180
-        case .landscapeRight:
             return .DEG_90
+        case .landscapeRight:
+            return (facing) ? .DEG_0 : .DEG_90 //why is this offset by 90 degrees?  I'm so confused.
+        case .landscapeLeft:
+            return (facing) ? .DEG_90 : .DEG_0
         default:
             return .DEG_0
         }
     }
     
-    public static func getOrientation() -> CameraOriention
+    public func getOrientation() -> CameraOriention
     {
+        let facing = (_currentCamera?.position == AVCaptureDevice.Position.front) ? true : false
         let orient = UIDevice.current.orientation
         switch(orient)
         {
@@ -261,9 +265,9 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         case .portraitUpsideDown:
             return .DEG_180
         case .landscapeRight:
-            return .DEG_270
+            return (facing) ? .DEG_90 : .DEG_270
         case .landscapeLeft:
-            return .DEG_90
+            return (facing) ? .DEG_270 : .DEG_90
         default:
             return .DEG_0
         }
@@ -271,7 +275,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     
     func updateTransform()
     {
-        var orientation = CameraPreview.getScreenOrientation();
+        var orientation = getScreenOrientation();
         var rotation = CameraPreview.orientationToRadians(orientation)
         
         previewTransform = CGAffineTransform(translationX: 0, y: 0)

@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.Socket;
 import com.munger.stereocamera.ip.SocketCtrl;
@@ -201,7 +202,7 @@ public class BluetoothSlave implements SocketCtrl
 		try
 		{
 			Log.d("stereoCamera", "starting server socket");
-			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MainActivity.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
+			serverSocket = server.getAdapter().listenUsingRfcommWithServiceRecord(MyApplication.BT_SERVICE_NAME, BluetoothCtrl.APP_ID);
 
 			lastConnected = null;
 

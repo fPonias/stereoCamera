@@ -1,6 +1,7 @@
 package com.munger.stereocamera.ip.utility;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.fragment.PreviewFragment;
 import com.munger.stereocamera.utility.LinearRegression;
 
@@ -84,7 +85,7 @@ public class CalculateSync
 			return;
 		}
 
-		RemoteState remoteState = MainActivity.getInstance().getCtrl().getRemoteState();
+		RemoteState remoteState = MyApplication.getInstance().getCtrl().getRemoteState();
 		remoteState.waitOnStatusAsync(PreviewFragment.Status.READY, TIMEOUT, new RemoteState.ReadyListener()
 		{
 			@Override
@@ -149,7 +150,7 @@ public class CalculateSync
 
 	private void loadPastData() throws IOException
 	{
-		String key = "syncData-" + MainActivity.getInstance().getPrefs().getClient();
+		String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
 		File file = new File(MainActivity.getInstance().getFilesDir(), key);
 
 		if (!file.exists())
@@ -188,7 +189,7 @@ public class CalculateSync
 
 	private void saveData(double[] inputs, double[] actuals) throws IOException
 	{
-		String key = "syncData-" + MainActivity.getInstance().getPrefs().getClient();
+		String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
 		File file = new File(MainActivity.getInstance().getFilesDir(), key);
 
 		if (!file.exists())
