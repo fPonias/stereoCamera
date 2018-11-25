@@ -79,6 +79,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     private var ciContext:CIContext!
     private var photoOutput = AVCapturePhotoOutput()
     private var _currentCamera:AVCaptureDevice? = nil
+    private var _imageQuality:ImageQuality = .LOW
     
     var currentCamera:AVCaptureDevice?
     {
@@ -88,6 +89,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     private func startCamera2(cameraPosition: AVCaptureDevice.Position, quality: ImageQuality)
     {
         _currentCamera = cameraPicker(cameraPosition: cameraPosition)
+        _imageQuality = quality
         
         if (_currentCamera == nil)
         {
@@ -139,40 +141,75 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     {
         //sometimes we have sync issues if the cameras are started and stopped in rapid succession
         usleep(5000)
+        
+        for input1 in captureSession.inputs
+        {
+            captureSession.removeInput(input1)
+        }
+        
+        for output1 in captureSession.outputs
+        {
+            captureSession.removeOutput(output1)
+        }
+        
         captureSession.stopRunning()
+    }
+    
+    func restartCamera()
+    {
+        usleep(5000)
+        startCamera(cameraPosition: _currentCamera!.position, quality: _imageQuality)
     }
     
     private var frameCount = 0
     
+    private var drawPreviews:Bool = true
+    
+    func setDrawPreviews(_ value:Bool)
+    {
+        drawPreviews = value
+        
+        if (drawPreviews == false)
+            { stopCamera() }
+        else
+            { restartCamera() }
+    }
+    
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection)
     {
-        DispatchQueue.main.async
-        { [unowned self] in
-            if (self.frameCount != 1)
-            {
-                self.frameCount += 1
-                return
-            }
-            else
-                { self.frameCount = 0 }
-            
+        if (!drawPreviews)
+            { return }
         
-            let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-            var image = CIImage(cvPixelBuffer: pixelBuffer! as CVPixelBuffer, options: nil)
-            image = self.rotateScaleImage(image: image)
-            
-            if self.glContext != EAGLContext.current()
-            { EAGLContext.setCurrent(self.glContext) }
-            
-            self.bindDrawable()
-            let extent = image.extent
-            let zoomMargin = (extent.width - extent.width / CGFloat(self._zoom)) / CGFloat(2.0)
-            //let scale = extent.width / (frame.width * 2.0)
-            let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
-            
+        if (self.frameCount != 1)
+        {
+            self.frameCount += 1
+            return
+        }
+        else
+            { self.frameCount = 0 }
+        
+    
+        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+        var image = CIImage(cvPixelBuffer: pixelBuffer! as CVPixelBuffer, options: nil)
+        image = self.rotateScaleImage(image: image)
+        
+        if self.glContext != EAGLContext.current()
+        { EAGLContext.setCurrent(self.glContext) }
+        
+        self.bindDrawable()
+        let extent = image.extent
+        let zoomMargin = (extent.width - extent.width / CGFloat(self._zoom)) / CGFloat(2.0)
+        //let scale = extent.width / (frame.width * 2.0)
+        let from = CGRect(x:extent.origin.x + zoomMargin, y:extent.origin.y + zoomMargin, width: extent.width, height: extent.width)
+        
+        DispatchQueue.main.async
+        { [unowned self, image, from, drawPreviews] in
             let scale = UIScreen.main.scale
             let dest = CGRect(x:0, y:0, width: self.frame.width * scale * CGFloat(self._zoom), height: self.frame.height * scale * CGFloat(self._zoom))
             self.ciContext.draw(image, in:dest, from: from)
+            
+            if (!drawPreviews)
+                { return }
             
             self.display()
         }

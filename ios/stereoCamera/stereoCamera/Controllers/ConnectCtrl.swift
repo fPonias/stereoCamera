@@ -11,12 +11,12 @@ import UIKit
 
 class ConnectCtrl: UIViewController, UITextFieldDelegate
 {
-    @IBOutlet weak var layout: UIStackView!
+    //@IBOutlet weak var layout: UIStackView!
     @IBOutlet weak var connectSecondaryBtn: UIButton!
     @IBOutlet weak var connectPrimaryInput: UITextField!
     @IBOutlet weak var connectPrimaryBtn: UIButton!
     @IBOutlet weak var galleryBtn: GalleryBtn!
-    @IBOutlet weak var scrollView: UIScrollView!
+    //@IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var ipAddressList: UIStackView!
     
     private let listenTimeout = 0.0
@@ -123,7 +123,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
             
             if (sz != nil)
             {
-                scrollView.contentOffset.y += sz!.height - 100
+                //scrollView.contentOffset.y += sz!.height - 100
                 keyboardIsPresent = true
             }
         }
@@ -138,7 +138,7 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
             
             if (sz != nil)
             {
-                scrollView.contentOffset.y = 0
+                //scrollView.contentOffset.y = 0
                 keyboardIsPresent = false
             }
         }
