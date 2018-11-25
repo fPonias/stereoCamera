@@ -487,22 +487,49 @@ class CameraMasterCtrl: CameraBaseCtrl
         updateTriggerLayout()
     }
     
-    private func updateTriggerLayout()
+    private func updateTriggerLayout(size: CGSize? = nil)
     {
         let side = Cookie.instance.side
-        let w = view.frame.size.width - view.safeAreaInsets.left - view.safeAreaInsets.right
+        let w:CGFloat
+        let h:CGFloat
+        if (size == nil)
+        {
+            w = view.frame.size.width - view.safeAreaInsets.left - view.safeAreaInsets.right
+            h = view.frame.size.height
+        }
+        else
+        {
+            w = size!.width - view.safeAreaInsets.left - view.safeAreaInsets.right
+            h = size!.height
+        }
         
         if (side == LEFT)
         {
-            shutterLeft.constant = 100
-            handBtnLeft.constant = w - 30 - handPhoneBtn.frame.width
+            if (w < h)
+            {
+                shutterLeft.constant = 100
+                handBtnLeft.constant = w - 30 - handPhoneBtn.frame.width
+            }
+            else
+            {
+                shutterLeft.constant = 20
+                handBtnLeft.constant = w - 40 - handPhoneBtn.frame.width
+            }
             
             handPhoneBtn.setImage(UIImage(named: "hand_phone"), for: .normal)
         }
         else
         {
-            shutterLeft.constant = w - 100 - shutterBtn.frame.width
-            handBtnLeft.constant = 30
+            if (w < h)
+            {
+                shutterLeft.constant = w - 100 - shutterBtn.frame.width
+                handBtnLeft.constant = 30
+            }
+            else
+            {
+                handBtnLeft.constant = 20
+                shutterLeft.constant = w - 40 - handPhoneBtn.frame.width
+            }
             
             handPhoneBtn.setImage(UIImage(named: "hand_phone_right"), for: .normal)
         }
@@ -511,7 +538,7 @@ class CameraMasterCtrl: CameraBaseCtrl
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         updatePreview(to: size)
-        updateTriggerLayout()
+        updateTriggerLayout(size: size)
         cameraPreview.setDrawPreviews(false)
         
         coordinator.animate(alongsideTransition: nil, completion:
@@ -524,17 +551,13 @@ class CameraMasterCtrl: CameraBaseCtrl
     private func updatePreview(to: CGSize)
     {
         let w = to.width - view.safeAreaInsets.left - view.safeAreaInsets.right
-        let h = to.height - view.safeAreaInsets.top - view.safeAreaInsets.bottom - (navigationController?.navigationBar.frame.size.height)!
+        let h = to.height - ((navigationController?.navigationBar.frame.size.height)! / 2)
         let sz = CGFloat.minimum(w, h)
         previewHeight.constant = sz
-        previewPreviewHeight.constant = sz
-        previewOverlayHeight.constant = sz
         cameraPreviewOverlay.setNeedsDisplay()
     }
     
     @IBOutlet weak var previewHeight: NSLayoutConstraint!
-    @IBOutlet weak var previewPreviewHeight: NSLayoutConstraint!
-    @IBOutlet weak var previewOverlayHeight: NSLayoutConstraint!
     @IBOutlet weak var handBtnLeft: NSLayoutConstraint!
     @IBOutlet weak var shutterLeft: NSLayoutConstraint!
     
