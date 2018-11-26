@@ -158,8 +158,10 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         galleryBtn.setNavigationController(ctrl: navigationController)
         galleryBtn.update()
+        
+        safeAreaObj = previewLeft.secondItem
+        
         updateTriggerLayout()
-        updatePreview(to: view.bounds.size)
     }
     
     func handshake()
@@ -487,6 +489,17 @@ class CameraMasterCtrl: CameraBaseCtrl
         updateTriggerLayout()
     }
     
+    var safeAreaObj: AnyObject? = nil
+    
+    @IBOutlet weak var rightGalleryLeft: NSLayoutConstraint!
+    @IBOutlet weak var rightControlsLeft: NSLayoutConstraint!
+    @IBOutlet weak var rightPreviewLeft: NSLayoutConstraint!
+    @IBOutlet weak var rightPreviewRight: NSLayoutConstraint!
+    @IBOutlet weak var galleryRight: NSLayoutConstraint!
+    @IBOutlet weak var previewLeft: NSLayoutConstraint!
+    @IBOutlet weak var controlsLeft: NSLayoutConstraint!
+    @IBOutlet weak var controlsRight: NSLayoutConstraint!
+    
     private func updateTriggerLayout(size: CGSize? = nil)
     {
         let side = Cookie.instance.side
@@ -514,6 +527,15 @@ class CameraMasterCtrl: CameraBaseCtrl
             {
                 shutterLeft.constant = 20
                 handBtnLeft.constant = w - 40 - handPhoneBtn.frame.width
+                
+                galleryRight.isActive = true
+                previewLeft.isActive = true
+                controlsLeft.isActive = true
+                controlsRight.isActive = true
+                rightGalleryLeft.isActive = false
+                rightControlsLeft.isActive = false
+                rightPreviewLeft.isActive = false
+                rightPreviewRight.isActive = false
             }
             
             handPhoneBtn.setImage(UIImage(named: "hand_phone"), for: .normal)
@@ -527,8 +549,17 @@ class CameraMasterCtrl: CameraBaseCtrl
             }
             else
             {
-                handBtnLeft.constant = 20
-                shutterLeft.constant = w - 40 - handPhoneBtn.frame.width
+                handBtnLeft.constant = 40
+                shutterLeft.constant = w - 20 - handPhoneBtn.frame.width
+                
+                galleryRight.isActive = false
+                previewLeft.isActive = false
+                controlsLeft.isActive = false
+                controlsRight.isActive = false
+                rightGalleryLeft.isActive = true
+                rightControlsLeft.isActive = true
+                rightPreviewLeft.isActive = true
+                rightPreviewRight.isActive = true
             }
             
             handPhoneBtn.setImage(UIImage(named: "hand_phone_right"), for: .normal)
@@ -537,7 +568,7 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
-        updatePreview(to: size)
+        cameraPreviewOverlay.setNeedsDisplay()
         updateTriggerLayout(size: size)
         cameraPreview.setDrawPreviews(false)
         
@@ -548,16 +579,6 @@ class CameraMasterCtrl: CameraBaseCtrl
         })
     }
     
-    private func updatePreview(to: CGSize)
-    {
-        let w = to.width - view.safeAreaInsets.left - view.safeAreaInsets.right
-        let h = to.height - ((navigationController?.navigationBar.frame.size.height)! / 2)
-        let sz = CGFloat.minimum(w, h)
-        previewHeight.constant = sz
-        cameraPreviewOverlay.setNeedsDisplay()
-    }
-    
-    @IBOutlet weak var previewHeight: NSLayoutConstraint!
     @IBOutlet weak var handBtnLeft: NSLayoutConstraint!
     @IBOutlet weak var shutterLeft: NSLayoutConstraint!
     
