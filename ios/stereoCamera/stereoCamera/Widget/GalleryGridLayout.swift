@@ -10,6 +10,23 @@ import UIKit
 
 class GalleryGridLayout : UICollectionViewFlowLayout
 {
+    public func getItemsPerRow() -> Int
+    {
+        var contentByItem:ldiv_t
+        let contentSize = collectionViewContentSize
+        
+        if (scrollDirection == UICollectionViewScrollDirection.vertical)
+        {
+            contentByItem = ldiv(Int(contentSize.width), Int(itemSize.width));
+        }
+        else
+        {
+            contentByItem = ldiv (Int(contentSize.height), Int(itemSize.height));
+        }
+        
+        return contentByItem.quot
+    }
+    
     override func prepare()
     {
         super.prepare()

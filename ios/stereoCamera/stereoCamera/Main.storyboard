@@ -228,15 +228,15 @@
         <scene sceneID="8Qt-Qj-rC3">
             <objects>
                 <viewController id="TDn-Nd-bkU" customClass="CameraSlaveCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" ambiguous="YES" id="NNq-Fc-sEr">
+                    <view key="view" contentMode="scaleToFill" id="NNq-Fc-sEr">
                         <rect key="frame" x="0.0" y="0.0" width="480" height="320"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="WOS-9s-Tb8" userLabel="Controls">
-                                <rect key="frame" x="0.0" y="384" width="480" height="96"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="WOS-9s-Tb8" userLabel="Controls">
+                                <rect key="frame" x="288" y="32" width="192" height="288"/>
                                 <subviews>
-                                    <button opaque="NO" contentMode="scaleAspectFit" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EcM-WB-PYu" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
-                                        <rect key="frame" x="10" y="26" width="120" height="60"/>
+                                    <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EcM-WB-PYu" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="10" y="218" width="120" height="60"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="120" id="1K8-Sq-awR"/>
                                             <constraint firstAttribute="width" secondItem="EcM-WB-PYu" secondAttribute="height" multiplier="2:1" id="7c6-DO-8uH"/>
@@ -252,7 +252,7 @@
                                         </constraints>
                                     </imageView>
                                     <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="QHY-Ve-ywX" userLabel="zoomSlider">
-                                        <rect key="frame" x="45" y="10" width="427" height="31"/>
+                                        <rect key="frame" x="45" y="10" width="139" height="31"/>
                                         <connections>
                                             <action selector="zoomChanged:" destination="TDn-Nd-bkU" eventType="valueChanged" id="0nK-vG-AiS"/>
                                         </connections>
@@ -269,14 +269,14 @@
                                     <constraint firstItem="QHY-Ve-ywX" firstAttribute="top" secondItem="WOS-9s-Tb8" secondAttribute="top" constant="10" id="wgP-eZ-yap"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="tsb-Y6-XpC" userLabel="Preview Holder">
-                                <rect key="frame" x="0.0" y="64" width="480" height="320"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="tsb-Y6-XpC" userLabel="Preview Holder">
+                                <rect key="frame" x="0.0" y="32" width="288" height="288"/>
                                 <subviews>
-                                    <glkView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" ambiguous="YES" enableSetNeedsDisplay="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cJH-Sk-Po2" customClass="CameraPreview" customModule="stereoCamera" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="0.0" width="480" height="320"/>
+                                    <glkView opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" enableSetNeedsDisplay="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cJH-Sk-Po2" customClass="CameraPreview" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="288" height="288"/>
                                     </glkView>
-                                    <view contentMode="center" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CjG-md-Cil" customClass="CameraPreviewOverlay" customModule="stereoCamera" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="0.0" width="480" height="320"/>
+                                    <view contentMode="center" translatesAutoresizingMaskIntoConstraints="NO" id="CjG-md-Cil" customClass="CameraPreviewOverlay" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="288" height="288"/>
                                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </view>
                                 </subviews>
@@ -297,14 +297,34 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
                             <constraint firstItem="WOS-9s-Tb8" firstAttribute="leading" secondItem="KkN-Hk-B3i" secondAttribute="leading" id="NQC-YU-5nU"/>
+                            <constraint firstItem="WOS-9s-Tb8" firstAttribute="top" secondItem="KkN-Hk-B3i" secondAttribute="top" id="PPU-UQ-d1d"/>
                             <constraint firstItem="KkN-Hk-B3i" firstAttribute="bottom" secondItem="WOS-9s-Tb8" secondAttribute="bottom" id="QMH-3f-8Dd"/>
                             <constraint firstItem="WOS-9s-Tb8" firstAttribute="top" secondItem="tsb-Y6-XpC" secondAttribute="bottom" id="UF9-rq-3MR"/>
                             <constraint firstItem="KkN-Hk-B3i" firstAttribute="trailing" secondItem="WOS-9s-Tb8" secondAttribute="trailing" id="UXG-oE-coR"/>
                             <constraint firstItem="tsb-Y6-XpC" firstAttribute="trailing" secondItem="KkN-Hk-B3i" secondAttribute="trailing" id="XeD-Uu-oaf"/>
+                            <constraint firstItem="WOS-9s-Tb8" firstAttribute="leading" secondItem="tsb-Y6-XpC" secondAttribute="trailing" id="ghM-Rm-1UX"/>
+                            <constraint firstItem="KkN-Hk-B3i" firstAttribute="bottom" secondItem="tsb-Y6-XpC" secondAttribute="bottom" id="jCA-cQ-fke"/>
                             <constraint firstItem="tsb-Y6-XpC" firstAttribute="leading" secondItem="KkN-Hk-B3i" secondAttribute="leading" id="uSQ-Wt-wLk"/>
                             <constraint firstItem="tsb-Y6-XpC" firstAttribute="top" secondItem="KkN-Hk-B3i" secondAttribute="top" id="xqq-0o-55o"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="KkN-Hk-B3i"/>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="jCA-cQ-fke"/>
+                                <exclude reference="PPU-UQ-d1d"/>
+                                <exclude reference="ghM-Rm-1UX"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=compact">
+                            <mask key="constraints">
+                                <include reference="jCA-cQ-fke"/>
+                                <exclude reference="NQC-YU-5nU"/>
+                                <include reference="PPU-UQ-d1d"/>
+                                <exclude reference="UF9-rq-3MR"/>
+                                <include reference="ghM-Rm-1UX"/>
+                                <exclude reference="XeD-Uu-oaf"/>
+                            </mask>
+                        </variation>
                     </view>
                     <navigationItem key="navigationItem" title="Camera" id="JVj-JE-Pm1">
                         <barButtonItem key="rightBarButtonItem" title="Item" image="help_icon_white" id="lTO-AL-ZlT">
@@ -448,6 +468,7 @@
                         <outlet property="bottomToolbar" destination="Jj4-ul-uRq" id="tgp-dz-qTB"/>
                         <outlet property="collectionView" destination="ezj-ej-J20" id="cEd-4e-Cl7"/>
                         <outlet property="exportBtn" destination="i1k-FE-EPN" id="WFg-yq-Uqe"/>
+                        <outlet property="gridLayout" destination="hoW-tp-0Lg" id="8Hm-wj-FL8"/>
                         <outlet property="trashBtn" destination="Nsh-lS-i7d" id="vcx-QE-JTh"/>
                         <segue destination="Ycq-Ts-lyG" kind="show" identifier="GalleryToPlayback" id="Vq8-Ge-Xqe"/>
                     </connections>
@@ -1107,7 +1128,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <wkWebView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="XMH-JL-Sfq">
-                                <rect key="frame" x="0.0" y="32" width="480" height="256"/>
+                                <rect key="frame" x="0.0" y="32" width="480" height="288"/>
                                 <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <wkWebViewConfiguration key="configuration">
                                     <audiovisualMediaTypes key="mediaTypesRequiringUserActionForPlayback" none="YES"/>
@@ -1162,6 +1183,6 @@
         <image name="zoom_icon" width="24" height="24"/>
     </resources>
     <inferredMetricsTieBreakers>
-        <segue reference="9Ua-XI-Z5l"/>
+        <segue reference="3K0-Sd-Pbv"/>
     </inferredMetricsTieBreakers>
 </document>

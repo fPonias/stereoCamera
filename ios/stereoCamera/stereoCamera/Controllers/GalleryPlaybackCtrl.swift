@@ -72,6 +72,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         coordinator.animateAlongsideTransition(in: self.view, animation: nil, completion: {
         [unowned self] (context) in
             self.resize()
+            self.gotoPage(page: self.index, animated: false)
         })
     }
     

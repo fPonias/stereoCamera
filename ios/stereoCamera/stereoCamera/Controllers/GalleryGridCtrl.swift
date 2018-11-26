@@ -54,6 +54,40 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         }
     }
     
+    @IBOutlet weak var gridLayout: GalleryGridLayout!
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        var cells = collectionView.visibleCells
+        let sz = cells.count
+        var smallest:IndexPath? = nil
+        for i in 0 ... (sz - 1)
+        {
+            let cell = cells[i]
+            let indexPath = collectionView.indexPath(for: cell)
+            
+            if (indexPath != nil)
+            {
+                if (smallest == nil)
+                    { smallest = indexPath }
+                else
+                {
+                    let result = smallest!.compare(indexPath!)
+                    if (result == .orderedDescending)
+                        { smallest = indexPath }
+                }
+            }
+        }
+        
+        coordinator.animate(alongsideTransition: nil, completion:
+        { [unowned self, smallest] (context: UIViewControllerTransitionCoordinatorContext)  in
+            if (smallest == nil)
+                { return }
+            
+            self.collectionView.scrollToItem(at: smallest!, at: UICollectionViewScrollPosition.top, animated: false)
+        })
+    }
+    
     @objc func trashClicked()
     {
         if (selectedCells.count == 0)

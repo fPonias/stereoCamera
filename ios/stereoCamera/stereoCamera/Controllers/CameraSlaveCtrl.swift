@@ -213,6 +213,18 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         }
     }
     
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
+    {
+        cameraOverlay.setNeedsDisplay()
+        cameraPreview.setDrawPreviews(false)
+        
+        coordinator.animate(alongsideTransition: nil, completion:
+        {
+            [unowned self] (context: UIViewControllerTransitionCoordinatorContext)  in
+            self.cameraPreview.setDrawPreviews(true)
+        })
+    }
+    
     override func gravityHandler(data: CMAccelerometerData?, error: Error?)
     {
         if (data == nil)
