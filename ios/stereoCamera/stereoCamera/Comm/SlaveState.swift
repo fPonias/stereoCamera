@@ -31,6 +31,8 @@ class SlaveState : CommandListener
                     self.status = sendStatus.status
                     self.lock.signal()
                 self.lock.unlock()
+            
+                listener?.onStatus(status: sendStatus.status)
             case .RECEIVE_ANGLE_OF_VIEW:
                 break
             case .RECEIVE_GRAVITY:
@@ -46,6 +48,12 @@ class SlaveState : CommandListener
             case .ID:
                 let idCmd = command as! ID
                 id = idCmd.phoneId
+            case .CONNECTION_PAUSE:
+                listener?.onConnectionPause()
+                break
+            case .DISCONNECT:
+                listener?.onDisconnect()
+                break;
             default:
                 break
         }

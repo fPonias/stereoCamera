@@ -43,7 +43,7 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     let masterShake:MasterShake = MasterShake()
     let slaveState:SlaveState = SlaveState()
-    let resumed = false
+    var resumed = false
     
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?)
     {
@@ -68,6 +68,14 @@ class CameraMasterCtrl: CameraBaseCtrl
             CommManager.instance.comm.sendCommand(command: cmd)
             CommManager.instance.comm.disconnect()
         }
+        else
+        {
+            let cmd = ConnectionPause()
+            CommManager.instance.comm.sendCommand(command: cmd)
+        }
+        
+        showLoader(false)
+        cameraPreview.stopCamera()
     }
     
     class SlaveListener : SlaveStateListener
@@ -113,7 +121,10 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         func onOrientation(orientation: UIDeviceOrientation) {}
         
-        func onConnectionPause() {}
+        func onConnectionPause()
+        {
+            parent.pauseConnection()
+        }
         
         func onDisconnect()
         {
@@ -152,7 +163,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         DispatchQueue.global(qos: .userInitiated).async
         {
-            usleep(1500000)
+            usleep(3000000)
             self.handshake()
         }
         
@@ -162,6 +173,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         safeAreaObj = previewLeft.secondItem
         
         updateTriggerLayout()
+        resumed = true
     }
     
     func handshake()

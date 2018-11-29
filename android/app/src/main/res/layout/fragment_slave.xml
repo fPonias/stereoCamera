@@ -44,4 +44,12 @@
             android:id="@+id/zoom_slider"
             />
     </LinearLayout>
+
+    <com.munger.stereocamera.widget.ThumbnailWidget
+        android:layout_width="120dp"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="10dp"
+        android:id="@+id/thumbnail"/>
 </RelativeLayout>

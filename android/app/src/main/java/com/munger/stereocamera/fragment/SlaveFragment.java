@@ -40,6 +40,7 @@ import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
+import com.munger.stereocamera.widget.ThumbnailWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
 import java.io.File;
@@ -87,6 +88,12 @@ public class SlaveFragment extends PreviewFragment
 		overlayWidget.setType(overlayType);
 
 		previewSender = new PreviewSender();
+
+		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
+		thumbnailWidget.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
+		{
+			openThumbnail();
+		}});
 
 		return rootView;
 	}
@@ -162,6 +169,7 @@ public class SlaveFragment extends PreviewFragment
 	private ZoomWidget zoomSlider;
 	private PreviewOverlayWidget overlayWidget;
 	private PreviewSender previewSender;
+	private ThumbnailWidget thumbnailWidget;
 
 	private long lastSent = 0;
 	private final Object gravityLock = new Object();
@@ -353,6 +361,11 @@ public class SlaveFragment extends PreviewFragment
 
 		outState.putInt("previewType", overlayWidget.getType().ordinal());
 		outState.putFloat("zoom", zoomSlider.get());
+	}
+
+	private void openThumbnail()
+	{
+		MainActivity.getInstance().startGalleryView();
 	}
 
 	private void cancelConnection()
