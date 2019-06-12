@@ -1,5 +1,7 @@
 package com.munger.stereocamera.fragment;
 
+import android.content.SharedPreferences;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 
 import com.munger.stereocamera.MainActivity;
@@ -214,7 +216,25 @@ public class MasterShake
 		setQualityStep = new Step("quality") { public void execute(final StepListener listener)
 		{
 			Log.d("stereoCamera", "setting image quality");
-			comm.sendCommand(new SetCaptureQuality(PreviewWidget.SHUTTER_TYPE.LO_RES), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
+
+			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MyApplication.getInstance());
+			String captureTypeStr = sharedPref.getString("pref_capture", "preview");
+			PreviewWidget.SHUTTER_TYPE captureType;
+
+			switch(captureTypeStr)
+			{
+				case "hi cam":
+					captureType = PreviewWidget.SHUTTER_TYPE.HI_RES;
+					break;
+				case "lo cam":
+					captureType = PreviewWidget.SHUTTER_TYPE.LO_RES;
+					break;
+				default:
+					captureType = PreviewWidget.SHUTTER_TYPE.PREVIEW;
+					break;
+			}
+
+			comm.sendCommand(new SetCaptureQuality(captureType), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
 				@Override
 				public void r(boolean success, Command command, Command originalCmd) {
 				if (success)

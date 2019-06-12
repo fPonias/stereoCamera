@@ -248,6 +248,7 @@ public class SlaveFragment extends PreviewFragment
 
 				cmd.zoom = (zoomSlider.get());
 				cmd.orientation = orientation;
+
 				setStatus(Status.PROCESSING);
 				setLoadingMessage("Taking picture");
 

@@ -20,6 +20,7 @@ import com.munger.stereocamera.service.PhotoProcessorExec;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 import java.io.File;
@@ -236,10 +237,14 @@ public class FireShutter
 		//PhotoProcessor proc = new PhotoProcessor(this, type);
 		PhotoProcessorExec proc = new PhotoProcessorExec(MainActivity.getInstance(), PhotoProcessorExec.CompositeImageType.SPLIT);
 
-		proc.setData(false, localData.jpegPath, localData.orientation, localData.zoom);
-		proc.setData(true, remoteData.jpegPath, remoteData.orientation, remoteData.zoom);
+		Preferences prefs = MyApplication.getInstance().getPrefs();
+		boolean onRight = !prefs.getIsOnLeft();
+		boolean isFacing = prefs.getIsFacing();
 
-		String out = proc.processData(flip);
+		proc.setData(onRight, localData.jpegPath, localData.orientation, localData.zoom);
+		proc.setData(!onRight, remoteData.jpegPath, remoteData.orientation, remoteData.zoom);
+
+		String out = proc.processData(isFacing);
 
 		if (out == null)
 		{
