@@ -20,11 +20,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.v4.view.ActionProvider;
-import android.support.v7.content.res.AppCompatResources;
-import android.support.v7.widget.ActivityChooserView;
+
+import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.ActionProvider;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -218,8 +219,8 @@ public class MyShareActionProvider extends ActionProvider {
 
 		// Lookup and set the expand action icon.
 		TypedValue outTypedValue = new TypedValue();
-		mContext.getTheme().resolveAttribute(android.support.v7.appcompat.R.attr.actionModeShareDrawable, outTypedValue, true);
-		Drawable drawable = AppCompatResources.getDrawable(mContext, outTypedValue.resourceId);
+		mContext.getTheme().resolveAttribute(androidx.appcompat.R.attr.actionModeShareDrawable, outTypedValue, true);
+		Drawable drawable = ResourcesCompat.getDrawable(Resources.getSystem(), outTypedValue.resourceId, getContext().getTheme());
 		activityChooserView.setExpandActivityOverflowButtonDrawable(drawable);
 		activityChooserView.setProvider(this);
 
@@ -287,10 +288,9 @@ public class MyShareActionProvider extends ActionProvider {
 	 * the file name will be backed by the provided file. Therefore, if you want to
 	 * use different history files for sharing specific types of content, every time
 	 * you change the history file with {@link #setShareHistoryFileName(String)} you must
-	 * call {@link android.support.v7.app.AppCompatActivity#supportInvalidateOptionsMenu()}
+	 * call {@link androidx.appcompat.app.AppCompatActivity#supportInvalidateOptionsMenu()}
 	 * to recreate the action view. You should <strong>not</strong> call
-	 * {@link android.support.v7.app.AppCompatActivity#supportInvalidateOptionsMenu()} from
-	 * {@link android.support.v7.app.AppCompatActivity#onCreateOptionsMenu(Menu)}.
+	 * {@link androidx.appcompat.app.AppCompatActivity#supportInvalidateOptionsMenu()} from
 	 *
 	 * <pre>
 	 * private void doShare(Intent intent) {

@@ -7,6 +7,12 @@ import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.util.Log;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
+import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.ip.IPListeners;
@@ -76,19 +82,14 @@ public class BluetoothSlave implements SocketCtrl
 		//timeout isn't working ...
 		//discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, timeout);
 
-		MainActivity.getInstance().startActivityForResult(discoverableIntent, new MainActivity.ActivityResultListener()
-		{
-			@Override
-			public void onResult(int resultCode, Intent data)
+		MainActivity.getInstance().bluetoothDiscoverForResult(result -> {
+			Log.d("stereoCamera", "bluetooth discovery startup returned with " + result);
+			if (result.getResultCode() == 0)
+				listenListener.onFailed();
+			else
 			{
-				Log.d("stereoCamera", "bluetooth discovery startup returned with " + resultCode);
-				if (resultCode == 0)
-					listenListener.onFailed();
-				else
-				{
-					listenListener.onDiscoverable();
-					listen();
-				}
+				listenListener.onDiscoverable();
+				listen();
 			}
 		});
 	}

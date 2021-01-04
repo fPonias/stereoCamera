@@ -4,13 +4,14 @@ import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
@@ -21,11 +22,8 @@ import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.commands.ConnectionPause;
 import com.munger.stereocamera.ip.command.commands.FireShutter;
-import com.munger.stereocamera.ip.command.commands.Handshake;
 import com.munger.stereocamera.ip.command.commands.ID;
 import com.munger.stereocamera.ip.command.commands.LatencyTest;
-import com.munger.stereocamera.ip.command.commands.Ping;
-import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.ip.command.commands.SendStatus;
 import com.munger.stereocamera.ip.command.commands.SendZoom;
@@ -36,17 +34,12 @@ import com.munger.stereocamera.ip.command.commands.SetZoom;
 import com.munger.stereocamera.ip.command.commands.Version;
 import com.munger.stereocamera.ip.utility.PreviewSender;
 import com.munger.stereocamera.utility.PhotoFiles;
-import com.munger.stereocamera.utility.Preferences;
-import com.munger.stereocamera.widget.OrientationCtrl;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 public class SlaveFragment extends PreviewFragment
 {
@@ -185,7 +178,7 @@ public class SlaveFragment extends PreviewFragment
 
 		if (slaveComm == null)
 		{
-			Toast.makeText(getActivity(), R.string.bluetooth_master_communication_failed_error, Toast.LENGTH_LONG).show();
+			Toast.makeText(getContext(), R.string.bluetooth_master_communication_failed_error, Toast.LENGTH_LONG).show();
 			MainActivity.getInstance().popSubViews();
 			return;
 		}
@@ -486,92 +479,26 @@ public class SlaveFragment extends PreviewFragment
 	private void saveProcessedPhoto(final SendPhoto cmd)
 	{
 		if (photoFiles == null)
-			 photoFiles = new PhotoFiles(getContext());
+			 photoFiles = PhotoFiles.Factory.get();
 
 		final File tmpFile = cmd.file;
 		cmd.file = null;  //set file to null so we don't send it back with the response
 
-		photoFiles.checkPermissions(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				saveProcessedPhoto2(tmpFile);
-			}
-
-			@Override
-			public void fail()
-			{}
-		});
+		saveProcessedPhoto2(tmpFile);
 	}
 
 	private void saveProcessedPhoto2(final File tmpFile)
 	{
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		photoFiles.saveFile(tmpFile);
+
+		if (handler == null)
+			handler = new Handler(Looper.getMainLooper());
+
+		handler.post(new Runnable() { public void run()
 		{
-			@Override
-			public void done()
-			{
-				FileOutputStream fos = null;
-				FileInputStream fis = null;
-				long total = 0;
+			Toast.makeText(getContext(), R.string.new_photo_available, Toast.LENGTH_LONG).show();
 
-				try
-				{
-					String path = photoFiles.getNewFilePath();
-					String tmpPath = tmpFile.getPath();
-					byte[] buffer = new byte[4096];
-					int read = 1;
-					long target = new File(tmpPath).length();
-					Log.d("StereoCamera", "Copying " + target + " bytes from " + tmpPath + " to " + path);
-
-					fos = new FileOutputStream(path);
-					fis = new FileInputStream(tmpPath);
-					while (total < target)
-					{
-						long toRead = Math.min(4096, target - total);
-						read = fis.read(buffer, 0, (int) toRead);
-
-						if (read > 0)
-							fos.write(buffer, 0, (int) read);
-
-						total += read;
-					}
-					fos.flush();
-				}
-				catch(IOException e){
-
-				}
-				finally{
-					try{
-						if (fos != null)
-							fos.close();
-					}
-					catch(IOException e){}
-
-					try{
-						if (fis != null)
-							fis.close();
-					}
-					catch (IOException e){}
-				}
-
-				Log.d("StereoCamera", "copied " + total + " bytes");
-
-				if (handler == null)
-					handler = new Handler(Looper.getMainLooper());
-
-				handler.post(new Runnable() { public void run()
-				{
-					Toast.makeText(getContext(), R.string.new_photo_available, Toast.LENGTH_LONG).show();
-
-				}});
-			}
-
-			@Override
-			public void fail()
-			{}
-		});
+		}});
 	}
 
 	@Override

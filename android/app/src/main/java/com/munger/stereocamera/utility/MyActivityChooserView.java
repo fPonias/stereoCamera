@@ -10,13 +10,12 @@ import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.RestrictTo;
-import android.support.v4.view.ActionProvider;
-import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
-import android.support.v7.view.menu.ShowableListMenu;
-import android.support.v7.widget.ForwardingListener;
-import android.support.v7.widget.ListPopupWindow;
-import android.support.v7.widget.TintTypedArray;
+import androidx.core.view.ActionProvider;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+import androidx.appcompat.view.menu.ShowableListMenu;
+import androidx.appcompat.widget.ForwardingListener;
+import androidx.appcompat.widget.ListPopupWindow;
+import androidx.appcompat.widget.TintTypedArray;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,12 +26,9 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
-
-import static android.support.annotation.RestrictTo.Scope.LIBRARY_GROUP;
 
 public class MyActivityChooserView extends ViewGroup implements
 		MyActivityChooserModel.ActivityChooserModelClient {
@@ -177,31 +173,31 @@ public class MyActivityChooserView extends ViewGroup implements
 		super(context, attrs, defStyle);
 
 		TypedArray attributesArray = context.obtainStyledAttributes(attrs,
-				android.support.v7.appcompat.R.styleable.ActivityChooserView, defStyle, 0);
+				androidx.appcompat.R.styleable.ActivityChooserView, defStyle, 0);
 
 		mInitialActivityCount = attributesArray.getInt(
-				android.support.v7.appcompat.R.styleable.ActivityChooserView_initialActivityCount,
+				androidx.appcompat.R.styleable.ActivityChooserView_initialActivityCount,
 				ActivityChooserViewAdapter.MAX_ACTIVITY_COUNT_DEFAULT);
 
 		Drawable expandActivityOverflowButtonDrawable = attributesArray.getDrawable(
-				android.support.v7.appcompat.R.styleable.ActivityChooserView_expandActivityOverflowButtonDrawable);
+				androidx.appcompat.R.styleable.ActivityChooserView_expandActivityOverflowButtonDrawable);
 
 		attributesArray.recycle();
 
 		LayoutInflater inflater = LayoutInflater.from(getContext());
-		inflater.inflate(android.support.v7.appcompat.R.layout.abc_activity_chooser_view, this, true);
+		inflater.inflate(androidx.appcompat.R.layout.abc_activity_chooser_view, this, true);
 
 		mCallbacks = new MyActivityChooserView.Callbacks();
 
-		mActivityChooserContent = findViewById(android.support.v7.appcompat.R.id.activity_chooser_view_content);
+		mActivityChooserContent = findViewById(androidx.appcompat.R.id.activity_chooser_view_content);
 		mActivityChooserContentBackground = mActivityChooserContent.getBackground();
 
-		mDefaultActivityButton = findViewById(android.support.v7.appcompat.R.id.default_activity_button);
+		mDefaultActivityButton = findViewById(androidx.appcompat.R.id.default_activity_button);
 		mDefaultActivityButton.setOnClickListener(mCallbacks);
 		mDefaultActivityButton.setOnLongClickListener(mCallbacks);
-		mDefaultActivityButtonImage = (ImageView) mDefaultActivityButton.findViewById(android.support.v7.appcompat.R.id.image);
+		mDefaultActivityButtonImage = (ImageView) mDefaultActivityButton.findViewById(androidx.appcompat.R.id.image);
 
-		final FrameLayout expandButton = findViewById(android.support.v7.appcompat.R.id.expand_activities_button);
+		final FrameLayout expandButton = findViewById(androidx.appcompat.R.id.expand_activities_button);
 		expandButton.setOnClickListener(mCallbacks);
 		expandButton.setAccessibilityDelegate(new AccessibilityDelegate() {
 			@Override
@@ -231,7 +227,7 @@ public class MyActivityChooserView extends ViewGroup implements
 		});
 		mExpandActivityOverflowButton = expandButton;
 		mExpandActivityOverflowButtonImage =
-				(ImageView) expandButton.findViewById(android.support.v7.appcompat.R.id.image);
+				(ImageView) expandButton.findViewById(androidx.appcompat.R.id.image);
 		mExpandActivityOverflowButtonImage.setImageDrawable(expandActivityOverflowButtonDrawable);
 
 		mAdapter = new ActivityChooserViewAdapter();
@@ -245,7 +241,7 @@ public class MyActivityChooserView extends ViewGroup implements
 
 		Resources resources = context.getResources();
 		mListPopupMaxWidth = Math.max(resources.getDisplayMetrics().widthPixels / 2,
-				resources.getDimensionPixelSize(android.support.v7.appcompat.R.dimen.abc_config_prefDialogWidth));
+				resources.getDimensionPixelSize(androidx.appcompat.R.dimen.abc_config_prefDialogWidth));
 	}
 
 	/**
@@ -294,7 +290,6 @@ public class MyActivityChooserView extends ViewGroup implements
 	 * Set the provider hosting this view, if applicable.
 	 * @hide Internal use only
 	 */
-	@RestrictTo(LIBRARY_GROUP)
 	public void setProvider(ActionProvider provider) {
 		mProvider = provider;
 	}
@@ -387,7 +382,7 @@ public class MyActivityChooserView extends ViewGroup implements
 
 		ListView lv = popupWindow.getListView();
 		lv.setContentDescription(getContext().getString(
-				android.support.v7.appcompat.R.string.abc_activitychooserview_choose_application));
+				androidx.appcompat.R.string.abc_activitychooserview_choose_application));
 		lv.setSelector(new ColorDrawable(Color.TRANSPARENT));
 	}
 
@@ -749,25 +744,25 @@ public class MyActivityChooserView extends ViewGroup implements
 				case ITEM_VIEW_TYPE_FOOTER:
 					if (convertView == null || convertView.getId() != ITEM_VIEW_TYPE_FOOTER) {
 						convertView = LayoutInflater.from(getContext()).inflate(
-								android.support.v7.appcompat.R.layout.abc_activity_chooser_view_list_item, parent, false);
+								androidx.appcompat.R.layout.abc_activity_chooser_view_list_item, parent, false);
 						convertView.setId(ITEM_VIEW_TYPE_FOOTER);
-						TextView titleView = (TextView) convertView.findViewById(android.support.v7.appcompat.R.id.title);
+						TextView titleView = (TextView) convertView.findViewById(androidx.appcompat.R.id.title);
 						titleView.setText(getContext().getString(
-								android.support.v7.appcompat.R.string.abc_activity_chooser_view_see_all));
+								androidx.appcompat.R.string.abc_activity_chooser_view_see_all));
 					}
 					return convertView;
 				case ITEM_VIEW_TYPE_ACTIVITY:
-					if (convertView == null || convertView.getId() != android.support.v7.appcompat.R.id.list_item) {
+					if (convertView == null || convertView.getId() != androidx.appcompat.R.id.list_item) {
 						convertView = LayoutInflater.from(getContext()).inflate(
-								android.support.v7.appcompat.R.layout.abc_activity_chooser_view_list_item, parent, false);
+								androidx.appcompat.R.layout.abc_activity_chooser_view_list_item, parent, false);
 					}
 					PackageManager packageManager = getContext().getPackageManager();
 					// Set the icon
-					ImageView iconView = (ImageView) convertView.findViewById(android.support.v7.appcompat.R.id.icon);
+					ImageView iconView = (ImageView) convertView.findViewById(androidx.appcompat.R.id.icon);
 					ResolveInfo activity = (ResolveInfo) getItem(position);
 					iconView.setImageDrawable(activity.loadIcon(packageManager));
 					// Set the title.
-					TextView titleView = (TextView) convertView.findViewById(android.support.v7.appcompat.R.id.title);
+					TextView titleView = (TextView) convertView.findViewById(androidx.appcompat.R.id.title);
 					titleView.setText(activity.loadLabel(packageManager));
 					// Highlight the default.
 					if (mShowDefaultActivity && position == 0 && mHighlightDefaultActivity) {

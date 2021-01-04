@@ -6,11 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Handler;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
-import com.munger.stereocamera.R;
+import androidx.annotation.Nullable;import com.munger.stereocamera.R;
 
 
 /**

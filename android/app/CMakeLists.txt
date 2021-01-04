@@ -142,11 +142,12 @@ add_executable(stereoCameraImageProcessor
         src/main/cpp/RedCyanCompositeImage.cpp
         src/main/cpp/GreenMagentaCompositeImage.cpp
         src/main/cpp/main.cpp
-)
+        )
 
 target_link_libraries(stereoCameraImageProcessor
         libc++_static.a)
 
-
-
+#add_custom_command(TARGET stereoCameraImageProcessor POST_BUILD
+#        COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:stereoCameraImageProcessor> D:\\programming\\stereoCamera\\android\\stereoCameraImageProcessor
+#)
 

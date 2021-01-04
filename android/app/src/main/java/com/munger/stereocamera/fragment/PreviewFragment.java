@@ -3,27 +3,29 @@ package com.munger.stereocamera.fragment;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.view.Surface;
+
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.R;
+import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
 import com.munger.stereocamera.widget.LoadingWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.SquareLayout;
 
-public class PreviewFragment extends Fragment
+public class PreviewFragment extends BaseFragment
 {
 	protected View rootView;
 	protected PreviewWidget previewView;
@@ -154,16 +156,15 @@ public class PreviewFragment extends Fragment
 
 	protected void startPreview()
 	{
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
-			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
-			{
-				@Override
-				public void onResult(int resultCode)
-				{
-					previewView.startPreview();
-				}
-			});
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.CAMERA, resultCode -> previewView.startPreview());
+			return;
+		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		{
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.WRITE_EXTERNAL_STORAGE, resultCode -> previewView.startPreview());
 			return;
 		}
 

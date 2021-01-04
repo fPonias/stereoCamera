@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <memory.h>
 #include <math.h>
+#include <malloc.h>
+#include <string.h>
 
 SplitCompositeImage::SplitCompositeImage()
 {
@@ -55,7 +57,8 @@ void SplitCompositeImage::scaledCopy(Image* target, size_t offset)
     FILE* file = fopen(target->getProcPath(), "rb");
     
     size_t dim = (size_t) target->getTargetDim();
-    Pixel buffer[dim];
+    //Pixel buffer[dim];
+    Pixel* buffer = (Pixel*) malloc(sizeof(Pixel) * dim);
     size_t jsampSz = sizeof(Pixel);
     offset *= jsampSz;
     
@@ -102,6 +105,7 @@ void SplitCompositeImage::scaledCopy(Image* target, size_t offset)
         }
     }
     
+    free(buffer);
     fclose(file);
 }
 
@@ -154,7 +158,8 @@ void SplitCompositeImage::combineImages(bool growToMaxDim, bool flip, const char
     
     size_t sz = targetDim * 2 * targetDim;
     data = new Pixel[sz];
-    bzero(data, sz * sizeof(Pixel));
+    //bzero(data, sz * sizeof(Pixel));
+    memset(data, 0, sizeof(Pixel));
     
     copyTmp(&left, LEFT);
     copyTmp(&right, RIGHT);

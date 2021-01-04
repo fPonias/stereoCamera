@@ -4,9 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.munger.stereocamera.R;
+import android.widget.Toast;import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
@@ -38,7 +36,7 @@ public class PhotoProcessorServiceReceiver extends BroadcastReceiver
 
 		if (photoFiles == null)
 		{
-			photoFiles = new PhotoFiles(context);
+			photoFiles = PhotoFiles.Factory.get();
 		}
 
 		String action = intent.getAction();

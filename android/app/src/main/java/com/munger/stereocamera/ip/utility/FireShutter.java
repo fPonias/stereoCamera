@@ -1,24 +1,15 @@
 package com.munger.stereocamera.ip.utility;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.v4.util.ArraySet;
-import android.support.v7.preference.PreferenceManager;
+import android.net.Uri;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.fragment.MasterFragment;
-import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
-import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.service.PhotoProcessorExec;
 import com.munger.stereocamera.service.PhotoProcessorService;
-import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.PreviewWidget;
@@ -43,7 +34,7 @@ public class FireShutter
 	{
 		this.fragment = fragment;
 		masterComm = MyApplication.getInstance().getCtrl();
-		photoFiles = new PhotoFiles(fragment.getContext());
+		photoFiles = PhotoFiles.Factory.get();
 	}
 
 	public interface Listener
@@ -192,44 +183,23 @@ public class FireShutter
 	private void done()
 	{
 		listener.onProcessing();
-		photoFiles = new PhotoFiles(fragment.getContext());
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		photoFiles = PhotoFiles.Factory.get();
+		if (localData == null || remoteData == null)
 		{
-			@Override
-			public void done()
-			{
-				if (localData == null || remoteData == null)
-				{
-					listener.fail();
-					return;
-				}
+			listener.fail();
+			return;
+		}
 
-				boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
+		boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
 
-				if (!isOnLeft)
-				{
-					PhotoProcessorService.PhotoArgument tmp = remoteData;
-					remoteData = localData;
-					localData = tmp;
-				}
+		if (!isOnLeft)
+		{
+			PhotoProcessorService.PhotoArgument tmp = remoteData;
+			remoteData = localData;
+			localData = tmp;
+		}
 
-				done2();
-			}
-
-
-			@Override
-			public void fail()
-			{
-				final AlertDialog dialog = new AlertDialog.Builder(fragment.getContext())
-						.setMessage(R.string.thumbnail_filesystem_error)
-						.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
-						{
-							dialogInterface.dismiss();
-						}})
-						.create();
-				dialog.show();
-			}
-		});
+		done2();
 	}
 
 	private void done2()
@@ -258,28 +228,10 @@ public class FireShutter
 	public void handleProcessedPhoto(final String path)
 	{
 		if (photoFiles == null)
-			photoFiles = new PhotoFiles(MainActivity.getInstance());
+			photoFiles = PhotoFiles.Factory.get();
 
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				handlePhotoProcessed2(path);
-			}
-
-			@Override
-			public void fail()
-			{
-				listener.fail();
-			}
-		});
-	}
-
-	private void handlePhotoProcessed2(String path)
-	{
 		File fl = new File(path);
-		String newPath = photoFiles.saveNewFile(fl);
+		Uri newPath = photoFiles.saveFile(fl);
 
 		masterComm.sendCommand(new SendPhoto(newPath), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
 		{
@@ -289,6 +241,6 @@ public class FireShutter
 				listener.fail();
 		}}), 30000);
 
-		MainActivity.getInstance().onNewPhoto(newPath);
+		MainActivity.getInstance().onNewPhoto(newPath.getPath());
 	}
 }

@@ -5,40 +5,27 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.ContactsContract;
-import android.support.v4.content.ContextCompat;
+
+import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.SizeF;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.R;
+import com.munger.stereocamera.MainActivity;import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.fragment.PreviewFragment;
-import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -411,13 +398,8 @@ public class PreviewWidget extends TextureView
 	{
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MainActivity.getInstance(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
 		{
-			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.CAMERA, new MainActivity.PermissionResultListener()
-			{
-				@Override
-				public void onResult(int resultCode)
-				{
-					setAndStartCamera(facing);
-				}
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.CAMERA, (result) -> {
+				setAndStartCamera(facing);
 			});
 			return;
 		}
@@ -455,7 +437,7 @@ public class PreviewWidget extends TextureView
 			}
 			catch (RuntimeException e)
 			{
-				if (tries < tryLimit - 1)
+ 				if (tries < tryLimit - 1)
 				{
 					try {Thread.sleep(500);} catch(InterruptedException e1){}
 				}

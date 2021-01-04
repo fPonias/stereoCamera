@@ -6,8 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,10 +17,11 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
+
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.R;
-import com.munger.stereocamera.ip.command.Comm;
+import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.commands.ConnectionPause;
@@ -37,11 +36,9 @@ import com.munger.stereocamera.ip.utility.FireShutter;
 import com.munger.stereocamera.ip.utility.RemoteState;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.widget.OrientationCtrl;
-import com.munger.stereocamera.widget.OrientationWidget;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
-import com.munger.stereocamera.widget.SquareLayout;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 import com.munger.stereocamera.widget.ZoomWidget;
 
@@ -202,13 +199,13 @@ public class MasterFragment extends PreviewFragment
 
 		prefsItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			((MainActivity) getActivity()).openSettings();
+			//((MainActivity) getActivity()).openSettings();
 			return true;
 		}});
 
 		helpItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
 		{
-			((MainActivity) getActivity()).openHelp();
+			//((MainActivity) getActivity()).openHelp();
 			return false;
 		}});
 	}

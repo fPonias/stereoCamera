@@ -7,9 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.view.View;
-
-import com.munger.stereocamera.R;
+import android.view.View;import com.munger.stereocamera.R;
 
 /**
  * Created by hallmarklabs on 3/2/18.

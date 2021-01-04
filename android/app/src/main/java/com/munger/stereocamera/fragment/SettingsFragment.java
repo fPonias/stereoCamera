@@ -1,10 +1,8 @@
 package com.munger.stereocamera.fragment;
 
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.preference.PreferenceFragmentCompat;
-
-import com.munger.stereocamera.R;
+import android.preference.PreferenceFragment;
+import androidx.preference.PreferenceFragmentCompat;import com.munger.stereocamera.R;
 
 /**
  * Created by hallmarklabs on 3/19/18.

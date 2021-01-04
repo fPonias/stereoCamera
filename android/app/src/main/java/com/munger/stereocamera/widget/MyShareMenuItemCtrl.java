@@ -4,23 +4,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.content.FileProvider;
+import androidx.core.content.FileProvider;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Toast;
 
-import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.R;
-import com.munger.stereocamera.fragment.ImageViewerFragment;
+import com.munger.stereocamera.MainActivity;import com.munger.stereocamera.R;
 import com.munger.stereocamera.fragment.InstagramExportDialog;
 import com.munger.stereocamera.service.InstagramTransform;
 import com.munger.stereocamera.utility.MyActivityChooserModel;
 import com.munger.stereocamera.utility.MyActivityChooserView;
 import com.munger.stereocamera.utility.MyShareActionProvider;
+import com.munger.stereocamera.utility.PhotoFile;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class MyShareMenuItemCtrl
@@ -41,14 +39,14 @@ public class MyShareMenuItemCtrl
 		@Override
 		public void onActivityChosen(MyActivityChooserModel host, ComponentName componentName, MyActivityChooserModel.OnChooseActivityResponder responder)
 		{
-			if (paths == null || paths.length == 0)
+			if (files == null || files.length == 0)
 				return;
 
 			this.host = host;
 			this.componentName = componentName;
 			this.responder = responder;
 
-			if (componentName.getClassName().contains("instagram") && paths.length == 1)
+			if (componentName.getClassName().contains("instagram") && files.length == 1)
 			{
 				onInstagramChosen();
 			}
@@ -71,14 +69,13 @@ public class MyShareMenuItemCtrl
 					onInstagramChosen2(type);
 				}
 			});
-			dialog.show(MainActivity.getInstance().getSupportFragmentManager(), "instagramDialog");
+			//dialog.show(MainActivity.getInstance().getFragmentManager(), "instagramDialog");
 		}
 
 		private void onInstagramChosen2(InstagramTransform.TransformType type)
 		{
 			InstagramTransform transform = new InstagramTransform(context);
-			File file = new File(paths[0]);
-			transform.transform(file, type, new InstagramTransform.Listener()
+			transform.transform(files[0], type, new InstagramTransform.Listener()
 			{
 				@Override
 				public void onProcessed(File dest)
@@ -109,9 +106,9 @@ public class MyShareMenuItemCtrl
 
 		private void sendIntent()
 		{
-			if (paths.length == 1)
+			if (files.length == 1)
 			{
-				sendIntent(getShareUri(new File(paths[0])));
+				sendIntent(files[0].uri);
 				return;
 			}
 
@@ -207,7 +204,7 @@ public class MyShareMenuItemCtrl
 	{
 		if (!actionView.isInEditMode())
 		{
-			boolean isMultiple = (paths.length > 1) ? true : false;
+			boolean isMultiple = (files.length > 1);
 
 			MyActivityChooserModel dataModel = MyActivityChooserModel.get(context, "share_history.xml");
 			dataModel.setShareType("image/jpeg", isMultiple);
@@ -224,29 +221,24 @@ public class MyShareMenuItemCtrl
 		return uri;
 	}
 
-	private String[] paths;
+	private PhotoFile[] files;
 
 	private ArrayList<Uri> getShareUris()
 	{
-		int sz = paths.length;
 		ArrayList<Uri> ret = new ArrayList<>();
-		for (int i = 0; i < sz; i++)
-		{
-			File shareFile = new File(paths[i]);
-			Uri item = getShareUri(shareFile);
-			ret.add(item);
-		}
+		for (PhotoFile item : files)
+			ret.add(item.uri);
 
 		return ret;
 	}
 
-	public void setCurrentPath(String path)
+	public void setData(PhotoFile data)
 	{
-		this.paths = new String[] {path};
+		files = new PhotoFile[] {data};
 	}
 
-	public void setCurrentPaths(String[] paths)
+	public void setData(PhotoFile[] data)
 	{
-		this.paths = paths;
+		files = data;
 	}
 }

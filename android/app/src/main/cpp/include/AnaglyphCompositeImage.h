@@ -17,6 +17,7 @@ protected:
 
     const char* file;
     size_t targetDim;
+    Pixel* data;
 
     void straightCopy(Image* target, const Pixel* mask);
     void scaledCopy(Image* target, const Pixel* mask);

@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <malloc.h>
 
 AnaglyphCompositeImage::AnaglyphCompositeImage()
 {
@@ -17,7 +18,6 @@ void AnaglyphCompositeImage::straightCopy(Image* target, const Pixel* mask)
 {
     size_t rowWidth = (size_t) targetDim;
     FILE* infile = fopen(target->getProcPath(), "rb");
-    FILE* outfile = fopen(file, "wb");
 
     size_t rows = (size_t) target->getTargetDim();
     size_t dim = (size_t) target->getTargetDim();
@@ -34,7 +34,7 @@ void AnaglyphCompositeImage::straightCopy(Image* target, const Pixel* mask)
 
     for (size_t dstRow = 0; dstRow < rows; dstRow++)
     {
-        size_t read = fread(buffer, jsampSz, dim, infile);
+        size_t read = fread(buf_ptr, jsampSz, dim, infile);
 
         if (read < dim)
         {
@@ -43,7 +43,7 @@ void AnaglyphCompositeImage::straightCopy(Image* target, const Pixel* mask)
         }
 
         idx = dstRow * rowWidth;
-        //data_ptr = data + idx;
+        data_ptr = data + idx;
 
         for (size_t x = 0; x < dim; x++)
         {
@@ -62,8 +62,6 @@ void AnaglyphCompositeImage::straightCopy(Image* target, const Pixel* mask)
     }
 
     fclose(infile);
-    fclose(outfile);
-
 }
 
 void AnaglyphCompositeImage::scaledCopy(Image* target, const Pixel* mask)
@@ -73,7 +71,8 @@ void AnaglyphCompositeImage::scaledCopy(Image* target, const Pixel* mask)
 
     size_t rows = (size_t) target->getTargetDim();
     size_t dim = (size_t) target->getTargetDim();
-    Pixel buffer[dim];
+    //Pixel buffer[dim];
+    Pixel* buffer = (Pixel*) malloc(sizeof(Pixel) * dim);
     size_t jsampSz = sizeof(Pixel);
 
     float ratio = (float) targetDim / (float) dim;
@@ -113,7 +112,7 @@ void AnaglyphCompositeImage::scaledCopy(Image* target, const Pixel* mask)
         for (dstCol = 0; dstCol < targetDim; dstCol++)
         {
             srcCol = (size_t) fmax(0, fmin(lround(dstCol / ratio), dim - 1));
-            //data_ptr = data + idx + dstCol;
+            data_ptr = data + idx + dstCol;
             dataChar = (char*) data_ptr;
             buf_ptr = buffer + srcCol;
             bufChar = (char*) buf_ptr;
@@ -130,6 +129,7 @@ void AnaglyphCompositeImage::scaledCopy(Image* target, const Pixel* mask)
     }
 
     fclose(file);
+    free(buffer);
 }
 
 void AnaglyphCompositeImage::saveFinal(const char* path)
@@ -137,7 +137,7 @@ void AnaglyphCompositeImage::saveFinal(const char* path)
     JpegCtrl::ImageData imgData;
     imgData.height = (JDIMENSION) targetDim;
     imgData.width = (JDIMENSION) (targetDim);
-    //imgData.data = data;
+    imgData.data = data;
 
     JpegCtrl::write_JPEG_file(path, 85, &imgData);
 }
@@ -187,13 +187,13 @@ void AnaglyphCompositeImage::combineImages(bool growToMaxDim, bool flip, const c
         targetDim = (leftDim < rightDim) ? leftDim : rightDim;
 
     size_t sz = targetDim * targetDim;
-    //data = new Pixel[sz];
-    //bzero(data, sz * sizeof(Pixel));
+    data = new Pixel[sz];
+    bzero(data, sz * sizeof(Pixel));
 
     copyTmp(&left, LEFT);
     copyTmp(&right, RIGHT);
 
     saveFinal(path);
 
-    //delete[] data;
+    delete[] data;
 }

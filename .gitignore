@@ -12,6 +12,7 @@ app/release
 app/src/main/cpp/jpeg-9c
 .externalNativeBuild/
 .deps/
+.cxx/
 /cpp/stereoCameraImageProcessor/dist/
 /ios/stereoCamera/stereoCamera.xcodeproj/xcuserdata/codymunger.xcuserdatad/
 /ios/stereoCamera/stereoCamera.xcodeproj/project.xcworkspace/xcuserdata/

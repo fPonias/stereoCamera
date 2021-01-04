@@ -1,5 +1,6 @@
 package com.munger.stereocamera.ip.command.commands;
 
+import android.net.Uri;
 import android.util.Log;
 
 import com.munger.stereocamera.ip.command.Comm;
@@ -19,11 +20,11 @@ public class SendPhoto extends Command
 		doInit();
 	}
 
-	public SendPhoto(String path)
+	public SendPhoto(Uri path)
 	{
 		super();
 
-		file = new File(path);
+		file = new File(path.getPath());
 		doInit();
 	}
 

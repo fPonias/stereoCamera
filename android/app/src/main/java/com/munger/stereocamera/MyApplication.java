@@ -5,7 +5,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 
-import com.google.android.gms.ads.MobileAds;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
@@ -43,13 +42,12 @@ public class MyApplication extends Application
 			else
 			{
 				adsEnabled = true;
-				MobileAds.initialize(this, "ca-app-pub-9089181112526283~1419408286");
+				//MobileAds.initialize(this, "ca-app-pub-9089181112526283~1419408286");
 			}
 		}
 		catch(PackageManager.NameNotFoundException e)
 		{}
 	}
-
 
 	private CommCtrl ctrl;
 	private BluetoothCtrl btCtrl;

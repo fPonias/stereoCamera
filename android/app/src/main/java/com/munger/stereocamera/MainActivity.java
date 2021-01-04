@@ -1,39 +1,43 @@
 package com.munger.stereocamera;
 
-import android.app.AlertDialog;
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.Surface;
-import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.Toast;
 
-import com.munger.stereocamera.fragment.Gallery;
-import com.munger.stereocamera.ip.IPListeners;
-import com.munger.stereocamera.ip.SocketCtrl;
-import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.ip.command.CommCtrl;
-import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.command.commands.Disconnect;
-import com.munger.stereocamera.ip.command.commands.SendPhoto;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.munger.stereocamera.fragment.ConnectFragment;
+import com.munger.stereocamera.fragment.Gallery;
 import com.munger.stereocamera.fragment.HelpFragment;
 import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.fragment.SettingsFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
-import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
+import com.munger.stereocamera.ip.SocketCtrl;
+import com.munger.stereocamera.ip.command.CommCtrl;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.ip.command.commands.Disconnect;
+import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.service.PhotoProcessorService;
 import com.munger.stereocamera.service.PhotoProcessorServiceReceiver;
 import com.munger.stereocamera.utility.InteractiveReceiver;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
 
@@ -41,7 +45,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends BaseActivity
+public class MainActivity extends AppCompatActivity
 {
 	private static MainActivity instance;
 	public static MainActivity getInstance()
@@ -50,7 +54,7 @@ public class MainActivity extends BaseActivity
 	}
 
 	private Handler handler;
-	private FrameLayout frame;
+	//private FrameLayout frame;
 	private ConnectFragment connectFragment;
 	private PhotoProcessorServiceReceiver photoReceiver;
 	private InteractiveReceiver interactiveReceiver;
@@ -61,6 +65,7 @@ public class MainActivity extends BaseActivity
 
 	public Fragment getCurrentFragment()
 	{
+		MyApplication.getInstance();
 		FragmentManager mgr = getSupportFragmentManager();
 		List<Fragment> fragments = mgr.getFragments();
 
@@ -75,13 +80,12 @@ public class MainActivity extends BaseActivity
 	{
 		MainActivity.instance = this;
 
-		setTheme(R.style.AppTheme);
+		//setT(R.style.AppTheme);
 		super.onCreate(savedInstanceState);
 
-
-		View root = getLayoutInflater().inflate(R.layout.activity_main, null);
-		frame = root.findViewById(R.id.main_content);
-		setContentView(root);
+		//View root = getLayoutInflater().inflate(R.layout.activity_main, null);
+		//FrameLayout frame = root.findViewById(R.id.main_content);
+		//setContentView(root);
 
 		if (savedInstanceState == null)
 		{
@@ -152,11 +156,14 @@ public class MainActivity extends BaseActivity
 	{
 		super.onPause();
 
-		unregisterReceiver(photoReceiver);
-		unregisterReceiver(interactiveReceiver);
+		//unregisterReceiver(photoReceiver);
+		//unregisterReceiver(interactiveReceiver);
 
 		isRunning = false;
 	}
+
+	protected ActivityResultLauncher<String> permLauncher;
+	protected ActivityResultLauncher<Intent> btLauncher;
 
 	@Override
 	protected void onStart()
@@ -166,6 +173,9 @@ public class MainActivity extends BaseActivity
 		ft.addOnBackStackChangedListener(backStackListener);
 
 		super.onStart();
+
+		permLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), this::onRequestPermissionsResult);
+		btLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), this::onEnableBluetoothResult);
 	}
 
 	@Override
@@ -178,13 +188,13 @@ public class MainActivity extends BaseActivity
 		isRunning = true;
 
 		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
-		registerReceiver(photoReceiver, filter, "com.munger.stereocamera.NOTIFICATION", new Handler(Looper.getMainLooper()));
+		//registerReceiver(photoReceiver, filter, "com.munger.stereocamera.NOTIFICATION", new Handler(Looper.getMainLooper()));
 
 		filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-		registerReceiver(interactiveReceiver, filter);
+		//registerReceiver(interactiveReceiver, filter);
 
 		filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-		registerReceiver(interactiveReceiver, filter);
+		//registerReceiver(interactiveReceiver, filter);
 
 		reconnect();
 	}
@@ -289,71 +299,31 @@ public class MainActivity extends BaseActivity
 		ft.commit();
 	}
 
-	public void startThumbnailView(final String path)
+	public void startThumbnailView(final PhotoFile data)
 	{
-		final PhotoFiles photoFiles = new PhotoFiles(this);
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				if (!photoFiles.hasFiles())
-					return;
+		final PhotoFiles photoFiles = PhotoFiles.Factory.get();
+		if (photoFiles.isEmpty())
+			return;
 
-				imageViewerFragment = new ImageViewerFragment();
-				imageViewerFragment.setStartingPath(path);
-				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-				ft.addToBackStack("imgView");
-				ft.replace(android.R.id.content, imageViewerFragment, imageViewerFragment.getTag());
-				ft.commit();
-			}
-
-			@Override
-			public void fail()
-			{
-				final AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
-						.setMessage(R.string.thumbnail_filesystem_error)
-						.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
-						{
-							dialogInterface.dismiss();
-						}})
-						.create();
-				dialog.show();
-			}
-		});
+		imageViewerFragment = new ImageViewerFragment();
+		imageViewerFragment.setStartingData(data);
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.addToBackStack("imgView");
+		ft.replace(android.R.id.content, imageViewerFragment, imageViewerFragment.getTag());
+		ft.commit();
 	}
 
 	public void startGalleryView()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles(this);
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				if (!photoFiles.hasFiles())
-					return;
+		final PhotoFiles photoFiles = PhotoFiles.Factory.get();
+		if (photoFiles.isEmpty())
+			return;
 
-				galleryFragment = new Gallery();
-				FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-				ft.addToBackStack("imgView");
-				ft.replace(android.R.id.content, galleryFragment, galleryFragment.getTag());
-				ft.commit();
-			}
-
-			@Override
-			public void fail()
-			{
-				final AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
-						.setMessage(R.string.thumbnail_filesystem_error)
-						.setPositiveButton(R.string.ok_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
-						{
-							dialogInterface.dismiss();
-						}})
-						.create();
-				dialog.show();
-			}
-		});
+		galleryFragment = new Gallery();
+		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+		ft.addToBackStack("imgView");
+		ft.replace(android.R.id.content, galleryFragment, galleryFragment.getTag());
+		ft.commit();
 	}
 
 	public void popSubViews()
@@ -382,6 +352,7 @@ public class MainActivity extends BaseActivity
 
 	private boolean firstConnect = true;
 
+	/*
 	@Override
 	protected void onUserLeaveHint()
 	{
@@ -397,6 +368,7 @@ public class MainActivity extends BaseActivity
 			((SlaveFragment) frag).pause();
 		}
 	}
+	*/
 
 
 	private PhotoFiles photoFiles = null;
@@ -404,28 +376,10 @@ public class MainActivity extends BaseActivity
 	public void handleProcessedPhoto(final String path)
 	{
 		if (photoFiles == null)
-			photoFiles = new PhotoFiles(this);
+			photoFiles = PhotoFiles.Factory.get();
 
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			@Override
-			public void done()
-			{
-				handlePhotoProcessed2(path);
-			}
-
-			@Override
-			public void fail()
-			{
-
-			}
-		});
-	}
-
-	private void handlePhotoProcessed2(String path)
-	{
 		File fl = new File(path);
-		String newPath = photoFiles.saveNewFile(fl);
+		Uri newPath = photoFiles.saveFile(fl);
 
 		//Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
 		CommCtrl ctrl = MyApplication.getInstance().getCtrl();
@@ -434,7 +388,7 @@ public class MainActivity extends BaseActivity
 			ctrl.sendCommand(new SendPhoto(newPath), null);
 		}
 
-		onNewPhoto(newPath);
+		onNewPhoto(newPath.getPath());
 	}
 
 
@@ -518,7 +472,7 @@ public class MainActivity extends BaseActivity
 
 	public PhotoOrientation getCurrentOrientation()
 	{
-		int rotation = MainActivity.getInstance().getWindowManager().getDefaultDisplay().getRotation();
+		int rotation = getDisplay().getRotation();
 
 		switch (rotation)
 		{
@@ -528,5 +482,67 @@ public class MainActivity extends BaseActivity
 			case Surface.ROTATION_270: return PhotoOrientation.DEG_270;
 			default: return PhotoOrientation.DEG_0;
 		}
+	}
+
+	public interface PermissionResultListener
+	{
+		void onResult(boolean result);
+	}
+
+	private PermissionResultListener resultListener;
+	private String requestedPermissions;
+
+	public boolean hasPermission(String permission)
+	{
+		if (ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+			return false;
+
+		return true;
+	}
+
+	public void requestPermissionForResult(String permissions, PermissionResultListener listener)
+	{
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+			listener.onResult(false);
+		else
+			requestPermissionForResult2(permissions, listener);
+	}
+
+	private void requestPermissionForResult2(String permissions, PermissionResultListener listener)
+	{
+		resultListener = listener;
+		requestedPermissions = permissions;
+
+		permLauncher.launch(permissions);
+	}
+
+	protected void onRequestPermissionsResult(Boolean grantResults)
+	{
+		if (resultListener != null)
+			resultListener.onResult(grantResults);
+	}
+
+	private BluetoothActivateListener btResultListener;
+
+	public interface BluetoothActivateListener
+	{
+		void onResult(ActivityResult result);
+	}
+
+	public void enableBluetoothForResult(BluetoothActivateListener listener)
+	{
+		btResultListener = listener;
+		btLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));
+	}
+
+	public void bluetoothDiscoverForResult(BluetoothActivateListener listener)
+	{
+		btResultListener = listener;
+		btLauncher.launch(new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE));
+	}
+
+	private void onEnableBluetoothResult(ActivityResult result)
+	{
+		btResultListener.onResult(result);
 	}
 }

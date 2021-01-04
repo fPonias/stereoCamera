@@ -1,7 +1,7 @@
 package com.munger.stereocamera.fragment;
 
 import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -11,8 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.R;
+import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
@@ -252,7 +251,7 @@ public class ConnectEthernetSubFragment
 				listenDialog.dismiss();
 				listenDialog = null;
 
-				againDialog = new AlertDialog.Builder(parent.getActivity())
+				againDialog = new AlertDialog.Builder(parent.getContext())
 						.setTitle(R.string.bluetooth_listen_failed_error)
 						.setMessage(R.string.bluetooth_try_again_message)
 						.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)

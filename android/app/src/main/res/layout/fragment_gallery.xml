@@ -3,12 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:id="@+id/daysList">
-    </android.support.v7.widget.RecyclerView>
+    </androidx.recyclerview.widget.RecyclerView>
 
     <LinearLayout android:visibility="visible"
         android:layout_width="match_parent"
@@ -17,7 +17,7 @@
         android:background="@color/lightGrey"
         android:padding="4dp"
         android:id="@+id/bottom_menu">
-        <android.support.v4.widget.Space
+        <android.widget.Space
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1"/>
@@ -29,7 +29,7 @@
             android:background="@color/transparent"
             android:src="@drawable/share"
             android:id="@+id/share_btn"/>
-        <android.support.v4.widget.Space
+        <android.widget.Space
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1"/>
@@ -41,7 +41,7 @@
             android:background="@color/transparent"
             android:src="@drawable/trash_icon"
             android:id="@+id/trash_btn"/>
-        <android.support.v4.widget.Space
+        <android.widget.Space
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1"/>

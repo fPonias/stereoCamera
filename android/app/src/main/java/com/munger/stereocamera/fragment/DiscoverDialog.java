@@ -2,20 +2,17 @@ package com.munger.stereocamera.fragment;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.DialogFragment;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.TextView;import com.munger.stereocamera.R;
 
-import com.munger.stereocamera.R;
-import com.munger.stereocamera.service.InstagramTransform;
-
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  * Created by hallmarklabs on 2/21/18.

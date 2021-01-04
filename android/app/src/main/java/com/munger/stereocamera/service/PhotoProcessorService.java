@@ -5,8 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.annotation.Nullable;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.command.PhotoOrientation;

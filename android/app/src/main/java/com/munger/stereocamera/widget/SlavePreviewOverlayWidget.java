@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
-public class SlavePreviewOverlayWidget extends android.support.v7.widget.AppCompatImageView
+public class SlavePreviewOverlayWidget extends androidx.appcompat.widget.AppCompatImageView
 {
 	public SlavePreviewOverlayWidget(Context context)
 	{

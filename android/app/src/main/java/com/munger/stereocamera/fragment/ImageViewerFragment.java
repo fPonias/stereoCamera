@@ -1,64 +1,38 @@
 package com.munger.stereocamera.fragment;
 
 import android.app.Dialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
+import android.graphics.Bitmap;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.v4.content.FileProvider;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v4.view.PagerAdapter;
-import android.support.v4.widget.ImageViewCompat;
-import android.support.v7.app.ActionBar;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.ShareActionProvider;
 import android.util.AttributeSet;
-import android.view.ActionProvider;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.munger.stereocamera.BaseActivity;
-import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.R;
-import com.munger.stereocamera.service.InstagramTransform;
-import com.munger.stereocamera.utility.MyActivityChooserModel;
-import com.munger.stereocamera.utility.MyActivityChooserView;
-import com.munger.stereocamera.utility.MyShareActionProvider;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager.widget.PagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+
+import com.munger.stereocamera.MainActivity;import com.munger.stereocamera.R;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.widget.MyShareMenuItemCtrl;
 
-import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -69,8 +43,8 @@ public class ImageViewerFragment extends Fragment
 	private ViewPager pager;
 	private ImagePagerAdapter adapter;
 	private ImageButton playButton;
-	private AdView adView1;
-	private AdView adView2;
+	//private AdView adView1;
+	//private AdView adView2;
 	private RelativeLayout rootView;
 
 	@Nullable
@@ -82,20 +56,18 @@ public class ImageViewerFragment extends Fragment
 		rootView = ret.findViewById(R.id.root_view);
 		pager = ret.findViewById(R.id.pager);
 
-		pager.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
-		{
-			openTopBar();
-		}});
+		pager.setOnClickListener(view -> openTopBar());
+
 		pager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() { public void onPageSelected(int position)
 		{
 			super.onPageSelected(position);
 			pageIndex = position;
 
-			String path = getCurrentItem();
+			PhotoFile data = getCurrentItem();
 
-			if (!path.equals(""))
+			if (data != null)
 			{
-				shareMenuItemCtrl.setCurrentPath(getCurrentItem());
+				shareMenuItemCtrl.setData(data);
 				updateLabel(position);
 			}
 
@@ -115,14 +87,14 @@ public class ImageViewerFragment extends Fragment
 
 		setHasOptionsMenu(true);
 
-		MainActivity activity = MainActivity.getInstance();
-		if (activity.getAdsEnabled())
-			addBannerAds();
+		//MainActivity activity = MainActivity.getInstance();
+		//if (activity.getAdsEnabled())
+		//	addBannerAds();
 
 		return ret;
 	}
 
-	private void addBannerAds()
+	/*private void addBannerAds()
 	{
 		if (MainActivity.getInstance().getCurrentOrientation().isPortait())
 		{
@@ -178,7 +150,7 @@ public class ImageViewerFragment extends Fragment
 			adView.setAdUnitId("ca-app-pub-9089181112526283/9787362203");
 
 		return adView;
-	}
+	}*/
 
 	private void resetLabel()
 	{
@@ -202,11 +174,11 @@ public class ImageViewerFragment extends Fragment
 	{
 		if (adapter != null)
 		{
-			MainActivity activity = (MainActivity) getActivity();
+			FragmentActivity activity = getActivity();
 
 			if (activity != null)
 			{
-				ActionBar bar = activity.getSupportActionBar();
+				ActionBar bar = MainActivity.getInstance().getSupportActionBar();
 
 				if (bar != null)
 					bar.setTitle(label);
@@ -214,11 +186,11 @@ public class ImageViewerFragment extends Fragment
 		}
 	}
 
-	private String startingPath = null;
+	private PhotoFile startingData = null;
 
-	public void setStartingPath(String path)
+	public void setStartingData(PhotoFile data)
 	{
-		startingPath = path;
+		startingData = data;
 	}
 
 	private int pageIndex = 0;
@@ -270,7 +242,7 @@ public class ImageViewerFragment extends Fragment
 			lock.notify();
 
 			if (playbackThread != null)
-				try {lock.wait(PLAYBACK_DELAY);} catch(InterruptedException e){}
+				try {lock.wait(PLAYBACK_DELAY);} catch(InterruptedException ignored){}
 
 			playButton.setImageDrawable(getResources().getDrawable(R.drawable.play_arrow));
 		}
@@ -299,7 +271,7 @@ public class ImageViewerFragment extends Fragment
 			{
 				updateLabel(index);
 			}
-			catch(NullPointerException e){}
+			catch(NullPointerException ignored){}
 
 			pager.setCurrentItem(index, smoothScroll);
 		}
@@ -367,6 +339,7 @@ public class ImageViewerFragment extends Fragment
 		shareMenuItemCtrl = new MyShareMenuItemCtrl(getContext(), shareMenuItem, R.id.export);
 		updateShareMenuItemCtrl();
 
+
 		try
 		{
 			MainActivity activity = (MainActivity) getActivity();
@@ -393,26 +366,25 @@ public class ImageViewerFragment extends Fragment
 	{
 		if (shareMenuItemCtrl != null && adapter != null)
 		{
-			String[] list = adapter.getData();
-			int sz = list.length;
-			String selectedPath = list[pageIndex];
+			//String[] list = adapter.getData();
+			//int sz = list.length;
+			//String selectedPath = list[pageIndex];
 
-			shareMenuItemCtrl.setCurrentPath(selectedPath);
+			//shareMenuItemCtrl.setCurrentPath(selectedPath);
 		}
 	}
 
-	public String getCurrentItem()
+	public PhotoFile getCurrentItem()
 	{
 		if (adapter == null)
-			return "";
+			return null;
 
 		ImageViewerFragment.ImagePage pg = adapter.getItem(pager.getCurrentItem());
 
 		if (pg == null)
-			return "";
+			return null;
 
-		String path = pg.getPath();
-		return path;
+		return pg.getData();
 	}
 
 	@Override
@@ -449,11 +421,9 @@ public class ImageViewerFragment extends Fragment
 		}
 	};
 
-	private File getShareFile()
+	private PhotoFile getData()
 	{
-		String path = getCurrentItem();
-		File shareFile = new File(path);
-		return shareFile;
+		return getCurrentItem();
 	}
 
 	@Override
@@ -466,7 +436,7 @@ public class ImageViewerFragment extends Fragment
 		updateAdapter();
 		pager.setCurrentItem(pageIndex);
 		updateShareMenuItemCtrl();
-
+/*
 		if (activity.getAdsEnabled())
 		{
 			AdRequest adRequest = new AdRequest.Builder().build();
@@ -477,6 +447,8 @@ public class ImageViewerFragment extends Fragment
 				adView2.loadAd(adRequest);
 			}
 		}
+
+ */
 	}
 
 	@Override
@@ -509,7 +481,7 @@ public class ImageViewerFragment extends Fragment
 
 	private void deleteCurrent()
 	{
-		deleteDialog = new AlertDialog.Builder(getActivity())
+		deleteDialog = new AlertDialog.Builder(getContext())
 				.setTitle(R.string.delete_confirm_title)
 				.setMessage(R.string.delete_confirm_message)
 				.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener()
@@ -535,23 +507,16 @@ public class ImageViewerFragment extends Fragment
 	{
 		int idx = pager.getCurrentItem();
 		ImagePage frag = (ImagePage) adapter.getItem(idx);
+		PhotoFile data = frag.getData();
 		frag.cleanUp();
 
-		String[] list = adapter.getData();
-		int sz = list.length;
-		String selectedPath = list[idx];
-
-		File f = new File(selectedPath);
-
-		if (f.exists())
-			f.delete();
-
+		adapter.photoFiles.delete(data.id);
 		adapter.update();
 		updateShareMenuItemCtrl();
 
 		updateLabel(idx);
 
-		if (sz == 1)
+		if (adapter.files.size() == 1)
 		{
 			MainActivity.getInstance().popView();
 		}
@@ -564,43 +529,27 @@ public class ImageViewerFragment extends Fragment
 
 	private void updateAdapter()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles(getContext());
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		final PhotoFiles photoFiles = PhotoFiles.Factory.get();
+
+		if (adapter == null)
 		{
-			@Override
-			public void done()
-			{
-				if (adapter == null)
-				{
-					adapter = new ImagePagerAdapter(getContext(), photoFiles);
+			adapter = new ImagePagerAdapter(getContext(), photoFiles);
 
-					updateLabel(pageIndex);
-					pager.setAdapter(adapter);
-					updateShareMenuItemCtrl();
-				}
-				else
-					adapter.update();
-			}
-
-			@Override
-			public void fail()
-			{
-			}
-		});
+			updateLabel(pageIndex);
+			pager.setAdapter(adapter);
+			updateShareMenuItemCtrl();
+		}
+		else
+			adapter.update();
 	}
 
 	public class ImagePagerAdapter extends PagerAdapter
 	{
 		private Context context;
 		private PhotoFiles photoFiles;
-		private String[] files;
+		private ArrayList<PhotoFile> files;
 		private HashMap<Integer, ImagePage> pages = new HashMap<>();
 		private final Object lock = new Object();
-
-		public String[] getData()
-		{
-			return files;
-		}
 
 		public ImagePagerAdapter(Context c, PhotoFiles pf)
 		{
@@ -615,34 +564,34 @@ public class ImageViewerFragment extends Fragment
 		{
 			updateData();
 
-			if (startingPath != null)
+			if (startingData != null)
 			{
-				int sz = files.length;
+				int sz = files.size();
 				for (int i = 0; i < sz; i++)
 				{
-					String file = files[i];
-					if (file.equals(startingPath))
+					if (files.get(i).id == startingData.id)
 					{
 						pageIndex = i;
 						break;
 					}
 				}
 
-				startingPath = null;
+				startingData = null;
 			}
 
 			synchronized (lock)
 			{
 				Set<Integer> keys = pages.keySet();
+				int sz = files.size();
 
 				for (int key : keys)
 				{
 					ImagePage page = pages.get(key);
 
-					if (key < files.length)
+					if (key < sz)
 					{
-						String path = files[key];
-						page.updatePath(path);
+						PhotoFile data = files.get(key);
+						page.updateData(data);
 					}
 				}
 			}
@@ -652,30 +601,7 @@ public class ImageViewerFragment extends Fragment
 
 		private void updateData()
 		{
-			PhotoFiles.DatedFiles data = photoFiles.getFilesByDate();
-			int count = 0;
-			int sz = data.dates.size();
-			for (int i = 0; i < sz; i++)
-			{
-				ArrayList<String> list = data.files.get(data.dates.get(i));
-				count += list.size();
-			}
-
-			files = new String[count];
-			int filei = 0;
-
-			for (int i = 0; i < sz; i++)
-			{
-				ArrayList<String> list = data.files.get(data.dates.get(i));
-				int listSz = list.size();
-				for (int j = 0; j < listSz; j++)
-				{
-					files[filei] = list.get(j);
-					filei++;
-				}
-			}
-
-			files = photoFiles.getFiles();
+			files = photoFiles.getAllFiles();
 		}
 
 		public void cleanUp()
@@ -694,12 +620,9 @@ public class ImageViewerFragment extends Fragment
 		public int getItemPosition(Object object)
 		{
 			ImagePage page = (ImagePage) object;
-			int sz = files.length;
-			for (int i = 0; i < sz; i++)
+			for (PhotoFile item : files)
 			{
-				String item = files[i];
-
-				if (item.equals(page.path))
+				if (item.id == page.data.id)
 					return POSITION_UNCHANGED;
 			}
 
@@ -717,7 +640,7 @@ public class ImageViewerFragment extends Fragment
 		@Override
 		public int getCount()
 		{
-			return files.length;
+			return files.size();
 		}
 
 		@Override
@@ -741,8 +664,8 @@ public class ImageViewerFragment extends Fragment
 			FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 			pg.setLayoutParams(lp);
 
-			String path = files[position];
-			pg.updatePath(path);
+			PhotoFile item = files.get(position);
+			pg.updateData(item);
 			container.addView(pg);
 
 			pages.put(position, pg);
@@ -764,7 +687,7 @@ public class ImageViewerFragment extends Fragment
 	{
 		private ImageView thumbnailView;
 		private Bitmap bmp;
-		private String path;
+		private PhotoFile data;
 
 		public ImagePage(@NonNull Context context)
 		{
@@ -803,17 +726,18 @@ public class ImageViewerFragment extends Fragment
 			}
 		}
 
-		public void updatePath(String path)
+		public void updateData(PhotoFile data)
 		{
-			if (this.path != null && path.equals(this.path))
+			if (this.data != null && data.id == this.data.id)
 				return;
 
-			this.path = path;
+			this.data = data;
 			update();
 		}
 
 		private void update()
 		{
+			/*
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
 			bmp = BitmapFactory.decodeFile(path, options);
@@ -825,15 +749,15 @@ public class ImageViewerFragment extends Fragment
 			if (ratio > 1)
 				options.inSampleSize = (int) ratio;
 
-			bmp = BitmapFactory.decodeFile(path, options);
+			bmp = BitmapFactory.decodeFile(path, options);*/
 
 			if (thumbnailView != null)
-				thumbnailView.setImageBitmap(bmp);
+				thumbnailView.setImageURI(data.uri);
 		}
 
-		public String getPath()
+		public PhotoFile getData()
 		{
-			return path;
+			return data;
 		}
 	}
 }

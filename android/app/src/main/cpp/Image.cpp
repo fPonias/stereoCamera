@@ -65,7 +65,7 @@ void Image::setCachePath(const char* cachePath)
 {
     strcpy(this->cachepath, cachePath);
     
-    long r = random();
+    long r = rand();
     
     Util::getPath(cachePath, r, "-raw", rawpath);
     Util::getPath(cachePath, r, "-proc", procpath);
@@ -89,7 +89,8 @@ struct Pixel* Image::process()
     
     FILE* file = fopen(rawpath, "rb");
     size_t buf_sz = (size_t) width;
-    Pixel buffer[buf_sz];
+    //Pixel buffer[buf_sz];
+    Pixel* buffer = (Pixel*) malloc(sizeof(Pixel) * buf_sz);
     size_t jsamp_sz = sizeof(Pixel);
     long xMin = margin + zoomMargin;
     long xMax = xMin + targetDim;
@@ -136,6 +137,7 @@ struct Pixel* Image::process()
     }
     
     fclose(file);
+    free(buffer);
     return data;
 }
 

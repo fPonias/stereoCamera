@@ -1,17 +1,12 @@
 package com.munger.stereocamera.widget;
 
 import android.content.Context;
-import android.media.Image;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 
-import com.munger.stereocamera.R;
-import com.munger.stereocamera.fragment.MasterFragment;
+import androidx.annotation.Nullable;import com.munger.stereocamera.R;
 
 /**
  * Created by hallmarklabs on 3/22/18.

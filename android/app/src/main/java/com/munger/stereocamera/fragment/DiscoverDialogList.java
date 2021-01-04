@@ -2,9 +2,7 @@ package com.munger.stereocamera.fragment;
 
 import android.content.DialogInterface;
 import android.view.View;
-import android.view.ViewGroup;
-
-import com.munger.stereocamera.R;
+import android.view.ViewGroup;import com.munger.stereocamera.R;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 import java.util.HashMap;

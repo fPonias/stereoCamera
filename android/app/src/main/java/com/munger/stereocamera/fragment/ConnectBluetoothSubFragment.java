@@ -2,17 +2,14 @@ package com.munger.stereocamera.fragment;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.munger.stereocamera.BaseActivity;
+import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
@@ -21,10 +18,8 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
-import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.utility.Preferences;
-import com.munger.stereocamera.widget.ThumbnailWidget;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -179,7 +174,7 @@ public class ConnectBluetoothSubFragment
 		}
 		catch(BluetoothCtrl.BluetoothDiscoveryFailedException e)
 		{
-			Toast.makeText(parent.getActivity(), R.string.bluetooth_discovery_failed_error, Toast.LENGTH_LONG).show();
+			Toast.makeText(parent.getContext(), R.string.bluetooth_discovery_failed_error, Toast.LENGTH_LONG).show();
 			return;
 		}
 
@@ -236,7 +231,7 @@ public class ConnectBluetoothSubFragment
 				return;
 
 			String message = parent.getResources().getString(R.string.bluetooth_connecting_message) + device.getName();
-			connectDialog = new AlertDialog.Builder(parent.getActivity())
+			connectDialog = new AlertDialog.Builder(parent.getContext())
 					.setMessage(message)
 					.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)
 					{
@@ -274,7 +269,7 @@ public class ConnectBluetoothSubFragment
 					if (connectDialog != null)
 					{
 						connectDialog.dismiss();
-						Toast.makeText(parent.getActivity(), R.string.bluetooth_connect_failed_error, Toast.LENGTH_LONG).show();
+						Toast.makeText(parent.getContext(), R.string.bluetooth_connect_failed_error, Toast.LENGTH_LONG).show();
 					}
 				}});
 			}
@@ -296,7 +291,7 @@ public class ConnectBluetoothSubFragment
 
 				parent.handler.post(new Runnable() {public void run()
 				{
-					Toast.makeText(parent.getActivity(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
+					Toast.makeText(parent.getContext(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
 
 					if (connectDialog != null)
 						connectDialog.dismiss();
@@ -304,9 +299,9 @@ public class ConnectBluetoothSubFragment
 					parent.prefs.setRole(Preferences.Roles.MASTER);
 					parent.prefs.setClient(device.getAddress());
 
-					BaseActivity act = MainActivity.getInstance();
-					if (act instanceof MainActivity)
-						((MainActivity) act).startMasterView();
+					MainActivity act = MainActivity.getInstance();
+					if (act != null)
+						act.startMasterView();
 				}});
 			}
 
@@ -402,7 +397,7 @@ public class ConnectBluetoothSubFragment
 				listenDialog.dismiss();
 				listenDialog = null;
 
-				againDialog = new AlertDialog.Builder(parent.getActivity())
+				againDialog = new AlertDialog.Builder(parent.getContext())
 						.setTitle(R.string.bluetooth_listen_failed_error)
 						.setMessage(R.string.bluetooth_try_again_message)
 						.setNegativeButton(R.string.cancel_button, new DialogInterface.OnClickListener() {public void onClick(DialogInterface dialogInterface, int i)

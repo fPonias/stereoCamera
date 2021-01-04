@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.List;
 
 public class PhotoProcessorExec
 {
@@ -33,13 +35,14 @@ public class PhotoProcessorExec
     {
         this.context = context;
         workingDirectory =  context.getFilesDir().getPath();
+        this.type = type;
 
-        if (targetExecutable == null)
-        {
-            targetExecutable = copyExecutables();
-        }
+        //if (targetExecutable == null)
+        //{
+        //    targetExecutable = copyExecutables();
+        //}
 
-        photoFiles = new PhotoFiles(context);
+        photoFiles = PhotoFiles.Factory.get();
     }
 
     public static String[] abis = {
@@ -126,11 +129,11 @@ public class PhotoProcessorExec
 
         try
         {
-            runCommand(new String[]{"/system/bin/chmod", "u+x", "./stereoCameraImageProcessor"});
+            runCommand(Arrays.asList("/system/bin/chmod", "u+x", "./stereoCameraImageProcessor"));
             long sz = outFile.length();
             boolean exec = outFile.canExecute();
 
-            if (exec == false)
+            if (!exec)
                 return null;
         }
         catch(Exception e){
@@ -141,9 +144,20 @@ public class PhotoProcessorExec
         return ret;
     }
 
-    private String runCommand(String[] args) throws IOException, InterruptedException
+    private Process exec(List<String> args) throws IOException {
+            ProcessBuilder pb = new ProcessBuilder();
+            Process proc = pb.directory(new File(workingDirectory + "/../lib"))
+                    .command(args)
+                    .redirectErrorStream(true)
+                    .start();
+
+            return proc;
+    }
+
+    private String runCommand(List<String> args) throws IOException, InterruptedException
     {
-        Process process = Runtime.getRuntime().exec(args, null, new File(workingDirectory));
+        //Process process = Runtime.getRuntime().exec(args, null, new File(workingDirectory));
+        Process process = exec(args);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         int read;
@@ -157,41 +171,28 @@ public class PhotoProcessorExec
         process.waitFor();
 
         String outs = output.toString();
-        Log.d("stereoCamera", args[0] + " command output: " + outs);
+        Log.d("stereoCamera", args.get(0) + " command output: " + outs);
         return outs;
     }
 
     public void testOldData()
     {
-        photoFiles.openTargetDir(new PhotoFiles.Listener()
+        Thread t = new Thread(new Runnable() { public void run()
         {
-            @Override
-            public void done()
-            {
-                Thread t = new Thread(new Runnable() { public void run()
-                {
-                    PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
-                    localData.jpegPath = "/storage/emulated/0/Download/left.jpg";
-                    localData.orientation = PhotoOrientation.DEG_90;
-                    localData.zoom = 1.5f;
+            PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
+            localData.jpegPath = "/storage/emulated/0/Download/left.jpg";
+            localData.orientation = PhotoOrientation.DEG_90;
+            localData.zoom = 1.5f;
 
-                    PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
-                    remoteData.jpegPath = "/storage/emulated/0/Download/left.jpg";
-                    remoteData.orientation = PhotoOrientation.DEG_180;
-                    remoteData.zoom = 1.0f;
+            PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
+            remoteData.jpegPath = "/storage/emulated/0/Download/left.jpg";
+            remoteData.orientation = PhotoOrientation.DEG_180;
+            remoteData.zoom = 1.0f;
 
-                    Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, PhotoProcessor.CompositeImageType.SPLIT);
-                    MainActivity.getInstance().startService(i);
-                }});
-                t.start();
-            }
-
-            @Override
-            public void fail()
-            {
-
-            }
-        });
+            Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, PhotoProcessor.CompositeImageType.SPLIT);
+            MainActivity.getInstance().startService(i);
+        }});
+        t.start();
     }
 
     public static void copy(File src, File dst) throws IOException
@@ -287,12 +288,13 @@ public class PhotoProcessorExec
 
     public String processData(boolean flip)
     {
-        if (targetExecutable == null)
-            return null;
+        //if (targetExecutable == null)
+        //    return null;
 
         try {
             File out = new File(workingDirectory + "/out.jpg");
-            runCommand(new String[] {"./stereoCameraImageProcessor", ".", "SPLIT", leftPath, "" + leftOrientation.ordinal(), "" + leftZoom, rightPath, "" + rightOrientaiton.ordinal(), "" + rightZoom, out.getPath()});
+            String typeArg = type.toString();
+            runCommand(Arrays.asList("./stereoCameraImageProcessor", workingDirectory, type.toString(), leftPath, "" + leftOrientation.ordinal(), "" + leftZoom, rightPath, "" + rightOrientaiton.ordinal(), "" + rightZoom, out.getPath()));
 
             if (out.length() == 0)
                 return null;

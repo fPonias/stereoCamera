@@ -28,42 +28,29 @@ public class PhotoProcessor
 	public PhotoProcessor(Context context, CompositeImageType type)
 	{
 		this.context = context;
-		photoFiles = new PhotoFiles(context);
+		photoFiles = PhotoFiles.Factory.get();
 		initN(context.getCacheDir().getPath());
 		setProcessorType(type.ordinal());
 	}
 
 	public void testOldData()
 	{
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
+		Thread t = new Thread(new Runnable() { public void run()
 		{
-			@Override
-			public void done()
-			{
-				Thread t = new Thread(new Runnable() { public void run()
-				{
-					PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
-					localData.jpegPath = "/storage/emulated/0/Download/left.jpg";
-					localData.orientation = PhotoOrientation.DEG_90;
-					localData.zoom = 1.5f;
+			PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
+			localData.jpegPath = "/storage/emulated/0/Download/left.jpg";
+			localData.orientation = PhotoOrientation.DEG_90;
+			localData.zoom = 1.5f;
 
-					PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
-					remoteData.jpegPath = "/storage/emulated/0/Download/left.jpg";
-					remoteData.orientation = PhotoOrientation.DEG_180;
-					remoteData.zoom = 1.0f;
+			PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
+			remoteData.jpegPath = "/storage/emulated/0/Download/left.jpg";
+			remoteData.orientation = PhotoOrientation.DEG_180;
+			remoteData.zoom = 1.0f;
 
-					Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, CompositeImageType.SPLIT);
-					MainActivity.getInstance().startService(i);
-				}});
-				t.start();
-			}
-
-			@Override
-			public void fail()
-			{
-
-			}
-		});
+			Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, CompositeImageType.SPLIT);
+			MainActivity.getInstance().startService(i);
+		}});
+		t.start();
 	}
 
 	public static void copy(File src, File dst) throws IOException

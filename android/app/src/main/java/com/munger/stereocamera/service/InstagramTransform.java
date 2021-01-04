@@ -7,13 +7,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
 
-import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class InstagramTransform
 {
@@ -41,7 +43,7 @@ public class InstagramTransform
 		void onFailed();
 	}
 
-	public void transform(final File source, final TransformType type, final Listener listener)
+	public void transform(final PhotoFile source, final TransformType type, final Listener listener)
 	{
 		this.listener = listener;
 		Thread t = new Thread(new Runnable() { public void run()
@@ -54,13 +56,20 @@ public class InstagramTransform
                 return;
             }
 
-			final Bitmap ret = transform.transform(source);
+			Bitmap ret = null;
 
-			writeTmpFile(ret, new WroteTmp() { public void onFileWritten(File file)
+			try (InputStream str = context.getContentResolver().openInputStream(source.uri);)
 			{
-				ret.recycle();
-				listener.onProcessed(file);
-			}});
+				ret = transform.transform(str);
+				writeTmpFile(ret, listener::onProcessed);
+			}
+			catch (IOException e) {
+				listener.onFailed();
+			}
+			finally {
+				if (ret != null)
+					ret.recycle();
+			}
 		}});
 
 		t.start();
@@ -73,8 +82,9 @@ public class InstagramTransform
 		public static final int HORIZONTAL_MAX_WIDTH = 1080;
 		public static final float HORIZONTAL_RATIO = 1.908f;
 		public static final int SQUARE_DIM = 1080;
+		protected Rect emptyRect = new Rect();
 
-		abstract public Bitmap transform(File source);
+		abstract public Bitmap transform(InputStream str);
 	}
 
 	private static class TransformerFactory
@@ -100,19 +110,19 @@ public class InstagramTransform
 	private static class RotateTransform extends Transformer
 	{
 		@Override
-		public Bitmap transform(File source)
+		public Bitmap transform(InputStream str)
 		{
-			Bitmap bmp = openScaledBitmap(source);
+			Bitmap bmp = openScaledBitmap(str);
 			Bitmap ret = transformBitmap(bmp);
 			bmp.recycle();
 			return ret;
 		}
 
-		private Bitmap openScaledBitmap(File source)
+		private Bitmap openScaledBitmap(InputStream str)
 		{
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
+
 			int skip = (int) Math.ceil((double) options.outWidth / (double) VERTICAL_MAX_HEIGHT);
 
 			options = new BitmapFactory.Options();
@@ -120,7 +130,7 @@ public class InstagramTransform
 			if (skip > 1)
 				options.inSampleSize = skip;
 
-			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			Bitmap bmp = BitmapFactory.decodeStream(str, emptyRect, options);
 			return bmp;
 		}
 
@@ -160,7 +170,7 @@ public class InstagramTransform
 	private static class CopyTransform extends Transformer
 	{
 		@Override
-		public Bitmap transform(File source)
+		public Bitmap transform(InputStream source)
 		{
 			Bitmap bmp = openScaledBitmap(source);
 			Bitmap ret = transformBitmap(bmp);
@@ -168,11 +178,10 @@ public class InstagramTransform
 			return ret;
 		}
 
-		private Bitmap openScaledBitmap(File source)
+		private Bitmap openScaledBitmap(InputStream source)
 		{
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
 			int skip = (int) Math.ceil((double) options.outWidth / (double) HORIZONTAL_MAX_WIDTH);
 
 			options = new BitmapFactory.Options();
@@ -180,7 +189,7 @@ public class InstagramTransform
 			if (skip > 1)
 				options.inSampleSize = skip;
 
-			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			Bitmap bmp = BitmapFactory.decodeStream(source, emptyRect, options);
 			return bmp;
 		}
 
@@ -218,7 +227,7 @@ public class InstagramTransform
 	private static class SquareTransform extends Transformer
 	{
 		@Override
-		public Bitmap transform(File source)
+		public Bitmap transform(InputStream source)
 		{
 			Bitmap bmp = openScaledBitmap(source);
 			Bitmap ret = transformBitmap(bmp);
@@ -226,11 +235,10 @@ public class InstagramTransform
 			return ret;
 		}
 
-		private Bitmap openScaledBitmap(File source)
+		private Bitmap openScaledBitmap(InputStream source)
 		{
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
 			int skip = (int) Math.ceil((double) options.outWidth / (double) SQUARE_DIM);
 
 			options = new BitmapFactory.Options();
@@ -238,7 +246,7 @@ public class InstagramTransform
 			if (skip > 1)
 				options.inSampleSize = skip;
 
-			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			Bitmap bmp = BitmapFactory.decodeStream(source, emptyRect, options);
 			return bmp;
 		}
 
@@ -278,7 +286,7 @@ public class InstagramTransform
 	private static class SquareRotatedTransform extends Transformer
 	{
 		@Override
-		public Bitmap transform(File source)
+		public Bitmap transform(InputStream source)
 		{
 			Bitmap bmp = openScaledBitmap(source);
 			Bitmap ret = transformBitmap(bmp);
@@ -286,11 +294,10 @@ public class InstagramTransform
 			return ret;
 		}
 
-		private Bitmap openScaledBitmap(File source)
+		private Bitmap openScaledBitmap(InputStream source)
 		{
 			BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
-			Bitmap bmp = BitmapFactory.decodeFile(source.getPath(), options);
 			int skip = (int) Math.ceil((double) options.outWidth / (double) SQUARE_DIM);
 
 			options = new BitmapFactory.Options();
@@ -298,7 +305,7 @@ public class InstagramTransform
 			if (skip > 1)
 				options.inSampleSize = skip;
 
-			bmp = BitmapFactory.decodeFile(source.getPath(), options);
+			Bitmap bmp = BitmapFactory.decodeStream(source, emptyRect, options);
 			return bmp;
 		}
 
@@ -344,41 +351,28 @@ public class InstagramTransform
 
 	private void writeTmpFile(final Bitmap bmp, final WroteTmp wroteTmp)
 	{
-		final PhotoFiles pf = new PhotoFiles(context);
-		pf.openTargetDir(new PhotoFiles.Listener()
+		final PhotoFiles pf = PhotoFiles.Factory.get();
+		FileOutputStream fos = null;
+
+		try
 		{
-			@Override
-			public void done()
+			File f = pf.getRandomFile();
+			fos = new FileOutputStream(f);
+			bmp.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+
+			wroteTmp.onFileWritten(f);
+		}
+		catch(IOException e){
+			listener.onFailed();
+		}
+		finally
+		{
+			try
 			{
-				FileOutputStream fos = null;
-
-				try
-				{
-					File f = pf.getRandomFile();
-					fos = new FileOutputStream(f);
-					bmp.compress(Bitmap.CompressFormat.JPEG, 75, fos);
-
-					wroteTmp.onFileWritten(f);
-				}
-				catch(IOException e){
-					listener.onFailed();
-				}
-				finally
-				{
-					try
-					{
-						if (fos != null)
-							fos.close();
-					}
-					catch(IOException e){}
-				}
+				if (fos != null)
+					fos.close();
 			}
-
-			@Override
-			public void fail()
-			{
-				listener.onFailed();
-			}
-		});
+			catch(IOException e){}
+		}
 	}
 }

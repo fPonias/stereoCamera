@@ -1,52 +1,40 @@
 package com.munger.stereocamera.fragment;
 
-import android.bluetooth.BluetoothDevice;
+import android.Manifest;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.InterstitialAd;
-import com.munger.stereocamera.BaseActivity;
+import com.munger.stereocamera.BaseFragment;
+import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;
-import com.munger.stereocamera.R;
-import com.munger.stereocamera.ip.IPListeners;
-import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
-import com.munger.stereocamera.ip.bluetooth.BluetoothDiscoverer;
-import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
-import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
+import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
-import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
-import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-public class ConnectFragment extends Fragment
+public class ConnectFragment extends BaseFragment
 {
 	Handler handler;
 	Preferences prefs;
@@ -56,17 +44,19 @@ public class ConnectFragment extends Fragment
 	private RadioGroup connectChooser;
 	private ViewGroup bluetoothControls;
 	private ViewGroup wifiControls;
+	private ViewGroup testControls;
 
 	private View view;
 	private PhotoOrientation orientation;
-	private AdView adView;
-	private InterstitialAd fullAdView;
+	//private AdView adView;
+	//private InterstitialAd fullAdView;
 	private RelativeLayout rootView;
 	private ViewGroup buttonsLayout;
 	private ThumbnailWidget thumbnail;
 
 	private ConnectBluetoothSubFragment bluetoothCtrl;
 	private ConnectEthernetSubFragment ethernetCtrl;
+	private TestFragment testCtrl;
 
 	public ConnectFragment()
 	{
@@ -82,8 +72,6 @@ public class ConnectFragment extends Fragment
 			lastShown = savedInstanceState.getLong("adLastShown");
 		else
 			lastShown = 0;
-
-		setHasOptionsMenu(true);
 	}
 
 	@Override
@@ -112,6 +100,8 @@ public class ConnectFragment extends Fragment
 	@Override
 	public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
 	{
+		setHasOptionsMenu(true);
+
 		orientation = MainActivity.getInstance().getCurrentOrientation();
 		if (orientation.isPortait())
 			view = inflater.inflate(R.layout.fragment_connect, container, false);
@@ -143,10 +133,11 @@ public class ConnectFragment extends Fragment
 	public void onResume()
 	{
 		super.onResume();
-		thumbnail.update();
+
+		requestPermissions();
 
 		MainActivity activity = MainActivity.getInstance();
-		if (activity.getAdsEnabled())
+		/*if (activity.getAdsEnabled())
 		{
 			AdRequest adRequest = new AdRequest.Builder().build();
 			adView.loadAd(adRequest);
@@ -159,7 +150,28 @@ public class ConnectFragment extends Fragment
 			}
 
 			showFullScreenAd();
+		}*/
+
+		boolean firstTime = prefs.getFirstTime();
+
+		if (firstTime)
+		{
+			doFirstTime();
 		}
+	}
+
+	private void requestPermissions()
+	{
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(MyApplication.getInstance(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		{
+			MainActivity.getInstance().requestPermissionForResult(Manifest.permission.READ_EXTERNAL_STORAGE, (result) -> {
+				//requestPermissions();
+			});
+
+			return;
+		}
+
+		thumbnail.update();
 	}
 
 	@Override
@@ -180,20 +192,21 @@ public class ConnectFragment extends Fragment
 
 		bluetoothControls = view.findViewById(R.id.bluetoothButtons);
 		wifiControls = view.findViewById(R.id.wifiButtons);
+		testControls = view.findViewById(R.id.testButtons);
 
 		connectChooser = view.findViewById(R.id.connectChooser);
 
 		thumbnail = view.findViewById(R.id.thumbnail);
 
-		MainActivity activity = MainActivity.getInstance();
+		/*MainActivity activity = MainActivity.getInstance();
 		if (activity.getAdsEnabled())
 		{
 			addBannerAd();
 			addFullScreenAd();
-		}
+		}*/
 	}
 
-	private void addBannerAd()
+	/*private void addBannerAd()
 	{
 		MainActivity activity = MainActivity.getInstance();
 		adView = new AdView(activity);
@@ -255,13 +268,21 @@ public class ConnectFragment extends Fragment
 		}
 
 		fullAdView.show();
-	}
+	}*/
 
 	private void setupViews()
 	{
 		prefs = MyApplication.getInstance().getPrefs();
 		bluetoothCtrl = new ConnectBluetoothSubFragment(this, bluetoothControls);
 		ethernetCtrl = new ConnectEthernetSubFragment(this, wifiControls);
+
+		if (BuildConfig.DEBUG)
+		{
+			RadioButton testButton = new RadioButton(getContext());
+			testButton.setText("Test");
+			connectChooser.addView(testButton, 2);
+			testCtrl = new TestFragment(this, testControls);
+		}
 
 		connectChooser.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
 		{
@@ -271,16 +292,25 @@ public class ConnectFragment extends Fragment
 				if (checkedId == R.id.connectBluetooth)
 				{
 					wifiControls.setVisibility(View.GONE);
+					testControls.setVisibility(View.GONE);
 					ethernetCtrl.cleanUp();
 					bluetoothControls.setVisibility(View.VISIBLE);
 				}
-				else
+				else if (checkedId == R.id.connectWifi)
 				{
 					wifiControls.setVisibility(View.VISIBLE);
 					bluetoothControls.setVisibility(View.GONE);
+					testControls.setVisibility(View.GONE);
 					bluetoothCtrl.cleanUp();
 				}
-
+				else
+				{
+					wifiControls.setVisibility(View.GONE);
+					bluetoothControls.setVisibility(View.GONE);
+					testControls.setVisibility(View.VISIBLE);
+					bluetoothCtrl.cleanUp();
+					ethernetCtrl.cleanUp();
+				}
 			}
 		});
 
@@ -289,18 +319,11 @@ public class ConnectFragment extends Fragment
 		{
 			thumbnailClicked();
 		}});
-
-		boolean firstTime = prefs.getFirstTime();
-
-		if (firstTime)
-		{
-			doFirstTime();
-		}
 	}
 
 	private void doFirstTime()
 	{
-		AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
 		builder.setTitle(R.string.first_time_title)
 				.setMessage(R.string.first_time_question)
 				.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)

@@ -1,17 +1,17 @@
 package com.munger.stereocamera.widget;
 
+import android.Manifest;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Handler;
-import android.os.Looper;
-import android.support.v7.widget.AppCompatImageView;
+
+import androidx.appcompat.widget.AppCompatImageView;
 import android.util.AttributeSet;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.utility.PhotoFiles;
 
-import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by hallmarklabs on 3/12/18.
@@ -67,34 +67,17 @@ public class ThumbnailWidget extends AppCompatImageView
 
 	public void update()
 	{
-		final PhotoFiles photoFiles = new PhotoFiles(getContext());
-		photoFiles.openTargetDir(new PhotoFiles.Listener()
-		{
-			public void done()
-			{
-				new Handler(Looper.getMainLooper()).post(new Runnable() { public void run()
-				{
-					File newest = photoFiles.getNewestFile();
+		if (!MainActivity.getInstance().hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
+			return;
 
-					if (newest == null)
-					{
-						setImageDrawable(null);
-					}
-					else
-					{
-						String max = newest.getPath();
-						BitmapFactory.Options options = new BitmapFactory.Options();
-						options.inSampleSize = 16;
-						Bitmap bmp = BitmapFactory.decodeFile(photoFiles.getFilePath(max), options);
-						setImageBitmap(bmp);
-					}
-				}});
-			}
+		final PhotoFiles photoFiles = PhotoFiles.Factory.get();
+		if (photoFiles.isEmpty())
+			setImageDrawable(null);
 
-			public void fail()
-			{
-				setImageBitmap(null);
-			}
-		});
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inSampleSize = 16;
+		InputStream str = photoFiles.getNewestAsStream();
+		Bitmap bmp = BitmapFactory.decodeStream(str);
+		setImageBitmap(bmp);
 	}
 }

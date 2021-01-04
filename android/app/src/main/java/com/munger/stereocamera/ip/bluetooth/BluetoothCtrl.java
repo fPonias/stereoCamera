@@ -1,34 +1,25 @@
 package com.munger.stereocamera.ip.bluetooth;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothServerSocket;
-import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Parcelable;
-import android.support.v4.content.ContextCompat;
-import android.util.Log;
 
-import com.munger.stereocamera.BaseActivity;
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.ContextCompat;
+
+import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.ip.IPListeners;
-import com.munger.stereocamera.ip.Socket;
-import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.SocketCtrlCtrl;
 import com.munger.stereocamera.ip.command.CommCtrl;
 
-import java.io.IOException;
-import java.net.ConnectException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -66,28 +57,19 @@ public class BluetoothCtrl implements SocketCtrlCtrl
 
 		if (!adapter.isEnabled())
 		{
-			Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			parent.startActivityForResult(i, new MainActivity.ActivityResultListener()
-			{
-				@Override
-				public void onResult(int resultCode, Intent data)
-				{
-					setup(listener);
-				}
+			parent.enableBluetoothForResult(i -> {
+				setup(listener);
 			});
+
 			return;
 		}
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(parent, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
 		{
-			parent.requestPermissionForResult(Manifest.permission.ACCESS_COARSE_LOCATION, new MainActivity.PermissionResultListener()
-			{
-				@Override
-				public void onResult(int resultCode)
-				{
-					setup(listener);
-				}
+			parent.requestPermissionForResult(Manifest.permission.ACCESS_COARSE_LOCATION, result -> {
+				setup(listener);
 			});
+
 			return;
 		}
 
