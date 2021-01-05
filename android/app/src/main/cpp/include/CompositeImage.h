@@ -28,7 +28,6 @@ protected:
 public:
     virtual ~CompositeImage() {};
     Image* getImage(Side side) { return (side == LEFT) ? &left : &right; }
-    virtual void copyTmp(Image* target, Side side) = 0;
     virtual void combineImages(bool growToMaxDim, bool flip, const char* path) = 0;
     virtual CompositeImageType getType() = 0;
 };

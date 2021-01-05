@@ -146,7 +146,7 @@ void Image::processJpeg()
     if (!iniited)
         return;
     
-    JpegCtrl::ImageData data;
+    ImageData data;
     JpegCtrl::read_JPEG_file(jpegpath, &data);
     
     width = data.width;

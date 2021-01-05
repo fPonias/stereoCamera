@@ -3,17 +3,12 @@
 #include <memory>
 #include "jpegCtrl.hpp"
 
-void JpegCtrl::write_JPEG_file (const char * filename, int quality, ImageData* data)
+JpegStream::JpegStream(const char* filename, int quality, size_t width, size_t height)
 {
-    struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-    
-    FILE * outfile;        /* target file */
-    
     /* Step 1: allocate and initialize JPEG compression object */
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
-    
+
     /* Step 2: specify data destination (eg, a file) */
     if ((outfile = fopen(filename, "wb")) == NULL)
     {
@@ -21,50 +16,48 @@ void JpegCtrl::write_JPEG_file (const char * filename, int quality, ImageData* d
         return;
     }
     jpeg_stdio_dest(&cinfo, outfile);
-    
+
     /* Step 3: set parameters for compression */
-    cinfo.image_width = data->width;     /* image width and height, in pixels */
-    cinfo.image_height = data->height;
+    cinfo.image_width = width;     /* image width and height, in pixels */
+    cinfo.image_height = height;
     cinfo.input_components = sizeof(Pixel) / sizeof(JSAMPLE);        /* # of color components per pixel */
     cinfo.in_color_space = JCS_RGB;     /* colorspace of input image */
-    
+
     jpeg_set_defaults(&cinfo);
     jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
-    
+
     /* Step 4: Start compressor */
     jpeg_start_compress(&cinfo, TRUE);
-    
-    JSAMPROW row_pointer[1];    /* pointer to JSAMPLE row[s] */
-    int row = 0;
-    /* Step 5: while (scan lines remain to be written) */
-    while (cinfo.next_scanline < cinfo.image_height)
-    {
-        row = cinfo.next_scanline;
-        row_pointer[0] =  (JSAMPLE*) (data->data + (row * data->width));
-        (void) jpeg_write_scanlines(&cinfo, &(row_pointer[0]), 1);
-    }
-    
+}
+
+void JpegStream::writeRow(Pixel *buf)
+{
+    row_pointer[0] =  (JSAMPLE*) (buf);
+    (void) jpeg_write_scanlines(&cinfo, &(row_pointer[0]), 1);
+}
+
+void JpegStream::finish()
+{
     /* Step 6: Finish compression */
     jpeg_finish_compress(&cinfo);
     fclose(outfile);
-    
+
     /* Step 7: release JPEG compression object */
     jpeg_destroy_compress(&cinfo);
 }
 
-struct my_error_mgr
+void JpegCtrl::write_JPEG_file (const char * filename, int quality, ImageData* data)
 {
-    struct jpeg_error_mgr pub;
-    jmp_buf setjmp_buffer;
-};
+    JpegStream str(filename, quality, data->width, data->height);
+    Pixel* buf;
 
-typedef struct my_error_mgr * my_error_ptr;
+    for (int i = 0; i < data->height; i++)
+    {
+        buf = (data->data + (i * data->width));
+        str.writeRow(buf);
+    }
 
-METHODDEF(void) my_error_exit (j_common_ptr cinfo)
-{
-    my_error_ptr myerr = (my_error_ptr) cinfo->err;
-    (*cinfo->err->output_message) (cinfo);
-    longjmp(myerr->setjmp_buffer, 1);
+    str.finish();
 }
 
 void JpegCtrl::read_JPEG_file(const char *path, ImageData* retPtr)

@@ -15,12 +15,12 @@ private:
 
     void straightCopy(Image* target, size_t offset);
     void scaledCopy(Image* target, size_t offset);
-    void copyTmp(Image* target, size_t offset);
     void saveFinal(const char* path);
+    void combineFull(bool growToMaxDim, const char* path);
+    void copyTmp(Image* target, Side side);
 public:
     SplitCompositeImage();
     ~SplitCompositeImage();
-    void copyTmp(Image* target, Side side);
     void combineImages(bool growToMaxDim, bool flip, const char* path);
     CompositeImageType getType() { return SPLIT; }
 };

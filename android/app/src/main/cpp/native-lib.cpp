@@ -7,6 +7,7 @@
 #include "com_munger_stereocamera_service_PhotoProcessor.h"
 #include "util.h"
 #include "SplitCompositeImage.h"
+#include "SplitCompositeImageStream.h"
 #include "GreenMagentaCompositeImage.h"
 #include "RedCyanCompositeImage.h"
 #include "Image.h"
@@ -47,7 +48,8 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setPr
     {
         case SPLIT:
         default:
-            image = new SplitCompositeImage();
+            //image = new SplitCompositeImage();
+            image = new SplitCompositeImageStream();
             break;
         case GREEN_MAGENTA:
             image = new GreenMagentaCompositeImage();

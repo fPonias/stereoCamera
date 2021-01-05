@@ -134,7 +134,7 @@ void AnaglyphCompositeImage::scaledCopy(Image* target, const Pixel* mask)
 
 void AnaglyphCompositeImage::saveFinal(const char* path)
 {
-    JpegCtrl::ImageData imgData;
+    ImageData imgData;
     imgData.height = (JDIMENSION) targetDim;
     imgData.width = (JDIMENSION) (targetDim);
     imgData.data = data;

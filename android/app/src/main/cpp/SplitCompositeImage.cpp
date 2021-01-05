@@ -121,7 +121,7 @@ void SplitCompositeImage::copyTmp(Image* target, Side side)
 
 void SplitCompositeImage::saveFinal(const char* path)
 {
-    JpegCtrl::ImageData imgData;
+    ImageData imgData;
     imgData.height = (JDIMENSION) targetDim;
     imgData.width = (JDIMENSION) (2 * targetDim);
     imgData.data = data;
@@ -149,22 +149,27 @@ void SplitCompositeImage::combineImages(bool growToMaxDim, bool flip, const char
     left.processJpeg();
     right.processJpeg();
     
+    combineFull(growToMaxDim, path);
+}
+
+void SplitCompositeImage::combineFull(bool growToMaxDim, const char* path)
+{
     size_t leftDim = (size_t) left.getTargetDim();
     size_t rightDim = (size_t) right.getTargetDim();
     if (growToMaxDim)
         targetDim = (leftDim > rightDim) ? leftDim : rightDim;
     else
         targetDim = (leftDim < rightDim) ? leftDim : rightDim;
-    
+
     size_t sz = targetDim * 2 * targetDim;
     data = new Pixel[sz];
     //bzero(data, sz * sizeof(Pixel));
     memset(data, 0, sizeof(Pixel));
-    
+
     copyTmp(&left, LEFT);
     copyTmp(&right, RIGHT);
-    
+
     saveFinal(path);
-    
+
     delete[] data;
 }
