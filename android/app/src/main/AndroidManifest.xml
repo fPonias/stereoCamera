@@ -17,7 +17,6 @@
     <application
         android:name="com.munger.stereocamera.MyApplication"
         android:allowBackup="true"
-        android:extractNativeLibs="true"
         android:icon="${appIcon}"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -31,10 +30,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service android:name="com.munger.stereocamera.service.PhotoProcessorService" />
-        <!--    android:process="com.munger.stereocamera.processor"
-        />-->
 
         <provider
             android:authorities="{$applicationId}.export.provider"

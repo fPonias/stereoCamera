@@ -6,11 +6,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import androidx.appcompat.widget.AppCompatImageView;
+
+import android.graphics.Rect;
 import android.util.AttributeSet;
 
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -74,10 +78,30 @@ public class ThumbnailWidget extends AppCompatImageView
 		if (photoFiles.isEmpty())
 			setImageDrawable(null);
 
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inSampleSize = 16;
 		InputStream str = photoFiles.getNewestAsStream();
-		Bitmap bmp = BitmapFactory.decodeStream(str);
+
+		if (str == null)
+			return;
+
+		str.mark(1024 * 1024);
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(str, new Rect(), options);
+		double maxw = 512;
+		double picw = options.outWidth;
+		int skip = (int) Math.ceil(picw / maxw);
+
+
+		try{
+			str.reset();
+		}
+		catch(IOException e){
+			str = photoFiles.getNewestAsStream();
+		}
+
+		options.inSampleSize = skip;
+		options.inJustDecodeBounds = false;
+		Bitmap bmp = BitmapFactory.decodeStream(str, new Rect(), options);
 		setImageBitmap(bmp);
 	}
 }

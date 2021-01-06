@@ -24,7 +24,6 @@ protected:
     void saveFinal(const char* path);
 public:
     AnaglyphCompositeImage();
-    virtual ~AnaglyphCompositeImage() = 0;
     virtual CompositeImageType getType() = 0;
 
     void copyTmp(Image* target, Side side);

@@ -84,7 +84,8 @@ struct Pixel* Image::process()
     
     long unzoomedTarget = (long) (targetDim * zoom);
     long maxDim = (height > width) ? height : width;
-    long margin = (maxDim - unzoomedTarget) / 2;
+    long cmargin = (width - unzoomedTarget) / 2;
+    long rmargin = (height - unzoomedTarget) / 2;
     long zoomMargin = (unzoomedTarget - targetDim) / 2;
     
     FILE* file = fopen(rawpath, "rb");
@@ -92,10 +93,14 @@ struct Pixel* Image::process()
     //Pixel buffer[buf_sz];
     Pixel* buffer = (Pixel*) malloc(sizeof(Pixel) * buf_sz);
     size_t jsamp_sz = sizeof(Pixel);
-    long xMin = margin + zoomMargin;
-    long xMax = xMin + targetDim;
-    long dstX, dstY, idx;
-    for (long y = 0; y < height; y++)
+
+    long cMin = cmargin + zoomMargin;
+    long cMax = cMin + targetDim;
+    long rMin = rmargin + zoomMargin;
+    long rMax = rMin + targetDim;
+
+    long dstC, dstR, idx;
+    for (long r = 0; r < height; r++)
     {
         size_t read = fread(buffer, jsamp_sz, buf_sz, file);
         
@@ -105,40 +110,52 @@ struct Pixel* Image::process()
             return NULL;
         }
         
-        for (long x = xMin; x < xMax; x++)
+        for (long c = cMin; c < cMax; c++)
         {
-            switch (orientation)
-            {
-                case 0:
-                    dstX = unzoomedTarget - y - zoomMargin;
-                    dstY = x - margin - zoomMargin;
-                    break;
-                case 3:
-                    dstX = unzoomedTarget - x + margin - zoomMargin;
-                    dstY = unzoomedTarget - y - zoomMargin;
-                    break;
-                case 2:
-                    dstX = y - zoomMargin;
-                    dstY = unzoomedTarget - x + margin - zoomMargin;
-                    break;
-                case 1:
-                default:
-                    dstX = x - margin - zoomMargin;
-                    dstY = y - zoomMargin;
-                    break;
-            }
-            
-            if (dstX >= 0 && dstX < targetDim && dstY >= 0 && dstY < targetDim)
-            {
-                idx = dstY * targetDim + dstX;
-                memcpy(data + idx, buffer + x, jsamp_sz);
-            }
+            dstC = c - zoomMargin - cmargin;
+            dstR = r - zoomMargin - rmargin;
+
+            if (dstR < 0 || dstR >= targetDim)
+                break;
+
+            if (dstC < 0 || dstC >= targetDim)
+                continue;
+
+            rotateDestination(orientation, targetDim, &dstC, &dstR);
+            idx = dstR * targetDim + dstC;
+            memcpy(data + idx, buffer + c, jsamp_sz);
         }
     }
     
     fclose(file);
     free(buffer);
     return data;
+}
+
+void Image::rotateDestination(int orientation, long dim, long* r, long* c)
+{
+    dim--;
+    long tmp;
+    switch (orientation)
+    {
+        case 0:
+            return;
+        case 2:
+            *r = dim - *r;
+            *c = dim - *c;
+            return;
+        case 1:
+            tmp = *r;
+            *r = *c;
+            *c = tmp;
+            return;
+        case 3:
+        default:
+            tmp = *r;
+            *r = dim - *c;
+            *c = dim - tmp;
+            return;
+    }
 }
 
 void Image::processJpeg()
@@ -177,7 +194,7 @@ void Image::init(int orientation, float zoom, const char* jpegSrc, const char* c
     iniited = true;
     
     this->orientation = orientation;
-    this->zoom = zoom;
+    this->zoom = fmax(1.0f, zoom); //no zooms outside the image bounds
     
     setJpegPath(jpegSrc);
     setCachePath(cachePath);

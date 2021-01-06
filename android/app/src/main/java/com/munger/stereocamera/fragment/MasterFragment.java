@@ -56,6 +56,7 @@ public class MasterFragment extends PreviewFragment
 
 	private long shutterDelay;
 	private PhotoOrientation orientation;
+	private FireShutter fireShutter;
 
 	private MainActivity.Listener appListener;
 
@@ -124,6 +125,7 @@ public class MasterFragment extends PreviewFragment
 	{
 		super.onCreate(savedInstanceState);
 
+		fireShutter = new FireShutter(this);
 		setHasOptionsMenu(true);
 
 		appListener = new MainActivity.Listener()
@@ -155,6 +157,7 @@ public class MasterFragment extends PreviewFragment
 		super.onDestroy();
 
 		MainActivity.getInstance().removeListener(appListener);
+		fireShutter.cleanUp();
 	}
 
 	private MenuItem flipItem;
@@ -184,7 +187,7 @@ public class MasterFragment extends PreviewFragment
 
 		debugItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			PhotoProcessor proc = new PhotoProcessor(getContext(), PhotoProcessor.CompositeImageType.SPLIT);
+			PhotoProcessor proc = new PhotoProcessor(getContext());
 			proc.testOldData();
 
 			return true;

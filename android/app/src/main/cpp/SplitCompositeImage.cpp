@@ -14,10 +14,6 @@ SplitCompositeImage::SplitCompositeImage()
     data = 0;
 }
 
-SplitCompositeImage::~SplitCompositeImage()
-{
-}
-
 void SplitCompositeImage::straightCopy(Image* target, size_t offset)
 {
     size_t rowWidth = (size_t) targetDim * 2;

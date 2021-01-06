@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -410,7 +411,7 @@ public class ImageViewerFragment extends Fragment
 	MainActivity.Listener appListener = new MainActivity.Listener()
 	{
 		@Override
-		public void onNewPhoto(String newPath)
+		public void onNewPhoto(Uri newPath)
 		{
 			updateAdapter();
 

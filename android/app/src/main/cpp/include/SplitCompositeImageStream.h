@@ -46,7 +46,6 @@ private:
     void copyRow(int row, Side side);
 public:
     SplitCompositeImageStream();
-    ~SplitCompositeImageStream();
     void combineImages(bool growToMaxDim, bool flip, const char* path);
     CompositeImageType getType() { return SPLIT; }
 };

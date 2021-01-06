@@ -20,7 +20,6 @@ private:
     void copyTmp(Image* target, Side side);
 public:
     SplitCompositeImage();
-    ~SplitCompositeImage();
     void combineImages(bool growToMaxDim, bool flip, const char* path);
     CompositeImageType getType() { return SPLIT; }
 };

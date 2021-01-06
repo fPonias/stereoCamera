@@ -13,10 +13,6 @@ SplitCompositeImageStream::SplitCompositeImageStream()
 {
 }
 
-SplitCompositeImageStream::~SplitCompositeImageStream()
-{
-}
-
 void SplitCompositeImageStream::combineStream(bool growToMaxDim, const char* path)
 {
     leftData = new SideData(left.getTargetDim(), fopen(left.getProcPath(), "rb"));

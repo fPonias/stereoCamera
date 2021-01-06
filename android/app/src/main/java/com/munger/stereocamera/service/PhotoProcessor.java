@@ -25,32 +25,16 @@ public class PhotoProcessor
 	private PhotoFiles photoFiles;
 	private Context context;
 
-	public PhotoProcessor(Context context, CompositeImageType type)
+	public PhotoProcessor(Context context)
 	{
 		this.context = context;
 		photoFiles = PhotoFiles.Factory.get();
 		initN(context.getCacheDir().getPath());
-		setProcessorType(type.ordinal());
+		setProcessorType(PhotoProcessor.CompositeImageType.SPLIT.ordinal());
 	}
 
 	public void testOldData()
 	{
-		Thread t = new Thread(new Runnable() { public void run()
-		{
-			PhotoProcessorService.PhotoArgument localData = new PhotoProcessorService.PhotoArgument();
-			localData.jpegPath = "/storage/emulated/0/Download/left.jpg";
-			localData.orientation = PhotoOrientation.DEG_90;
-			localData.zoom = 1.5f;
-
-			PhotoProcessorService.PhotoArgument remoteData = new PhotoProcessorService.PhotoArgument();
-			remoteData.jpegPath = "/storage/emulated/0/Download/left.jpg";
-			remoteData.orientation = PhotoOrientation.DEG_180;
-			remoteData.zoom = 1.0f;
-
-			Intent i = PhotoProcessorService.getIntent(localData, remoteData, false, CompositeImageType.SPLIT);
-			MainActivity.getInstance().startService(i);
-		}});
-		t.start();
 	}
 
 	public static void copy(File src, File dst) throws IOException
@@ -87,26 +71,21 @@ public class PhotoProcessor
 		}
 	}
 
+	//make sure this is called before setting image data as native code cleans the image data
+	public void setProcessorType(CompositeImageType type)
+	{
+		setProcessorType(type.ordinal());
+	}
+
 	public void setData(boolean isRight, byte[] data, PhotoOrientation orientation, float zoom)
 	{
 		String path = photoFiles.saveDataToCache(data);
 		setImageN(isRight, path, orientation.ordinal(), zoom);
 	}
 
-	public void setData(boolean isRight, String path, PhotoOrientation orientation, float zoom)
+	public void setData(boolean isRight, ImagePair.ImageArg arg)
 	{
-		try
-		{
-			//File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-			File dir = new File("/data/local/tmp");
-			if (isRight)
-				copy(new File(path), new File(dir.getPath() + "/right.jpg"));
-			else
-				copy(new File(path), new File(dir.getPath() + "/left.jpg"));
-		}
-		catch(IOException e){}
-
-		setImageN(isRight, path, orientation.ordinal(), zoom);
+		setImageN(isRight, arg.path, arg.orientation.ordinal(), arg.zoom);
 	}
 
 	public String processData(boolean flip)

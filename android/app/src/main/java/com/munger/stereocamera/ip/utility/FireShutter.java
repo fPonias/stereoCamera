@@ -8,8 +8,8 @@ import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
-import com.munger.stereocamera.service.PhotoProcessorExec;
-import com.munger.stereocamera.service.PhotoProcessorService;
+import com.munger.stereocamera.service.ImagePair;
+import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.PreviewWidget;
@@ -22,9 +22,10 @@ public class FireShutter
 	private boolean localShutterDone = false;
 	private boolean remoteShutterDone = false;
 	private boolean shutterFiring = false;
+	private Thread fireThread = null;
 
-	private PhotoProcessorService.PhotoArgument localData;
-	private PhotoProcessorService.PhotoArgument remoteData;
+	private ImagePair.ImageArg localData;
+	private ImagePair.ImageArg remoteData;
 	private boolean flip = false;
 
 	private CommCtrl masterComm;
@@ -35,6 +36,20 @@ public class FireShutter
 		this.fragment = fragment;
 		masterComm = MyApplication.getInstance().getCtrl();
 		photoFiles = PhotoFiles.Factory.get();
+
+		fireThread = new Thread(this::fireLocal);
+		fireThread.setPriority(Thread.MAX_PRIORITY);
+		isRunning = true;
+		fireThread.start();
+	}
+
+	public void cleanUp()
+	{
+		synchronized (lock)
+		{
+			isRunning = false;
+			lock.notify();
+		}
 	}
 
 	public interface Listener
@@ -53,56 +68,80 @@ public class FireShutter
 			if (shutterFiring)
 				return;
 
+			fireType = type;
+			wait = delay;
+
 			this.listener = listener;
 			shutterFiring = true;
+
+			lock.notify();
 		}
 
-		fireLocal(type, delay);
 		fireRemote(type);
 	}
 
-	private void fireLocal(final PreviewWidget.SHUTTER_TYPE type, final long wait)
+	private PreviewWidget.SHUTTER_TYPE fireType;
+	private long wait;
+	private boolean isRunning = false;
+
+	private void fireLocal()
+	{
+		while (isRunning)
+		{
+			synchronized (lock)
+			{
+				if (!shutterFiring)
+					try {lock.wait();} catch(InterruptedException ignored){};
+
+				if (!isRunning)
+					return;
+			}
+
+			fireLocal2(fireType, wait);
+		}
+	}
+
+	private void fireLocal2(final PreviewWidget.SHUTTER_TYPE type, final long wait)
 	{
 		synchronized (lock)
 		{
-			localData = new PhotoProcessorService.PhotoArgument();
+			localData = new ImagePair.ImageArg();
 		}
 
-		Thread t = new Thread(new Runnable() {public void run()
-		{
+		if (wait > 0)
 			try { Thread.sleep(wait); } catch(InterruptedException e){}
 
-			fragment.fireShutter(type, new PreviewWidget.ImageListener()
+		fragment.fireShutter(type, new PreviewWidget.ImageListener()
+		{
+			@Override
+			public void onImage(byte[] bytes)
 			{
-				@Override
-				public void onImage(byte[] bytes)
+				synchronized (lock)
 				{
-					synchronized (lock)
-					{
-						String localPath = photoFiles.saveDataToCache(bytes);
-						localData.jpegPath = localPath;
-					}
+					if (!isRunning)
+						return;
 
-					handleLocal();
+					String localPath = photoFiles.saveDataToCache(bytes);
+					localData.path = localPath;
 				}
 
-				@Override
-				public void onFinished()
-				{}
-			});
-
-			synchronized (lock)
-			{
-				localData.orientation = MainActivity.getInstance().getCurrentOrientation();
-				localData.zoom = fragment.getZoom();
+				handleLocal();
 			}
 
-			handleLocal();
+			@Override
+			public void onFinished()
+			{}
+		});
 
-			MyApplication.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
-		}});
-		t.setPriority(Thread.MAX_PRIORITY);
-		t.start();
+		synchronized (lock)
+		{
+			localData.orientation = MainActivity.getInstance().getCurrentOrientation();
+			localData.zoom = fragment.getZoom();
+		}
+
+		handleLocal();
+
+		MyApplication.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
 	}
 
 	private void handleLocal()
@@ -111,7 +150,7 @@ public class FireShutter
 
 		synchronized (lock)
 		{
-			if (localData.jpegPath == null || localData.orientation == null)
+			if (localData.path == null || localData.orientation == null)
 				return;
 
 			localShutterDone = true;
@@ -135,12 +174,12 @@ public class FireShutter
 			public void onReceived(Command command, Command origCommand)
 			{
 				com.munger.stereocamera.ip.command.commands.FireShutter r = (com.munger.stereocamera.ip.command.commands.FireShutter) command;
-				remoteData = new PhotoProcessorService.PhotoArgument();
+				remoteData = new ImagePair.ImageArg();
 				remoteData.orientation = r.orientation;
 				remoteData.zoom = r.zoom;
 
 				String remotePath = photoFiles.saveDataToCache(r.data);
-				remoteData.jpegPath = remotePath;
+				remoteData.path = remotePath;
 
 				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
 
@@ -148,6 +187,9 @@ public class FireShutter
 
 				synchronized (lock)
 				{
+					if (!isRunning)
+						return;
+
 					remoteShutterDone = true;
 
 					if (localShutterDone)
@@ -166,6 +208,9 @@ public class FireShutter
 
 				synchronized (lock)
 				{
+					if (!isRunning)
+						return;
+
 					remoteShutterDone = true;
 
 					if (localShutterDone)
@@ -194,7 +239,7 @@ public class FireShutter
 
 		if (!isOnLeft)
 		{
-			PhotoProcessorService.PhotoArgument tmp = remoteData;
+			ImagePair.ImageArg tmp = remoteData;
 			remoteData = localData;
 			localData = tmp;
 		}
@@ -204,43 +249,11 @@ public class FireShutter
 
 	private void done2()
 	{
-		//PhotoProcessor proc = new PhotoProcessor(this, type);
-		PhotoProcessorExec proc = new PhotoProcessorExec(MainActivity.getInstance(), PhotoProcessorExec.CompositeImageType.SPLIT);
-
 		Preferences prefs = MyApplication.getInstance().getPrefs();
-		boolean onRight = !prefs.getIsOnLeft();
-		boolean isFacing = prefs.getIsFacing();
-
-		proc.setData(onRight, localData.jpegPath, localData.orientation, localData.zoom);
-		proc.setData(!onRight, remoteData.jpegPath, remoteData.orientation, remoteData.zoom);
-
-		String out = proc.processData(isFacing);
-
-		if (out == null)
-		{
-			listener.fail();
-			return;
-		}
-
-		handleProcessedPhoto(out);
-	}
-
-	public void handleProcessedPhoto(final String path)
-	{
-		if (photoFiles == null)
-			photoFiles = PhotoFiles.Factory.get();
-
-		File fl = new File(path);
-		Uri newPath = photoFiles.saveFile(fl);
-
-		masterComm.sendCommand(new SendPhoto(newPath), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
-		{
-			if (success)
-				listener.done();
-			else
-				listener.fail();
-		}}), 30000);
-
-		MainActivity.getInstance().onNewPhoto(newPath.getPath());
+		ImagePair args = new ImagePair();
+		args.flip = prefs.getIsFacing();
+		args.type = PhotoProcessor.CompositeImageType.SPLIT;
+		args.left = localData;
+		args.right = remoteData;
 	}
 }

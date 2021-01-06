@@ -29,6 +29,7 @@ private:
     void setCachePath(const char* path);
     void calcTargetDim();
     struct Pixel* process();
+    void rotateDestination(int orientation, long dim, long* r, long* c);
 public:
     Image();
     ~Image();

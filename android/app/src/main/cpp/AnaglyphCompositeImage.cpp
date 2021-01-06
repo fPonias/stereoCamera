@@ -142,11 +142,6 @@ void AnaglyphCompositeImage::saveFinal(const char* path)
     JpegCtrl::write_JPEG_file(path, 85, &imgData);
 }
 
-AnaglyphCompositeImage::~AnaglyphCompositeImage()
-{
-
-}
-
 void AnaglyphCompositeImage::copyTmp(Image *target, Side side)
 {
     const Pixel* mask = (side == LEFT) ? &LEFT_MASK : &RIGHT_MASK;

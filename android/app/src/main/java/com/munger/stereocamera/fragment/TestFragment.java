@@ -2,20 +2,21 @@ package com.munger.stereocamera.fragment;
 
 import android.Manifest;
 import android.net.Uri;
-import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 
 import com.munger.stereocamera.MainActivity;import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.service.ImagePair;
 import com.munger.stereocamera.service.PhotoProcessor;
-import com.munger.stereocamera.service.PhotoProcessorExec;
+import com.munger.stereocamera.service.PhotoProcessorWorker;
 import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class TestFragment
 {
@@ -47,8 +48,8 @@ public class TestFragment
     {
         Thread t = new Thread(() -> {
             //String out = testCombine();
-            //String out = testLibCombine();
-            Uri out = testFileSave();
+            String out = testLibCombine();
+            //Uri out = testFileSave();
         });
         t.start();
 
@@ -84,16 +85,58 @@ public class TestFragment
             PhotoFiles files = PhotoFiles.Factory.get();
             String tmpLeft = files.copyAssetToCache("left.jpg");
             String tmpRight = files.copyAssetToCache("right.jpg");
-            PhotoProcessor proc = new PhotoProcessor(parent.getContext(), PhotoProcessor.CompositeImageType.GREEN_MAGENTA);
-            proc.setData(true, tmpRight, PhotoOrientation.DEG_0, 1.0f);
-            proc.setData(false, tmpLeft, PhotoOrientation.DEG_0, 1.0f);
 
-            procOutput = proc.processData(false);
+            ImagePair args = new ImagePair();
+            args.type = PhotoProcessor.CompositeImageType.SPLIT;
+            args.flip = false;
 
-            synchronized (lock)
+            args.left = new ImagePair.ImageArg();
+            args.left.path = tmpLeft;
+            args.left.orientation = PhotoOrientation.DEG_0;
+            args.left.zoom = 1.25f;
+
+            args.right = new ImagePair.ImageArg();
+            args.right.path = tmpRight;
+            args.right.orientation = PhotoOrientation.DEG_0;
+            args.right.zoom = 1.0f;
+
+            PhotoProcessorWorker.RunListener workerListener = new PhotoProcessorWorker.RunListener(parent.getViewLifecycleOwner())
             {
-                lock.notify();
-            }
+                @Override
+                public void onResult(Uri uri) {
+                    img.setImageURI(uri);
+                }
+            };
+
+            UUID id = MainActivity.getInstance().photoProcessorWorker.run(args);
+
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id, workerListener);
+            });
+
+
+            args.left.orientation = PhotoOrientation.DEG_270;
+            args.right.orientation = PhotoOrientation.DEG_270;
+            UUID id2 = MainActivity.getInstance().photoProcessorWorker.run(args);
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id2, workerListener);
+            });
+
+
+            args.left.orientation = PhotoOrientation.DEG_180;
+            args.right.orientation = PhotoOrientation.DEG_180;
+            UUID id3 = MainActivity.getInstance().photoProcessorWorker.run(args);
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id3, workerListener);
+            });
+
+
+            args.left.orientation = PhotoOrientation.DEG_90;
+            args.right.orientation = PhotoOrientation.DEG_90;
+            UUID id4 = MainActivity.getInstance().photoProcessorWorker.run(args);
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id4, workerListener);
+            });
         }});
         t.start();
 
@@ -108,7 +151,7 @@ public class TestFragment
 
     private String testCombine()
     {
-        PhotoProcessorExec proc = new PhotoProcessorExec(MainActivity.getInstance(), PhotoProcessorExec.CompositeImageType.GREEN_MAGENTA);
+        /*PhotoProcessorExec proc = new PhotoProcessorExec(MainActivity.getInstance());
         boolean onRight = true;
         boolean isFacing = false;
         PhotoFiles files = PhotoFiles.Factory.get();
@@ -129,6 +172,7 @@ public class TestFragment
         (new File(tmpLeft)).delete();
         (new File(tmpRight)).delete();
 
-        return out;
+        return out;*/
+        return null;
     }
 }

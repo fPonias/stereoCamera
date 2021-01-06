@@ -141,7 +141,9 @@ public abstract class PhotoFiles
 			}
 
 			outputPath = file.getPath();
-		} catch (IOException ignored) {
+		} catch (IOException e) {
+			int i = 0;
+			int j = i;
 		}
 
 		return outputPath;

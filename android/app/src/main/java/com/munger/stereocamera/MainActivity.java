@@ -34,8 +34,7 @@ import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.commands.Disconnect;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
-import com.munger.stereocamera.service.PhotoProcessorService;
-import com.munger.stereocamera.service.PhotoProcessorServiceReceiver;
+import com.munger.stereocamera.service.PhotoProcessorWorker;
 import com.munger.stereocamera.utility.InteractiveReceiver;
 import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
@@ -56,8 +55,8 @@ public class MainActivity extends AppCompatActivity
 	private Handler handler;
 	//private FrameLayout frame;
 	private ConnectFragment connectFragment;
-	private PhotoProcessorServiceReceiver photoReceiver;
 	private InteractiveReceiver interactiveReceiver;
+	public PhotoProcessorWorker photoProcessorWorker;
 
 	public boolean getAdsEnabled() {return MyApplication.getInstance().getAdsEnabled();}
 
@@ -125,15 +124,6 @@ public class MainActivity extends AppCompatActivity
 
 		handler = new Handler(Looper.getMainLooper());
 
-		photoReceiver = new PhotoProcessorServiceReceiver(new PhotoProcessorServiceReceiver.Listener()
-		{
-			@Override
-			public void onPhoto(String path)
-			{
-				handleProcessedPhoto(path);
-			}
-		});
-
 		interactiveReceiver = new InteractiveReceiver();
 		interactiveReceiver.addListener(new InteractiveReceiver.Listener()
 		{
@@ -147,6 +137,8 @@ public class MainActivity extends AppCompatActivity
 				}
 			}
 		});
+
+		photoProcessorWorker = new PhotoProcessorWorker(this);
 	}
 
 	private boolean isRunning = false;
@@ -186,15 +178,6 @@ public class MainActivity extends AppCompatActivity
 		MyApplication.getInstance().getPrefs().setup();
 
 		isRunning = true;
-
-		IntentFilter filter = new IntentFilter(PhotoProcessorService.BROADCAST_PROCESSED_ACTION);
-		//registerReceiver(photoReceiver, filter, "com.munger.stereocamera.NOTIFICATION", new Handler(Looper.getMainLooper()));
-
-		filter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-		//registerReceiver(interactiveReceiver, filter);
-
-		filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-		//registerReceiver(interactiveReceiver, filter);
 
 		reconnect();
 	}
@@ -373,30 +356,11 @@ public class MainActivity extends AppCompatActivity
 
 	private PhotoFiles photoFiles = null;
 
-	public void handleProcessedPhoto(final String path)
-	{
-		if (photoFiles == null)
-			photoFiles = PhotoFiles.Factory.get();
-
-		File fl = new File(path);
-		Uri newPath = photoFiles.saveFile(fl);
-
-		//Toast.makeText(MainActivity.this, R.string.new_photo_available, Toast.LENGTH_LONG).show();
-		CommCtrl ctrl = MyApplication.getInstance().getCtrl();
-		if (ctrl != null && ctrl.isMaster())
-		{
-			ctrl.sendCommand(new SendPhoto(newPath), null);
-		}
-
-		onNewPhoto(newPath.getPath());
-	}
-
-
 	public static class Listener
 	{
 		public void onScreenChanged(boolean isOn) {}
 		public void onBluetoothChanged(boolean isConnected, BluetoothDevice device) {}
-		public void onNewPhoto(String newPath) {}
+		public void onNewPhoto(Uri newPath) {}
 	}
 
 	private ArrayList<Listener> listeners = new ArrayList<>();
@@ -418,7 +382,7 @@ public class MainActivity extends AppCompatActivity
 		}
 	}
 
-	public void onNewPhoto(String path)
+	public void onNewPhoto(Uri path)
 	{
 		for (Listener listener : listeners)
 			listener.onNewPhoto(path);
