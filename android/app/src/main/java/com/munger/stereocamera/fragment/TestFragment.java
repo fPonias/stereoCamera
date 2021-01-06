@@ -87,13 +87,13 @@ public class TestFragment
             String tmpRight = files.copyAssetToCache("right.jpg");
 
             ImagePair args = new ImagePair();
-            args.type = PhotoProcessor.CompositeImageType.SPLIT;
+            args.type = PhotoProcessor.CompositeImageType.RED_CYAN;
             args.flip = false;
 
             args.left = new ImagePair.ImageArg();
             args.left.path = tmpLeft;
             args.left.orientation = PhotoOrientation.DEG_0;
-            args.left.zoom = 1.25f;
+            args.left.zoom = 1.0f;
 
             args.right = new ImagePair.ImageArg();
             args.right.path = tmpRight;
@@ -112,30 +112,6 @@ public class TestFragment
 
             MainActivity.getInstance().runOnUiThread(() -> {
                 MainActivity.getInstance().photoProcessorWorker.listen(id, workerListener);
-            });
-
-
-            args.left.orientation = PhotoOrientation.DEG_270;
-            args.right.orientation = PhotoOrientation.DEG_270;
-            UUID id2 = MainActivity.getInstance().photoProcessorWorker.run(args);
-            MainActivity.getInstance().runOnUiThread(() -> {
-                MainActivity.getInstance().photoProcessorWorker.listen(id2, workerListener);
-            });
-
-
-            args.left.orientation = PhotoOrientation.DEG_180;
-            args.right.orientation = PhotoOrientation.DEG_180;
-            UUID id3 = MainActivity.getInstance().photoProcessorWorker.run(args);
-            MainActivity.getInstance().runOnUiThread(() -> {
-                MainActivity.getInstance().photoProcessorWorker.listen(id3, workerListener);
-            });
-
-
-            args.left.orientation = PhotoOrientation.DEG_90;
-            args.right.orientation = PhotoOrientation.DEG_90;
-            UUID id4 = MainActivity.getInstance().photoProcessorWorker.run(args);
-            MainActivity.getInstance().runOnUiThread(() -> {
-                MainActivity.getInstance().photoProcessorWorker.listen(id4, workerListener);
             });
         }});
         t.start();

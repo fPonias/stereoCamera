@@ -55,16 +55,17 @@ add_library( jpeg-lib
 
 add_library( native-lib
 
-             SHARED
+        SHARED
 
-             src/main/cpp/util.cpp
-             src/main/cpp/jpegCtrl.cpp
-             src/main/cpp/Image.cpp
-             src/main/cpp/SplitCompositeImage.cpp
-             src/main/cpp/AnaglyphCompositeImage.cpp
-             src/main/cpp/RedCyanCompositeImage.cpp
-             src/main/cpp/GreenMagentaCompositeImage.cpp
-             src/main/cpp/native-lib.cpp
+        src/main/cpp/util.cpp
+        src/main/cpp/jpegCtrl.cpp
+        src/main/cpp/Image.cpp
+        src/main/cpp/SplitCompositeImage.cpp
+        src/main/cpp/AnaglyphCompositeImage.cpp
+        src/main/cpp/AnaglyphCompositeImageStream.cpp
+        src/main/cpp/RedCyanCompositeImageStream.cpp
+        src/main/cpp/GreenMagentaCompositeImageStream.cpp
+        src/main/cpp/native-lib.cpp
         src/main/cpp/SplitCompositeImageStream.cpp
  )
 
@@ -141,8 +142,9 @@ add_executable(stereoCameraImageProcessor
         src/main/cpp/SplitCompositeImage.cpp
         src/main/cpp/SplitCompositeImageStream.cpp
         src/main/cpp/AnaglyphCompositeImage.cpp
-        src/main/cpp/RedCyanCompositeImage.cpp
-        src/main/cpp/GreenMagentaCompositeImage.cpp
+        src/main/cpp/AnaglyphCompositeImageStream.cpp
+        src/main/cpp/RedCyanCompositeImageStream.cpp
+        src/main/cpp/GreenMagentaCompositeImageStream.cpp
         src/main/cpp/main.cpp
         )
 

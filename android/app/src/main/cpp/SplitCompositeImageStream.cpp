@@ -3,6 +3,7 @@
 //
 
 #include "SplitCompositeImageStream.h"
+#include "SideData.h"
 #include <stdio.h>
 #include <memory.h>
 #include <math.h>
