@@ -88,20 +88,22 @@ public class PhotoProcessor
 		setImageN(isRight, arg.path, arg.orientation.ordinal(), arg.zoom);
 	}
 
-	public String processData(boolean flip)
+	public void preProcess(boolean flip)
+	{
+		preProcessN(flip);
+	}
+
+	public String processData()
 	{
 		File out = photoFiles.getRandomFile();
-		processN(true, flip, out.getPath());
-
-		if (!out.exists() || out.length() == 0)
-		{
-			cleanUpN();
-			return null;
-		}
-
-		cleanUpN();
+		processN(true, out.getPath());
 
 		return out.getPath();
+	}
+
+	public void clean()
+	{
+		cleanUpN();
 	}
 
 	/**
@@ -134,12 +136,17 @@ public class PhotoProcessor
 	private native void setImageN(boolean isRight, String path, int orientation, float zoom);
 
 	/**
+	 * crop and rotate new images set with setImageN
+	 * @param flip was the image taken with the rear or front facing camera?
+	 */
+	private native void preProcessN(boolean flip);
+
+	/**
 	 * process all data and combine to a composite image without crashing the phone due to memory errors
 	 * @param growToMaxDim true the smaller resolution side will be grown to match, otherwise shrink it
-	 * @param flip was the image taken with the rear or front facing camera?
 	 * @param targetPath the path to save the final image to
 	 */
-	private native void processN(boolean growToMaxDim, boolean flip, String targetPath);
+	private native void processN(boolean growToMaxDim, String targetPath);
 
 	/**
 	 * free any leftover malloced data or java references

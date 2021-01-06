@@ -14,10 +14,10 @@ SplitCompositeImageStream::SplitCompositeImageStream()
 {
 }
 
-void SplitCompositeImageStream::combineStream(bool growToMaxDim, const char* path)
+void SplitCompositeImageStream::combineImages(bool growToMaxDim, const char* path)
 {
-    leftData = new SideData(left.getTargetDim(), fopen(left.getProcPath(), "rb"));
-    rightData = new SideData(right.getTargetDim(), fopen(right.getProcPath(), "rb"));
+    leftData = new SideData(left->getTargetDim(), fopen(left->getProcPath(), "rb"));
+    rightData = new SideData(right->getTargetDim(), fopen(right->getProcPath(), "rb"));
 
     if (growToMaxDim)
         targetDim = (leftData->dim > rightData->dim) ? leftData->dim : rightData->dim;
@@ -106,27 +106,4 @@ void SplitCompositeImageStream::scaledCopyRow(size_t dstRow, SideData* sideData,
 
         memcpy(data_ptr, buf_ptr, sideData->jsampSz);
     }
-}
-
-void SplitCompositeImageStream::combineImages(bool growToMaxDim, bool flip, const char* path)
-{
-    if (flip)
-    {
-        Image tmp = left;
-        left = right;
-        right = tmp;
-
-        int lorient = left.getOrientation();
-        lorient = (lorient + 2) % 4;
-        left.setOrientation(lorient);
-
-        int rorient = right.getOrientation();
-        rorient = (rorient + 2) % 4;
-        right.setOrientation(rorient);
-    }
-
-    left.processJpeg();
-    right.processJpeg();
-
-    combineStream(growToMaxDim, path);
 }

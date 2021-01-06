@@ -80,8 +80,8 @@ public class TestFragment
         final Object lock = new Object();
         procOutput = null;
 
-        Thread t = new Thread(new Runnable() { public void run()
-        {
+        //Thread t = new Thread(new Runnable() { public void run()
+        //{
             PhotoFiles files = PhotoFiles.Factory.get();
             String tmpLeft = files.copyAssetToCache("left.jpg");
             String tmpRight = files.copyAssetToCache("right.jpg");
@@ -108,13 +108,37 @@ public class TestFragment
                 }
             };
 
-            UUID id = MainActivity.getInstance().photoProcessorWorker.run(args);
+            UUID id = MainActivity.getInstance().photoProcessorWorker.run(args, false);
 
             MainActivity.getInstance().runOnUiThread(() -> {
                 MainActivity.getInstance().photoProcessorWorker.listen(id, workerListener);
             });
-        }});
-        t.start();
+
+
+            args.type = PhotoProcessor.CompositeImageType.GREEN_MAGENTA;
+            UUID id2 = MainActivity.getInstance().photoProcessorWorker.run(args, false);
+
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id2, workerListener);
+            });
+
+
+            args.type = PhotoProcessor.CompositeImageType.RED_CYAN;
+            UUID id3 = MainActivity.getInstance().photoProcessorWorker.run(args, true);
+
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id3, workerListener);
+            });
+
+
+            args.type = PhotoProcessor.CompositeImageType.SPLIT;
+            UUID id4 = MainActivity.getInstance().photoProcessorWorker.run(args);
+
+            MainActivity.getInstance().runOnUiThread(() -> {
+                MainActivity.getInstance().photoProcessorWorker.listen(id4, workerListener);
+            });
+        //}});
+        //t.start();
 
         synchronized (lock)
         {

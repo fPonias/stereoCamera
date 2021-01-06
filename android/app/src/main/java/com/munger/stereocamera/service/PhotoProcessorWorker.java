@@ -8,16 +8,28 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.work.Data;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkContinuation;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
+import androidx.work.WorkQuery;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
+import java.sql.DatabaseMetaData;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PhotoProcessorWorker
 {
@@ -44,10 +56,15 @@ public class PhotoProcessorWorker
             proc.setProcessorType(args.type);
             proc.setData(true, args.right);
             proc.setData(false, args.left);
-            String path = proc.processData(args.flip);
+            proc.preProcess(args.flip);
+            String path = proc.processData();
+
+            boolean clean = data.getBoolean("CLEAN", true);
+            if (clean)
+                proc.clean();
 
             if (path == null)
-                return Result.failure();
+                return Result.success(); //don't ever return a failure.
 
             Uri outUri = files.saveFile(new File(path));
             Data resData = new Data.Builder().putString("URI", outUri.toString()).build();
@@ -56,11 +73,14 @@ public class PhotoProcessorWorker
             MainActivity.getInstance().onNewPhoto(outUri);
             return ret;
         }
+
+
     }
 
     public PhotoProcessorWorker(Context context)
     {
         workManager = WorkManager.getInstance(context);
+        workManager.pruneWork();  //prune residual processes that might mess things up.
     }
 
     public static abstract class RunListener
@@ -76,11 +96,23 @@ public class PhotoProcessorWorker
 
     public UUID run(ImagePair args)
     {
+        return run(args, true);
+    }
+
+    public UUID run(ImagePair args, boolean cleanPreProcessor)
+    {
+        Data.Builder builder = new Data.Builder();
+        args.toData(builder);
+        builder.putBoolean("CLEAN", cleanPreProcessor);
+
         OneTimeWorkRequest req = new OneTimeWorkRequest.Builder(PhotoWorker.class)
-                .setInputData(args.toData())
+                .setInputData(builder.build())
+                .addTag("photoProc")
                 .build();
 
-        workManager.beginUniqueWork("photoProc", ExistingWorkPolicy.APPEND, req).enqueue();
+        //workManager.enqueue(req);
+        WorkContinuation queue = workManager.beginUniqueWork("photoProc", ExistingWorkPolicy.APPEND, req);
+        queue.enqueue();
 
         return req.getId();
     }

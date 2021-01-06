@@ -25,12 +25,10 @@ protected:
 
     void straightCopyRow(size_t row, SideData* data, const Pixel* mask);
     void scaledCopyRow(size_t row, SideData* data, const Pixel* mask);
-    void combineStream(bool growToMaxDim, const char* path);
 public:
     AnaglyphCompositeImageStream() { }
     virtual CompositeImageType getType() = 0;
-
-    void combineImages(bool growToMaxDim, bool flip, const char* path);
+    void combineImages(bool growToMaxDim, const char* path);
 };
 
 #endif //STEREOCAMERA_ANALGLYPHCOMPOSITEIMAGE_H

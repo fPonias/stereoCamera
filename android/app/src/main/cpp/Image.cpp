@@ -79,8 +79,13 @@ void Image::calcTargetDim()
 
 struct Pixel* Image::process()
 {
+    if (processed)
+        return data;
+
+    processed = true;
+
     size_t sz = (size_t) targetDim * (size_t) targetDim;
-    Pixel * data = new Pixel[sz];
+    data = new Pixel[sz];
     
     long unzoomedTarget = (long) (targetDim * zoom);
     long maxDim = (height > width) ? height : width;
@@ -187,11 +192,13 @@ void Image::processJpeg()
 Image::Image()
 {
     iniited = false;
+    processed = false;
 }
 
 void Image::init(int orientation, float zoom, const char* jpegSrc, const char* cachePath)
 {
     iniited = true;
+    processed = false;
     
     this->orientation = orientation;
     this->zoom = fmax(1.0f, zoom); //no zooms outside the image bounds

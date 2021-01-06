@@ -60,8 +60,7 @@ add_library( native-lib
         src/main/cpp/util.cpp
         src/main/cpp/jpegCtrl.cpp
         src/main/cpp/Image.cpp
-        src/main/cpp/SplitCompositeImage.cpp
-        src/main/cpp/AnaglyphCompositeImage.cpp
+        src/main/cpp/PreProcessor.cpp
         src/main/cpp/AnaglyphCompositeImageStream.cpp
         src/main/cpp/RedCyanCompositeImageStream.cpp
         src/main/cpp/GreenMagentaCompositeImageStream.cpp
@@ -87,71 +86,4 @@ target_link_libraries( # Specifies the target library.
                        # included in the NDK.
                        ${log-lib}
         libc++_static.a )
-
-add_executable(stereoCameraImageProcessor
-
-        src/main/cpp/jpeg-9c/jaricom.c
-        src/main/cpp/jpeg-9c/jcapimin.c
-        src/main/cpp/jpeg-9c/jcapistd.c
-        src/main/cpp/jpeg-9c/jcarith.c
-        src/main/cpp/jpeg-9c/jccoefct.c
-        src/main/cpp/jpeg-9c/jccolor.c
-        src/main/cpp/jpeg-9c/jcdctmgr.c
-        src/main/cpp/jpeg-9c/jchuff.c
-        src/main/cpp/jpeg-9c/jcinit.c
-        src/main/cpp/jpeg-9c/jcmainct.c
-        src/main/cpp/jpeg-9c/jcmarker.c
-        src/main/cpp/jpeg-9c/jcmaster.c
-        src/main/cpp/jpeg-9c/jcomapi.c
-        src/main/cpp/jpeg-9c/jcparam.c
-        src/main/cpp/jpeg-9c/jcprepct.c
-        src/main/cpp/jpeg-9c/jcsample.c
-        src/main/cpp/jpeg-9c/jctrans.c
-        src/main/cpp/jpeg-9c/jdapimin.c
-        src/main/cpp/jpeg-9c/jdapistd.c
-        src/main/cpp/jpeg-9c/jdarith.c
-        src/main/cpp/jpeg-9c/jdatadst.c
-        src/main/cpp/jpeg-9c/jdatasrc.c
-        src/main/cpp/jpeg-9c/jdcoefct.c
-        src/main/cpp/jpeg-9c/jdcolor.c
-        src/main/cpp/jpeg-9c/jddctmgr.c
-        src/main/cpp/jpeg-9c/jdhuff.c
-        src/main/cpp/jpeg-9c/jdinput.c
-        src/main/cpp/jpeg-9c/jdmainct.c
-        src/main/cpp/jpeg-9c/jdmarker.c
-        src/main/cpp/jpeg-9c/jdmaster.c
-        src/main/cpp/jpeg-9c/jdmerge.c
-        src/main/cpp/jpeg-9c/jdpostct.c
-        src/main/cpp/jpeg-9c/jdsample.c
-        src/main/cpp/jpeg-9c/jdtrans.c
-        src/main/cpp/jpeg-9c/jerror.c
-        src/main/cpp/jpeg-9c/jfdctflt.c
-        src/main/cpp/jpeg-9c/jfdctfst.c
-        src/main/cpp/jpeg-9c/jfdctint.c
-        src/main/cpp/jpeg-9c/jidctflt.c
-        src/main/cpp/jpeg-9c/jidctfst.c
-        src/main/cpp/jpeg-9c/jidctint.c
-        src/main/cpp/jpeg-9c/jquant1.c
-        src/main/cpp/jpeg-9c/jquant2.c
-        src/main/cpp/jpeg-9c/jutils.c
-        src/main/cpp/jpeg-9c/jmemmgr.c
-        src/main/cpp/jpeg-9c/jmemansi.c
-        src/main/cpp/util.cpp
-        src/main/cpp/jpegCtrl.cpp
-        src/main/cpp/Image.cpp
-        src/main/cpp/SplitCompositeImage.cpp
-        src/main/cpp/SplitCompositeImageStream.cpp
-        src/main/cpp/AnaglyphCompositeImage.cpp
-        src/main/cpp/AnaglyphCompositeImageStream.cpp
-        src/main/cpp/RedCyanCompositeImageStream.cpp
-        src/main/cpp/GreenMagentaCompositeImageStream.cpp
-        src/main/cpp/main.cpp
-        )
-
-target_link_libraries(stereoCameraImageProcessor
-        libc++_static.a)
-
-#add_custom_command(TARGET stereoCameraImageProcessor POST_BUILD
-#        COMMAND "${CMAKE_COMMAND}" -E copy $<TARGET_FILE:stereoCameraImageProcessor> D:\\programming\\stereoCamera\\android\\stereoCameraImageProcessor
-#)
 

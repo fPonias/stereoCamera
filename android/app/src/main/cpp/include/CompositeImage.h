@@ -6,12 +6,7 @@
 #define STEREOCAMERA_COMPOSITEIMAGE_H
 
 #include "jpegCtrl.hpp"
-
-enum Side
-{
-    LEFT,
-    RIGHT
-};
+#include "PreProcessor.h"
 
 enum CompositeImageType
 {
@@ -23,11 +18,18 @@ enum CompositeImageType
 class CompositeImage
 {
 protected:
-    Image left;
-    Image right;
+    Image* left;
+    Image* right;
 public:
-    Image* getImage(Side side) { return (side == LEFT) ? &left : &right; }
-    virtual void combineImages(bool growToMaxDim, bool flip, const char* path) = 0;
+    virtual ~CompositeImage() { };
+
+    void setImages(PreProcessor* preProcessor)
+    {
+        left = preProcessor->getImage(LEFT);
+        right = preProcessor->getImage(RIGHT);
+    }
+
+    virtual void combineImages(bool growToMaxDim, const char* path) = 0;
     virtual CompositeImageType getType() = 0;
 };
 

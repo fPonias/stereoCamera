@@ -92,12 +92,16 @@ public class ImagePair
     public Data toData()
     {
         Data.Builder builder = new Data.Builder();
+        toData(builder);
+        return builder.build();
+    }
+
+    public void toData(Data.Builder builder)
+    {
         left.toData(builder, "LEFT_");
         right.toData(builder, "RIGHT_");
         builder.putBoolean("FLIP", flip);
         builder.putInt("TYPE", type.ordinal());
-
-        return builder.build();
     }
 
     public ImagePair()

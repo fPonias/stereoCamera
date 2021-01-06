@@ -18,10 +18,9 @@ private:
 
     void straightCopyRow(size_t row, SideData* data, size_t offset);
     void scaledCopyRow(size_t row, SideData* data, size_t offset);
-    void combineStream(bool growToMaxDim, const char* path);
 public:
     SplitCompositeImageStream();
-    void combineImages(bool growToMaxDim, bool flip, const char* path);
+    void combineImages(bool growToMaxDim, const char* path);
     CompositeImageType getType() { return SPLIT; }
 };
 

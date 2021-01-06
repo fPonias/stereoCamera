@@ -31,13 +31,16 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setPr
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setImageN
   (JNIEnv *, jobject, jboolean, jstring, jint, jfloat);
 
+JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_preProcessN
+        (JNIEnv *, jobject, jboolean);
+
 /*
  * Class:     com_munger_stereocamera_service_PhotoProcessor
  * Method:    processN
  * Signature: (ZZLjava/lang/String;)V
  */
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_processN
-  (JNIEnv *, jobject, jboolean, jboolean, jstring);
+  (JNIEnv *, jobject, jboolean, jstring);
 
 /*
  * Class:     com_munger_stereocamera_service_PhotoProcessor

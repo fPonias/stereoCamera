@@ -24,6 +24,9 @@ private:
     long targetDim;
 
     bool iniited;
+    bool processed;
+
+    struct Pixel* data;
 
     void setJpegPath(const char* path);
     void setCachePath(const char* path);

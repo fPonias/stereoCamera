@@ -6,13 +6,14 @@
 #include "jpegCtrl.hpp"
 #include "com_munger_stereocamera_service_PhotoProcessor.h"
 #include "util.h"
-#include "SplitCompositeImage.h"
 #include "SplitCompositeImageStream.h"
 #include "AnaglyphCompositeImageStream.h"
 #include "GreenMagentaCompositeImageStream.h"
 #include "RedCyanCompositeImageStream.h"
 #include "Image.h"
+#include "PreProcessor.h"
 
+PreProcessor* preProcessor;
 CompositeImage* image;
 const char* cachePath;
 
@@ -32,19 +33,20 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_initN
 {
     srand(time(NULL));
     cachePath = getStringFromNative(env, jcachePath);
+    preProcessor = new PreProcessor();
     image = 0;
 }
 
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setProcessorType
         (JNIEnv * env, jobject jthis, jint jtype)
 {
-    if (image != 0)
+    if (image != nullptr)
     {
         delete image;
         image = 0;
     }
 
-    CompositeImageType type = (CompositeImageType) jtype;
+    auto type = (CompositeImageType) jtype;
     switch (type)
     {
         case SPLIT:
@@ -70,9 +72,16 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setIm
         (JNIEnv * env, jobject jthis, jboolean isRight, jstring jpath, jint orientation, jfloat zoom)
 {
     Side side = (isRight) ? RIGHT : LEFT;
-    Image* target = image->getImage(side);
+    Image* target = preProcessor->getImage(side);
     const char* jpegpath = getStringFromNative(env, jpath);
     target->init(orientation, zoom, jpegpath, cachePath);
+}
+
+
+JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_preProcessN
+        (JNIEnv *env, jobject jthis, jboolean flip)
+{
+    preProcessor->process(flip);
 }
 
 /*
@@ -81,10 +90,11 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_setIm
  * Signature: (ZZ)V
  */
 JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_processN
-        (JNIEnv * env, jobject jthis, jboolean growToMaxDim, jboolean flip, jstring jtargetPath)
+        (JNIEnv * env, jobject jthis, jboolean growToMaxDim, jstring jtargetPath)
 {
+    image->setImages(preProcessor);
     const char* outpath = getStringFromNative(env, jtargetPath);
-    image->combineImages(growToMaxDim, flip, outpath);
+    image->combineImages(growToMaxDim, outpath);
     delete[] outpath;
 }
 
@@ -97,5 +107,6 @@ JNIEXPORT void JNICALL Java_com_munger_stereocamera_service_PhotoProcessor_clean
         (JNIEnv * env, jobject jthis)
 {
     delete image;
+    delete preProcessor;
     delete[] cachePath;
 }
