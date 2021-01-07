@@ -3,9 +3,17 @@ package com.munger.stereocamera.utility;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.munger.stereocamera.MainActivity;
+import androidx.preference.PreferenceManager;
 
+import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.service.PhotoProcessor;
+import com.munger.stereocamera.widget.PreviewOverlayWidget;
+import com.munger.stereocamera.widget.PreviewWidget;
+
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -24,6 +32,9 @@ public class Preferences
 	private static final String FACING_KEY = "facing";
 	private static final String FIRST_TIME = "first_time";
 	private static final String ID = "id";
+	private static final String PROCESSOR_TYPES = "pref_formats";
+	private static final String OVERLAY = "pref_overlay";
+	private static final String RESOLUTION = "pref_capture";
 
 	private enum CameraKeysEnum
 	{
@@ -59,6 +70,9 @@ public class Preferences
 	private boolean isFacing = true;
 	private boolean firstTime = true;
 	private HashMap<String, cameraPrefs> cameras = new HashMap<>();
+	private Set<PhotoProcessor.CompositeImageType> processorTypes;
+	private PreviewOverlayWidget.Type overlay;
+	private PreviewWidget.SHUTTER_TYPE resolution;
 	private String id = null;
 
 	public Preferences()
@@ -72,9 +86,16 @@ public class Preferences
 		readPreferences();
 	}
 
+	public void updateSettingsPrefs()
+	{
+		updateProcessorTypes();
+		updateOverlay();
+		updateResolution();
+	}
+
 	private void readPreferences()
 	{
-		preferences = MainActivity.getInstance().getPreferences(Context.MODE_PRIVATE);
+		preferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
 
 		if (preferences.contains(ROLE_KEY))
 		{
@@ -95,6 +116,7 @@ public class Preferences
 		{
 			client = null;
 		}
+
 
 		for (String key : cameras.keySet())
 		{
@@ -148,6 +170,8 @@ public class Preferences
 			id = uuid.toString();
 			preferences.edit().putString(ID, id).apply();
 		}
+
+		updateSettingsPrefs();
 	}
 
 	public Roles getRole()
@@ -160,6 +184,35 @@ public class Preferences
 		this.role = role;
 
 		preferences.edit().putInt(ROLE_KEY, role.ordinal()).apply();
+	}
+
+	private void updateProcessorTypes()
+	{
+		Set<String> def =  Collections.singleton("split");
+		if (!preferences.contains(PROCESSOR_TYPES))
+			preferences.edit().putStringSet(PROCESSOR_TYPES, def).apply();
+
+		Set<String> vals = preferences.getStringSet(PROCESSOR_TYPES, def);
+
+		processorTypes = new HashSet<>();
+		for (String val : vals)
+			processorTypes.add(PhotoProcessor.getType(val));
+	}
+
+	private void updateOverlay()
+	{
+		String val = preferences.getString(OVERLAY, "0");
+		int valIdx = Integer.parseInt(val);
+		overlay = PreviewOverlayWidget.Type.values()[valIdx];
+	}
+
+	private void updateResolution()
+	{
+		String val = preferences.getString(RESOLUTION, "preview");
+		if (val.equals("preview"))
+			resolution = PreviewWidget.SHUTTER_TYPE.PREVIEW;
+		else
+			resolution = PreviewWidget.SHUTTER_TYPE.HI_RES;
 	}
 
 	public String getClient()
@@ -258,5 +311,20 @@ public class Preferences
 	public String getId()
 	{
 		return id;
+	}
+
+	public Set<PhotoProcessor.CompositeImageType> getProcessorTypes()
+	{
+		return processorTypes;
+	}
+
+	public PreviewOverlayWidget.Type getOverlay()
+	{
+		return overlay;
+	}
+
+	public PreviewWidget.SHUTTER_TYPE getResolution()
+	{
+		return resolution;
 	}
 }

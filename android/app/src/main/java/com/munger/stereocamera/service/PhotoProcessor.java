@@ -120,6 +120,16 @@ public class PhotoProcessor
 		RED_CYAN
 	};
 
+	public static CompositeImageType getType(String val)
+	{
+		if (val.equals("split") )
+			return CompositeImageType.SPLIT;
+		else if (val.equals("red blue"))
+			return CompositeImageType.RED_CYAN;
+		else
+			return CompositeImageType.GREEN_MAGENTA;
+	}
+
 	/**
 	 * set the type of image to produce
 	 * @param type ordinal value of CompositeImageType

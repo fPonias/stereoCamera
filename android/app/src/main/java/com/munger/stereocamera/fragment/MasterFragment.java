@@ -202,13 +202,13 @@ public class MasterFragment extends PreviewFragment
 
 		prefsItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
 		{
-			//((MainActivity) getActivity()).openSettings();
+			((MainActivity) getActivity()).openSettings();
 			return true;
 		}});
 
 		helpItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
 		{
-			//((MainActivity) getActivity()).openHelp();
+			((MainActivity) getActivity()).openHelp();
 			return false;
 		}});
 	}
@@ -554,7 +554,7 @@ public class MasterFragment extends PreviewFragment
 				break;
 		}
 
-		new FireShutter(MasterFragment.this).execute(shutterDelay, captureType, new FireShutter.Listener()
+		fireShutter.execute(shutterDelay, captureType, new FireShutter.Listener()
 		{
 			@Override
 			public void onProcessing()

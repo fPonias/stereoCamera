@@ -67,6 +67,41 @@ public class PhotoFilesQ extends PhotoFiles
         return ret;
     }
 
+    public PhotoFile getFile(int id)
+    {
+        Cursor cursor = resolver.query(collection,
+                new String[]{MediaStore.Images.Media._ID, MediaStore.Images.Media.DATE_ADDED, MediaStore.Images.Media.DISPLAY_NAME},
+                MediaStore.Images.Media._ID + " = ?",
+                new String[] {Integer.toString(id)},
+                ""
+        );
+
+        if (cursor.getCount() == 0)
+            return null;
+
+        cursor.moveToFirst();
+        PhotoFile ret = cursorToData(cursor);
+        cursor.close();
+        return ret;
+    }
+
+    public long getSize(int id)
+    {
+        Cursor cursor = resolver.query(collection,
+                new String[] {MediaStore.Images.Media.SIZE},
+                MediaStore.Images.Media._ID + " = ?",
+                new String[] {Integer.toString(id)},
+                "");
+
+        if (cursor.getCount() == 0)
+            return -1;
+
+        cursor.moveToFirst();
+        long ret = cursor.getLong(0);
+        cursor.close();
+        return ret;
+    }
+
     private PhotoFile cursorToData(Cursor cursor)
     {
         int id = cursor.getInt(0);
@@ -123,12 +158,14 @@ public class PhotoFilesQ extends PhotoFiles
         return Environment.DIRECTORY_PICTURES + suffix;
     }
 
-    protected Uri insertNewFile()
+    protected SaveResult insertNewFile()
     {
+        SaveResult ret = new SaveResult();
         int max = getNewestId();
         max++;
 
         String localName = max + ".jpg";
+        ret.id = max;
 
         ContentValues details = new ContentValues();
         details.put(MediaStore.Images.Media.DISPLAY_NAME, localName);
@@ -137,18 +174,19 @@ public class PhotoFilesQ extends PhotoFiles
         details.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
         details.put(MediaStore.Images.Media.RELATIVE_PATH, getRelativePath());
 
-        return resolver.insert(collection, details);
+        ret.uri = resolver.insert(collection, details);
+        return ret;
     }
 
-    public Uri saveFile(File source)
+    public SaveResult saveFile(File source)
     {
-        Uri newFile = insertNewFile();
+        SaveResult ret = insertNewFile();
         int total = 0;
         int read = 1;
 
         try (
                 FileInputStream fis = new FileInputStream(source);
-                OutputStream fos = resolver.openOutputStream(newFile, "w")
+                OutputStream fos = resolver.openOutputStream(ret.uri, "w")
         ) {
             byte[] buffer = new byte[4096];
             long sz = source.length();
@@ -166,6 +204,6 @@ public class PhotoFilesQ extends PhotoFiles
         }
         catch (IOException ignored) {}
 
-        return newFile;
+        return ret;
     }
 }

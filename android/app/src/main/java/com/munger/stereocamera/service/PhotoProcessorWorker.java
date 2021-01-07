@@ -66,11 +66,15 @@ public class PhotoProcessorWorker
             if (path == null)
                 return Result.success(); //don't ever return a failure.
 
-            Uri outUri = files.saveFile(new File(path));
-            Data resData = new Data.Builder().putString("URI", outUri.toString()).build();
+            PhotoFiles.SaveResult result = files.saveFile(new File(path));
+            Data resData = new Data.Builder()
+                    .putString("URI", result.uri.toString())
+                    .putInt("ID", result.id)
+                    .build();
+
 
             Result ret = Result.success(resData);
-            MainActivity.getInstance().onNewPhoto(outUri);
+            MainActivity.getInstance().onNewPhoto(result.uri);
             return ret;
         }
 
@@ -86,7 +90,7 @@ public class PhotoProcessorWorker
     public static abstract class RunListener
     {
         public LifecycleOwner lcOwner;
-        public abstract void onResult(Uri uri);
+        public abstract void onResult(Uri uri, int id);
 
         public RunListener(LifecycleOwner lcOwner)
         {
@@ -110,7 +114,6 @@ public class PhotoProcessorWorker
                 .addTag("photoProc")
                 .build();
 
-        //workManager.enqueue(req);
         WorkContinuation queue = workManager.beginUniqueWork("photoProc", ExistingWorkPolicy.APPEND, req);
         queue.enqueue();
 
@@ -127,7 +130,8 @@ public class PhotoProcessorWorker
 
             String uriStr = workInfo.getOutputData().getString("URI");
             Uri uri = Uri.parse(uriStr);
-            listener.onResult(uri);
+            int fid = workInfo.getOutputData().getInt("ID", -1);
+            listener.onResult(uri, fid);
         });
     }
 }

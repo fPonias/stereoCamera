@@ -64,13 +64,13 @@ public class TestFragment
     {
         PhotoFiles files = PhotoFiles.Factory.get();
         String tmpLeft = files.copyAssetToCache("left.jpg");
-        Uri newuri = files.saveFile(new File(tmpLeft));
+        PhotoFiles.SaveResult result = files.saveFile(new File(tmpLeft));
 
         MainActivity.getInstance().runOnUiThread(() -> {
-            img.setImageURI(newuri);
+            img.setImageURI(result.uri);
         });
 
-        return newuri;
+        return result.uri;
     }
 
     private String procOutput;
@@ -103,8 +103,13 @@ public class TestFragment
             PhotoProcessorWorker.RunListener workerListener = new PhotoProcessorWorker.RunListener(parent.getViewLifecycleOwner())
             {
                 @Override
-                public void onResult(Uri uri) {
+                public void onResult(Uri uri, int id) {
                     img.setImageURI(uri);
+
+                    long sz = files.getSize(id);
+                    PhotoFile file = files.getFile(id);
+                    int i = 0;
+                    int j = i;
                 }
             };
 
@@ -114,7 +119,7 @@ public class TestFragment
                 MainActivity.getInstance().photoProcessorWorker.listen(id, workerListener);
             });
 
-
+/*
             args.type = PhotoProcessor.CompositeImageType.GREEN_MAGENTA;
             UUID id2 = MainActivity.getInstance().photoProcessorWorker.run(args, false);
 
@@ -146,7 +151,8 @@ public class TestFragment
                 try {lock.wait();} catch(InterruptedException e) {}
         }
 
-        return procOutput;
+        return procOutput;*/
+        return "";
     }
 
     private String testCombine()

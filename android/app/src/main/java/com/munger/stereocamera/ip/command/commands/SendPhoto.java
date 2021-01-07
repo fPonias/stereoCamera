@@ -5,13 +5,17 @@ import android.util.Log;
 
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.Command;
+import com.munger.stereocamera.utility.PhotoFile;
+import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class SendPhoto extends Command
 {
+	public int id;
 	public File file;
 
 	public SendPhoto()
@@ -20,11 +24,11 @@ public class SendPhoto extends Command
 		doInit();
 	}
 
-	public SendPhoto(Uri path)
+	public SendPhoto(int id)
 	{
 		super();
 
-		file = new File(path.getPath());
+		this.id = id;
 		doInit();
 	}
 
@@ -43,13 +47,14 @@ public class SendPhoto extends Command
 
 		try
 		{
-			long sz = 0;
-			if (file != null)
-				sz = file.length();
+			PhotoFiles files = PhotoFiles.Factory.get();
+			long sz = files.getSize(id);
+			InputStream ins = files.getStream(id);
+
 			comm.putLong(sz);
 
 			if (sz > 0)
-				comm.putFile(file);
+				comm.putStream(ins, sz);
 		}
 		catch(IOException e){
 			return false;

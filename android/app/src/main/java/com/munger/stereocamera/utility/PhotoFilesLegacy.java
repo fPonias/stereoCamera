@@ -64,6 +64,12 @@ public class PhotoFilesLegacy extends PhotoFiles {
         return fileToData(new File(path));
     }
 
+    public PhotoFile getFile(int id)
+    {
+        String path = getRelativePath() + "/" + id + ".jpg";
+        return fileToData(new File(path));
+    }
+
     private PhotoFile fileToData(File file)
     {
         String[] parts = file.getName().split("\\.");
@@ -102,7 +108,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
     public boolean delete(int id)
     {
         Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
-        int count = resolver.delete(uri, null, null);
+        resolver.delete(uri, null, null);
 
         String path = getRelativePath() + "\\" + id + ".jpg";
         File f = new File(path);
@@ -111,6 +117,17 @@ public class PhotoFilesLegacy extends PhotoFiles {
             return f.delete();
 
         return false;
+    }
+
+    public long getSize(int id)
+    {
+        String path = getRelativePath() + "\\" + id + ".jpg";
+        File f = new File(path);
+
+        if (!f.exists())
+            return -1;
+
+        return f.length();
     }
 
     public boolean isEmpty()
@@ -124,12 +141,14 @@ public class PhotoFilesLegacy extends PhotoFiles {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString() + suffix;
     }
 
-    public Uri saveFile(File source)
+    public SaveResult saveFile(File source)
     {
+        SaveResult ret = new SaveResult();
         int max = getNewestId();
         max++;
 
         String localName = max + ".jpg";
+        ret.id = max;
         File dest = new File(getRelativePath(), localName);
         int total = 0;
         int read = 1;
@@ -156,6 +175,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
         if (dest != null)
             MediaScannerConnection.scanFile(MainActivity.getInstance(), new String[]{dest.getPath()}, null, null);
 
-        return Uri.parse("file://" + dest.getPath());
+        ret.uri = Uri.parse("file://" + dest.getPath());
+        return ret;
     }
 }

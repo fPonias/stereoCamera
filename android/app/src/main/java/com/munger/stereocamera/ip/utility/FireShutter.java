@@ -10,18 +10,21 @@ import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.service.ImagePair;
 import com.munger.stereocamera.service.PhotoProcessor;
+import com.munger.stereocamera.service.PhotoProcessorWorker;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 import java.io.File;
+import java.util.Set;
+import java.util.UUID;
 
 public class FireShutter
 {
 	private final Object lock = new Object();
 	private boolean localShutterDone = false;
 	private boolean remoteShutterDone = false;
-	private boolean shutterFiring = false;
+	private boolean fireShutter = false;
 	private Thread fireThread = null;
 
 	private ImagePair.ImageArg localData;
@@ -65,14 +68,14 @@ public class FireShutter
 	{
 		synchronized (lock)
 		{
-			if (shutterFiring)
+			if (fireShutter)
 				return;
 
 			fireType = type;
 			wait = delay;
 
 			this.listener = listener;
-			shutterFiring = true;
+			fireShutter = true;
 
 			lock.notify();
 		}
@@ -88,16 +91,20 @@ public class FireShutter
 	{
 		while (isRunning)
 		{
+			boolean runFire = false;
 			synchronized (lock)
 			{
-				if (!shutterFiring)
-					try {lock.wait();} catch(InterruptedException ignored){};
+				try {lock.wait();} catch(InterruptedException ignored){};
 
 				if (!isRunning)
 					return;
+
+				if (fireShutter)
+					runFire = true;
 			}
 
-			fireLocal2(fireType, wait);
+			if (runFire)
+				fireLocal2(fireType, wait);
 		}
 	}
 
@@ -158,7 +165,7 @@ public class FireShutter
 			if (remoteShutterDone)
 				doNext = true;
 
-			shutterFiring = false;
+			fireShutter = false;
 			lock.notify();
 		}
 
@@ -252,8 +259,40 @@ public class FireShutter
 		Preferences prefs = MyApplication.getInstance().getPrefs();
 		ImagePair args = new ImagePair();
 		args.flip = prefs.getIsFacing();
-		args.type = PhotoProcessor.CompositeImageType.SPLIT;
+		//args.type = PhotoProcessor.CompositeImageType.SPLIT;
 		args.left = localData;
 		args.right = remoteData;
+
+		PhotoProcessorWorker.RunListener workerListener = new PhotoProcessorWorker.RunListener(fragment.getViewLifecycleOwner())
+		{
+			@Override
+			public void onResult(Uri uri, int id) {
+				SendPhoto cmd = new SendPhoto(id);
+				masterComm.sendCommand(cmd, (success, command, originalCmd) -> {
+					listener.done();
+				});
+			}
+		};
+
+		listener.onProcessing();
+		Set<PhotoProcessor.CompositeImageType> types = prefs.getProcessorTypes();
+		int count = types.size();
+		int i = 0;
+		for (PhotoProcessor.CompositeImageType type : types)
+		{
+			args.type = type;
+			boolean clean = (i == count - 1);
+
+			UUID procId = MainActivity.getInstance().photoProcessorWorker.run(args, clean);
+
+			if (clean)
+			{
+				MainActivity.getInstance().runOnUiThread(() -> {
+					MainActivity.getInstance().photoProcessorWorker.listen(procId, workerListener);
+				});
+			}
+
+			i++;
+		}
 	}
 }

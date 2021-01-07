@@ -50,10 +50,20 @@ public abstract class PhotoFiles
 
 	public abstract int getNewestId();
 	public abstract PhotoFile getNewest();
+	public abstract PhotoFile getFile(int id);
 
 	public InputStream getStream(Uri uri) throws FileNotFoundException
 	{
 		return resolver.openInputStream(uri);
+	}
+
+	public InputStream getStream(int id) throws FileNotFoundException
+	{
+		PhotoFile file = getFile(id);
+		if (file == null)
+			throw new FileNotFoundException();
+
+		return getStream(file.uri);
 	}
 
 	public InputStream getNewestAsStream()
@@ -113,9 +123,15 @@ public abstract class PhotoFiles
 			ret.files.get(idx).add(item);
 		}
 
-		Collections.sort(ret.dates, (l, r) -> (int) (l - r));
+		Collections.sort(ret.dates, (l, r) -> (int) (r - l));
 
 		return ret;
+	}
+
+	public static class SaveResult
+	{
+		public Uri uri;
+		public int id;
 	}
 
 	protected abstract Uri getCollection();
@@ -123,7 +139,8 @@ public abstract class PhotoFiles
 	public abstract boolean delete(int id);
 	public abstract boolean isEmpty();
 	protected abstract String getRelativePath();
-	public abstract Uri saveFile(File source);
+	public abstract SaveResult saveFile(File source);
+	public abstract long getSize(int id);
 
 	public String copyAssetToCache(String name)
 	{

@@ -27,15 +27,11 @@ public class Comm
 		ins = ctrl.getSocket().getInputStream();
 	}
 
-	public void putFile(File file) throws IOException
+	public void putStream(InputStream fis, long sz) throws IOException
 	{
-		FileInputStream fis = null;
-		long sz = 0;
 		try
 		{
-			fis = new FileInputStream(file);
 			byte[] buf = new byte[4096];
-			sz = file.length();
 			long count = 0;
 			long read = 0;
 
@@ -51,7 +47,8 @@ public class Comm
 
 			outs.flush();
 		}
-		catch(IOException e){
+		catch (IOException e)
+		{
 			if (!socket.isConnected())
 				Log.d("stereoCamera", "slave socket no longer open");
 
@@ -60,12 +57,14 @@ public class Comm
 			MainActivity.getInstance().handleDisconnection();
 			throw e;
 		}
-		finally{
-			if (fis != null)
-			{
-				try { fis.close(); } catch(IOException e) {}
-			}
-		}
+	}
+
+	public void putFile(File file) throws IOException
+	{
+		FileInputStream fis = new FileInputStream(file);
+		long sz = file.length();
+
+		putStream(fis, sz);
 	}
 
 	public void putData(byte[] arr) throws IOException
