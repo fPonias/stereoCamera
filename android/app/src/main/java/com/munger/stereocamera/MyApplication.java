@@ -5,12 +5,17 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 
+import androidx.room.Room;
+
 import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
 import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.utility.data.AppDatabase;
+import com.munger.stereocamera.utility.data.ClientViewModel;
+import com.munger.stereocamera.utility.data.ClientViewModelProvider;
 
 import java.util.jar.Attributes;
 
@@ -30,7 +35,9 @@ public class MyApplication extends Application
 
 		instance = this;
 
-		prefs = new Preferences();
+		db = Room.databaseBuilder(this, AppDatabase.class, "client-db")
+				.fallbackToDestructiveMigration()
+				.build();
 
 		try
 		{
@@ -52,7 +59,7 @@ public class MyApplication extends Application
 	private CommCtrl ctrl;
 	private BluetoothCtrl btCtrl;
 	private EthernetCtrl ethCtrl;
-	private Preferences prefs;
+	private AppDatabase db;
 
 	public static final String BT_SERVICE_NAME = "stereoCamera";
 
@@ -92,6 +99,11 @@ public class MyApplication extends Application
 		return ethCtrl;
 	}
 
+	public AppDatabase getDatabase()
+	{
+		return db;
+	}
+
 	public void setupEthernetServer(IPListeners.SetupListener listener)
 	{
 		if (ethCtrl == null)
@@ -106,11 +118,6 @@ public class MyApplication extends Application
 		}
 
 		listener.onSetup();
-	}
-
-	public Preferences getPrefs()
-	{
-		return prefs;
 	}
 
 	private boolean adsEnabled;

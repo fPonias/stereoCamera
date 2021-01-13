@@ -150,7 +150,7 @@ public class CalculateSync
 
 	private void loadPastData() throws IOException
 	{
-		String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
+		/*String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
 		File file = new File(MainActivity.getInstance().getFilesDir(), key);
 
 		if (!file.exists())
@@ -184,12 +184,12 @@ public class CalculateSync
 			pastValuesRead++;
 		}
 
-		fis.close();
+		fis.close();*/
 	}
 
 	private void saveData(double[] inputs, double[] actuals) throws IOException
 	{
-		String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
+		/*String key = "syncData-" + MyApplication.getInstance().getPrefs().getClient();
 		File file = new File(MainActivity.getInstance().getFilesDir(), key);
 
 		if (!file.exists())
@@ -213,6 +213,6 @@ public class CalculateSync
 			fos.write(buf);
 		}
 
-		fos.close();
+		fos.close();*/
 	}
 }

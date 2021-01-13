@@ -39,6 +39,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-		MyApplication.getInstance().getPrefs().updateSettingsPrefs();
+		//MyApplication.getInstance().getPrefs().updateSettingsPrefs();
 	}
 }

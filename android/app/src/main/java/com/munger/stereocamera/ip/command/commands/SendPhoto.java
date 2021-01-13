@@ -49,12 +49,15 @@ public class SendPhoto extends Command
 		{
 			PhotoFiles files = PhotoFiles.Factory.get();
 			long sz = files.getSize(id);
+			if (sz <= 0)
+			{
+				comm.putLong(sz);
+				return true;
+			}
+
 			InputStream ins = files.getStream(id);
-
 			comm.putLong(sz);
-
-			if (sz > 0)
-				comm.putStream(ins, sz);
+			comm.putStream(ins, sz);
 		}
 		catch(IOException e){
 			return false;
@@ -74,7 +77,7 @@ public class SendPhoto extends Command
 		{
 			long sz = comm.getLong();
 
-			if (sz == 0)
+			if (sz <= 0)
 			{
 				file = null;
 				return true;

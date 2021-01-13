@@ -4,7 +4,6 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -21,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.room.Room;
 
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.Gallery;
@@ -29,18 +29,18 @@ import com.munger.stereocamera.fragment.ImageViewerFragment;
 import com.munger.stereocamera.fragment.MasterFragment;
 import com.munger.stereocamera.fragment.SettingsFragment;
 import com.munger.stereocamera.fragment.SlaveFragment;
-import com.munger.stereocamera.ip.SocketCtrl;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.commands.Disconnect;
-import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.service.PhotoProcessorWorker;
 import com.munger.stereocamera.utility.InteractiveReceiver;
 import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.utility.data.AppDatabase;
+import com.munger.stereocamera.utility.data.ClientViewModel;
+import com.munger.stereocamera.utility.data.ClientViewModelProvider;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,6 +57,9 @@ public class MainActivity extends AppCompatActivity
 	private ConnectFragment connectFragment;
 	private InteractiveReceiver interactiveReceiver;
 	public PhotoProcessorWorker photoProcessorWorker;
+	private ClientViewModel clientViewModel;
+
+	public ClientViewModel getClientViewModel() {return clientViewModel;}
 
 	public boolean getAdsEnabled() {return MyApplication.getInstance().getAdsEnabled();}
 
@@ -82,10 +85,42 @@ public class MainActivity extends AppCompatActivity
 		//setT(R.style.AppTheme);
 		super.onCreate(savedInstanceState);
 
+		new Thread(() ->{
+ 			clientViewModel = new ClientViewModelProvider(this).get(ClientViewModel.class);
+
+ 			runOnUiThread(() ->
+			{
+				openInitialView(savedInstanceState);
+			});
+		}).start();
+
 		//View root = getLayoutInflater().inflate(R.layout.activity_main, null);
 		//FrameLayout frame = root.findViewById(R.id.main_content);
 		//setContentView(root);
 
+		handler = new Handler(Looper.getMainLooper());
+
+		interactiveReceiver = new InteractiveReceiver();
+		interactiveReceiver.addListener(new InteractiveReceiver.Listener()
+		{
+			@Override
+			public void screenChanged(boolean isOn)
+			{
+				synchronized (listenerLock)
+				{
+					for (Listener listener : listeners)
+						listener.onScreenChanged(isOn);
+				}
+			}
+		});
+
+		photoProcessorWorker = new PhotoProcessorWorker(this);
+
+		reconnect();
+	}
+
+	private void openInitialView(Bundle savedInstanceState)
+	{
 		if (savedInstanceState == null)
 		{
 			connectFragment = new ConnectFragment();
@@ -121,24 +156,6 @@ public class MainActivity extends AppCompatActivity
 				}
 			}
 		}
-
-		handler = new Handler(Looper.getMainLooper());
-
-		interactiveReceiver = new InteractiveReceiver();
-		interactiveReceiver.addListener(new InteractiveReceiver.Listener()
-		{
-			@Override
-			public void screenChanged(boolean isOn)
-			{
-				synchronized (listenerLock)
-				{
-					for (Listener listener : listeners)
-						listener.onScreenChanged(isOn);
-				}
-			}
-		});
-
-		photoProcessorWorker = new PhotoProcessorWorker(this);
 	}
 
 	private boolean isRunning = false;
@@ -175,11 +192,9 @@ public class MainActivity extends AppCompatActivity
 	{
 		super.onResume();
 
-		MyApplication.getInstance().getPrefs().setup();
+		//MyApplication.getInstance().getPrefs().setup();
 
 		isRunning = true;
-
-		reconnect();
 	}
 
 	private class BackStackListener implements FragmentManager.OnBackStackChangedListener
@@ -399,13 +414,12 @@ public class MainActivity extends AppCompatActivity
 
 	public void reconnect()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
+		Preferences prefs = new Preferences();
 		CommCtrl ctrl = MyApplication.getInstance().getCtrl();
 
-		Preferences.Roles role = prefs.getRole();
 		if (ctrl != null && ctrl.getSocketCtrlCtrl().getIsSetup())
 		{
-			if (role == Preferences.Roles.MASTER)
+			/*if (role == Preferences.Roles.MASTER)
 			{
 				SocketCtrl master = ctrl.getSocketCtrlCtrl().getSlave();
 				if (master != null && master.isConnected())
@@ -422,7 +436,7 @@ public class MainActivity extends AppCompatActivity
 					startSlaveView();
 					return;
 				}
-			}
+			}*/
 		}
 
 		if (connectFragment != null && getCurrentFragment() == connectFragment)

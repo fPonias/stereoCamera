@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.ip.command.CommCtrl;
-import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.commands.Handshake;
 import com.munger.stereocamera.ip.command.commands.ID;
 import com.munger.stereocamera.ip.command.commands.Ping;
@@ -16,6 +15,7 @@ import com.munger.stereocamera.ip.command.commands.SetOverlay;
 import com.munger.stereocamera.ip.command.commands.SetZoom;
 import com.munger.stereocamera.ip.command.commands.Version;
 import com.munger.stereocamera.ip.utility.RemoteState;
+import com.munger.stereocamera.utility.data.ClientViewModel;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 
@@ -34,14 +34,16 @@ public class MasterShake
 	private final long LISTEN_STATUS_TIMEOUT = 10000;
 	private final long READY_STATUS_TIMEOUT = 6000;
 
-	private MasterFragment target;
+	private final MasterFragment target;
+	private final ClientViewModel.CameraDataPair cameraPair;
 	private CommCtrl comm;
 
-	public MasterShake(MasterFragment target)
+	public MasterShake(MasterFragment target, ClientViewModel.CameraDataPair cameraPair)
 	{
 		Log.d("stereoCamera", "new handshake created");
 
 		this.target = target;
+		this.cameraPair = cameraPair;
 
 		init();
 
@@ -119,7 +121,7 @@ public class MasterShake
 		finalListener.fail();
 	}
 
-	private ArrayList<Step> steps = new ArrayList<>();
+	private final ArrayList<Step> steps = new ArrayList<>();
 
 	public interface Listener
 	{
@@ -133,7 +135,7 @@ public class MasterShake
 		void fail();
 	}
 
-	private abstract class Step
+	private abstract static class Step
 	{
 		public String name;
 
@@ -167,8 +169,7 @@ public class MasterShake
 		pingStep = new Step("ping") { public void execute(final StepListener listener)
 		{
 			Log.d("stereoCamera", "pinging slave phone");
-			comm.sendCommand(new Ping(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() { public void r(boolean success, Command command, Command originalCmd)
-			{
+			comm.sendCommand(new Ping(), new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
 				if (success)
 				{
 					Log.d("stereoCamera", "ping success");
@@ -176,40 +177,36 @@ public class MasterShake
 				}
 				else
 					listener.fail();
-			}}), PING_TIMEOUT);
+			}), PING_TIMEOUT);
 		}};
 
 		handshakeStep = new Step("handshake") { public void execute(final StepListener listener)
 		{
 			Log.d("stereoCamera", "initiating handshake");
-			comm.sendCommand(new Handshake(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
-				@Override
-				public void r(boolean success, Command command, Command originalCmd) {
-				if (success)
-				{
-					Log.d("stereoCamera", "handshake started");
-					listener.success();
-				}
-				else
-					listener.fail();
-			}}), HANDSHAKE_TIMEOUT);
+			comm.sendCommand(new Handshake(), new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
+			if (success)
+			{
+				Log.d("stereoCamera", "handshake started");
+				listener.success();
+			}
+			else
+				listener.fail();
+		}), HANDSHAKE_TIMEOUT);
 		}};
 
 		idStep = new Step("id") { public void execute(final StepListener listener)
 		{
 			Log.d("stereoCamera", "fetching id");
-			comm.sendCommand(new ID(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
-				@Override
-				public void r(boolean success, Command command, Command originalCmd) {
-				if (success)
-				{
-					ID cmd = (ID) command;
-					Log.d("stereoCamera", "remote camera ID " + cmd.phoneId);
-					listener.success();
-				}
-				else
-					listener.fail();
-			}}), 3000);
+			comm.sendCommand(new ID(), new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
+			if (success)
+			{
+				ID cmd = (ID) command;
+				Log.d("stereoCamera", "remote camera ID " + cmd.phoneId);
+				listener.success();
+			}
+			else
+				listener.fail();
+		}), 3000);
 		}};
 
 		setQualityStep = new Step("quality") { public void execute(final StepListener listener)
@@ -218,42 +215,37 @@ public class MasterShake
 
 			SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MyApplication.getInstance());
 			String captureTypeStr = sharedPref.getString("pref_capture", "preview");
-			PreviewWidget.SHUTTER_TYPE captureType;
+			PreviewWidget.ShutterType captureType;
 
 			switch(captureTypeStr)
 			{
 				case "hi cam":
-					captureType = PreviewWidget.SHUTTER_TYPE.HI_RES;
+					captureType = PreviewWidget.ShutterType.HI_RES;
 					break;
 				case "lo cam":
-					captureType = PreviewWidget.SHUTTER_TYPE.LO_RES;
+					captureType = PreviewWidget.ShutterType.LO_RES;
 					break;
 				default:
-					captureType = PreviewWidget.SHUTTER_TYPE.PREVIEW;
+					captureType = PreviewWidget.ShutterType.PREVIEW;
 					break;
 			}
 
-			comm.sendCommand(new SetCaptureQuality(captureType), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
-				@Override
-				public void r(boolean success, Command command, Command originalCmd) {
-				if (success)
-					listener.success();
-				else
-					listener.fail();
-				}
+			comm.sendCommand(new SetCaptureQuality(captureType), new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
+			if (success)
+				listener.success();
+			else
+				listener.fail();
 			}), HANDSHAKE_TIMEOUT);
 		}};
 
 		setZoomStep = new Step("zoom") { public void execute(final StepListener listener) {
 			Log.d("stereoCamera", "setting zoom value");
-			comm.sendCommand(new SetZoom(1.0f), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() {
-				@Override
-				public void r(boolean success, Command command, Command originalCmd) {
-					if (success)
-						listener.success();
-					else
-						listener.fail();
-				}
+			SetZoom cmd = new SetZoom(cameraPair.local.zoom, cameraPair.remote.zoom);
+			comm.sendCommand(cmd, new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
+				if (success)
+					listener.success();
+				else
+					listener.fail();
 			}), HANDSHAKE_TIMEOUT);
 		}};
 
@@ -279,8 +271,7 @@ public class MasterShake
 
 		versionCheckStep = new Step("check version") { public void execute(final StepListener listener)
 		{
-			comm.sendCommand(new Version(), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() { public void r(boolean success, Command command, Command originalCmd)
-			{
+			comm.sendCommand(new Version(), new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
 				if (!success)
 				{
 					listener.fail();
@@ -296,8 +287,7 @@ public class MasterShake
 					listener.fail();
 				else
 					listener.success();
-				}
-			}), 1000);
+				}), 1000);
 		}};
 
 		class SetupCameraStep extends Step
@@ -321,7 +311,7 @@ public class MasterShake
 				localFacing = false;
 				remoteFacing = false;
 
-				boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
+				boolean isFacing = cameraPair.local.isFacing;
 				target.startPreview();
 				target.setCamera(isFacing, new MasterFragment.SetCameraListener()
 				{
@@ -344,8 +334,7 @@ public class MasterShake
 					}
 				});
 
-				comm.sendCommand(new SetFacing(isFacing), new CommCtrl.DefaultResponseListener(new CommCtrl.IDefaultResponseListener() { public void r(boolean success, Command command, Command originalCmd)
-				{
+				comm.sendCommand(new SetFacing(isFacing), new CommCtrl.DefaultResponseListener((success, command, originalCmd) -> {
 					Log.d("stereoCamera", "set remote camera finished");
 					if (success)
 					{
@@ -356,15 +345,14 @@ public class MasterShake
 
 						execute2();
 					}
-				}}), 3000);
+				}), 3000);
 
-				Thread timeoutThread = new Thread(new Runnable() {public void run()
-				{
+				Thread timeoutThread = new Thread(() -> {
 					synchronized (facingLock)
 					{
 						if (!listenerCalled)
 						{
-							try{facingLock.wait(3000);} catch(InterruptedException e){}
+							try{facingLock.wait(3000);} catch(InterruptedException ignored){}
 						}
 
 						if (!listenerCalled)
@@ -372,7 +360,7 @@ public class MasterShake
 							execute2();
 						}
 					}
-				}});
+				});
 				timeoutThread.start();
 			}
 
@@ -412,8 +400,7 @@ public class MasterShake
 		overlayStep = new Step("overlay") { public void execute(final StepListener listener)
 		{
 			final PreviewOverlayWidget.Type type = target.overlayWidget.getType();
-			target.masterComm.sendCommand(new SetOverlay(type), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
-			{
+			target.masterComm.sendCommand(new SetOverlay(type), (success, command, originalCmd) -> {
 				if (success)
 				{
 					if (type == PreviewOverlayWidget.Type.Ghost)
@@ -423,7 +410,7 @@ public class MasterShake
 				}
 				else
 					listener.fail();
-			}});
+			});
 		}};
 	}
 }

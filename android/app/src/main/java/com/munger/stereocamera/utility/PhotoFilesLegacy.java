@@ -121,7 +121,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
 
     public long getSize(int id)
     {
-        String path = getRelativePath() + "\\" + id + ".jpg";
+        String path = getRelativePath() + "/" + id + ".jpg";
         File f = new File(path);
 
         if (!f.exists())

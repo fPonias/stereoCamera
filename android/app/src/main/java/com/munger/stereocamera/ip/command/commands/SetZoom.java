@@ -7,7 +7,8 @@ import java.io.IOException;
 
 public class SetZoom extends Command
 {
-	public float zoom = 1.0f;
+	public float localZoom = 1.0f;
+	public float remoteZoom = 1.0f;
 
 	public SetZoom()
 	{
@@ -15,10 +16,11 @@ public class SetZoom extends Command
 		doInit();
 	}
 
-	public SetZoom(float zoom)
+	public SetZoom(float localZoom, float remoteZoom)
 	{
 		super();
-		this.zoom = zoom;
+		this.localZoom = localZoom;
+		this.remoteZoom = remoteZoom;
 		doInit();
 	}
 
@@ -37,7 +39,8 @@ public class SetZoom extends Command
 
 		try
 		{
-			comm.putFloat(zoom);
+			comm.putFloat(localZoom);
+			comm.putFloat(remoteZoom);
 		}
 		catch(IOException e){
 			return false;
@@ -55,7 +58,8 @@ public class SetZoom extends Command
 
 		try
 		{
-			zoom = comm.getFloat();
+			localZoom = comm.getFloat();
+			remoteZoom = comm.getFloat();
 		}
 		catch(IOException e){
 			return false;

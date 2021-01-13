@@ -661,19 +661,19 @@ public class PreviewWidget extends TextureView
 	protected long shutterStart;
 	protected long shutterEnd;
 
-	public enum SHUTTER_TYPE
+	public enum ShutterType
 	{
 		HI_RES,
 		LO_RES,
 		PREVIEW
 	};
 
-	public void takePicture(SHUTTER_TYPE type, ImageListener imageListener)
+	public void takePicture(ShutterType type, ImageListener imageListener)
 	{
 		this.imageListener = imageListener;
 		shutterStart = System.currentTimeMillis();
 
-		if (type == SHUTTER_TYPE.PREVIEW)
+		if (type == ShutterType.PREVIEW)
 			takePreviewPicture();
 		else
 			getCamera().takePicture(shutterCallback, null, null, jpegCallback);

@@ -12,9 +12,7 @@ import android.os.Looper;
 
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
 
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -213,7 +211,7 @@ public class PreviewFragment extends BaseFragment
 	}
 
 
-	public void fireShutter(PreviewWidget.SHUTTER_TYPE type, PreviewWidget.ImageListener listener)
+	public void fireShutter(PreviewWidget.ShutterType type, PreviewWidget.ImageListener listener)
 	{
 		previewView.takePicture(type, listener);
 	}

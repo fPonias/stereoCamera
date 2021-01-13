@@ -1,7 +1,5 @@
 package com.munger.stereocamera.ip.command.commands;
 
-import android.media.Image;
-
 import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.widget.PreviewWidget;
@@ -10,7 +8,7 @@ import java.io.IOException;
 
 public class SetCaptureQuality extends Command
 {
-	public PreviewWidget.SHUTTER_TYPE quality;
+	public PreviewWidget.ShutterType quality;
 
 	public SetCaptureQuality()
 	{
@@ -18,7 +16,7 @@ public class SetCaptureQuality extends Command
 		doInit();
 	}
 
-	public SetCaptureQuality(PreviewWidget.SHUTTER_TYPE quality)
+	public SetCaptureQuality(PreviewWidget.ShutterType quality)
 	{
 		super();
 		this.quality = quality;
@@ -41,7 +39,7 @@ public class SetCaptureQuality extends Command
 		try
 		{
 			byte b = comm.getByte();
-			PreviewWidget.SHUTTER_TYPE[] quals = PreviewWidget.SHUTTER_TYPE.values();
+			PreviewWidget.ShutterType[] quals = PreviewWidget.ShutterType.values();
 
 			if (b < 0 || b >= quals.length)
 				{ return false; }

@@ -17,25 +17,28 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.PreferenceManager;
 
 import com.munger.stereocamera.MainActivity;
-import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
+import com.munger.stereocamera.MyApplication;
+import com.munger.stereocamera.R;
 import com.munger.stereocamera.ip.command.CommCtrl;
-import com.munger.stereocamera.ip.command.Command;
+import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.command.commands.ConnectionPause;
 import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SetFacing;
 import com.munger.stereocamera.ip.command.commands.SetOverlay;
 import com.munger.stereocamera.ip.command.commands.SetZoom;
-import com.munger.stereocamera.utility.Preferences;
-import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.ip.utility.CalculateSync;
 import com.munger.stereocamera.ip.utility.FireShutter;
 import com.munger.stereocamera.ip.utility.RemoteState;
+import com.munger.stereocamera.service.ImagePair;
 import com.munger.stereocamera.service.PhotoProcessor;
-import com.munger.stereocamera.widget.OrientationCtrl;
+import com.munger.stereocamera.utility.SingleThreadedExecutor;
+import com.munger.stereocamera.utility.data.Client;
+import com.munger.stereocamera.utility.data.ClientViewModel;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
@@ -58,10 +61,15 @@ public class MasterFragment extends PreviewFragment
 	private PhotoOrientation orientation;
 	private FireShutter fireShutter;
 
+	private SingleThreadedExecutor viewModelExec;
+
 	private MainActivity.Listener appListener;
 
+	public MasterFragment() {
+	}
+
 	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
+	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		orientation = MainActivity.getInstance().getCurrentOrientation();
 		if (orientation.isPortait())
@@ -77,56 +85,54 @@ public class MasterFragment extends PreviewFragment
 		swapButton = rootView.findViewById(R.id.hand);
 
 		zoomSlider = rootView.findViewById(R.id.zoom_slider);
-		zoomSlider.setListener(new ZoomWidget.Listener() {public void onChange(float value)
-		{
-			setZoom(value);
-		}});
+		zoomSlider.setListener(this::setZoom);
 
 		overlayWidget = rootView.findViewById(R.id.previewOverlay);
 		updateOverlayFromPrefs();
 
-		clickButton.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
-		{
-			doShutter();
-		}});
+		clickButton.setOnClickListener(view -> doShutter());
 
-		swapButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
-		{
-			swapHand();
-		}});
+		swapButton.setOnClickListener(view -> swapHand());
 
 		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
-		thumbnailWidget.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
-		{
-			openThumbnail();
-		}});
+		thumbnailWidget.setOnClickListener(v -> openThumbnail());
 
 		if (orientation.isPortait())
 			updateHandPhoneButtonVertical();
 		else
 			updateHandPhoneButtonHorizontal();
 
-		startLocalGravity();
+		//startLocalGravity();
 
-		Preferences prefs = MyApplication.getInstance().getPrefs();
 		previewView.setOrientation(orientation);
 
 		slavePreview = rootView.findViewById(R.id.slavePreview);
 
 		setStatus(Status.CREATED);
 
-		masterShake = new MasterShake(this);
-
 		return rootView;
 	}
+
+	private ClientViewModel.CameraDataPair cameraPair;
+	private Client client;
+	private ClientViewModel clientViewModel;
 
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
 
+		viewModelExec = new SingleThreadedExecutor("SyncTrigger");
+		viewModelExec.execute(() ->
+		{
+			clientViewModel = MainActivity.getInstance().getClientViewModel();
+			client = clientViewModel.getCurrentClient();
+			cameraPair = clientViewModel.getCameras(client.id, client.isFacing);
+		});
+
 		fireShutter = new FireShutter(this);
 		setHasOptionsMenu(true);
+		shutterDelay = 0;
 
 		appListener = new MainActivity.Listener()
 		{
@@ -158,66 +164,67 @@ public class MasterFragment extends PreviewFragment
 
 		MainActivity.getInstance().removeListener(appListener);
 		fireShutter.cleanUp();
+		viewModelExec.stop();
 	}
-
-	private MenuItem flipItem;
-	private MenuItem debugItem;
-	private MenuItem galleryItem;
-	private MenuItem prefsItem;
-	private MenuItem helpItem;
 
 
 	@Override
-	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+	public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater)
 	{
 		inflater.inflate(R.menu.master_menu, menu);
 
-		flipItem = menu.findItem(R.id.flip);
-		debugItem = menu.findItem(R.id.test);
-		galleryItem = menu.findItem(R.id.gallery);
-		prefsItem = menu.findItem(R.id.prefs);
-		helpItem = menu.findItem(R.id.help);
+		MenuItem flipItem = menu.findItem(R.id.flip);
+		MenuItem debugItem = menu.findItem(R.id.test);
+		MenuItem galleryItem = menu.findItem(R.id.gallery);
+		MenuItem prefsItem = menu.findItem(R.id.prefs);
+		MenuItem helpItem = menu.findItem(R.id.help);
 
-		flipItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		flipItem.setOnMenuItemClickListener(menuItem ->
 		{
 			onFlip();
 
 			return true;
-		}});
+		});
 
-		debugItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		debugItem.setOnMenuItemClickListener(menuItem ->
 		{
-			PhotoProcessor proc = new PhotoProcessor(getContext());
+			PhotoProcessor proc = new PhotoProcessor(MainActivity.getInstance());
 			proc.testOldData();
 
 			return true;
-		}});
+		});
 		debugItem.setVisible(false);
 
-		galleryItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		galleryItem.setOnMenuItemClickListener(menuItem ->
 		{
 			openThumbnail();
 			return true;
-		}});
+		});
 
-		prefsItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem menuItem)
+		prefsItem.setOnMenuItemClickListener(menuItem ->
 		{
-			((MainActivity) getActivity()).openSettings();
+			MainActivity.getInstance().openSettings();
 			return true;
-		}});
+		});
 
-		helpItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() { public boolean onMenuItemClick(MenuItem item)
+		helpItem.setOnMenuItemClickListener(item ->
 		{
-			((MainActivity) getActivity()).openHelp();
+			MainActivity.getInstance().openHelp();
 			return false;
-		}});
+		});
 	}
 
 	private void onFlip()
 	{
 		setStatus(Status.BUSY);
-		boolean isFacing = MyApplication.getInstance().getPrefs().getIsFacing();
-		isFacing = !isFacing;
+		final boolean isFacing = !client.isFacing;
+
+		viewModelExec.execute(() ->
+		{
+			client.isFacing = isFacing;
+			clientViewModel.update(client);
+		});
+
 		setCamera(isFacing, new SetCameraListener()
 		{
 			@Override
@@ -242,27 +249,24 @@ public class MasterFragment extends PreviewFragment
 
 	void setCamera(boolean isFacing, final SetCameraListener listener)
 	{
+		if (cameraPair.local.isFacing != isFacing)
+		{
+			viewModelExec.execute(() ->
+			{
+
+				cameraPair = clientViewModel.getCameras(client.id, isFacing);
+				setZoom(cameraPair.local.zoom);
+
+				masterComm.sendCommand(new SetFacing(isFacing), (success, command, originalCmd) ->
+				{});
+				masterComm.sendCommand(new SetZoom(cameraPair.local.zoom, cameraPair.remote.zoom), (success, command, originalCmd) ->
+				{});
+			});
+		}
+
 		setFacing(isFacing);
-		MyApplication.getInstance().getPrefs().setIsFacing(isFacing);
-
-		masterComm.sendCommand(new SetFacing(isFacing), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
-		{
-			setCamera2(listener);
-		}});
-	}
-
-	private void setCamera2(final SetCameraListener listener)
-	{
-		String cameraId = getCameraId();
-		Preferences prefs = MyApplication.getInstance().getPrefs();
-		float localZoom = prefs.getLocalZoom(cameraId);
-		setZoom(localZoom);
-
-		float zoom = prefs.getRemoteZoom(cameraId);
-		masterComm.sendCommand(new SetZoom(zoom), new CommCtrl.IDefaultResponseListener() {public void r(boolean success, Command command, Command originalCmd)
-		{
-			listener.done();
-		}});
+		setZoom(cameraPair.local.zoom);
+		listener.done();
 	}
 
 	@Override
@@ -275,6 +279,11 @@ public class MasterFragment extends PreviewFragment
 	public float getZoom()
 	{
 		return zoomSlider.get();
+	}
+
+	public boolean getIsOnLeft()
+	{
+		return cameraPair.local.isLeft;
 	}
 
 	@Override
@@ -326,17 +335,16 @@ public class MasterFragment extends PreviewFragment
 
 	private void resumeConnection()
 	{
-		Thread t = new Thread(new Runnable() {public void run()
+		viewModelExec.execute(() ->
 		{
-			try {Thread.sleep(1500);} catch(InterruptedException e){}
+			try {Thread.sleep(1500);} catch(InterruptedException ignored){}
 			handshake();
-		}});
-		t.start();
+		});
 	}
 
 	private void updateOverlayFromPrefs()
 	{
-		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getContext());
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.getInstance());
 		String overlayType = sharedPref.getString("pref_overlay", "1");
 		int overlayIdx = Integer.parseInt(overlayType);
 		PreviewOverlayWidget.Type otype = PreviewOverlayWidget.Type.values()[overlayIdx];
@@ -375,10 +383,17 @@ public class MasterFragment extends PreviewFragment
 
 	private void swapHand()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
-		boolean val = prefs.getIsOnLeft();
+		boolean val = cameraPair.local.isLeft;
 		val = !val;
-		prefs.setIsOnLeft(val);
+
+		cameraPair.local.isLeft = val;
+		cameraPair.remote.isLeft = !val;
+
+		viewModelExec.execute(() ->
+		{
+			clientViewModel.update(cameraPair.local);
+			clientViewModel.update(cameraPair.remote);
+		});
 
 		if (orientation.isPortait())
 			updateHandPhoneButtonVertical();
@@ -388,8 +403,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateHandPhoneButtonVertical()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
-		boolean val = prefs.getIsOnLeft();
+		boolean val = cameraPair.local.isLeft;
 
 		if (val)
 		{
@@ -423,8 +437,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateHandPhoneButtonHorizontal()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
-		boolean val = prefs.getIsOnLeft();
+		boolean val = cameraPair.local.isLeft;
 
 		if (!val)
 		{
@@ -492,8 +505,7 @@ public class MasterFragment extends PreviewFragment
 
 	private void updateShutterButton()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
-		boolean val = prefs.getIsOnLeft();
+		boolean val = cameraPair.local.isLeft;
 
 		orientation = MainActivity.getInstance().getCurrentOrientation();
 		if (!orientation.isPortait())
@@ -514,10 +526,11 @@ public class MasterFragment extends PreviewFragment
 		}
 	}
 
+	/*
 	private OrientationCtrl orientationCtrl;
 	private void startLocalGravity()
 	{
-		/*orientationCtrl = new OrientationCtrl();
+		orientationCtrl = new OrientationCtrl();
 		orientationCtrl.setChangeListener(new OrientationCtrl.ChangeListener()
 		{
 			@Override
@@ -530,8 +543,8 @@ public class MasterFragment extends PreviewFragment
 				horizontalIndicator.setRotation((float) ax);
 			}
 		});
-		orientationCtrl.start();*/
-	}
+		orientationCtrl.start();
+	}*/
 
 	private void doShutter()
 	{
@@ -539,23 +552,42 @@ public class MasterFragment extends PreviewFragment
 
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MyApplication.getInstance());
 		String captureTypeStr = sharedPref.getString("pref_capture", "preview");
-		PreviewWidget.SHUTTER_TYPE captureType;
+		PreviewWidget.ShutterType captureType;
 
 		switch(captureTypeStr)
 		{
 			case "hi cam":
-				captureType = PreviewWidget.SHUTTER_TYPE.HI_RES;
+				captureType = PreviewWidget.ShutterType.HI_RES;
 				break;
 			case "lo cam":
-				captureType = PreviewWidget.SHUTTER_TYPE.LO_RES;
+				captureType = PreviewWidget.ShutterType.LO_RES;
 				break;
 			default:
-				captureType = PreviewWidget.SHUTTER_TYPE.PREVIEW;
+				captureType = PreviewWidget.ShutterType.PREVIEW;
 				break;
 		}
 
 		fireShutter.execute(shutterDelay, captureType, new FireShutter.Listener()
 		{
+			@Override
+			public void remoteReceived(final ImagePair.ImageArg arg)
+			{
+				viewModelExec.execute(() -> {
+					cameraPair.remote.zoom = arg.zoom;
+					clientViewModel.update(cameraPair.remote);
+				});
+			}
+
+			@Override
+			public void localReceived(final ImagePair.ImageArg arg)
+			{
+				viewModelExec.execute(() ->
+				{
+					cameraPair.local.zoom = arg.zoom;
+					clientViewModel.update(cameraPair.local);
+				});
+			}
+
 			@Override
 			public void onProcessing()
 			{
@@ -584,7 +616,12 @@ public class MasterFragment extends PreviewFragment
 			@Override
 			public void result(long localDelay)
 			{
-				MyApplication.getInstance().getPrefs().setShutterDelay(getCameraId(), localDelay);
+				if (localDelay != client.delay)
+				{
+					client.delay = localDelay;
+					clientViewModel.update(client);
+				}
+
 				setStatus(Status.READY);
 			}
 
@@ -625,12 +662,16 @@ public class MasterFragment extends PreviewFragment
 	}
 
 	private Handler handler;
-	private RemoteState.Listener remoteListener = new RemoteState.Listener()
+	private final RemoteState.Listener remoteListener = new RemoteState.Listener()
 	{
 		@Override
 		public void onZoom(float zoom)
 		{
-			MyApplication.getInstance().getPrefs().setRemoteZoom(getCameraId(), zoom);
+			if (cameraPair.remote.zoom != zoom)
+			{
+				cameraPair.remote.zoom = zoom;
+				clientViewModel.update(cameraPair.remote);
+			}
 		}
 
 		@Override
@@ -683,6 +724,9 @@ public class MasterFragment extends PreviewFragment
 
 	private void handshake()
 	{
+		if (masterShake == null)
+			masterShake = new MasterShake(this, cameraPair);
+
 		masterShake.start(new MasterShake.Listener()
 		{
 			@Override
@@ -702,7 +746,8 @@ public class MasterFragment extends PreviewFragment
 	private void handshakeSuccess()
 	{
 		Log.d("stereoCamera", "slave ready");
-		masterShake = new MasterShake(this);
+
+		masterShake = new MasterShake(this, cameraPair);
 		setStatus(PreviewFragment.Status.READY);
 
 		Context c = MainActivity.getInstance();
@@ -717,12 +762,11 @@ public class MasterFragment extends PreviewFragment
 
 	private void handshakeFail()
 	{
-		handler.post(new Runnable() {public void run()
-		{
+		handler.post(() -> {
 			Log.d("stereoCamera", "slave setup failed");
 			Toast.makeText(MainActivity.getInstance(), R.string.bluetooth_communication_failed_error, Toast.LENGTH_LONG).show();
 			pauseConnection();
 			MainActivity.getInstance().popSubViews();
-		}});
+		});
 	}
 }

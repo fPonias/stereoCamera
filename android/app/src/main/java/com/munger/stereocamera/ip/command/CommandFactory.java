@@ -12,7 +12,6 @@ import com.munger.stereocamera.ip.command.commands.Ping;
 import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.ip.command.commands.SendStatus;
-import com.munger.stereocamera.ip.command.commands.SendZoom;
 import com.munger.stereocamera.ip.command.commands.SetCaptureQuality;
 import com.munger.stereocamera.ip.command.commands.SetFacing;
 import com.munger.stereocamera.ip.command.commands.SetOverlay;
@@ -46,8 +45,6 @@ public class CommandFactory
 				return new SendPhoto();
 			case SET_ZOOM:
 				return new SetZoom();
-			case RECEIVE_ZOOM:
-				return new SendZoom();
 			case DISCONNECT:
 				return new Disconnect();
 			case CONNECTION_PAUSE:

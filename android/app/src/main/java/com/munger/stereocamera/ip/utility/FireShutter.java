@@ -13,9 +13,10 @@ import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.service.PhotoProcessorWorker;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.utility.SingleThreadedExecutor;
 import com.munger.stereocamera.widget.PreviewWidget;
 
-import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,7 +26,7 @@ public class FireShutter
 	private boolean localShutterDone = false;
 	private boolean remoteShutterDone = false;
 	private boolean fireShutter = false;
-	private Thread fireThread = null;
+	private SingleThreadedExecutor fireThread;
 
 	private ImagePair.ImageArg localData;
 	private ImagePair.ImageArg remoteData;
@@ -40,85 +41,76 @@ public class FireShutter
 		masterComm = MyApplication.getInstance().getCtrl();
 		photoFiles = PhotoFiles.Factory.get();
 
-		fireThread = new Thread(this::fireLocal);
+
+		fireThread = new SingleThreadedExecutor("Fire Shutter queue");
 		fireThread.setPriority(Thread.MAX_PRIORITY);
-		isRunning = true;
-		fireThread.start();
+		isRunning = false;
 	}
 
 	public void cleanUp()
 	{
-		synchronized (lock)
-		{
-			isRunning = false;
-			lock.notify();
-		}
+		fireThread.stop();
 	}
 
 	public interface Listener
 	{
+		void remoteReceived(ImagePair.ImageArg arg);
+		void localReceived(ImagePair.ImageArg arg);
 		void onProcessing();
 		void done();
 		void fail();
 	}
 
-	private Listener listener;
+	private ExecuteTask currentTask;
 
-	public void execute(final long delay, PreviewWidget.SHUTTER_TYPE type, final Listener listener)
+	private class ExecuteTask implements Runnable
+	{
+		public PreviewWidget.ShutterType type;
+		public long wait;
+		public Listener listener;
+
+		public ExecuteTask(PreviewWidget.ShutterType type, long wait, Listener listener)
+		{
+			this.type = type;
+			this.wait = wait;
+			this.listener = listener;
+		}
+
+		public void run()
+		{
+			currentTask = this;
+			fireLocal();
+			fireRemote();
+		}
+	}
+
+	public void execute(long delay, PreviewWidget.ShutterType type, Listener listener)
 	{
 		synchronized (lock)
 		{
-			if (fireShutter)
+			if (isRunning)
 				return;
 
-			fireType = type;
-			wait = delay;
-
-			this.listener = listener;
-			fireShutter = true;
-
-			lock.notify();
+			isRunning = true;
 		}
 
-		fireRemote(type);
+		ExecuteTask task = new ExecuteTask(type, delay, listener);
+		fireThread.execute(task);
 	}
 
-	private PreviewWidget.SHUTTER_TYPE fireType;
-	private long wait;
 	private boolean isRunning = false;
 
 	private void fireLocal()
-	{
-		while (isRunning)
-		{
-			boolean runFire = false;
-			synchronized (lock)
-			{
-				try {lock.wait();} catch(InterruptedException ignored){};
-
-				if (!isRunning)
-					return;
-
-				if (fireShutter)
-					runFire = true;
-			}
-
-			if (runFire)
-				fireLocal2(fireType, wait);
-		}
-	}
-
-	private void fireLocal2(final PreviewWidget.SHUTTER_TYPE type, final long wait)
 	{
 		synchronized (lock)
 		{
 			localData = new ImagePair.ImageArg();
 		}
 
-		if (wait > 0)
-			try { Thread.sleep(wait); } catch(InterruptedException e){}
+		if (currentTask.wait > 0)
+			try { Thread.sleep(currentTask.wait); } catch(InterruptedException e){}
 
-		fragment.fireShutter(type, new PreviewWidget.ImageListener()
+		fragment.fireShutter(currentTask.type, new PreviewWidget.ImageListener()
 		{
 			@Override
 			public void onImage(byte[] bytes)
@@ -147,13 +139,12 @@ public class FireShutter
 		}
 
 		handleLocal();
-
-		MyApplication.getInstance().getPrefs().setLocalZoom(fragment.getCameraId(), fragment.getZoom());
 	}
 
 	private void handleLocal()
 	{
 		boolean doNext = false;
+		currentTask.listener.localReceived(localData);
 
 		synchronized (lock)
 		{
@@ -173,7 +164,7 @@ public class FireShutter
 			done();
 	}
 
-	private void fireRemote(PreviewWidget.SHUTTER_TYPE type)
+	private void fireRemote()
 	{
 		masterComm.sendCommand(new com.munger.stereocamera.ip.command.commands.FireShutter(), new CommCtrl.ResponseListener()
 		{
@@ -188,7 +179,7 @@ public class FireShutter
 				String remotePath = photoFiles.saveDataToCache(r.data);
 				remoteData.path = remotePath;
 
-				MyApplication.getInstance().getPrefs().setRemoteZoom(fragment.getCameraId(), r.zoom);
+				currentTask.listener.remoteReceived(remoteData);
 
 				boolean doNext = false;
 
@@ -234,21 +225,24 @@ public class FireShutter
 
 	private void done()
 	{
-		listener.onProcessing();
+		currentTask.listener.onProcessing();
 		photoFiles = PhotoFiles.Factory.get();
 		if (localData == null || remoteData == null)
 		{
-			listener.fail();
+			currentTask.listener.fail();
 			return;
 		}
 
-		boolean isOnLeft = MyApplication.getInstance().getPrefs().getIsOnLeft();
-
-		if (!isOnLeft)
+		if (!fragment.getIsOnLeft())
 		{
 			ImagePair.ImageArg tmp = remoteData;
 			remoteData = localData;
 			localData = tmp;
+		}
+
+		synchronized (lock)
+		{
+			isRunning = false;
 		}
 
 		done2();
@@ -256,10 +250,8 @@ public class FireShutter
 
 	private void done2()
 	{
-		Preferences prefs = MyApplication.getInstance().getPrefs();
 		ImagePair args = new ImagePair();
-		args.flip = prefs.getIsFacing();
-		//args.type = PhotoProcessor.CompositeImageType.SPLIT;
+		args.flip = fragment.getFacing();
 		args.left = localData;
 		args.right = remoteData;
 
@@ -269,12 +261,15 @@ public class FireShutter
 			public void onResult(Uri uri, int id) {
 				SendPhoto cmd = new SendPhoto(id);
 				masterComm.sendCommand(cmd, (success, command, originalCmd) -> {
-					listener.done();
+
+					currentTask.listener.done();
 				});
 			}
 		};
 
-		listener.onProcessing();
+		currentTask.listener.onProcessing();
+		Preferences prefs = new Preferences();
+		prefs.setup();
 		Set<PhotoProcessor.CompositeImageType> types = prefs.getProcessorTypes();
 		int count = types.size();
 		int i = 0;

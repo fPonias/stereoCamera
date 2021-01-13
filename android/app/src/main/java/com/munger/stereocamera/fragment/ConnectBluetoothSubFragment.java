@@ -9,7 +9,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.R;
@@ -19,7 +18,9 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothDiscoverer;
 import com.munger.stereocamera.ip.bluetooth.BluetoothMaster;
 import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.ip.command.CommCtrl;
-import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.utility.data.Client;
+import com.munger.stereocamera.utility.data.ClientViewModel;
+import com.munger.stereocamera.utility.data.ClientViewModelProvider;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -53,14 +54,14 @@ public class ConnectBluetoothSubFragment
 
 
 
-		Preferences.Roles role = parent.prefs.getRole();
-		if (role == Preferences.Roles.MASTER)
+		Client last = parent.getClientModel().getLast();
+		if (last != null && last.role == Client.Role.MASTER)
 		{
 			restoreTitle.setVisibility(View.VISIBLE);
 			listenButton.setVisibility(View.GONE);
 			connectButton.setVisibility(View.VISIBLE);
 		}
-		else if (role == Preferences.Roles.SLAVE)
+		else if (last != null && last.role == Client.Role.SLAVE)
 		{
 			restoreTitle.setVisibility(View.VISIBLE);
 			listenButton.setVisibility(View.VISIBLE);
@@ -75,7 +76,7 @@ public class ConnectBluetoothSubFragment
 
 		connectButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
 		{
-			connect();
+			connect(last);
 		}});
 
 		listenButton.setOnClickListener(new View.OnClickListener() {public void onClick(View view)
@@ -109,7 +110,7 @@ public class ConnectBluetoothSubFragment
 	private static int CONNECT_RETRIES = 2;
 	private static long CONNECT_RETRY_WAIT = 1500;
 
-	public void connect()
+	public void connect(Client client)
 	{
 		MyApplication.getInstance().setupBTServer(new IPListeners.SetupListener()
 		{
@@ -118,10 +119,7 @@ public class ConnectBluetoothSubFragment
 			{
 				btCtrl = MyApplication.getInstance().getBtCtrl();
 				discoverer = btCtrl.getDiscoverer();
-				String id = parent.prefs.getClient();
-
-				if (id != null && id.length() > 0)
-					deviceSelected(id, CONNECT_RETRIES);
+				deviceSelected(client.address, CONNECT_RETRIES);
 			}
 		});
 	}
@@ -289,20 +287,25 @@ public class ConnectBluetoothSubFragment
 				}
 				catch(IOException e){return;}
 
-				parent.handler.post(new Runnable() {public void run()
+				ClientViewModel clientModel = parent.getClientModel();
+				Client cli = clientModel.get(device.getAddress());
+				cli.lastUsed = System.currentTimeMillis();
+				cli.role = Client.Role.MASTER;
+				clientModel.update(cli);
+
+				clientModel.setCurrentClient(cli);
+
+				parent.handler.post(() ->
 				{
 					Toast.makeText(parent.getContext(), R.string.bluetooth_connect_success, Toast.LENGTH_LONG).show();
 
 					if (connectDialog != null)
 						connectDialog.dismiss();
 
-					parent.prefs.setRole(Preferences.Roles.MASTER);
-					parent.prefs.setClient(device.getAddress());
-
 					MainActivity act = MainActivity.getInstance();
 					if (act != null)
 						act.startMasterView();
-				}});
+				});
 			}
 
 			@Override
@@ -357,21 +360,25 @@ public class ConnectBluetoothSubFragment
 			}
 			catch(IOException e){return;}
 
+			ClientViewModel clientModel = parent.getClientModel();
+			String address = btCtrl.getMaster().getLastConnected().getAddress();
+			Client cli = clientModel.get(address);
+			cli.lastUsed = System.currentTimeMillis();
+			cli.role = Client.Role.SLAVE;
+			clientModel.update(cli);
 
-			parent.handler.post(new Runnable() {public void run()
+			clientModel.setCurrentClient(cli);
+
+			parent.handler.post(() ->
 			{
 				if (listenDialog == null)
 					return;
 
-				//listenDialog.setStatus("Connected");
 				listenDialog.dismiss();
 				listenDialog = null;
 
-				parent.prefs.setRole(Preferences.Roles.SLAVE);
-				parent.prefs.setClient(null);
-
 				MainActivity.getInstance().startSlaveView();
-			}});
+			});
 		}
 
 		@Override

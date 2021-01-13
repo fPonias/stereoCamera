@@ -1,6 +1,7 @@
 package com.munger.stereocamera.fragment;
 
 import android.Manifest;
+import android.bluetooth.BluetoothDevice;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -10,11 +11,9 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,9 +29,16 @@ import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
+import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
+import com.munger.stereocamera.utility.data.Client;
+import com.munger.stereocamera.utility.data.ClientViewModel;
+import com.munger.stereocamera.utility.data.ClientViewModelProvider;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
+
+import java.util.HashMap;
+import java.util.Set;
 
 public class ConnectFragment extends BaseFragment
 {
@@ -63,10 +69,21 @@ public class ConnectFragment extends BaseFragment
 
 	}
 
+	private ClientViewModel clientModel;
+	private BluetoothCtrl btCtrl;
+
+	public ClientViewModel getClientModel()
+	{
+		return clientModel;
+	}
+
 	@Override
 	public void onCreate(@Nullable Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+
+		btCtrl = MyApplication.getInstance().getBtCtrl();
+		clientModel = MainActivity.getInstance().getClientViewModel();
 
 		if (savedInstanceState != null && savedInstanceState.containsKey("adLastShown"))
 			lastShown = savedInstanceState.getLong("adLastShown");
@@ -137,6 +154,8 @@ public class ConnectFragment extends BaseFragment
 		requestPermissions();
 
 		MainActivity activity = MainActivity.getInstance();
+		prefs = new Preferences();
+		prefs.setup();
 		/*if (activity.getAdsEnabled())
 		{
 			AdRequest adRequest = new AdRequest.Builder().build();
@@ -158,6 +177,10 @@ public class ConnectFragment extends BaseFragment
 		{
 			doFirstTime();
 		}
+		//else
+		//{
+		//	reconnect();
+		//}
 	}
 
 	private void requestPermissions()
@@ -272,7 +295,6 @@ public class ConnectFragment extends BaseFragment
 
 	private void setupViews()
 	{
-		prefs = MyApplication.getInstance().getPrefs();
 		bluetoothCtrl = new ConnectBluetoothSubFragment(this, bluetoothControls);
 		ethernetCtrl = new ConnectEthernetSubFragment(this, wifiControls);
 
@@ -315,29 +337,26 @@ public class ConnectFragment extends BaseFragment
 		});
 
 		thumbnail.update();
-		thumbnail.setOnClickListener(new View.OnClickListener() { public void onClick(View view)
-		{
-			thumbnailClicked();
-		}});
+		thumbnail.setOnClickListener(view -> thumbnailClicked());
 	}
 
 	private void doFirstTime()
 	{
-		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+		AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.getInstance());
 		builder.setTitle(R.string.first_time_title)
 				.setMessage(R.string.first_time_question)
-				.setNegativeButton(R.string.no_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)
+				.setNegativeButton(R.string.no_button, (dialog, which) ->
 				{
 					prefs.setFirstTime(false);
 					firstTimeDialog.dismiss();
-				}})
-				.setPositiveButton(R.string.yes_button, new DialogInterface.OnClickListener() { public void onClick(DialogInterface dialog, int which)
+				})
+				.setPositiveButton(R.string.yes_button, (dialog, which) ->
 				{
 					prefs.setFirstTime(false);
 					firstTimeDialog.dismiss();
 
 					MainActivity.getInstance().openHelp();
-				}});
+				});
 
 		firstTimeDialog = builder.create();
 		firstTimeDialog.setCanceledOnTouchOutside(false);
@@ -346,25 +365,34 @@ public class ConnectFragment extends BaseFragment
 
 	public void reconnect()
 	{
-		//if (prefs.getFirstTime() == true)
-		if (true)
-			return;
-
-		if (bluetoothControls.getVisibility() == View.VISIBLE)
+		Thread t = new Thread(() ->
 		{
-			Preferences.Roles role = prefs.getRole();
-			if (role == Preferences.Roles.MASTER)
+			if (clientModel == null)
+				return;
+
+			if (bluetoothControls.getVisibility() == View.VISIBLE)
 			{
-				bluetoothCtrl.connect();
+				reconnect2();
 			}
-			else if (role == Preferences.Roles.SLAVE)
-			{
+		});
+		t.start();
+	}
+
+	public void reconnect2()
+	{
+		Set<BluetoothDevice> devices = btCtrl.getKnownDevices();
+
+		for (BluetoothDevice device : devices)
+		{
+			String addr = device.getAddress();
+			if (!clientModel.has(addr))
+				continue;
+
+			Client client = clientModel.get(addr);
+			if (client.role == Client.Role.MASTER)
+				bluetoothCtrl.connect(client);
+			else if (client.role == Client.Role.SLAVE)
 				bluetoothCtrl.listen();
-			}
-		}
-		else
-		{
-
 		}
 	}
 

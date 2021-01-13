@@ -218,7 +218,7 @@ public class ConnectEthernetSubFragment
 				listenDialog.dismiss();
 				listenDialog = null;
 
-				if (ethCtrl.isMaster())
+				/*if (ethCtrl.isMaster())
 				{
 					parent.prefs.setRole(Preferences.Roles.MASTER);
 					parent.prefs.setClient(ethCtrl.getIpAddress());
@@ -231,7 +231,7 @@ public class ConnectEthernetSubFragment
 					parent.prefs.setClient(null);
 
 					MainActivity.getInstance().startSlaveView();
-				}
+				}*/
 			}});
 		}
 

@@ -2,14 +2,13 @@ package com.munger.stereocamera.ip.utility;
 
 import android.util.Log;
 
-import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.Command;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.fragment.PreviewFragment;
+import com.munger.stereocamera.ip.command.commands.FireShutter;
 import com.munger.stereocamera.ip.command.commands.SendGravity;
 import com.munger.stereocamera.ip.command.commands.SendStatus;
-import com.munger.stereocamera.ip.command.commands.SendZoom;
 
 import java.util.ArrayList;
 
@@ -92,17 +91,16 @@ public class RemoteState
 			}
 		}});
 
-		comm.registerListener(Command.Type.RECEIVE_ZOOM, new CommCtrl.Listener() { public void onCommand(Command command)
+		comm.registerListener(Command.Type.FIRE_SHUTTER, (command ->
 		{
-			SendZoom r = (SendZoom) command;
-			RemoteState.this.zoom = r.zoom;
+			FireShutter cmd = (FireShutter) command;
 
 			synchronized (listenerLock)
 			{
-				for (Listener listener : listeners)
-					listener.onZoom(r.zoom);
+				for(Listener listener : listeners)
+					listener.onZoom(cmd.zoom);
 			}
-		}});
+		}));
 
 		comm.registerListener(Command.Type.CONNECTION_PAUSE, new CommCtrl.Listener() { public void onCommand(Command command)
 		{
