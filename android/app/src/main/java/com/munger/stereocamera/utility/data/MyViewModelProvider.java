@@ -4,9 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelStoreOwner;
 
-public class ClientViewModelProvider extends ViewModelProvider
+public class MyViewModelProvider extends ViewModelProvider
 {
-    public ClientViewModelProvider(@NonNull ViewModelStoreOwner owner) {
+    public MyViewModelProvider(@NonNull ViewModelStoreOwner owner) {
         super(owner);
     }
 }

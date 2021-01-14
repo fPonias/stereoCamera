@@ -3,7 +3,6 @@ package com.munger.stereocamera.fragment;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,35 +21,36 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.munger.stereocamera.MainActivity;import com.munger.stereocamera.R;
+import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.R;
 import com.munger.stereocamera.utility.PhotoFile;
-import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.utility.data.FileSystemViewModel;
 import com.munger.stereocamera.widget.MyShareMenuItemCtrl;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class Gallery extends Fragment
 {
     private RecyclerView grid;
     private LayoutMgr layoutMgr;
     private RecyclerView.Adapter<RecyclerView.ViewHolder> adapter;
-    private PhotoFiles.DatedFiles imageFiles;
-    private PhotoFiles files;
 
     private ViewGroup bottomMenu;
-    private AppCompatImageButton shareButton;
-    private AppCompatImageButton trashButton;
     private MyShareMenuItemCtrl shareMenuItemCtrl;
 
     public enum Types
@@ -64,20 +64,11 @@ public class Gallery extends Fragment
     {
         super.onCreate(savedInstanceState);
 
-        files = PhotoFiles.Factory.get();
+        FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
+        MutableLiveData<Long> photoListUpdate = vm.getLastUpdate();
+        photoListUpdate.observe(this, this::update);
+
         adapter = new Gallery.Adapter();
-
-        Thread t = new Thread(() -> {
-            imageFiles = files.getFilesByDate();
-
-            if (adapter != null)
-            {
-                MainActivity.getInstance().runOnUiThread(() -> {
-                    adapter.notifyDataSetChanged();
-                });
-            }
-        });
-        t.start();
 
         if (savedInstanceState != null && savedInstanceState.containsKey("firstIndex"))
         {
@@ -86,30 +77,66 @@ public class Gallery extends Fragment
             int[] arr = savedInstanceState.getIntArray("selected");
 
             selected = new HashSet<>();
-            int sz = arr.length;
-            for (int i = 0; i < sz; i++)
-                selected.add(arr[i]);
+            for (int value : arr)
+                selected.add(value);
         }
 
         setHasOptionsMenu(true);
     }
 
-    private MenuItem editItem;
+    private DatedFiles imageFiles;
+
+    public static class DatedFiles
+    {
+        public ArrayList<Long> dates = new ArrayList<>();
+        public HashMap<Long, ArrayList<PhotoFile>> files = new HashMap<>();
+
+        public ArrayList<PhotoFile> get(long date)
+        {
+            return files.get(date);
+        }
+    }
+
+    private void update(long lastUpdate)
+    {
+        imageFiles = new DatedFiles();
+
+        TreeMap<Long, PhotoFile> longPhotoFileTreeMap = MainActivity.getInstance().getFileSystemViewModel().getPhotoList();
+        for (Map.Entry<Long, PhotoFile> item : longPhotoFileTreeMap.entrySet())
+        {
+            long idx = item.getKey();
+            idx = (idx / 86400) * 86400;
+
+            if (!imageFiles.files.containsKey(idx))
+            {
+                imageFiles.dates.add(idx);
+                imageFiles.files.put(idx, new ArrayList<>());
+            }
+
+            Objects.requireNonNull(imageFiles.files.get(idx)).add(item.getValue());
+        }
+
+        Collections.sort(imageFiles.dates, (l, r) -> (int) (r - l));
+
+
+        adapter.notifyDataSetChanged();
+    }
+
     private boolean isEditing = false;
     private HashSet<Integer> selected = new HashSet<>();
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater)
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater)
     {
         inflater.inflate(R.menu.gallery_menu, menu);
 
-        editItem = menu.findItem(R.id.editBtn);
+        MenuItem editItem = menu.findItem(R.id.editBtn);
 
-        editItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {public boolean onMenuItemClick(MenuItem item)
+        editItem.setOnMenuItemClickListener(item ->
         {
             setIsEditing(!isEditing);
             return true;
-        }});
+        });
     }
 
     private void setIsEditing(boolean isEditing)
@@ -120,10 +147,7 @@ public class Gallery extends Fragment
         {
             bottomMenu.setVisibility(View.VISIBLE);
 
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {public void run()
-            {
-                shareMenuItemCtrl.updateMenuPosition();
-            }}, 250);
+            new Handler(Looper.getMainLooper()).postDelayed(() -> shareMenuItemCtrl.updateMenuPosition(), 250);
         }
         else
         {
@@ -161,10 +185,10 @@ public class Gallery extends Fragment
         {
             position--;
 
-            ArrayList<PhotoFile> list = imageFiles.files.get(date);
+            ArrayList<PhotoFile> list = imageFiles.get(date);
             position -= list.size();
 
-            if (position > 0)
+            if (position >= 0)
                 ret++;
         }
 
@@ -181,6 +205,7 @@ public class Gallery extends Fragment
             position--;
 
             ArrayList<PhotoFile> list = imageFiles.files.get(date);
+            assert list != null;
             int imgSz = list.size();
 
             if (position < imgSz)
@@ -209,13 +234,10 @@ public class Gallery extends Fragment
         View ret = inflater.inflate(R.layout.fragment_gallery, container, false);
 
         bottomMenu = ret.findViewById(R.id.bottom_menu);
-        shareButton = ret.findViewById(R.id.share_btn);
-        trashButton = ret.findViewById(R.id.trash_btn);
+        AppCompatImageButton shareButton = ret.findViewById(R.id.share_btn);
+        AppCompatImageButton trashButton = ret.findViewById(R.id.trash_btn);
 
-        trashButton.setOnClickListener(new View.OnClickListener() { public void onClick(View v)
-        {
-            deleteSelected();
-        }});
+        trashButton.setOnClickListener(v -> deleteSelected());
 
         shareMenuItemCtrl = new MyShareMenuItemCtrl(getContext(), shareButton, R.id.share_btn);
         updateShareMenuItemCtrl();
@@ -234,62 +256,27 @@ public class Gallery extends Fragment
         return ret;
     }
 
-    private long getNthDate(int n)
-    {
-        int i = 0;
-        for (long date : imageFiles.dates)
-        {
-            if (i == n)
-                return date;
-
-            i++;
-        }
-
-        return -1;
-    }
-
     private void deleteSelected()
     {
-        int[] toDelete = new int[selected.size()];
+        int[] ids = new int[selected.size()];
         int i = 0;
-        Iterator<Integer> iter = selected.iterator();
-        while(iter.hasNext())
+        for (int position : selected)
         {
-            int position = iter.next();
-            toDelete[i] = position;
             int idx = getIdx(position);
             int subidx = getSubIdx(position);
 
             long date = imageFiles.dates.get(idx);
-            int id = imageFiles.files.get(date).get(subidx).id;
-            files.delete(id);
+            ids[i] = Objects.requireNonNull(imageFiles.files.get(date)).get(subidx).id;
             i++;
         }
 
-        Arrays.sort(toDelete);
-        int sz = toDelete.length;
-        for (i = sz - 1; i >= 0; i--)
-        {
-            int position = toDelete[i];
-            int idx = getIdx(position);
-            int subidx = getSubIdx(position);
-
-            long hash = imageFiles.dates.get(idx);
-            ArrayList<PhotoFile> paths = imageFiles.files.get(hash);
-
-            paths.remove(subidx);
-            if (paths.size() == 0)
-            {
-                imageFiles.files.remove(hash);
-                imageFiles.dates.remove(idx);
-            }
-        }
+        FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
+        vm.deletePhotos(ids);
 
         selected.clear();
         setIsEditing(false);
 
         layoutMgr.reset();
-        adapter.notifyDataSetChanged();
     }
 
     private void updateShareMenuItemCtrl()
@@ -308,7 +295,7 @@ public class Gallery extends Fragment
                 int subidx = getSubIdx(pos);
 
                 Long hash = imageFiles.dates.get(idx);
-                list[i] = imageFiles.files.get(hash).get(subidx);
+                list[i] = Objects.requireNonNull(imageFiles.files.get(hash)).get(subidx);
                 i++;
             }
 
@@ -321,7 +308,7 @@ public class Gallery extends Fragment
         int idx = getIdx(position);
         int subIdx = getSubIdx(position);
         long dt = imageFiles.dates.get(idx);
-        PhotoFile data = imageFiles.files.get(dt).get(subIdx);
+        PhotoFile data = Objects.requireNonNull(imageFiles.files.get(dt)).get(subIdx);
 
         MainActivity.getInstance().startThumbnailView(data);
     }
@@ -375,21 +362,20 @@ public class Gallery extends Fragment
             }
         }
 
-        private HashMap<Integer, Integer> widgetIndex = new HashMap<>();
+        private final HashMap<Integer, Integer> widgetIndex = new HashMap<>();
 
-        private View.OnClickListener clickListener = new View.OnClickListener()
+        private final View.OnClickListener clickListener = view ->
         {
-            @Override
-            public void onClick(View view)
-            {
-                int tag = (int) view.getTag();
-                int position = widgetIndex.get(tag);
+            int tag = (int) view.getTag();
+            Integer position = widgetIndex.get(tag);
 
-                if (!isEditing)
-                    openThumbnail(position);
-                else
-                    toggleSelected(view, position);
-            }
+            if (position == null)
+                return;
+
+            if (!isEditing)
+                openThumbnail(position);
+            else
+                toggleSelected(view, position);
         };
 
         @Override
@@ -404,7 +390,7 @@ public class Gallery extends Fragment
             {
                 ret++;
                 long date = imageFiles.dates.get(i);
-                int subSz = imageFiles.files.get(date).size();
+                int subSz = Objects.requireNonNull(imageFiles.files.get(date)).size();
                 ret += subSz;
             }
 
@@ -444,35 +430,33 @@ public class Gallery extends Fragment
 
         private String getDateFromLong(long dt)
         {
-            long year = dt / 10000;
-            long month = (dt - year * 10000) / 100;
-            long day = (dt - year * 10000 - month * 100);
-
             Calendar now = Calendar.getInstance();
-            int thisyear = now.get(Calendar.YEAR);
+            now.set(Calendar.HOUR, 0);
+            now.set(Calendar.MINUTE, 0);
+            now.set(Calendar.SECOND, 0);
+            now.set(Calendar.MILLISECOND, 0);
+            long nowMillis = now.getTimeInMillis();
 
             Calendar then = Calendar.getInstance();
-            then.set(Calendar.YEAR, (int) year);
-            then.set(Calendar.MONTH, (int) month);
-            then.set(Calendar.DAY_OF_MONTH, (int) day);
+            then.setTimeInMillis(dt * 1000);
+            int year = then.get(Calendar.YEAR);
+            int month = then.get(Calendar.MONTH);
+            int day = then.get(Calendar.DAY_OF_MONTH);
+            long thenMillis = then.getTimeInMillis();
 
-            if (now.equals(then))
-            {
+            if (then.after(now))
                 return "Today";
-            }
 
             now.add(Calendar.DAY_OF_YEAR, -1);
-            if (now.equals(then))
-            {
+            if (then.after(now))
                 return "Yesterday";
-            }
 
             StringBuilder ret = new StringBuilder();
-            ret.append(months[(int) month - 1]);
+            ret.append(months[(int) month]);
             ret.append(" ");
             ret.append(day);
 
-            if (year != Calendar.getInstance().get(Calendar.YEAR))
+            if (year != now.get(Calendar.YEAR))
             {
                 ret.append(" ");
                 ret.append(year);
@@ -499,32 +483,19 @@ public class Gallery extends Fragment
                 int tag = (int) holder.itemView.getTag();
                 widgetIndex.put(tag, position);
 
-                PhotoFile data = imageFiles.files.get(dt).get(subIdx);
-                try (InputStream ins = files.getStream(data.uri))
-                {
-                    Bitmap bmp = getBitmap(ins);
-                    imageHolder.thumbnail.setImageBitmap(bmp);
+                PhotoFile data = Objects.requireNonNull(imageFiles.files.get(dt)).get(subIdx);
+                FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
+                Bitmap bmp = vm.getPhotoFiles().getThumbnail(data.id);
+                imageHolder.thumbnail.setImageBitmap(bmp);
 
-                    if (selected.contains(position))
-                        imageHolder.selectedIcon.setVisibility(View.VISIBLE);
-                    else
-                        imageHolder.selectedIcon.setVisibility(View.INVISIBLE);
-                }
-                catch (IOException e){
+                if (selected.contains(position))
+                    imageHolder.selectedIcon.setVisibility(View.VISIBLE);
+                else
                     imageHolder.selectedIcon.setVisibility(View.INVISIBLE);
-                }
             }
         }
 
-        private Rect emptyRect = new Rect();
-
-        private Bitmap getBitmap(InputStream ins)
-        {
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inSampleSize = 16;
-            Bitmap bmp = BitmapFactory.decodeStream(ins, emptyRect, options);
-            return bmp;
-        }
+        private final Rect emptyRect = new Rect();
     }
 
     private class LayoutMgr extends RecyclerView.LayoutManager
@@ -535,16 +506,14 @@ public class Gallery extends Fragment
         private ArrayList<Integer> itemMaxYs;
         private ArrayList<Integer> itemMinXs;
         private ArrayList<Integer> itemMaxXs;
-        private ArrayList<Types> itemTypes;
 
         @Override
         public RecyclerView.LayoutParams generateDefaultLayoutParams() {
-            RecyclerView.LayoutParams ret = new RecyclerView.LayoutParams(
+
+            return new RecyclerView.LayoutParams(
                     RecyclerView.LayoutParams.WRAP_CONTENT,
                     RecyclerView.LayoutParams.WRAP_CONTENT
             );
-
-            return ret;
         }
 
         private void calculatePositions(RecyclerView.State state)
@@ -553,7 +522,7 @@ public class Gallery extends Fragment
             itemMaxYs = new ArrayList<>();
             itemMinXs = new ArrayList<>();
             itemMaxXs = new ArrayList<>();
-            itemTypes = new ArrayList<>();
+            ArrayList<Types> itemTypes = new ArrayList<>();
 
             Display display = getContext().getDisplay();
             DisplayMetrics outMetrics = new DisplayMetrics ();
@@ -669,7 +638,7 @@ public class Gallery extends Fragment
             }
             else if (nextY < 0)
             {
-                dy = 0 - currentY;
+                dy = -currentY;
                 currentY = 0;
             }
             else
@@ -683,7 +652,7 @@ public class Gallery extends Fragment
             return dy;
         }
 
-        private HashMap<Integer, View> placedViews = new HashMap<>();
+        private final HashMap<Integer, View> placedViews = new HashMap<>();
 
         private void doLayout(RecyclerView.Recycler recycler, RecyclerView.State state)
         {
@@ -718,6 +687,7 @@ public class Gallery extends Fragment
                     if (placedViews.containsKey(i))
                     {
                         View view = placedViews.remove(i);
+                        assert view != null;
                         removeAndRecycleView(view, recycler);
                     }
                 }

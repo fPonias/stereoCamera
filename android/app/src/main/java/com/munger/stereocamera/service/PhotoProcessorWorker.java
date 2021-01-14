@@ -17,6 +17,7 @@ import androidx.work.WorkerParameters;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.munger.stereocamera.MainActivity;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 
 import java.io.File;
@@ -66,7 +67,7 @@ public class PhotoProcessorWorker
             if (path == null)
                 return Result.success(); //don't ever return a failure.
 
-            PhotoFiles.SaveResult result = files.saveFile(new File(path));
+            PhotoFile result = MainActivity.getInstance().getFileSystemViewModel().saveFile(new File(path));
             Data resData = new Data.Builder()
                     .putString("URI", result.uri.toString())
                     .putInt("ID", result.id)
@@ -74,7 +75,6 @@ public class PhotoProcessorWorker
 
 
             Result ret = Result.success(resData);
-            MainActivity.getInstance().onNewPhoto(result.uri);
             return ret;
         }
 

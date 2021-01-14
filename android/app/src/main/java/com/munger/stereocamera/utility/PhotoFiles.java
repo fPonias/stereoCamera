@@ -1,7 +1,11 @@
 package com.munger.stereocamera.utility;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 
@@ -81,12 +85,6 @@ public abstract class PhotoFiles
 		}
 	}
 
-	public static class DatedFiles
-	{
-		public ArrayList<Long> dates = new ArrayList<>();
-		public HashMap<Long, ArrayList<PhotoFile>> files = new HashMap<>();
-	}
-
 	private Long getIndexFromLong(long dt)
 	{
 		long ret = 0;
@@ -101,29 +99,6 @@ public abstract class PhotoFiles
 
 		int day = cal.get(Calendar.DAY_OF_MONTH);
 		ret += day;
-
-		return ret;
-	}
-
-	public DatedFiles getFilesByDate()
-	{
-		DatedFiles ret = new DatedFiles();
-		ArrayList<PhotoFile> data = getAllFiles();
-
-		for (PhotoFile item : data)
-		{
-			long idx = getIndexFromLong(item.date);
-
-			if (!ret.files.containsKey(idx))
-			{
-				ret.dates.add(idx);
-				ret.files.put(idx, new ArrayList<>());
-			}
-
-			ret.files.get(idx).add(item);
-		}
-
-		Collections.sort(ret.dates, (l, r) -> (int) (r - l));
 
 		return ret;
 	}
@@ -196,5 +171,43 @@ public abstract class PhotoFiles
 		} while (out.exists());
 
 		return out;
+	}
+
+	public Bitmap getThumbnail(int id)
+	{
+		if (!MainActivity.getInstance().hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
+			return null;
+
+		InputStream str;
+		try {
+			str = getStream(id);
+
+			if (str == null)
+				throw new IOException("null stream encountered");
+		}
+		catch(IOException e){
+			return null;
+		}
+
+		str.mark(1024 * 1024);
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeStream(str, new Rect(), options);
+		double maxw = 512;
+		double picw = options.outWidth;
+		int skip = (int) Math.ceil(picw / maxw);
+
+
+		try{
+			str.reset();
+		}
+		catch(IOException e){
+			try { str =  getStream(id); } catch(IOException ignored) { return null; }
+		}
+
+		options.inSampleSize = skip;
+		options.inJustDecodeBounds = false;
+		Bitmap bmp = BitmapFactory.decodeStream(str, new Rect(), options);
+		return bmp;
 	}
 }

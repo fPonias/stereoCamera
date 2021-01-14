@@ -4,15 +4,17 @@ import android.Manifest;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
-import androidx.appcompat.widget.AppCompatImageView;
-
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
+
+import androidx.appcompat.widget.AppCompatImageView;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.MutableLiveData;
 
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.utility.PhotoFile;
-import com.munger.stereocamera.utility.PhotoFiles;
+import com.munger.stereocamera.utility.data.FileSystemViewModel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,82 +28,45 @@ public class ThumbnailWidget extends AppCompatImageView
 	public ThumbnailWidget(Context context)
 	{
 		super(context);
+
+		init(context);
 	}
 
 	public ThumbnailWidget(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
+
+		init(context);
 	}
 
 	public ThumbnailWidget(Context context, AttributeSet attrs, int defStyleAttr)
 	{
 		super(context, attrs, defStyleAttr);
+
+		init(context);
 	}
 
-	@Override
-	protected void onFinishInflate()
+	private void init(Context context)
 	{
-		super.onFinishInflate();
-		update();
-	}
-
-	private MainActivity.Listener appListener = new MainActivity.Listener()
-	{
-		public void onNewPhoto(String path)
+		if (!(context instanceof LifecycleOwner))
 		{
-			update();
+			Log.d("stereocamera", "context passed to ThumbnailWidget is not a LifecycleOwner");
+			return;
 		}
-	};
 
-	@Override
-	protected void onDetachedFromWindow()
-	{
-		super.onDetachedFromWindow();
-
-		MainActivity.getInstance().removeListener(appListener);
+		LifecycleOwner c = (LifecycleOwner) context;
+		FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
+		MutableLiveData<PhotoFile> mostRecent = vm.getMostRecentPhoto();
+		mostRecent.observe(c, this::update);
 	}
 
-	@Override
-	protected void onAttachedToWindow()
-	{
-		super.onAttachedToWindow();
-
-		MainActivity.getInstance().addListener(appListener);
-	}
-
-	public void update()
+	public void update(PhotoFile photoFile)
 	{
 		if (!MainActivity.getInstance().hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
 			return;
 
-		final PhotoFiles photoFiles = PhotoFiles.Factory.get();
-		if (photoFiles.isEmpty())
-			setImageDrawable(null);
-
-		InputStream str = photoFiles.getNewestAsStream();
-
-		if (str == null)
-			return;
-
-		str.mark(1024 * 1024);
-		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeStream(str, new Rect(), options);
-		double maxw = 512;
-		double picw = options.outWidth;
-		int skip = (int) Math.ceil(picw / maxw);
-
-
-		try{
-			str.reset();
-		}
-		catch(IOException e){
-			str = photoFiles.getNewestAsStream();
-		}
-
-		options.inSampleSize = skip;
-		options.inJustDecodeBounds = false;
-		Bitmap bmp = BitmapFactory.decodeStream(str, new Rect(), options);
+		FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
+		Bitmap bmp = vm.getPhotoFiles().getThumbnail(photoFile.id);
 		setImageBitmap(bmp);
 	}
 }

@@ -26,6 +26,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.MutableLiveData;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
@@ -37,6 +38,7 @@ import com.munger.stereocamera.widget.MyShareMenuItemCtrl;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.TreeMap;
 
 
 public class ImageViewerFragment extends Fragment
@@ -367,11 +369,14 @@ public class ImageViewerFragment extends Fragment
 	{
 		if (shareMenuItemCtrl != null && adapter != null)
 		{
-			//String[] list = adapter.getData();
-			//int sz = list.length;
-			//String selectedPath = list[pageIndex];
+			int idx = pager.getCurrentItem();
+			ImagePage frag = adapter.getItem(idx);
 
-			//shareMenuItemCtrl.setCurrentPath(selectedPath);
+			if (frag != null)
+			{
+				PhotoFile data = frag.getData();
+				shareMenuItemCtrl.setData(data);
+			}
 		}
 	}
 
@@ -405,7 +410,17 @@ public class ImageViewerFragment extends Fragment
 			pageIndex = savedInstanceState.getInt("index", 0);
 		}
 
-		updateShareMenuItemCtrl();
+		MainActivity context = MainActivity.getInstance();
+		MutableLiveData<Long> lastFileUpdate = context.getFileSystemViewModel().getLastUpdate();
+		lastFileUpdate.observe(context, longPhotoFileTreeMap ->
+		{
+			if (adapter == null)
+				return;
+
+			TreeMap<Long, PhotoFile> files = context.getFileSystemViewModel().getPhotoList();
+			adapter.update(files);
+			updateShareMenuItemCtrl();
+		});
 	}
 
 	MainActivity.Listener appListener = new MainActivity.Listener()
@@ -471,8 +486,11 @@ public class ImageViewerFragment extends Fragment
 		super.onStop();
 		resetLabel();
 
-		adapter.cleanUp();
-		adapter = null;
+		if (adapter != null)
+		{
+			adapter.cleanUp();
+			adapter = null;
+		}
 	}
 
 	public MenuItem deleteMenuItem;
@@ -511,11 +529,7 @@ public class ImageViewerFragment extends Fragment
 		PhotoFile data = frag.getData();
 		frag.cleanUp();
 
-		adapter.photoFiles.delete(data.id);
-		adapter.update();
-		updateShareMenuItemCtrl();
-
-		updateLabel(idx);
+		MainActivity.getInstance().getFileSystemViewModel().deletePhotos(new int[]{data.id});
 
 		if (adapter.files.size() == 1)
 		{
@@ -530,40 +544,33 @@ public class ImageViewerFragment extends Fragment
 
 	private void updateAdapter()
 	{
-		final PhotoFiles photoFiles = PhotoFiles.Factory.get();
-
 		if (adapter == null)
 		{
-			adapter = new ImagePagerAdapter(getContext(), photoFiles);
+			adapter = new ImagePagerAdapter();
 
 			updateLabel(pageIndex);
 			pager.setAdapter(adapter);
 			updateShareMenuItemCtrl();
 		}
-		else
-			adapter.update();
+
+		TreeMap<Long, PhotoFile> files = MainActivity.getInstance().getFileSystemViewModel().getPhotoList();
+		adapter.update(files);
 	}
 
 	public class ImagePagerAdapter extends PagerAdapter
 	{
-		private Context context;
-		private PhotoFiles photoFiles;
 		private ArrayList<PhotoFile> files;
 		private HashMap<Integer, ImagePage> pages = new HashMap<>();
 		private final Object lock = new Object();
 
-		public ImagePagerAdapter(Context c, PhotoFiles pf)
+		public ImagePagerAdapter()
 		{
 			super();
-
-			this.context = c;
-			this.photoFiles = pf;
-			update();
 		}
 
-		public void update()
+		public void update(TreeMap<Long, PhotoFile> f)
 		{
-			updateData();
+			updateData(f);
 
 			if (startingData != null)
 			{
@@ -600,9 +607,13 @@ public class ImageViewerFragment extends Fragment
 			notifyDataSetChanged();
 		}
 
-		private void updateData()
+		private void updateData(TreeMap<Long, PhotoFile> filesMap)
 		{
-			files = photoFiles.getAllFiles();
+			files = new ArrayList<>();
+			for (Long index : filesMap.navigableKeySet())
+			{
+				files.add(filesMap.get(index));
+			}
 		}
 
 		public void cleanUp()
@@ -641,6 +652,9 @@ public class ImageViewerFragment extends Fragment
 		@Override
 		public int getCount()
 		{
+			if (files == null)
+				return 0;
+
 			return files.size();
 		}
 
@@ -660,7 +674,7 @@ public class ImageViewerFragment extends Fragment
 		@Override
 		public Object instantiateItem(@NonNull ViewGroup container, int position)
 		{
-			ImagePage pg = new ImagePage(context);
+			ImagePage pg = new ImagePage(MainActivity.getInstance());
 
 			FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
 			pg.setLayoutParams(lp);
@@ -684,7 +698,7 @@ public class ImageViewerFragment extends Fragment
 		}
 	}
 
-	public static class ImagePage extends FrameLayout
+	public class ImagePage extends FrameLayout
 	{
 		private ImageView thumbnailView;
 		private Bitmap bmp;
@@ -754,6 +768,8 @@ public class ImageViewerFragment extends Fragment
 
 			if (thumbnailView != null)
 				thumbnailView.setImageURI(data.uri);
+
+			ImageViewerFragment.this.updateShareMenuItemCtrl();
 		}
 
 		public PhotoFile getData()

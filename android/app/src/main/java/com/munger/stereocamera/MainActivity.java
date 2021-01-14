@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Surface;
+import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
@@ -20,7 +21,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.room.Room;
 
 import com.munger.stereocamera.fragment.ConnectFragment;
 import com.munger.stereocamera.fragment.Gallery;
@@ -37,9 +37,9 @@ import com.munger.stereocamera.utility.InteractiveReceiver;
 import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
-import com.munger.stereocamera.utility.data.AppDatabase;
 import com.munger.stereocamera.utility.data.ClientViewModel;
-import com.munger.stereocamera.utility.data.ClientViewModelProvider;
+import com.munger.stereocamera.utility.data.MyViewModelProvider;
+import com.munger.stereocamera.utility.data.FileSystemViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +58,10 @@ public class MainActivity extends AppCompatActivity
 	private InteractiveReceiver interactiveReceiver;
 	public PhotoProcessorWorker photoProcessorWorker;
 	private ClientViewModel clientViewModel;
+	private FileSystemViewModel fileSystemViewModel;
 
 	public ClientViewModel getClientViewModel() {return clientViewModel;}
+	public FileSystemViewModel getFileSystemViewModel() { return fileSystemViewModel; }
 
 	public boolean getAdsEnabled() {return MyApplication.getInstance().getAdsEnabled();}
 
@@ -86,7 +88,9 @@ public class MainActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 
 		new Thread(() ->{
- 			clientViewModel = new ClientViewModelProvider(this).get(ClientViewModel.class);
+ 			MyViewModelProvider prov = new MyViewModelProvider(this);
+ 			clientViewModel = prov.get(ClientViewModel.class);
+ 			fileSystemViewModel = prov.get(FileSystemViewModel.class);
 
  			runOnUiThread(() ->
 			{
@@ -324,6 +328,14 @@ public class MainActivity extends AppCompatActivity
 		ft.commit();
 	}
 
+	public void setKeepScreenOn(boolean screenOn)
+	{
+		if (screenOn)
+			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		else
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+	}
+
 	public void popSubViews()
 	{
 		if (!isRunning)
@@ -454,11 +466,25 @@ public class MainActivity extends AppCompatActivity
 
 		switch (rotation)
 		{
-			case Surface.ROTATION_0: return PhotoOrientation.DEG_0;
-			case Surface.ROTATION_90: return PhotoOrientation.DEG_90;
-			case Surface.ROTATION_180: return PhotoOrientation.DEG_180;
-			case Surface.ROTATION_270: return PhotoOrientation.DEG_270;
+			case Surface.ROTATION_0: return PhotoOrientation.DEG_270;
+			case Surface.ROTATION_90: return PhotoOrientation.DEG_0;
+			case Surface.ROTATION_180: return PhotoOrientation.DEG_90;
+			case Surface.ROTATION_270: return PhotoOrientation.DEG_180;
 			default: return PhotoOrientation.DEG_0;
+		}
+	}
+
+	public boolean isPortrait()
+	{
+		int rotation = getDisplay().getRotation();
+
+		switch (rotation)
+		{
+			case Surface.ROTATION_0:
+			case Surface.ROTATION_180:
+				return true;
+			default:
+				return false;
 		}
 	}
 

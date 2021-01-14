@@ -20,7 +20,6 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothSlave;
 import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.utility.data.Client;
 import com.munger.stereocamera.utility.data.ClientViewModel;
-import com.munger.stereocamera.utility.data.ClientViewModelProvider;
 
 import java.io.IOException;
 import java.util.HashMap;

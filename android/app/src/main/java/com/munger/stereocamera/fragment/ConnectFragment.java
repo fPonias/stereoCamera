@@ -2,7 +2,6 @@ package com.munger.stereocamera.fragment;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.MutableLiveData;
 
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,11 +31,9 @@ import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.utility.data.Client;
 import com.munger.stereocamera.utility.data.ClientViewModel;
-import com.munger.stereocamera.utility.data.ClientViewModelProvider;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
-import java.util.HashMap;
 import java.util.Set;
 
 public class ConnectFragment extends BaseFragment
@@ -120,7 +116,7 @@ public class ConnectFragment extends BaseFragment
 		setHasOptionsMenu(true);
 
 		orientation = MainActivity.getInstance().getCurrentOrientation();
-		if (orientation.isPortait())
+		if (MainActivity.getInstance().isPortrait())
 			view = inflater.inflate(R.layout.fragment_connect, container, false);
 		else
 			view = inflater.inflate(R.layout.fragment_connect_horizontal, container, false);
@@ -193,8 +189,6 @@ public class ConnectFragment extends BaseFragment
 
 			return;
 		}
-
-		thumbnail.update();
 	}
 
 	@Override
@@ -336,7 +330,6 @@ public class ConnectFragment extends BaseFragment
 			}
 		});
 
-		thumbnail.update();
 		thumbnail.setOnClickListener(view -> thumbnailClicked());
 	}
 
