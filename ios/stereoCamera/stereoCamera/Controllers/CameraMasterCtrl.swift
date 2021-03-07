@@ -178,7 +178,11 @@ class CameraMasterCtrl: CameraBaseCtrl
     
     func handshake()
     {
-        showLoader(true)
+        DispatchQueue.main.async
+        {
+            self.showLoader(true)
+        }
+        
         self.masterShake.start(listener: {[unowned self] (success: Bool) -> Void
         in
             DispatchQueue.main.async
@@ -215,8 +219,8 @@ class CameraMasterCtrl: CameraBaseCtrl
             
             showLoader(true)
         }
-
-        setStatus(.CREATED);
+        
+        self.setStatus(.CREATED);
     }
     
     struct ShutterStruct
@@ -411,7 +415,8 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         let growToMaxDim:Int32 = 0
         
-        imageProcessor_processN(growToMaxDim, swap, outptr )
+        imageProcessor_preProcessN(swap)
+        imageProcessor_processN(growToMaxDim, outptr )
         
         imageProcessor_cleanUpN()
         

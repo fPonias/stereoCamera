@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <memory.h>
 #include <math.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 
 SplitCompositeImageStream::SplitCompositeImageStream()

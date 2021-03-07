@@ -39,8 +39,6 @@ class SlaveState : CommandListener
                 let sendGravity = command as! SendGravity
                 listener?.onGravity(gravity: sendGravity.gravity)
                 break
-            case .RECEIVE_ZOOM:
-                break
             case .RECEIVE_ORIENTATION:
                 break
             case .RECEIVE_PREVIEW_FRAME:

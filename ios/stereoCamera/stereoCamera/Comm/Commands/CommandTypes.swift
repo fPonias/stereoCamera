@@ -19,7 +19,6 @@ enum CommandTypes: Int
     SET_FACING,
     SET_OVERLAY,
     SEND_VERSION,
-    RECEIVE_ZOOM,
     RECEIVE_STATUS,
     RECEIVE_GRAVITY,
     RECEIVE_ORIENTATION,
@@ -43,7 +42,6 @@ enum CommandTypes: Int
         case .SET_FACING: return "Set facing"
         case .SET_OVERLAY: return "Set overlay"
         case .SEND_VERSION: return "Send version"
-        case .RECEIVE_ZOOM: return "Receive zoom"
         case .RECEIVE_STATUS: return "Receive status"
         case .RECEIVE_GRAVITY: return "Receive gravity"
         case .RECEIVE_ORIENTATION: return "Receive orientation"

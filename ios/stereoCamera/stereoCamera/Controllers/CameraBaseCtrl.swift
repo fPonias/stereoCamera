@@ -70,22 +70,26 @@ class CameraBaseCtrl : UIViewController
     
     func showLoader(_ show:Bool, message:String? = nil)
     {
-        if (message != nil)
-            { loaderMessage = message! }
-        
-        if (show && loaderCtrl == nil)
+        DispatchQueue.main.async
         {
-            loaderCtrl = LoadingPopupCtrl.initFromStoryboard()
+            [unowned self] in
+            if (message != nil)
+                { loaderMessage = message! }
             
-            loaderCtrl!.header = loaderMessage
-            loaderCtrl!.addAction(action: LoadingPopupCtrl.Action(text: "Cancel", onClick: connectCancelled))
-            
-            present(loaderCtrl!, animated: true, completion: nil)
-        }
-        else if (!show && loaderCtrl != nil)
-        {
-            loaderCtrl = nil
-            dismiss(animated: false, completion: nil)
+            if (show && loaderCtrl == nil)
+            {
+                loaderCtrl = LoadingPopupCtrl.initFromStoryboard()
+                
+                loaderCtrl!.header = loaderMessage
+                loaderCtrl!.addAction(action: LoadingPopupCtrl.Action(text: "Cancel", onClick: connectCancelled))
+                
+                present(loaderCtrl!, animated: true, completion: nil)
+            }
+            else if (!show && loaderCtrl != nil)
+            {
+                loaderCtrl = nil
+                dismiss(animated: false, completion: nil)
+            }
         }
     }
     

@@ -86,8 +86,6 @@ class CommandFactory
             return SetOverlay()
         case CommandTypes.SET_ZOOM:
             return SetZoom()
-        case CommandTypes.RECEIVE_ZOOM:
-            return SendZoom()
         case CommandTypes.FIRE_SHUTTER:
             return FireShutter()
         case CommandTypes.SEND_PROCESSED_PHOTO:

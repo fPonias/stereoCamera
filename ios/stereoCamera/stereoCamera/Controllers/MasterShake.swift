@@ -248,7 +248,7 @@ class MasterShake
         func execute(listener: @escaping MasterShakeListener)
         {
             let zoom = Cookie.instance.getZoomForClient(isMaster: false, client: CommManager.instance.comm.address, camera: (parent.parent?.cameraPreview.currentCamera?.position)!)
-            let cmd = SetZoom(zoom)
+            let cmd = SetZoom(localZoom: 1.0, remoteZoom: zoom)
             CommManager.instance.comm.sendCommand(command: cmd, listener: DefaultStepListener(listener))
         }
     }

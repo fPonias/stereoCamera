@@ -10,18 +10,23 @@ import Foundation
 
 class SetZoom : Command
 {
-    var zoom:Float = 1.0
+    public var localZoom:Float
+    public var remoteZoom:Float
 
     override init()
     {
+        localZoom = 1.0
+        remoteZoom = 1.0
         super.init()
+        
         doInit()
     }
     
-    init(_ zoom:Float)
+    init(localZoom:Float, remoteZoom:Float)
     {
+        self.localZoom = localZoom
+        self.remoteZoom = remoteZoom
         super.init()
-        self.zoom = zoom
         doInit()
     }
     
@@ -37,7 +42,8 @@ class SetZoom : Command
         if (!result) { return false }
         
         var bytes:[UInt8] = []
-        bytes += Bytes.toByteArray(zoom)
+        bytes += Bytes.toByteArray(localZoom)
+        bytes += Bytes.toByteArray(remoteZoom)
         
         let sz = comm.write(buf: bytes)
         return (sz <= 0) ? false : true
@@ -48,9 +54,13 @@ class SetZoom : Command
         let result = super.receive(comm: comm)
         if (!result) { return false }
         
-        let (buf, sz) = comm.read(sz: 4)
+        var (buf, sz) = comm.read(sz: 4)
         if (sz <= 0) { return false }
-        zoom = Bytes.fromByteArray(buf)
+        localZoom = Bytes.fromByteArray(buf)
+        
+        (buf, sz) = comm.read(sz: 4)
+        if (sz <= 0) { return false }
+        remoteZoom = Bytes.fromByteArray(buf)
         
         return true
     }

@@ -5,11 +5,12 @@
 
 #include "jpegCtrl.hpp"
 #include "util.h"
-#include "SplitCompositeImage.h"
-#include "GreenMagentaCompositeImage.h"
-#include "RedCyanCompositeImage.h"
+#include "SplitCompositeImageStream.h"
+#include "GreenMagentaCompositeImageStream.h"
+#include "RedCyanCompositeImageStream.h"
 #include "Image.h"
 
+PreProcessor* preProcessor;
 CompositeImage* image;
 const char* cachePath;
 
@@ -17,6 +18,7 @@ void initN(const char* jcachePath)
 {
     srand(time(NULL));
     cachePath = jcachePath;
+    preProcessor = new PreProcessor();
     image = 0;
 }
 
@@ -33,13 +35,13 @@ void setProcessorType(int jtype)
     {
         case SPLIT:
         default:
-            image = new SplitCompositeImage();
+            image = new SplitCompositeImageStream();
             break;
         case GREEN_MAGENTA:
-            image = new GreenMagentaCompositeImage();
+            image = new GreenMagentaCompositeImageStream();
             break;
         case RED_CYAN:
-            image = new RedCyanCompositeImage();
+            image = new RedCyanCompositeImageStream();
             break;
     }
 }
@@ -47,19 +49,26 @@ void setProcessorType(int jtype)
 void setImageN(int isRight, const char* jpegpath, int orientation, float zoom)
 {
     Side side = (isRight > 0) ? RIGHT : LEFT;
-    Image* target = image->getImage(side);
+    Image* target = preProcessor->getImage(side);
     target->init(orientation, zoom, jpegpath, cachePath);
 }
 
-void processN(int growToMaxDim, int flip, const char* outpath)
+void preProcessN(int flip)
 {
-    image->combineImages((bool) growToMaxDim, (bool)flip, outpath);
+    preProcessor->process((bool) flip);
+}
+
+void processN(int growToMaxDim, const char* outpath)
+{
+    image->setImages(preProcessor);
+    image->combineImages((bool) growToMaxDim, outpath);
     delete[] outpath;
 }
 
 void cleanUpN()
 {
     delete image;
+    delete preProcessor;
     delete[] cachePath;
 }
 
@@ -79,10 +88,15 @@ extern "C"
     {
         setImageN(isRight, jpegpath, orientation, zoom);
     }
-    
-    void imageProcessor_processN(int growToMaxDim, int flip, const char* outpath)
+
+    void imageProcessor_preProcessN(int flip)
     {
-        processN(growToMaxDim, flip, outpath);
+        preProcessN(flip);
+    }
+    
+    void imageProcessor_processN(int growToMaxDim, const char* outpath)
+    {
+        processN(growToMaxDim, outpath);
     }
     
     void imageProcessor_cleanUpN()

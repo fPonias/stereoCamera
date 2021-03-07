@@ -5,7 +5,7 @@
 
 #include "jpegCtrl.hpp"
 #include "util.h"
-#include "SplitCompositeImage.h"
+#include "SplitCompositeImageStream.h"
 #include "GreenMagentaCompositeImage.h"
 #include "RedCyanCompositeImage.h"
 #include "Image.h"

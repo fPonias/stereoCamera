@@ -14,7 +14,8 @@ int commWrite(const void* ptr, const unsigned char* buffer, int buffsz);
 void imageProcessor_initN(const unsigned char* cachePath);
 void imageProcessor_setProcessorType(int type);
 void imageProcessor_setImageN(int isRight, const unsigned char* jpegpath, int orientation, float zoom);
-void imageProcessor_processN(int growToMaxDim, int flip, const unsigned char* outpath);
+void imageProcessor_preProcessN(int flip);
+void imageProcessor_processN(int growToMaxDim, const unsigned char* outpath);
 void imageProcessor_cleanUpN();
 
 enum Side

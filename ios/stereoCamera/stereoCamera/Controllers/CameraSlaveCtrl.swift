@@ -80,14 +80,15 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             cameraPreview.stopCamera()
             cameraPreview.startCamera(cameraPosition: cameraPosition, quality: captureQuality)
         case CommandTypes.SET_ZOOM:
-            let setZoom = SetZoom((command as! SetZoom).zoom)
+            let origCmd = command as! SetZoom
+            let setZoom = SetZoom(localZoom: origCmd.localZoom, remoteZoom: origCmd.remoteZoom)
             setZoom.id = command.id
             setZoom.isResponse = true
             CommManager.instance.comm.sendCommand(command: setZoom)
             
             DispatchQueue.main.async {
             [ unowned self ] in
-                self.zoomSlider.setValue(setZoom.zoom, animated: false)
+                self.zoomSlider.setValue(setZoom.remoteZoom, animated: false)
                 self.zoomChanged(self.zoomSlider)
             }
             
@@ -270,8 +271,6 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     {
         usleep(zoomSendDelay)
         
-        let cmd = SendZoom(currentZoom)
-        CommManager.instance.comm.sendCommand(command: cmd)
         zoomSending = false
     }
     

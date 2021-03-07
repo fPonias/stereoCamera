@@ -63,7 +63,7 @@ class SendPhoto : Command
         
         data = [UInt8](repeating: 0, count: bufSz)
         
-        if (bufSz == 0)
+        if (bufSz <= 0)
             { return true }
         
         let sz2 = comm.read(buffer: data)
