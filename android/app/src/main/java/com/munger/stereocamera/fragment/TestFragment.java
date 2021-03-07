@@ -87,7 +87,7 @@ public class TestFragment
             String tmpRight = files.copyAssetToCache("right.jpg");
 
             ImagePair args = new ImagePair();
-            args.type = PhotoProcessor.CompositeImageType.RED_CYAN;
+            args.type = PhotoProcessor.CompositeImageType.SPLIT;
             args.flip = false;
 
             args.left = new ImagePair.ImageArg();

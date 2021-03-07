@@ -20,6 +20,7 @@ import com.munger.stereocamera.utility.SingleThreadedExecutor;
 import com.munger.stereocamera.utility.data.FileSystemViewModel;
 import com.munger.stereocamera.widget.PreviewWidget;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
@@ -258,6 +259,9 @@ public class FireShutter
 		args.flip = fragment.getFacing();
 		args.left = localData;
 		args.right = remoteData;
+
+		PhotoFiles.SaveResult res1 = photoFiles.saveFile(new File(args.left.path));
+		PhotoFiles.SaveResult res2 = photoFiles.saveFile(new File(args.right.path));
 
 		PhotoProcessorWorker.RunListener workerListener = new PhotoProcessorWorker.RunListener(fragment.getViewLifecycleOwner())
 		{
