@@ -17,6 +17,8 @@ import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.ethernet.EthernetCtrl;
 import com.munger.stereocamera.ip.ethernet.EthernetSlave;
 import com.munger.stereocamera.utility.Preferences;
+import com.munger.stereocamera.utility.data.Client;
+import com.munger.stereocamera.utility.data.ClientViewModel;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -209,29 +211,27 @@ public class ConnectEthernetSubFragment
 				return;
 			}
 
+			ClientViewModel clientModel = parent.getClientModel();
+			String address = ethCtrl.getIpAddress();
+			Client cli = clientModel.get(address);
+			cli.lastUsed = System.currentTimeMillis();
+			cli.role = Client.Role.SLAVE;
+			clientModel.update(cli);
+
+			clientModel.setCurrentClient(cli);
+
 			parent.handler.post(new Runnable() {public void run()
 			{
 				if (listenDialog == null)
 					return;
 
-				//listenDialog.setStatus("Connected");
 				listenDialog.dismiss();
 				listenDialog = null;
 
-				/*if (ethCtrl.isMaster())
-				{
-					parent.prefs.setRole(Preferences.Roles.MASTER);
-					parent.prefs.setClient(ethCtrl.getIpAddress());
-
+				if (ethCtrl.isMaster())
 					MainActivity.getInstance().startMasterView();
-				}
 				else
-				{
-					parent.prefs.setRole(Preferences.Roles.SLAVE);
-					parent.prefs.setClient(null);
-
 					MainActivity.getInstance().startSlaveView();
-				}*/
 			}});
 		}
 

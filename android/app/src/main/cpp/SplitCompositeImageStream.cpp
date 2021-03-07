@@ -69,7 +69,7 @@ void SplitCompositeImageStream::straightCopyRow(size_t dstRow, SideData* sideDat
 
 void SplitCompositeImageStream::scaledCopyRow(size_t dstRow, SideData* sideData, size_t offset)
 {
-    offset *= sideData->jsampSz;
+    //offset *= sideData->jsampSz;
     size_t rowWidth = targetDim * 2;
 
     size_t srcRow = 0;

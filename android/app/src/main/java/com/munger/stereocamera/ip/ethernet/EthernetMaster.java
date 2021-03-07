@@ -11,7 +11,12 @@ import com.munger.stereocamera.ip.command.Comm;
 import com.munger.stereocamera.ip.utility.RemoteState;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
+import java.net.SocketException;
+import java.util.Enumeration;
 
 public class EthernetMaster implements SocketCtrl
 {
@@ -122,6 +127,15 @@ public class EthernetMaster implements SocketCtrl
 	private String getTag()
 	{
 		return "EthernetMaster";
+	}
+
+	private String getClientIP()
+	{
+		if (socket == null)
+			return null;
+
+		InetAddress addr = socket.getInetAddress();
+		return addr.toString();
 	}
 
 	private void doListen()
