@@ -2,6 +2,8 @@ package com.munger.stereocamera.ip.utility;
 
 import android.net.Uri;
 
+import androidx.lifecycle.MutableLiveData;
+
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;
 import com.munger.stereocamera.fragment.MasterFragment;
@@ -11,9 +13,11 @@ import com.munger.stereocamera.ip.command.commands.SendPhoto;
 import com.munger.stereocamera.service.ImagePair;
 import com.munger.stereocamera.service.PhotoProcessor;
 import com.munger.stereocamera.service.PhotoProcessorWorker;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.PhotoFiles;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.utility.SingleThreadedExecutor;
+import com.munger.stereocamera.utility.data.FileSystemViewModel;
 import com.munger.stereocamera.widget.PreviewWidget;
 
 import java.util.Collections;
@@ -218,7 +222,7 @@ public class FireShutter
 				if (doNext)
 					done();
 			}
-		}, 30000);
+		}, 60000);
 	}
 
 	private PhotoFiles photoFiles;
@@ -258,7 +262,12 @@ public class FireShutter
 		PhotoProcessorWorker.RunListener workerListener = new PhotoProcessorWorker.RunListener(fragment.getViewLifecycleOwner())
 		{
 			@Override
-			public void onResult(Uri uri, int id) {
+			public void onResult(Uri uri, long id) {
+				FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
+				MutableLiveData<PhotoFile> recent = vm.getMostRecentPhoto();
+				PhotoFile photoFile = new PhotoFile(id, System.currentTimeMillis(), uri.getLastPathSegment(), uri);
+				recent.postValue(photoFile);
+
 				SendPhoto cmd = new SendPhoto(id);
 				masterComm.sendCommand(cmd, (success, command, originalCmd) -> {
 

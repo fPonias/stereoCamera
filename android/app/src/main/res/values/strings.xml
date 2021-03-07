@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">3D Camera for 2</string>
-    <string name="discover_buttons_title">New Connection</string>
-    <string name="discover_connect_button">Discover new secondary</string>
-    <string name="discover_listen_button">Connect to new primary</string>
+    <string name="discover_buttons_title">Connect</string>
+    <string name="discover_connect_button">Connect …</string>
+    <string name="discover_listen_button">Discovery</string>
     <string name="restore_buttons_title">Restore Connection</string>
     <string name="connect_button">Connect to last secondary</string>
     <string name="listen_button">Listen for previous primary</string>

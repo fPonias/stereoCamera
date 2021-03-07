@@ -18,12 +18,13 @@ public class FileSystemViewModel extends ViewModel
 {
     private TreeMap<Long, PhotoFile> photoList;
     private MutableLiveData<PhotoFile> mostRecentPhoto;
-    private PhotoFiles photoFiles;
+    private final PhotoFiles photoFiles;
 
     public FileSystemViewModel()
     {
         photoFiles = PhotoFiles.Factory.get();
         lastUpdate = new MutableLiveData<>();
+        mostRecentPhoto = new MutableLiveData<>();
         loadPhotoList();
         loadMostRecent();
     }
@@ -42,7 +43,6 @@ public class FileSystemViewModel extends ViewModel
 
     private void loadMostRecent()
     {
-        mostRecentPhoto = new MutableLiveData<>();
         PhotoFile file = photoFiles.getNewest();
         mostRecentPhoto.postValue(file);
     }
@@ -80,12 +80,12 @@ public class FileSystemViewModel extends ViewModel
         return recent;
     }
 
-    public void deletePhotos(int[] ids)
+    public void deletePhotos(long[] ids)
     {
         PhotoFile mostRecent = mostRecentPhoto.getValue();
         boolean mostRecentMatch = false;
 
-        for (int id : ids)
+        for (long id : ids)
         {
             if (mostRecent != null && id == mostRecent.id)
                 mostRecentMatch = true;
@@ -102,7 +102,7 @@ public class FileSystemViewModel extends ViewModel
         lastUpdate.postValue(System.currentTimeMillis());
     }
 
-    private void deletePhoto(int id, SortedMap<Long, PhotoFile> files)
+    private void deletePhoto(long id, SortedMap<Long, PhotoFile> files)
     {
         PhotoFile file = photoFiles.getFile(id);
         if (file == null)

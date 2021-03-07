@@ -70,7 +70,7 @@ public class PhotoProcessorWorker
             PhotoFile result = MainActivity.getInstance().getFileSystemViewModel().saveFile(new File(path));
             Data resData = new Data.Builder()
                     .putString("URI", result.uri.toString())
-                    .putInt("ID", result.id)
+                    .putLong("ID", result.id)
                     .build();
 
 
@@ -90,7 +90,7 @@ public class PhotoProcessorWorker
     public static abstract class RunListener
     {
         public LifecycleOwner lcOwner;
-        public abstract void onResult(Uri uri, int id);
+        public abstract void onResult(Uri uri, long id);
 
         public RunListener(LifecycleOwner lcOwner)
         {
@@ -130,7 +130,7 @@ public class PhotoProcessorWorker
 
             String uriStr = workInfo.getOutputData().getString("URI");
             Uri uri = Uri.parse(uriStr);
-            int fid = workInfo.getOutputData().getInt("ID", -1);
+            long fid = workInfo.getOutputData().getLong("ID", -1);
             listener.onResult(uri, fid);
         });
     }

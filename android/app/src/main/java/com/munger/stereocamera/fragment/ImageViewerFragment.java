@@ -529,7 +529,7 @@ public class ImageViewerFragment extends Fragment
 		PhotoFile data = frag.getData();
 		frag.cleanUp();
 
-		MainActivity.getInstance().getFileSystemViewModel().deletePhotos(new int[]{data.id});
+		MainActivity.getInstance().getFileSystemViewModel().deletePhotos(new long[]{data.id});
 
 		if (adapter.files.size() == 1)
 		{

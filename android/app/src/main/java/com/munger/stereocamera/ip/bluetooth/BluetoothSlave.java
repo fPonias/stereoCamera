@@ -165,7 +165,9 @@ public class BluetoothSlave implements SocketCtrl
 		}
 
 		listenThread.start();
-		cancelThread.start();
+
+		if (timeout > -1)
+			cancelThread.start();
 	}
 
 	private void doCancel()

@@ -31,7 +31,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
         return MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
     }
 
-    public int getNewestId()
+    public long getNewestId()
     {
         String path = getRelativePath();
         File dir = new File(path);
@@ -49,7 +49,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
 
         String[] parts = greatest.getName().split("\\.");
         try {
-            return Integer.parseInt(parts[0]);
+            return Long.parseLong(parts[0]);
         }
         catch( NumberFormatException e){
             return 0;
@@ -59,12 +59,12 @@ public class PhotoFilesLegacy extends PhotoFiles {
     @Override
     public PhotoFile getNewest()
     {
-        int id = getNewestId();
+        long id = getNewestId();
         String path = getRelativePath() + "/" + id + ".jpg";
         return fileToData(new File(path));
     }
 
-    public PhotoFile getFile(int id)
+    public PhotoFile getFile(long id)
     {
         String path = getRelativePath() + "/" + id + ".jpg";
         return fileToData(new File(path));
@@ -77,7 +77,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
         if (parts.length < 2)
             return null;
 
-        int id = Integer.parseInt(parts[parts.length - 2]);
+        long id = Long.parseLong(parts[parts.length - 2]);
         long date = file.lastModified() / 1000;
         Uri uri = Uri.parse("file://" + getRelativePath() + "/" + file.getName());
         String name = parts[0];
@@ -105,7 +105,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
         return ret;
     }
 
-    public boolean delete(int id)
+    public boolean delete(long id)
     {
         Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
         resolver.delete(uri, null, null);
@@ -119,7 +119,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
         return false;
     }
 
-    public long getSize(int id)
+    public long getSize(long id)
     {
         String path = getRelativePath() + "/" + id + ".jpg";
         File f = new File(path);
@@ -144,8 +144,7 @@ public class PhotoFilesLegacy extends PhotoFiles {
     public SaveResult saveFile(File source)
     {
         SaveResult ret = new SaveResult();
-        int max = getNewestId();
-        max++;
+        long max = System.currentTimeMillis();
 
         String localName = max + ".jpg";
         ret.id = max;

@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.MutableLiveData;
 import androidx.preference.PreferenceManager;
 
 import com.munger.stereocamera.MainActivity;
@@ -36,9 +37,11 @@ import com.munger.stereocamera.ip.utility.FireShutter;
 import com.munger.stereocamera.ip.utility.RemoteState;
 import com.munger.stereocamera.service.ImagePair;
 import com.munger.stereocamera.service.PhotoProcessor;
+import com.munger.stereocamera.utility.PhotoFile;
 import com.munger.stereocamera.utility.SingleThreadedExecutor;
 import com.munger.stereocamera.utility.data.Client;
 import com.munger.stereocamera.utility.data.ClientViewModel;
+import com.munger.stereocamera.utility.data.FileSystemViewModel;
 import com.munger.stereocamera.widget.PreviewOverlayWidget;
 import com.munger.stereocamera.widget.PreviewWidget;
 import com.munger.stereocamera.widget.SlavePreviewOverlayWidget;
@@ -72,7 +75,7 @@ public class MasterFragment extends PreviewFragment
 	public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
 		orientation = MainActivity.getInstance().getCurrentOrientation();
-		if (orientation.isPortait())
+		if (MainActivity.getInstance().isPortrait())
 			rootView = inflater.inflate(R.layout.fragment_master, container, false);
 		else
 			rootView = inflater.inflate(R.layout.fragment_master_horizontal, container, false);
@@ -97,7 +100,7 @@ public class MasterFragment extends PreviewFragment
 		thumbnailWidget = rootView.findViewById(R.id.thumbnail);
 		thumbnailWidget.setOnClickListener(v -> openThumbnail());
 
-		if (orientation.isPortait())
+		if (MainActivity.getInstance().isPortrait())
 			updateHandPhoneButtonVertical();
 		else
 			updateHandPhoneButtonHorizontal();
@@ -395,7 +398,7 @@ public class MasterFragment extends PreviewFragment
 			clientViewModel.update(cameraPair.remote);
 		});
 
-		if (orientation.isPortait())
+		if (MainActivity.getInstance().isPortrait())
 			updateHandPhoneButtonVertical();
 		else
 			updateHandPhoneButtonHorizontal();
@@ -508,7 +511,7 @@ public class MasterFragment extends PreviewFragment
 		boolean val = cameraPair.local.isLeft;
 
 		orientation = MainActivity.getInstance().getCurrentOrientation();
-		if (!orientation.isPortait())
+		if (MainActivity.getInstance().isPortrait())
 		{
 			RelativeLayout.LayoutParams layout = (RelativeLayout.LayoutParams) clickButton.getLayoutParams();
 			layout.removeRule(RelativeLayout.ALIGN_PARENT_END);

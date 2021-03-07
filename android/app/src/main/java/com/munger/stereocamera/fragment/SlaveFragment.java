@@ -61,7 +61,7 @@ public class SlaveFragment extends PreviewFragment
 		PreviewOverlayWidget.Type overlayType = PreviewOverlayWidget.Type.values()[type];
 
 		orientation = MainActivity.getInstance().getCurrentOrientation();
-		if (orientation.isPortait())
+		if (MainActivity.getInstance().isPortrait())
 			rootView = inflater.inflate(R.layout.fragment_slave, container, false);
 		else
 			rootView = inflater.inflate(R.layout.fragment_slave_horizontal, container, false);

@@ -32,7 +32,7 @@ public class PhotoFilesQ extends PhotoFiles
         return MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
     }
 
-    public int getNewestId()
+    public long getNewestId()
     {
         Cursor cursor = resolver.query(collection, new String[]{MediaStore.Images.Media._ID},
                 MediaStore.Images.Media.OWNER_PACKAGE_NAME + " = ? OR " + MediaStore.Images.Media.OWNER_PACKAGE_NAME + " = ? ",
@@ -67,12 +67,12 @@ public class PhotoFilesQ extends PhotoFiles
         return ret;
     }
 
-    public PhotoFile getFile(int id)
+    public PhotoFile getFile(long id)
     {
         Cursor cursor = resolver.query(collection,
                 new String[]{MediaStore.Images.Media._ID, MediaStore.Images.Media.DATE_ADDED, MediaStore.Images.Media.DISPLAY_NAME},
                 MediaStore.Images.Media._ID + " = ?",
-                new String[] {Integer.toString(id)},
+                new String[] {Long.toString(id)},
                 ""
         );
 
@@ -85,12 +85,12 @@ public class PhotoFilesQ extends PhotoFiles
         return ret;
     }
 
-    public long getSize(int id)
+    public long getSize(long id)
     {
         Cursor cursor = resolver.query(collection,
                 new String[] {MediaStore.Images.Media.SIZE},
                 MediaStore.Images.Media._ID + " = ?",
-                new String[] {Integer.toString(id)},
+                new String[] {Long.toString(id)},
                 "");
 
         if (cursor.getCount() == 0)
@@ -134,7 +134,7 @@ public class PhotoFilesQ extends PhotoFiles
         return ret;
     }
 
-    public boolean delete(int id)
+    public boolean delete(long id)
     {
         Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
         int count = resolver.delete(uri, null, null);
@@ -161,17 +161,16 @@ public class PhotoFilesQ extends PhotoFiles
     protected SaveResult insertNewFile()
     {
         SaveResult ret = new SaveResult();
-        int max = getNewestId();
-        max++;
 
-        String localName = max + ".jpg";
-        ret.id = max;
+        long now = System.currentTimeMillis();
+        String localName = now + ".jpg";
+        ret.id = now;
 
         ContentValues details = new ContentValues();
         details.put(MediaStore.Images.Media.DISPLAY_NAME, localName);
         details.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
-        details.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
-        details.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        details.put(MediaStore.Images.Media.DATE_ADDED, now / 1000);
+        details.put(MediaStore.Images.Media.DATE_TAKEN, now);
         details.put(MediaStore.Images.Media.RELATIVE_PATH, getRelativePath());
 
         ret.uri = resolver.insert(collection, details);

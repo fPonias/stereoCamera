@@ -258,7 +258,7 @@ public class Gallery extends Fragment
 
     private void deleteSelected()
     {
-        int[] ids = new int[selected.size()];
+        long[] ids = new long[selected.size()];
         int i = 0;
         for (int position : selected)
         {

@@ -34,18 +34,4 @@ public enum PhotoOrientation
 			default: return 0;
 		}
 	}
-
-	public boolean isPortait()
-	{
-		switch(this)
-		{
-			case DEG_0:
-			case DEG_180:
-				return true;
-			case DEG_90:
-			case DEG_270:
-			default:
-				return false;
-		}
-	}
 }

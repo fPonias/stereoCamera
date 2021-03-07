@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity
 
 		photoProcessorWorker = new PhotoProcessorWorker(this);
 
-		reconnect();
+		//reconnect();
 	}
 
 	private void openInitialView(Bundle savedInstanceState)

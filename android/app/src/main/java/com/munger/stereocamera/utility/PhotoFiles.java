@@ -52,16 +52,16 @@ public abstract class PhotoFiles
 		void fail();
 	}
 
-	public abstract int getNewestId();
+	public abstract long getNewestId();
 	public abstract PhotoFile getNewest();
-	public abstract PhotoFile getFile(int id);
+	public abstract PhotoFile getFile(long id);
 
 	public InputStream getStream(Uri uri) throws FileNotFoundException
 	{
 		return resolver.openInputStream(uri);
 	}
 
-	public InputStream getStream(int id) throws FileNotFoundException
+	public InputStream getStream(long id) throws FileNotFoundException
 	{
 		PhotoFile file = getFile(id);
 		if (file == null)
@@ -106,16 +106,16 @@ public abstract class PhotoFiles
 	public static class SaveResult
 	{
 		public Uri uri;
-		public int id;
+		public long id;
 	}
 
 	protected abstract Uri getCollection();
 	public abstract ArrayList<PhotoFile> getAllFiles();
-	public abstract boolean delete(int id);
+	public abstract boolean delete(long id);
 	public abstract boolean isEmpty();
 	protected abstract String getRelativePath();
 	public abstract SaveResult saveFile(File source);
-	public abstract long getSize(int id);
+	public abstract long getSize(long id);
 
 	public String copyAssetToCache(String name)
 	{
@@ -173,7 +173,7 @@ public abstract class PhotoFiles
 		return out;
 	}
 
-	public Bitmap getThumbnail(int id)
+	public Bitmap getThumbnail(long id)
 	{
 		if (!MainActivity.getInstance().hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
 			return null;

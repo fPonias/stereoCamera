@@ -46,6 +46,8 @@ public class ThumbnailWidget extends AppCompatImageView
 		init(context);
 	}
 
+	private MutableLiveData<PhotoFile> mostRecent;
+
 	private void init(Context context)
 	{
 		if (!(context instanceof LifecycleOwner))
@@ -56,7 +58,7 @@ public class ThumbnailWidget extends AppCompatImageView
 
 		LifecycleOwner c = (LifecycleOwner) context;
 		FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
-		MutableLiveData<PhotoFile> mostRecent = vm.getMostRecentPhoto();
+		mostRecent = vm.getMostRecentPhoto();
 		mostRecent.observe(c, this::update);
 	}
 

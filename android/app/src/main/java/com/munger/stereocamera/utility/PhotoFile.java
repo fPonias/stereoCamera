@@ -7,9 +7,9 @@ public class PhotoFile
     public Uri uri;
     public String name;
     public long date;
-    public int id;
+    public long id;
 
-    public PhotoFile(int id, long date, String name, Uri uri)
+    public PhotoFile(long id, long date, String name, Uri uri)
     {
         this.id = id;
         this.date = date;

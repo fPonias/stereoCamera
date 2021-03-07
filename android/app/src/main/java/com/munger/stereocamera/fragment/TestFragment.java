@@ -103,7 +103,7 @@ public class TestFragment
             PhotoProcessorWorker.RunListener workerListener = new PhotoProcessorWorker.RunListener(parent.getViewLifecycleOwner())
             {
                 @Override
-                public void onResult(Uri uri, int id) {
+                public void onResult(Uri uri, long id) {
                     img.setImageURI(uri);
 
                     long sz = files.getSize(id);

@@ -15,7 +15,7 @@ import java.io.InputStream;
 
 public class SendPhoto extends Command
 {
-	public int id;
+	public long id;
 	public File file;
 
 	public SendPhoto()
@@ -24,7 +24,7 @@ public class SendPhoto extends Command
 		doInit();
 	}
 
-	public SendPhoto(int id)
+	public SendPhoto(long id)
 	{
 		super();
 

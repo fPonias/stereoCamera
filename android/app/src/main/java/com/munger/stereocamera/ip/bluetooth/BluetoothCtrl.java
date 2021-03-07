@@ -105,13 +105,18 @@ public class BluetoothCtrl implements SocketCtrlCtrl
 
 	public void listen(boolean startDiscovery, IPListeners.ConnectListener listener)
 	{
+		listen(startDiscovery, LISTEN_TIMEOUT, listener);
+	}
+
+	public void listen(boolean startDiscovery, long timeout, IPListeners.ConnectListener listener)
+	{
 		synchronized (lock)
 		{
 			if (slave == null)
 				slave = new BluetoothSlave(this);
 		}
 
-		slave.start(startDiscovery, LISTEN_TIMEOUT, listener);
+		slave.start(startDiscovery, timeout, listener);
 	}
 
 	public void cancelListen()

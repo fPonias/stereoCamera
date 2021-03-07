@@ -2,6 +2,7 @@ package com.munger.stereocamera.fragment;
 
 import android.Manifest;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,13 +28,16 @@ import com.munger.stereocamera.BaseFragment;
 import com.munger.stereocamera.BuildConfig;
 import com.munger.stereocamera.MainActivity;
 import com.munger.stereocamera.MyApplication;import com.munger.stereocamera.R;
+import com.munger.stereocamera.ip.IPListeners;
 import com.munger.stereocamera.ip.bluetooth.BluetoothCtrl;
+import com.munger.stereocamera.ip.command.CommCtrl;
 import com.munger.stereocamera.ip.command.PhotoOrientation;
 import com.munger.stereocamera.utility.data.Client;
 import com.munger.stereocamera.utility.data.ClientViewModel;
 import com.munger.stereocamera.utility.Preferences;
 import com.munger.stereocamera.widget.ThumbnailWidget;
 
+import java.io.IOException;
 import java.util.Set;
 
 public class ConnectFragment extends BaseFragment
@@ -78,7 +82,6 @@ public class ConnectFragment extends BaseFragment
 	{
 		super.onCreate(savedInstanceState);
 
-		btCtrl = MyApplication.getInstance().getBtCtrl();
 		clientModel = MainActivity.getInstance().getClientViewModel();
 
 		if (savedInstanceState != null && savedInstanceState.containsKey("adLastShown"))
@@ -173,10 +176,10 @@ public class ConnectFragment extends BaseFragment
 		{
 			doFirstTime();
 		}
-		//else
-		//{
-		//	reconnect();
-		//}
+		else
+		{
+			reconnect();
+		}
 	}
 
 	private void requestPermissions()
@@ -310,6 +313,7 @@ public class ConnectFragment extends BaseFragment
 					wifiControls.setVisibility(View.GONE);
 					testControls.setVisibility(View.GONE);
 					ethernetCtrl.cleanUp();
+					bluetoothCtrl.reconnect();
 					bluetoothControls.setVisibility(View.VISIBLE);
 				}
 				else if (checkedId == R.id.connectWifi)
@@ -360,33 +364,12 @@ public class ConnectFragment extends BaseFragment
 	{
 		Thread t = new Thread(() ->
 		{
-			if (clientModel == null)
-				return;
-
-			if (bluetoothControls.getVisibility() == View.VISIBLE)
-			{
-				reconnect2();
-			}
+			MyApplication.getInstance().setupBTServer(() -> {
+				btCtrl = MyApplication.getInstance().getBtCtrl();
+				bluetoothCtrl.reconnect();
+			});
 		});
 		t.start();
-	}
-
-	public void reconnect2()
-	{
-		Set<BluetoothDevice> devices = btCtrl.getKnownDevices();
-
-		for (BluetoothDevice device : devices)
-		{
-			String addr = device.getAddress();
-			if (!clientModel.has(addr))
-				continue;
-
-			Client client = clientModel.get(addr);
-			if (client.role == Client.Role.MASTER)
-				bluetoothCtrl.connect(client);
-			else if (client.role == Client.Role.SLAVE)
-				bluetoothCtrl.listen();
-		}
 	}
 
 	private void thumbnailClicked()
