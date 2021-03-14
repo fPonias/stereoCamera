@@ -130,6 +130,7 @@
 		7E691E4D25F4654900ED228E /* Comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC415D20D39458005BE7A8 /* Comm.cpp */; };
 		7E691E5225F4687F00ED228E /* wrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5025F4687E00ED228E /* wrapper.cpp */; };
 		7E691E5325F4687F00ED228E /* wrapper.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7E691E5125F4687E00ED228E /* wrapper.hpp */; };
+		7E691E5925F57BE700ED228E /* jpeglib.h in Headers */ = {isa = PBXBuildFile; fileRef = 7E691E5825F57BE700ED228E /* jpeglib.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -261,6 +262,7 @@
 		7E691E3725F4640600ED228E /* jfdctint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jfdctint.c; path = "../../../../../android/app/src/main/cpp/jpeg-9c/jfdctint.c"; sourceTree = "<group>"; };
 		7E691E5025F4687E00ED228E /* wrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wrapper.cpp; sourceTree = "<group>"; };
 		7E691E5125F4687E00ED228E /* wrapper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = wrapper.hpp; sourceTree = "<group>"; };
+		7E691E5825F57BE700ED228E /* jpeglib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jpeglib.h; path = "../../../../../android/app/src/main/cpp/jpeg-9c/jpeglib.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -429,6 +431,7 @@
 		7E691C4125F461FD00ED228E /* jpeg-9c */ = {
 			isa = PBXGroup;
 			children = (
+				7E691E5825F57BE700ED228E /* jpeglib.h */,
 				7E691E2B25F4640600ED228E /* jdmaster.c */,
 				7E691E3625F4640600ED228E /* jdmerge.c */,
 				7E691E3525F4640600ED228E /* jdpostct.c */,
@@ -503,6 +506,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E691E5925F57BE700ED228E /* jpeglib.h in Headers */,
 				7E691DDA25F461FF00ED228E /* util.h in Headers */,
 				7E691DD925F461FF00ED228E /* CompositeImage.h in Headers */,
 				7E691E5325F4687F00ED228E /* wrapper.hpp in Headers */,

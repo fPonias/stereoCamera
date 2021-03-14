@@ -123,7 +123,13 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         }
         else
         {
-            captureSession.sessionPreset = .high
+            if (captureSession.canSetSessionPreset(.medium)) {
+                captureSession.sessionPreset = .medium
+            } else if (captureSession.canSetSessionPreset(.low)) {
+                captureSession.sessionPreset = .low
+            } else {
+                captureSession.sessionPreset = .photo
+            }
         }
             
         captureSession.addOutput(photoOutput)
@@ -298,13 +304,13 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
         switch(orient)
         {
         case .portrait:
-            return .DEG_0
+            return .DEG_90
         case .portraitUpsideDown:
-            return .DEG_180
+            return .DEG_270
         case .landscapeRight:
-            return (facing) ? .DEG_90 : .DEG_270
+            return (facing) ? .DEG_180 : .DEG_0
         case .landscapeLeft:
-            return (facing) ? .DEG_270 : .DEG_90
+            return (facing) ? .DEG_0 : .DEG_180
         default:
             return .DEG_0
         }

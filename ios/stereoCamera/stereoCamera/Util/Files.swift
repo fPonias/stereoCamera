@@ -156,7 +156,10 @@ public class Files
         
         manager.requestImage(for: asset, targetSize: dims, contentMode: PHImageContentMode.aspectFill, options: option, resultHandler: {(image: UIImage?, info:[AnyHashable : Any]?) -> Void
             in
-            thumbnail = image!
+            
+            if (image != nil) {
+                thumbnail = image!
+            }
         })
         
         return thumbnail

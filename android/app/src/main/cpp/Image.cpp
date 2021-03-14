@@ -151,13 +151,13 @@ void Image::rotateDestination(int orientation, long dim, long* r, long* c)
             return;
         case 1:
             tmp = *r;
-            *r = *c;
+            *r = dim - *c;
             *c = tmp;
             return;
         case 3:
         default:
             tmp = *r;
-            *r = dim - *c;
+            *r = *c;
             *c = dim - tmp;
             return;
     }
