@@ -131,6 +131,9 @@
 		7E691E5225F4687F00ED228E /* wrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5025F4687E00ED228E /* wrapper.cpp */; };
 		7E691E5325F4687F00ED228E /* wrapper.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7E691E5125F4687E00ED228E /* wrapper.hpp */; };
 		7E691E5925F57BE700ED228E /* jpeglib.h in Headers */ = {isa = PBXBuildFile; fileRef = 7E691E5825F57BE700ED228E /* jpeglib.h */; };
+		7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */; };
+		7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5E25FECA0900ED228E /* VideoPreview.swift */; };
+		7E691E642600908C00ED228E /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E632600908C00ED228E /* PreviewView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -263,6 +266,9 @@
 		7E691E5025F4687E00ED228E /* wrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wrapper.cpp; sourceTree = "<group>"; };
 		7E691E5125F4687E00ED228E /* wrapper.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = wrapper.hpp; sourceTree = "<group>"; };
 		7E691E5825F57BE700ED228E /* jpeglib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jpeglib.h; path = "../../../../../android/app/src/main/cpp/jpeg-9c/jpeglib.h"; sourceTree = "<group>"; };
+		7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraCtrl.swift; sourceTree = "<group>"; };
+		7E691E5E25FECA0900ED228E /* VideoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreview.swift; sourceTree = "<group>"; };
+		7E691E632600908C00ED228E /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -330,6 +336,7 @@
 				7CA546FA21085A9600C81830 /* SettingsCtrl.swift */,
 				7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */,
 				7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */,
+				7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -407,6 +414,8 @@
 				7CAD57B92119215D007205B2 /* LoadSpinner.swift */,
 				7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */,
 				7C1E4A0E214103AA005F1944 /* GalleryGridHeader.swift */,
+				7E691E5E25FECA0900ED228E /* VideoPreview.swift */,
+				7E691E632600908C00ED228E /* PreviewView.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -628,7 +637,9 @@
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
 				7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */,
 				7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */,
+				7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */,
 				7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */,
+				7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */,
 				7E691E0525F4638400ED228E /* jcmaster.c in Sources */,
 				7C84967320FD5B0F00C50601 /* Angles.swift in Sources */,
 				7C2E237220DB0A380027A2F5 /* Files.swift in Sources */,
@@ -666,6 +677,7 @@
 				7E691E2025F463CB00ED228E /* jdinput.c in Sources */,
 				7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */,
 				7E691D1625F461FE00ED228E /* PreProcessor.cpp in Sources */,
+				7E691E642600908C00ED228E /* PreviewView.swift in Sources */,
 				7E691E2325F463CB00ED228E /* jdmainct.c in Sources */,
 				7E691E0225F4638400ED228E /* jchuff.c in Sources */,
 				7E691E3F25F4640600ED228E /* jmemmgr.c in Sources */,

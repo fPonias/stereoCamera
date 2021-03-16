@@ -50,7 +50,10 @@ public class Files
         let filesCollection = collections.firstObject!
         
         let collectionResult = PHAsset.fetchAssets(in: filesCollection, options: nil)
+        
         let sz = collectionResult.count
+        guard sz > 0 else { return files }
+        
         
         for i in 0 ... sz - 1
         {

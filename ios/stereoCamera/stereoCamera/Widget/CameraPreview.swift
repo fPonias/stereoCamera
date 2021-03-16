@@ -6,56 +6,16 @@
 //  Copyright © 2018 cody. All rights reserved.
 //
 
+import Foundation
+import UIKit
 import AVFoundation
 import GLKit
 
-class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate
+class CameraPreview : VideoPreview
 {
-    override init(frame: CGRect)
-    {
-        super.init(frame: frame)
-        
-        updateTransform()
-        setupOpenGL()
-    }
-    
-    override init(frame: CGRect, context: EAGLContext)
-    {
-        super.init(frame: frame, context: context)
-        
-        updateTransform()
-        setupOpenGL()
-    }
-    
-    required init?(coder aDecoder: NSCoder)
-    {
-        super.init(coder: aDecoder)
-
-        updateTransform()
-        setupOpenGL()
-    }
-    
-    private func setupOpenGL()
-    {
-        captureSession = AVCaptureSession()
-        glContext = EAGLContext(api: .openGLES2)!
-        ciContext = CIContext(eaglContext: glContext)
-        context = glContext
-    }
-    
-    private var _zoom:Float = 1.0
-    var zoom:Float
-    {
-        get {return _zoom}
-        set
-        {
-            _zoom = newValue
-            updateTransform()
-        }
-    }
-    
     func startCamera(cameraPosition: AVCaptureDevice.Position = .unspecified, quality: ImageQuality = ImageQuality.LOW)
     {
+        captureSession = AVCaptureSession()
         switch AVCaptureDevice.authorizationStatus(for: .video)
         {
         case .authorized:
@@ -75,8 +35,6 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     }
     
     private var captureSession:AVCaptureSession!
-    private var glContext:EAGLContext!
-    private var ciContext:CIContext!
     private var photoOutput = AVCapturePhotoOutput()
     private var _currentCamera:AVCaptureDevice? = nil
     private var _imageQuality:ImageQuality = .LOW
@@ -182,7 +140,7 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
     }
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection)
-    {
+    {/*
         if (!drawPreviews)
             { return }
         
@@ -218,136 +176,14 @@ class CameraPreview : GLKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVC
                 { return }
             
             self.display()
-        }
+        }*/
     }
     
-    private var previewTransform:CGAffineTransform = CGAffineTransform()
-    
-    public enum CameraOriention:CGFloat
+    override func isFacing() -> Bool
     {
-        case DEG_0 = 0.0,
-        DEG_90 = 90.0,
-        DEG_180 = 180.0,
-        DEG_270 = 270.0
+        return (_currentCamera?.position == AVCaptureDevice.Position.front) ? true : false
     }
-    
-    public static func orientationToRadians(_ orientation:CameraOriention) -> CGFloat
-    {
-        switch(orientation)
-        {
-        case .DEG_0:
-            return 0.0
-        case .DEG_90:
-            return CGFloat(Double.pi)
-        case .DEG_180:
-            return CGFloat(Double.pi / 2.0)
-        case .DEG_270:
-            return CGFloat(3 * Double.pi / 2.0)
-        }
-    }
-    
-    public static func orientationToByte(_ orientation:CameraOriention) -> UInt8
-    {
-        switch(orientation)
-        {
-        case .DEG_0:
-            return 0
-        case .DEG_90:
-            return 1
-        case .DEG_180:
-            return 2
-        case .DEG_270:
-            return 3
-        }
-    }
-    
-    public static func orientationFromByte(_ b:UInt8) -> CameraOriention
-    {
-        switch(b)
-        {
-        case 0:
-            return .DEG_0
-        case 1:
-            return .DEG_90
-        case 2:
-            return .DEG_180
-        case 3:
-            return .DEG_270
-        default:
-            return .DEG_0
-        }
-    }
-    
-    public func getScreenOrientation() -> CameraOriention
-    {
-        let facing = (_currentCamera?.position == AVCaptureDevice.Position.front) ? true : false
-        let orient = UIDevice.current.orientation
-        switch(orient)
-        {
-        case .portrait:
-            return .DEG_270
-        case .portraitUpsideDown:
-            return .DEG_90
-        case .landscapeRight:
-            return (facing) ? .DEG_0 : .DEG_90 //why is this offset by 90 degrees?  I'm so confused.
-        case .landscapeLeft:
-            return (facing) ? .DEG_90 : .DEG_0
-        default:
-            return .DEG_0
-        }
-    }
-    
-    public func getOrientation() -> CameraOriention
-    {
-        let facing = (_currentCamera?.position == AVCaptureDevice.Position.front) ? true : false
-        let orient = UIDevice.current.orientation
-        switch(orient)
-        {
-        case .portrait:
-            return .DEG_90
-        case .portraitUpsideDown:
-            return .DEG_270
-        case .landscapeRight:
-            return (facing) ? .DEG_180 : .DEG_0
-        case .landscapeLeft:
-            return (facing) ? .DEG_0 : .DEG_180
-        default:
-            return .DEG_0
-        }
-    }
-    
-    func updateTransform()
-    {
-        var orientation = getScreenOrientation();
-        var rotation = CameraPreview.orientationToRadians(orientation)
-        
-        previewTransform = CGAffineTransform(translationX: 0, y: 0)
-        
-        if (_currentCamera?.position == .front)
-            { previewTransform = previewTransform.scaledBy(x: CGFloat(-1.0), y: CGFloat(1.0)) }
-        
-        if (rotation != 0)
-        {
-            previewTransform = previewTransform.rotated(by: rotation)
-        }
-        
-        previewTransform = previewTransform.scaledBy(x: CGFloat(_zoom), y: CGFloat(_zoom))
-    }
-    
-    private func rotateScaleImage(image: CIImage) -> CIImage
-    {
-        var ret:CIImage = image
-        
-        let inRect = image.extent
-        let margin = (inRect.width - inRect.height) / 2
-        let cropped = CGRect(x: margin, y: 0, width: inRect.height, height: inRect.height)
-        ret = ret.cropped(to: cropped)
-        
-        ret = ret.transformed(by: previewTransform)
-        
-        return ret
-    }
-    
+
     private func cameraPicker(cameraPosition: AVCaptureDevice.Position) -> AVCaptureDevice?
     {
         let discoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera, .builtInTelephotoCamera], mediaType: .video, position: cameraPosition)

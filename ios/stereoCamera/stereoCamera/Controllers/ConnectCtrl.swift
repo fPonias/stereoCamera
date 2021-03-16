@@ -19,6 +19,8 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     //@IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var ipAddressList: UIStackView!
     
+    @IBOutlet weak var dualCameraBtn: UIButton!
+    
     private let listenTimeout = 0.0
     private let connectTimeout = 2.5
     
@@ -299,5 +301,10 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
     @IBAction func openFaq(_ sender: Any)
     {
         performSegue(withIdentifier: "ConnectFAQSegue", sender: self)
+    }
+    
+    @IBAction func openDualCamera(_ sender: Any)
+    {
+        performSegue(withIdentifier: "ConnectDualCameraSegue", sender: self)
     }
 }
