@@ -18,12 +18,15 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
     @IBOutlet weak var leftCameraView: PreviewView!
     @IBOutlet weak var rightCameraView: PreviewView!
     @IBOutlet weak var leftCameraPreview: VideoPreview!
+    @IBOutlet weak var rightCameraPreview: VideoPreview!
     
         // MARK: View Controller Life Cycle
         
         override func viewDidLoad() {
             super.viewDidLoad()
                         
+            leftCameraPreview?.initializeMetal()
+            rightCameraPreview?.initializeMetal()
             frontCameraVideoPreviewView = leftCameraView
             backCameraVideoPreviewView = rightCameraView
             
@@ -254,6 +257,8 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
         private var backCameraVideoPreviewView: PreviewView!
         
         private weak var backCameraVideoPreviewLayer: AVCaptureVideoPreviewLayer?
+    
+    private var backCameraVideoDataOutputConnection: AVCaptureConnection?
         
         private var frontCameraDeviceInput: AVCaptureDeviceInput?
         
@@ -262,6 +267,8 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
         private var frontCameraVideoPreviewView: PreviewView!
         
         private weak var frontCameraVideoPreviewLayer: AVCaptureVideoPreviewLayer?
+    
+    private var frontCameraVideoDataOutputConnection: AVCaptureConnection?
         
         private var microphoneDeviceInput: AVCaptureDeviceInput?
         
@@ -294,11 +301,6 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
             }
             
             guard configureFrontCamera() else {
-                setupResult = .configurationFailed
-                return
-            }
-            
-            guard configureMicrophone() else {
                 setupResult = .configurationFailed
                 return
             }
@@ -346,28 +348,20 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
                 return false
             }
             session.addOutputWithNoConnections(backCameraVideoDataOutput)
-            backCameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
+            backCameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
             backCameraVideoDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
             
             // Connect the back camera device input to the back camera video data output
-            let backCameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [backCameraVideoPort], output: backCameraVideoDataOutput)
-            guard session.canAdd(backCameraVideoDataOutputConnection) else {
+            backCameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [backCameraVideoPort], output: backCameraVideoDataOutput)
+            guard let backCameraVideoDataOutputConnection = backCameraVideoDataOutputConnection,
+                session.canAdd(backCameraVideoDataOutputConnection) else {
                 print("Could not add a connection to the back camera video data output")
                 return false
             }
             session.add(backCameraVideoDataOutputConnection)
             backCameraVideoDataOutputConnection.videoOrientation = .portrait
-
-            // Connect the back camera device input to the back camera video preview layer
-            guard let backCameraVideoPreviewLayer = backCameraVideoPreviewLayer else {
-                return false
-            }
-            let backCameraVideoPreviewLayerConnection = AVCaptureConnection(inputPort: backCameraVideoPort, videoPreviewLayer: backCameraVideoPreviewLayer)
-            guard session.canAdd(backCameraVideoPreviewLayerConnection) else {
-                print("Could not add a connection to the back camera video preview layer")
-                return false
-            }
-            session.add(backCameraVideoPreviewLayerConnection)
+            backCameraVideoDataOutputConnection.automaticallyAdjustsVideoMirroring = false
+            //frontCameraVideoDataOutputConnection.isVideoMirrored = true
             
             return true
         }
@@ -414,12 +408,13 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
                 return false
             }
             session.addOutputWithNoConnections(frontCameraVideoDataOutput)
-            frontCameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
+            frontCameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
             frontCameraVideoDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
             
             // Connect the front camera device input to the front camera video data output
-            let frontCameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [frontCameraVideoPort], output: frontCameraVideoDataOutput)
-            guard session.canAdd(frontCameraVideoDataOutputConnection) else {
+            frontCameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [frontCameraVideoPort], output: frontCameraVideoDataOutput)
+            guard let frontCameraVideoDataOutputConnection = frontCameraVideoDataOutputConnection,
+                  session.canAdd(frontCameraVideoDataOutputConnection) else {
                 print("Could not add a connection to the front camera video data output")
                 return false
             }
@@ -428,98 +423,6 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
             frontCameraVideoDataOutputConnection.automaticallyAdjustsVideoMirroring = false
             //frontCameraVideoDataOutputConnection.isVideoMirrored = true
 
-            // Connect the front camera device input to the front camera video preview layer
-            guard let frontCameraVideoPreviewLayer = frontCameraVideoPreviewLayer else {
-                return false
-            }
-            let frontCameraVideoPreviewLayerConnection = AVCaptureConnection(inputPort: frontCameraVideoPort, videoPreviewLayer: frontCameraVideoPreviewLayer)
-            guard session.canAdd(frontCameraVideoPreviewLayerConnection) else {
-                print("Could not add a connection to the front camera video preview layer")
-                return false
-            }
-            session.add(frontCameraVideoPreviewLayerConnection)
-            frontCameraVideoPreviewLayerConnection.automaticallyAdjustsVideoMirroring = false
-            //frontCameraVideoPreviewLayerConnection.isVideoMirrored = true
-            
-            return true
-        }
-        
-        private func configureMicrophone() -> Bool {
-            session.beginConfiguration()
-            defer {
-                session.commitConfiguration()
-            }
-            
-            // Find the microphone
-            guard let microphone = AVCaptureDevice.default(for: .audio) else {
-                print("Could not find the microphone")
-                return false
-            }
-            
-            // Add the microphone input to the session
-            do {
-                microphoneDeviceInput = try AVCaptureDeviceInput(device: microphone)
-                
-                guard let microphoneDeviceInput = microphoneDeviceInput,
-                    session.canAddInput(microphoneDeviceInput) else {
-                        print("Could not add microphone device input")
-                        return false
-                }
-                session.addInputWithNoConnections(microphoneDeviceInput)
-            } catch {
-                print("Could not create microphone input: \(error)")
-                return false
-            }
-            
-            // Find the audio device input's back audio port
-            guard let microphoneDeviceInput = microphoneDeviceInput,
-                let backMicrophonePort = microphoneDeviceInput.ports(for: .audio,
-                                                                     sourceDeviceType: microphone.deviceType,
-                                                                     sourceDevicePosition: .back).first else {
-                                                                        print("Could not find the back camera device input's audio port")
-                                                                        return false
-            }
-            
-            // Find the audio device input's front audio port
-            guard let frontMicrophonePort = microphoneDeviceInput.ports(for: .audio,
-                                                                        sourceDeviceType: microphone.deviceType,
-                                                                        sourceDevicePosition: .front).first else {
-                print("Could not find the front camera device input's audio port")
-                return false
-            }
-            
-            // Add the back microphone audio data output
-            guard session.canAddOutput(backMicrophoneAudioDataOutput) else {
-                print("Could not add the back microphone audio data output")
-                return false
-            }
-            session.addOutputWithNoConnections(backMicrophoneAudioDataOutput)
-            backMicrophoneAudioDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
-            
-            // Add the front microphone audio data output
-            guard session.canAddOutput(frontMicrophoneAudioDataOutput) else {
-                print("Could not add the front microphone audio data output")
-                return false
-            }
-            session.addOutputWithNoConnections(frontMicrophoneAudioDataOutput)
-            frontMicrophoneAudioDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
-            
-            // Connect the back microphone to the back audio data output
-            let backMicrophoneAudioDataOutputConnection = AVCaptureConnection(inputPorts: [backMicrophonePort], output: backMicrophoneAudioDataOutput)
-            guard session.canAdd(backMicrophoneAudioDataOutputConnection) else {
-                print("Could not add a connection to the back microphone audio data output")
-                return false
-            }
-            session.add(backMicrophoneAudioDataOutputConnection)
-            
-            // Connect the front microphone to the back audio data output
-            let frontMicrophoneAudioDataOutputConnection = AVCaptureConnection(inputPorts: [frontMicrophonePort], output: frontMicrophoneAudioDataOutput)
-            guard session.canAdd(frontMicrophoneAudioDataOutputConnection) else {
-                print("Could not add a connection to the front microphone audio data output")
-                return false
-            }
-            session.add(frontMicrophoneAudioDataOutputConnection)
-            
             return true
         }
         
@@ -777,10 +680,13 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
         }
         
         func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-            if let videoDataOutput = output as? AVCaptureVideoDataOutput {
-                processVideoSampleBuffer(sampleBuffer, fromOutput: videoDataOutput)
-            } else if let audioDataOutput = output as? AVCaptureAudioDataOutput {
-                //processsAudioSampleBuffer(sampleBuffer, fromOutput: audioDataOutput)
+            if output is AVCaptureVideoDataOutput {
+                if (connection == backCameraVideoDataOutputConnection) {
+                    leftCameraPreview.captureOutput(captureOutput: output, didOutputSampleBuffer: sampleBuffer, fromConnection: connection)
+                }
+                else if (connection == frontCameraVideoDataOutputConnection) {
+                    rightCameraPreview.captureOutput(captureOutput: output, didOutputSampleBuffer: sampleBuffer, fromConnection: connection)
+                }
             }
         }
         
@@ -854,7 +760,7 @@ class DualCameraCtrl: UIViewController, AVCaptureAudioDataOutputSampleBufferDele
                                                                                                 return
                 }
                 
-                recorder.recordVideo(sampleBuffer: finalVideoSampleBuffer)
+     recoeBufferisinalVideoSampleBuffer)
             }
         }
         

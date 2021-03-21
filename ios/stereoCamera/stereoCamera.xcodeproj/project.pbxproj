@@ -134,6 +134,7 @@
 		7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */; };
 		7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5E25FECA0900ED228E /* VideoPreview.swift */; };
 		7E691E642600908C00ED228E /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E632600908C00ED228E /* PreviewView.swift */; };
+		7EA56533260162120064809A /* VideoPreview.metal in Sources */ = {isa = PBXBuildFile; fileRef = 7EA56532260162120064809A /* VideoPreview.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -269,6 +270,7 @@
 		7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraCtrl.swift; sourceTree = "<group>"; };
 		7E691E5E25FECA0900ED228E /* VideoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreview.swift; sourceTree = "<group>"; };
 		7E691E632600908C00ED228E /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		7EA56532260162120064809A /* VideoPreview.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VideoPreview.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -416,6 +418,7 @@
 				7C1E4A0E214103AA005F1944 /* GalleryGridHeader.swift */,
 				7E691E5E25FECA0900ED228E /* VideoPreview.swift */,
 				7E691E632600908C00ED228E /* PreviewView.swift */,
+				7EA56532260162120064809A /* VideoPreview.metal */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -669,6 +672,7 @@
 				7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */,
 				7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */,
 				7E691E3A25F4640600ED228E /* jquant2.c in Sources */,
+				7EA56533260162120064809A /* VideoPreview.metal in Sources */,
 				7E691E1325F463AD00ED228E /* jdarith.c in Sources */,
 				7CAE81CD212F69E20022569D /* Statistics.swift in Sources */,
 				7E691D1425F461FE00ED228E /* jpegCtrl.cpp in Sources */,
