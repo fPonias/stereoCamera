@@ -14,8 +14,14 @@ import MetalPerformanceShaders
 import Photos
 import CoreMedia
 
-class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate, MTKViewDelegate {
+public protocol VideoPreviewDelegate
+{
+    func firstTextureReceived(_ preview: VideoPreview, image:CVImageBuffer)
+}
+
+public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate, MTKViewDelegate {
     
+    public var previewDelegate: VideoPreviewDelegate?
     
     public override init(frame frameRect: CGRect, device: MTLDevice?)
     {
@@ -139,70 +145,6 @@ class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
         }
     }
     
-    private let cameraVideoDataOutput = AVCaptureVideoDataOutput()
-    private let dataOutputQueue = DispatchQueue(label: "data output queue")
-    private var cameraVideoDataOutputConnection: AVCaptureConnection?
-    
-    @available(iOS 13.0, *)
-    func configureDualCamera(camera:AVCaptureDevice.DeviceType, session:AVCaptureMultiCamSession) -> Bool
-    {
-        session.beginConfiguration()
-        defer {
-            session.commitConfiguration()
-        }
-        
-        // Find the back camera
-        guard let camera = AVCaptureDevice.default(camera, for: .video, position: .back) else {
-            print("Could not find the back camera")
-            return false
-        }
-        
-        // Add the front camera input to the session
-        let cameraDeviceInput: AVCaptureDeviceInput
-        do {
-            cameraDeviceInput = try AVCaptureDeviceInput(device: camera)
-            
-            guard session.canAddInput(cameraDeviceInput) else {
-                    print("Could not add front camera device input")
-                    return false
-            }
-            session.addInputWithNoConnections(cameraDeviceInput)
-        } catch {
-            print("Could not create front camera device input: \(error)")
-            return false
-        }
-        
-        // Find the front camera device input's video port
-        guard let frontCameraVideoPort = cameraDeviceInput.ports(for: .video,
-            sourceDeviceType: camera.deviceType,
-            sourceDevicePosition: camera.position).first else {
-                print("Could not find the camera device input's video port")
-                return false
-        }
-        
-        // Add the front camera video data output
-        guard session.canAddOutput(cameraVideoDataOutput) else {
-            print("Could not add the front camera video data output")
-            return false
-        }
-        session.addOutputWithNoConnections(cameraVideoDataOutput)
-        cameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-        cameraVideoDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
-        
-        // Connect the front camera device input to the front camera video data output
-        cameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [frontCameraVideoPort], output: cameraVideoDataOutput)
-        guard let cameraVideoDataOutputConnection = cameraVideoDataOutputConnection,
-              session.canAdd(cameraVideoDataOutputConnection) else {
-            print("Could not add a connection to the front camera video data output")
-            return false
-        }
-        session.add(cameraVideoDataOutputConnection)
-        cameraVideoDataOutputConnection.videoOrientation = .portrait
-        cameraVideoDataOutputConnection.automaticallyAdjustsVideoMirroring = false
-        
-        return true
-    }
-    
     public func initializeMetal(){
         if (device == nil) {
             device = MTLCreateSystemDefaultDevice()
@@ -245,12 +187,30 @@ class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
     private var renderPipelineState:MTLRenderPipelineState?
     private var width:Int = 0
     private var height:Int = 0
+    private var hasNewTexture:Bool = false
+    private var sentFirstTexture:Bool = false
+    private var firstTextureReceived:TimeInterval = 0
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer:CMSampleBuffer!, fromConnection connection: AVCaptureConnection!)
     {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let w = CVPixelBufferGetWidth(pixelBuffer)
         let h = CVPixelBufferGetHeight(pixelBuffer)
+        
+        if (previewDelegate != nil && !sentFirstTexture)
+        {
+            if (firstTextureReceived == 0) {
+                firstTextureReceived = NSDate().timeIntervalSince1970
+            }
+            else {
+                let now = NSDate().timeIntervalSince1970
+                if (now - firstTextureReceived >= 1.0) {
+                    sentFirstTexture = true
+                    previewDelegate?.firstTextureReceived(self, image: pixelBuffer)
+                }
+            }
+        }
+        
         
         if (w != width || h != height)
         {
@@ -267,11 +227,12 @@ class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
               let unwrappedTexture = texture
         else { return }
         _texture = CVMetalTextureGetTexture(unwrappedTexture)
+        hasNewTexture = true
   
         draw()
     }
     
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+    public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         
     }
     
@@ -327,16 +288,19 @@ class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
         //let orientation = getScreenOrientation();
         //let rotation = CameraPreview.orientationToRadians(orientation)
         
+        let padding = (1.0 - (1.0 / _zoom)) / 2.0
         if (width < height)
         {
             let margin = (height - width) / 2
             let frac = Float(margin) / Float(height)
             let fracInv = 1.0 - frac
+            let paddingPx = padding * (Float(width) / 2.0)
+            let padFrac = paddingPx / Float(height)
             
-            pixelData[0].coord.x = 0.0; pixelData[0].coord.y = fracInv
-            pixelData[1].coord.x = 1.0; pixelData[1].coord.y = fracInv
-            pixelData[2].coord.x = 0.0; pixelData[2].coord.y = frac
-            pixelData[3].coord.x = 1.0; pixelData[3].coord.y = frac
+            pixelData[0].coord.x = 0.0 + padFrac; pixelData[0].coord.y = fracInv - padFrac
+            pixelData[1].coord.x = 1.0 - padFrac; pixelData[1].coord.y = fracInv - padFrac
+            pixelData[2].coord.x = 0.0 + padFrac; pixelData[2].coord.y = frac + padFrac
+            pixelData[3].coord.x = 1.0 - padFrac; pixelData[3].coord.y = frac + padFrac
         }
         else
         {
@@ -344,10 +308,10 @@ class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
             let frac = Float(margin) / Float(width)
             let fracInv = 1.0 - frac
             
-            pixelData[0].coord.x = frac; pixelData[0].coord.y = 1.0
-            pixelData[1].coord.x = fracInv; pixelData[1].coord.y = 1.0
-            pixelData[2].coord.x = frac; pixelData[2].coord.y = 0.0
-            pixelData[3].coord.x = fracInv; pixelData[3].coord.y = 0.0
+            pixelData[0].coord.x = frac + padding; pixelData[0].coord.y = 1.0 - padding
+            pixelData[1].coord.x = fracInv - padding; pixelData[1].coord.y = 1.0 - padding
+            pixelData[2].coord.x = frac + padding; pixelData[2].coord.y = 0.0 + padding
+            pixelData[3].coord.x = fracInv - padding; pixelData[3].coord.y = 0.0 + padding
         }
         
         pixels = [Float32]()
@@ -356,10 +320,13 @@ class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCa
         }
     }
     
-    func draw(in view: MTKView) {
+    public func draw(in view: MTKView) {
         guard let texture = _texture,
-              let device = device
+              let device = device,
+              hasNewTexture
         else { return }
+        
+        hasNewTexture = false
         
         let commandBuffer = device.makeCommandQueue()?.makeCommandBuffer()
         guard let pixelBuf = device.makeBuffer(length: pixels.count, options: .storageModeShared) else { return }

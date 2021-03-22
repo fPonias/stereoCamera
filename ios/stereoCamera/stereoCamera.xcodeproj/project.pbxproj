@@ -134,6 +134,8 @@
 		7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */; };
 		7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5E25FECA0900ED228E /* VideoPreview.swift */; };
 		7E691E642600908C00ED228E /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E632600908C00ED228E /* PreviewView.swift */; };
+		7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE292607DF1000223114 /* Histogram.swift */; };
+		7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE2C26080DB300223114 /* ZoomFinder.swift */; };
 		7EA56533260162120064809A /* VideoPreview.metal in Sources */ = {isa = PBXBuildFile; fileRef = 7EA56532260162120064809A /* VideoPreview.metal */; };
 /* End PBXBuildFile section */
 
@@ -270,6 +272,8 @@
 		7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraCtrl.swift; sourceTree = "<group>"; };
 		7E691E5E25FECA0900ED228E /* VideoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreview.swift; sourceTree = "<group>"; };
 		7E691E632600908C00ED228E /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		7E9FCE292607DF1000223114 /* Histogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Histogram.swift; sourceTree = "<group>"; };
+		7E9FCE2C26080DB300223114 /* ZoomFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomFinder.swift; sourceTree = "<group>"; };
 		7EA56532260162120064809A /* VideoPreview.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VideoPreview.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -397,6 +401,8 @@
 				7C84967220FD5B0F00C50601 /* Angles.swift */,
 				7CAE81CC212F69E20022569D /* Statistics.swift */,
 				7C1E4A1021419B96005F1944 /* ImageProvider.swift */,
+				7E9FCE292607DF1000223114 /* Histogram.swift */,
+				7E9FCE2C26080DB300223114 /* ZoomFinder.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -612,6 +618,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */,
 				7E691E4D25F4654900ED228E /* Comm.cpp in Sources */,
 				7E691E4425F4640600ED228E /* jfdctflt.c in Sources */,
 				7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */,
@@ -667,6 +674,7 @@
 				7E691DE725F461FF00ED228E /* SplitCompositeImageStream.cpp in Sources */,
 				7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */,
 				7CF59844211157810015260C /* SettingsListWidget.swift in Sources */,
+				7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */,
 				7E691E3E25F4640600ED228E /* jfdctfst.c in Sources */,
 				7CCB729020E2F2C0000BE923 /* Version.swift in Sources */,
 				7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */,
