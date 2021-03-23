@@ -211,6 +211,11 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
             }
         }
         
+        if (nextFrameCallback != nil) {
+            nextFrameCallback?(pixelBuffer, margins)
+            nextFrameCallback = nil
+        }
+        
         
         if (w != width || h != height)
         {
@@ -230,6 +235,13 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         hasNewTexture = true
   
         draw()
+    }
+    
+    private var nextFrameCallback:((CVImageBuffer, ImageProcessor.TextureMargin) -> Void)?
+    
+    func getNextFrame(callback: @escaping (CVImageBuffer, ImageProcessor.TextureMargin) -> Void) {
+        guard nextFrameCallback == nil else { return }
+        nextFrameCallback = callback
     }
     
     public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -283,6 +295,8 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         pixelData.append(v4)
     }
     
+    private var margins = ImageProcessor.TextureMargin(left: 0, top: 0, right: 0, bottom: 0)
+    
     func updateTransform()
     {
         //let orientation = getScreenOrientation();
@@ -301,6 +315,12 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
             pixelData[1].coord.x = 1.0 - padFrac; pixelData[1].coord.y = fracInv - padFrac
             pixelData[2].coord.x = 0.0 + padFrac; pixelData[2].coord.y = frac + padFrac
             pixelData[3].coord.x = 1.0 - padFrac; pixelData[3].coord.y = frac + padFrac
+            
+            let paddingInt = Int(padding)
+            margins.left = paddingInt
+            margins.right = paddingInt
+            margins.top = margin + paddingInt
+            margins.bottom = margin + paddingInt
         }
         else
         {
@@ -312,6 +332,12 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
             pixelData[1].coord.x = fracInv - padding; pixelData[1].coord.y = 1.0 - padding
             pixelData[2].coord.x = frac + padding; pixelData[2].coord.y = 0.0 + padding
             pixelData[3].coord.x = fracInv - padding; pixelData[3].coord.y = 0.0 + padding
+            
+            let paddingInt = Int(padding)
+            margins.left = margin + paddingInt
+            margins.right = margin + paddingInt
+            margins.top = paddingInt
+            margins.bottom = paddingInt
         }
         
         pixels = [Float32]()

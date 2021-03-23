@@ -376,6 +376,8 @@ class CameraMasterCtrl: CameraBaseCtrl
         self.shutterLock.unlock()
     }
     
+    let imageSaver = ImageSaver()
+    
     func shutterFired2()
     {
         var doReturn = false
@@ -420,7 +422,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         imageProcessor_cleanUpN()
         
-        saveToPhotos(dataPath: outpath, onSaved:
+        imageSaver.saveToPhotos(dataPath: outpath, onSaved:
         {(_path:String?) in
             DispatchQueue.main.async {
             [ unowned self ] in

@@ -50,9 +50,9 @@ class ZoomFinder {
         }
         
         self.baseVal = baseVal
-        //let ret = findZoomLin(left: 1.0, right: 10.0, step: 0.5)
-        let ret2 = findZoomRec(left: 1.0, right: 10.0)
-        callback(ret2)
+        let ret = findZoomLin(left: 1.0, right: 10.0, step: 0.5)
+        //let ret2 = findZoomRec(left: 1.0, right: 10.0)
+        callback(ret)
         
         isRunning = false
     }

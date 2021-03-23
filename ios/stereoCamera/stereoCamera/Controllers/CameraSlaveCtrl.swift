@@ -21,6 +21,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     var pingReceived = false;
     var cameraPosition = AVCaptureDevice.Position.back
     var captureQuality = ImageQuality.LOW
+    var imageSaver = ImageSaver()
     
     func onCommand(_ command: Command)
     {
@@ -132,7 +133,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
             
             if (url != nil)
             {
-                saveToPhotos(dataPath: url!.path, onSaved: {
+                imageSaver.saveToPhotos(dataPath: url!.path, onSaved: {
                 (_ path:String?) in
                     self.showLoader(false)
                     

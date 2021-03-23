@@ -21,6 +21,7 @@ class DualCameraCtrl: UIViewController,
     
     @IBOutlet weak var leftCameraPreview: VideoPreview!
     @IBOutlet weak var rightCameraPreview: VideoPreview!
+    @IBOutlet weak var shutterBtn: UIButton!
     
     private let session = AVCaptureMultiCamSession()
     private var isSessionRunning = false
@@ -48,6 +49,7 @@ class DualCameraCtrl: UIViewController,
         leftCameraPreview?.previewDelegate = self
         rightCameraPreview?.initializeMetal()
         rightCameraPreview?.previewDelegate = self
+        
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
         
@@ -206,6 +208,53 @@ class DualCameraCtrl: UIViewController,
         case multiCamNotSupported
     }
     
+    @IBAction func shutterClicked(_ sender: Any) {
+        let queue = DispatchQueue.init(label: "shutter thread")
+        let proc = ImageProcessorGreenMagenta(size: ImageProcessor.Size(width: 1080, height: 1080))
+        var count = 2
+        leftCameraPreview.getNextFrame(callback: { (buf, margins ) in
+            queue.async { [weak self] in
+                print("processing left side")
+                proc.setPixels(pixels: buf, margins: margins)
+                proc.processCurrentInTexture(.LEFT)
+                print("finished processing left side")
+                
+                count -= 1
+                if (count == 0) {
+                    self?.shutterClicked2(proc)
+                }
+            }
+        })
+        rightCameraPreview.getNextFrame(callback: { (buf, margins ) in
+            queue.async { [weak self] in
+                print("processing right side")
+                proc.setPixels(pixels: buf, margins: margins)
+                proc.processCurrentInTexture(.RIGHT)
+                print("finished processing right side")
+                
+                count -= 1
+                if (count == 0) {
+                    self?.shutterClicked2(proc)
+                }
+            }
+        })
+    }
+    
+    private let saver = ImageSaver()
+    
+    private func shutterClicked2(_ proc:ImageProcessor)
+    {
+        guard let img = proc.getOutput() else { return }
+        guard let cs = CGColorSpace(name: CGColorSpace.sRGB) else { return }
+        let ctx = CIContext()
+        let jpegData = ctx.jpegRepresentation(of: img, colorSpace: cs, options: [:])
+        guard let data = jpegData else { return }
+        
+        saver.saveToPhotos(data: data, onSaved: { savedImg in
+            print ("saved successfully")
+        })
+        
+    }
     
     // Must be called on the session queue
     private func configureSession() {
