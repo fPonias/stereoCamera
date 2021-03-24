@@ -8,13 +8,14 @@
 
 import Foundation
 import MetalKit
+import CoreImage
 
 class Histogram
 {
     private var _texture:MTLTexture?
     private var _textureCache:CVMetalTextureCache?
     private var _device:MTLDevice?
-    private var PSO:MTLComputePipelineState?
+    private var histState:MTLComputePipelineState?
     private var marginBuf:MTLBuffer?
     private var resultBuf:MTLBuffer?
     private var histogramPtr:UnsafeMutablePointer<Int32>?
@@ -35,7 +36,7 @@ class Histogram
         guard let library = device.makeDefaultLibrary() else { return }
         guard let fcn = library.makeFunction(name: "histogram") else { return }
         do {
-            PSO = try device.makeComputePipelineState(function: fcn)
+            histState = try device.makeComputePipelineState(function: fcn)
         }
         catch {
             return
@@ -69,8 +70,12 @@ class Histogram
         ptr.storeBytes(of: Int32(margins.bottom), toByteOffset: sizeof * 3, as: Int32.self)
     }
     
+    var texture:CVImageBuffer?
+    
     func setPixels(pixels:CVImageBuffer)
     {
+        texture = ImageUtils.copyBuffer(base: pixels)
+        
         width = CVPixelBufferGetWidth(pixels)
         height = CVPixelBufferGetHeight(pixels)
         
@@ -137,7 +142,7 @@ class Histogram
         guard let device = _device,
               let resultBuf = resultBuf,
               let histogramPtr = histogramPtr,
-              let PSO = PSO
+              let histState = histState
         else { return nil }
             
         histogramPtr.assign(repeating: 0, count: SZ)
@@ -147,14 +152,112 @@ class Histogram
               let encoder = cmdBuf.makeComputeCommandEncoder()
         else { return nil }
         
-        encoder.setComputePipelineState(PSO)
+        encoder.setComputePipelineState(histState)
         encoder.setTexture(_texture, index: 0)
         
         encoder.setBuffer(resultBuf, offset: 0, index: 0)
         encoder.setBuffer(marginBuf, offset: 0, index: 1)
         
         let gridSize = MTLSizeMake(width, height, 1)
-        let groupSize = MTLSizeMake(PSO.maxTotalThreadsPerThreadgroup, 1, 1)
+        let groupSize = MTLSizeMake(histState.maxTotalThreadsPerThreadgroup, 1, 1)
+        encoder.dispatchThreads(gridSize, threadsPerThreadgroup: groupSize)
+        
+        encoder.endEncoding()
+        cmdBuf.commit()
+        cmdBuf.waitUntilCompleted()
+        
+        return Array(UnsafeBufferPointer(start: histogramPtr, count: SZ))
+    }
+}
+
+public class ReducedHistogram {
+    private var _texture:MTLTexture?
+    private var _textureCache:CVMetalTextureCache?
+    private var _device:MTLDevice?
+    private var histState:MTLComputePipelineState?
+    private var marginBuf:MTLBuffer?
+    private var resultBuf:MTLBuffer?
+    private var histogramPtr:UnsafeMutablePointer<Int32>?
+    private var marginPtr:UnsafeMutablePointer<Float32>?
+    private let SZ = 512
+    private var width:Int = 0
+    private var height:Int = 0
+    
+    init()
+    {
+        if (_device == nil) {
+            _device = MTLCreateSystemDefaultDevice()
+        }
+        
+        guard let device = _device,
+              CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, device, nil, &_textureCache) == kCVReturnSuccess
+        else { return }
+        
+        guard let library = device.makeDefaultLibrary() else { return }
+        guard let fcn = library.makeFunction(name: "histogramReduced") else { return }
+        do {
+            histState = try device.makeComputePipelineState(function: fcn)
+        }
+        catch {
+            return
+        }
+        
+        let sizeof = MemoryLayout<Int32>.size
+        resultBuf = device.makeBuffer(length: SZ * sizeof, options: .storageModeShared)
+        histogramPtr = resultBuf?.contents().bindMemory(to: Int32.self, capacity: SZ)
+        
+        marginBuf = device.makeBuffer(length: 6 * sizeof, options: .storageModeShared)
+        marginPtr = marginBuf?.contents().bindMemory(to: Float32.self, capacity: 6)
+    }
+    
+    func setPixels(pixels:CVImageBuffer)
+    {
+        width = CVPixelBufferGetWidth(pixels)
+        height = CVPixelBufferGetHeight(pixels)
+        
+        guard let unwrappedCache = _textureCache else { return }
+        var texture:CVMetalTexture?
+        let status = CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault, unwrappedCache, pixels, nil, MTLPixelFormat.bgra8Unorm, width, height, 0, &texture)
+        
+        guard (status == kCVReturnSuccess),
+              let unwrappedTexture = texture
+        else { return }
+        _texture = CVMetalTextureGetTexture(unwrappedTexture)
+    }
+    
+    public func hasTexture() -> Bool {
+        return _texture != nil
+    }
+    
+    func setZoom(_ zoom:Float)
+    {
+        guard let marginPtr = marginPtr else { return }
+        let margins = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: zoom)
+        ImageUtils.marginFloatToMtlArr(margins: margins, ptr: marginPtr)
+    }
+    
+    func calculate() -> [Int32]? {
+        guard let device = _device,
+              let resultBuf = resultBuf,
+              let histogramPtr = histogramPtr,
+              let histState = histState
+        else { return nil }
+            
+        histogramPtr.assign(repeating: 0, count: SZ)
+                
+        guard let queue = device.makeCommandQueue(),
+              let cmdBuf = queue.makeCommandBuffer(),
+              let encoder = cmdBuf.makeComputeCommandEncoder()
+        else { return nil }
+        
+        encoder.setComputePipelineState(histState)
+        encoder.setTexture(_texture, index: 0)
+        
+        encoder.setBuffer(resultBuf, offset: 0, index: 0)
+        encoder.setBuffer(marginBuf, offset: 0, index: 1)
+        
+        let gridSize = MTLSizeMake(width, height, 1)
+        let groupSize = MTLSizeMake(histState.maxTotalThreadsPerThreadgroup, 1, 1)
         encoder.dispatchThreads(gridSize, threadsPerThreadgroup: groupSize)
         
         encoder.endEncoding()

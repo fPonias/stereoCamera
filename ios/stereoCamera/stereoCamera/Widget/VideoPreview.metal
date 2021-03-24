@@ -26,6 +26,15 @@ fragment half4 displayTexture(TextureMappingVertex mappingVertex [[ stage_in ]],
     return half4(texture.sample(s, mappingVertex.textureCoordinate));
 }
 
+uint getIndex(float4 val)
+{
+    uint idx = ((int) (val[0] * 8)) << 6;
+    idx |= ((int) (val[1] * 8)) << 3;
+    idx |= (int) (val[2] * 8);
+    
+    return idx;
+}
+
 //expect histArray to be an int[512] //9 bits
 kernel void
 histogram(texture2d<float, access::read> texture [[ texture(0) ]],
@@ -35,19 +44,54 @@ histogram(texture2d<float, access::read> texture [[ texture(0) ]],
     uint w = texture.get_width();
     uint h = texture.get_height();
     
-    if (gid[0] < marginArray[0] || gid[0] > w - marginArray[2])
+    if (gid[0] < marginArray[0] || gid[0] >= w - marginArray[2])
         return;
     
-    if (gid[1] < marginArray[1] || gid[1] > h - marginArray[3])
+    if (gid[1] < marginArray[1] || gid[1] >= h - marginArray[3])
         return;
     
     float4 val = texture.read(gid);
+    uint idx = getIndex(val);
     
-    int idx = ((int) (val[0] * 8)) << 6;
-    idx |= ((int) (val[1] * 8)) << 3;
-    idx |= (int) (val[2] * 8);
+    atomic_fetch_add_explicit(histArray + 1, 1, memory_order_relaxed);
     
-    atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
+    if (idx != 1)
+        atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
+}
+
+typedef struct{
+    float4 margins;
+    float2 pixelDims;
+} marginStr;
+
+kernel void
+histogramReduced(texture2d<float, access::sample> texture [[ texture(0) ]],
+                 device atomic_int* histArray [[ buffer(0) ]],
+                 device float* margins [[ buffer(1) ]],
+                 uint2 gid [[ thread_position_in_grid ]]) {
+    uint left = margins[0] * texture.get_width();
+    uint right = margins[2] * texture.get_width();
+    uint top = margins[1] * texture.get_height();
+    uint bottom = margins[3] * texture.get_height();
+    
+    if (gid[0] < left || gid[0] >= right)
+        return;
+    
+    if (gid[1] < top || gid[1] >= bottom)
+        return;
+    
+    float2 c;
+    c[0] = (float)(gid[0] - left) * margins[4];
+    c[1] = (float)(gid[1] - top) * margins[5];
+    
+    constexpr sampler s(address::clamp_to_edge, filter::linear);
+    float4 color = float4(texture.sample(s, c));
+    uint idx = getIndex(color);
+    
+    atomic_fetch_add_explicit(histArray + 1, 1, memory_order_relaxed);
+    
+    if (idx != 1)
+        atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
 
 kernel void

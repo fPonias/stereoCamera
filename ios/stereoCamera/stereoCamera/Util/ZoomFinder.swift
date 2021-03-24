@@ -9,7 +9,7 @@
 import Foundation
 
 class ZoomFinder {
-    let baseHist = Histogram()
+    let baseHist = ReducedHistogram()
     let adjHist = Histogram()
     private let queue = DispatchQueue(label: "Zoom finder thread")
     private var isRunning = false
@@ -23,8 +23,11 @@ class ZoomFinder {
         return baseHist.hasTexture() && adjHist.hasTexture()
     }
     
-    func findZoom(callback: @escaping (Float) -> Void)
+    private var max:Float = 1.0
+    
+    func findZoom(max:Float, callback: @escaping (Float) -> Void)
     {
+        self.max = max
         queue.sync {
             if (isRunning) {
                 return
@@ -38,36 +41,27 @@ class ZoomFinder {
         }
     }
     
-    private var baseVal: [Int32]?
     private let searchDivs = 4
     
     private func findZoomPriv(_ callback: (Float)->Void) {
         baseHist.setZoom(1.0)
-
-        guard let baseVal = baseHist.calculate() else {
-            callback(1.0)
-            return
-        }
         
-        self.baseVal = baseVal
-        let ret = findZoomLin(left: 1.0, right: 10.0, step: 0.5)
-        //let ret2 = findZoomRec(left: 1.0, right: 10.0)
+        let ret = findZoomLin(left: 1.0, right: max, step: (max - 1.0) / 10.0)
+        //let ret2 = findZoomRec(left: 1.0, right: max)
         callback(ret)
         
         isRunning = false
     }
     
     private func findZoomLin(left: Float, right: Float, step: Float) -> Float {
-        guard let baseVal = baseVal else { return left }
-        
         var ret = left
-        var minVal = Int.max
-        var arr = Array<Int>()
+        var minVal = Float.infinity
+        var arr = Array<Float>()
         var str = ""
         
         var i = left
         while i < right {
-            let diff = getDiff(baseVal, zoom: i)
+            let diff = getDiff(zoom: i)
             arr.append(diff)
             
             if diff < minVal {
@@ -84,48 +78,26 @@ class ZoomFinder {
         return ret
     }
     
-    private func findZoomRec(left: Float, right: Float) -> Float {
-        guard let baseVal = baseVal else { return left }
-        
-        let step = (right - left) / Float(searchDivs)
-        if (step < baseHist.zoomGranularity) {
-            return left
-        }
-        
-        var lastVal = 0
-        var zoom = left
-        
-        for i in 0 ... searchDivs {
-            let val = getDiff(baseVal, zoom: zoom)
-            
-            if (i > 0 && val > lastVal) {
-                if (i == 1) {
-                    return left
-                } else {
-                    return findZoomRec(left: zoom - (step * 2.0), right: zoom)
-                }
-            }
-            
-            lastVal = val
-            zoom += step
-        }
-        
-        return right
-    }
-    
-    private func getDiff(_ baseVal:[Int32], zoom:Float) -> Int {
+    private func getDiff(zoom:Float) -> Float {
+        baseHist.setZoom(zoom)
+        guard let baseVal = baseHist.calculate() else { return Float.infinity }
         adjHist.setZoom(zoom)
-        guard let adjVal = adjHist.calculate() else { return Int.max }
-        let mult = Float(baseHist.size) / Float(adjHist.size)
+        guard let adjVal = adjHist.calculate() else { return Float.infinity }
+        
         var diff = 0
+        var aCount = 0
+        var bCount = 0
         
         for i in 0 ..< adjVal.count {
             let baseItem = baseVal[i]
+            bCount += Int(baseItem)
             let adjItem = adjVal[i]
-            let diffItem = Int(baseItem) - Int(Float(adjItem) * mult)
+            aCount += Int(adjItem)
+            let diffItem = Int(baseItem) - Int(Float(adjItem))
             diff += abs(diffItem)
         }
         
-        return diff
+        let ratio = Float(diff) / Float(bCount)
+        return ratio
     }
 }

@@ -139,6 +139,7 @@
 		7EA171792609402800EF314C /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA171782609402800EF314C /* ImageProcessor.swift */; };
 		7EA1717C2609866000EF314C /* ImageSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA1717B2609866000EF314C /* ImageSaver.swift */; };
 		7EA56533260162120064809A /* VideoPreview.metal in Sources */ = {isa = PBXBuildFile; fileRef = 7EA56532260162120064809A /* VideoPreview.metal */; };
+		7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAE4282260AA815001E67C7 /* ImageUtils.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -279,6 +280,7 @@
 		7EA171782609402800EF314C /* ImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
 		7EA1717B2609866000EF314C /* ImageSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSaver.swift; sourceTree = "<group>"; };
 		7EA56532260162120064809A /* VideoPreview.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VideoPreview.metal; sourceTree = "<group>"; };
+		7EAE4282260AA815001E67C7 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -409,6 +411,7 @@
 				7E9FCE2C26080DB300223114 /* ZoomFinder.swift */,
 				7EA171782609402800EF314C /* ImageProcessor.swift */,
 				7EA1717B2609866000EF314C /* ImageSaver.swift */,
+				7EAE4282260AA815001E67C7 /* ImageUtils.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -707,6 +710,7 @@
 				7E691E0425F4638400ED228E /* jcparam.c in Sources */,
 				7E691DD625F461FF00ED228E /* RedCyanCompositeImageStream.cpp in Sources */,
 				7E691E2425F463CB00ED228E /* jdcolor.c in Sources */,
+				7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */,
 				7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */,
 				7C1E4A1121419B96005F1944 /* ImageProvider.swift in Sources */,
 				7E691DF925F4638400ED228E /* jcapistd.c in Sources */,

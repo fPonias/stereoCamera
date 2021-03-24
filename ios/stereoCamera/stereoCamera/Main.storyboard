@@ -274,6 +274,13 @@
                                     <action selector="shutterClicked:" destination="LXJ-4f-s59" eventType="primaryActionTriggered" id="6jA-Xj-cQl"/>
                                 </connections>
                             </button>
+                            <slider opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Xkk-IT-Zh7">
+                                <rect key="frame" x="14" y="387" width="292" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <connections>
+                                    <action selector="zoomUpdated:" destination="LXJ-4f-s59" eventType="valueChanged" id="IxA-0H-7rJ"/>
+                                </connections>
+                            </slider>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="fgf-me-1aC"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -286,6 +293,7 @@
                         <outlet property="leftCameraPreview" destination="VdF-XY-qgB" id="lmF-W3-V24"/>
                         <outlet property="rightCameraPreview" destination="hEK-zc-r80" id="vHe-CB-pSk"/>
                         <outlet property="shutterBtn" destination="QNb-dr-iRE" id="1HJ-60-mZf"/>
+                        <outlet property="zoomSlider" destination="Xkk-IT-Zh7" id="NEa-bm-WRE"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sxj-3H-enD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

@@ -20,8 +20,6 @@ class ImageProcessor {
     private var cropState:MTLComputePipelineState?
     private var maskState:MTLComputePipelineState?
     
-    private var margins = TextureMargin(left: 0, top: 0, right: 0, bottom: 0)
-    
     private var offsetBuf:MTLBuffer?
     private var offsetPtr:UnsafeMutablePointer<Int32>?
     
@@ -29,7 +27,7 @@ class ImageProcessor {
     var maskPtr:UnsafeMutablePointer<Float32>?
     
 
-    init(size:Size)
+    init(size:ImageUtils.Size)
     {
         if (_device == nil) {
             _device = MTLCreateSystemDefaultDevice()
@@ -61,15 +59,13 @@ class ImageProcessor {
         maskPtr = maskBuf?.contents().bindMemory(to: Float32.self, capacity: 3)
     }
     
-    func setPixels(pixels:CVImageBuffer, margins:TextureMargin)
-    {
-        self.margins = margins
-        
+    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin)
+    {        
         createInTexture(pixels)
         
         let w = CVPixelBufferGetWidth(pixels) - margins.left - margins.right
         let h = CVPixelBufferGetHeight(pixels) - margins.top - margins.bottom
-        createMidTexture(size: Size(width: w, height: h))
+        createMidTexture(size: ImageUtils.Size(width: w, height: h))
         
         guard let offsetPtr = offsetPtr else { return }
         offsetPtr.pointee = Int32(margins.left)
@@ -90,7 +86,7 @@ class ImageProcessor {
         _inTexture = CVMetalTextureGetTexture(unwrappedTexture)
     }
     
-    private func createMidTexture(size:Size)
+    private func createMidTexture(size:ImageUtils.Size)
     {
         guard size.width > 0 && size.height > 0 else { return }
         
@@ -103,7 +99,7 @@ class ImageProcessor {
         _midTexture = _device?.makeTexture(descriptor: textureDesc)
     }
     
-    private func createOutTexture(_ size:Size)
+    private func createOutTexture(_ size:ImageUtils.Size)
     {
         let textureDesc = MTLTextureDescriptor()
         textureDesc.pixelFormat = MTLPixelFormat.bgra8Unorm
@@ -112,18 +108,6 @@ class ImageProcessor {
         textureDesc.usage = [.shaderRead, .shaderWrite]
         
         _outTexture = _device?.makeTexture(descriptor: textureDesc)
-    }
-    
-    struct TextureMargin {
-        var left:Int
-        var top:Int
-        var right:Int
-        var bottom:Int
-    }
-    
-    struct Size {
-        var width:Int
-        var height:Int
     }
     
     enum Side {

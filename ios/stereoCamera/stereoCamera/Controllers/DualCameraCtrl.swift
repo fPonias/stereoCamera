@@ -22,6 +22,7 @@ class DualCameraCtrl: UIViewController,
     @IBOutlet weak var leftCameraPreview: VideoPreview!
     @IBOutlet weak var rightCameraPreview: VideoPreview!
     @IBOutlet weak var shutterBtn: UIButton!
+    @IBOutlet weak var zoomSlider: UISlider!
     
     private let session = AVCaptureMultiCamSession()
     private var isSessionRunning = false
@@ -38,6 +39,8 @@ class DualCameraCtrl: UIViewController,
     private var frontCameraVideoDataOutputConnection: AVCaptureConnection?
     
     private let zoomFinder = ZoomFinder()
+    
+    private let maxZoom = 4.0
     
     
     // MARK: View Controller Life Cycle
@@ -68,6 +71,10 @@ class DualCameraCtrl: UIViewController,
         
         // Keep the screen awake
         UIApplication.shared.isIdleTimerDisabled = true
+        
+        zoomSlider.minimumValue = 1.0
+        zoomSlider.maximumValue = Float(maxZoom)
+        zoomSlider.isContinuous = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -210,12 +217,12 @@ class DualCameraCtrl: UIViewController,
     
     @IBAction func shutterClicked(_ sender: Any) {
         let queue = DispatchQueue.init(label: "shutter thread")
-        let proc = ImageProcessorGreenMagenta(size: ImageProcessor.Size(width: 1080, height: 1080))
+        let proc = ImageProcessorGreenMagenta(size: ImageUtils.Size(width: 1080, height: 1080))
         var count = 2
-        leftCameraPreview.getNextFrame(callback: { (buf, margins ) in
+        leftCameraPreview.getNextFrame(callback: { (buf, margin ) in
             queue.async { [weak self] in
                 print("processing left side")
-                proc.setPixels(pixels: buf, margins: margins)
+                proc.setPixels(pixels: buf, margins: margin)
                 proc.processCurrentInTexture(.LEFT)
                 print("finished processing left side")
                 
@@ -225,10 +232,10 @@ class DualCameraCtrl: UIViewController,
                 }
             }
         })
-        rightCameraPreview.getNextFrame(callback: { (buf, margins ) in
+        rightCameraPreview.getNextFrame(callback: { (buf, margin) in
             queue.async { [weak self] in
                 print("processing right side")
-                proc.setPixels(pixels: buf, margins: margins)
+                proc.setPixels(pixels: buf, margins: margin)
                 proc.processCurrentInTexture(.RIGHT)
                 print("finished processing right side")
                 
@@ -254,6 +261,11 @@ class DualCameraCtrl: UIViewController,
             print ("saved successfully")
         })
         
+    }
+    
+    @IBAction func zoomUpdated(_ sender: Any) {
+        let newZoom = zoomSlider.value
+        rightCameraPreview.zoom = newZoom
     }
     
     // Must be called on the session queue
@@ -509,8 +521,12 @@ class DualCameraCtrl: UIViewController,
         }
         
         if (zoomFinder.canFindZoom()) {
-            zoomFinder.findZoom { [weak self] (zoom) in
+            zoomFinder.findZoom(max: Float(maxZoom)) { [weak self] (zoom) in
                 self?.rightCameraPreview.zoom = zoom
+                
+                DispatchQueue.main.async {
+                    self?.zoomSlider.value = zoom
+                }
             }
         }
     }

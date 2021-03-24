@@ -237,9 +237,9 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         draw()
     }
     
-    private var nextFrameCallback:((CVImageBuffer, ImageProcessor.TextureMargin) -> Void)?
+    private var nextFrameCallback:((CVImageBuffer, ImageUtils.Margin) -> Void)?
     
-    func getNextFrame(callback: @escaping (CVImageBuffer, ImageProcessor.TextureMargin) -> Void) {
+    func getNextFrame(callback: @escaping (CVImageBuffer, ImageUtils.Margin) -> Void) {
         guard nextFrameCallback == nil else { return }
         nextFrameCallback = callback
     }
@@ -295,51 +295,25 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         pixelData.append(v4)
     }
     
-    private var margins = ImageProcessor.TextureMargin(left: 0, top: 0, right: 0, bottom: 0)
+    private var margins = ImageUtils.Margin(left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0)
     
     func updateTransform()
     {
         //let orientation = getScreenOrientation();
         //let rotation = CameraPreview.orientationToRadians(orientation)
         
-        let padding = (1.0 - (1.0 / _zoom)) / 2.0
-        if (width < height)
-        {
-            let margin = (height - width) / 2
-            let frac = Float(margin) / Float(height)
-            let fracInv = 1.0 - frac
-            let paddingPx = padding * (Float(width) / 2.0)
-            let padFrac = paddingPx / Float(height)
+        margins = ImageUtils.findMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
+        let floatMargin = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
+    
+        pixelData[0].coord.x = floatMargin.left
+        pixelData[0].coord.y = floatMargin.bottom
+        pixelData[1].coord.x = floatMargin.right
+        pixelData[1].coord.y = floatMargin.bottom
+        pixelData[2].coord.x = floatMargin.left
+        pixelData[2].coord.y = floatMargin.top
+        pixelData[3].coord.x = floatMargin.right
+        pixelData[3].coord.y = floatMargin.top
             
-            pixelData[0].coord.x = 0.0 + padFrac; pixelData[0].coord.y = fracInv - padFrac
-            pixelData[1].coord.x = 1.0 - padFrac; pixelData[1].coord.y = fracInv - padFrac
-            pixelData[2].coord.x = 0.0 + padFrac; pixelData[2].coord.y = frac + padFrac
-            pixelData[3].coord.x = 1.0 - padFrac; pixelData[3].coord.y = frac + padFrac
-            
-            let paddingInt = Int(padding)
-            margins.left = paddingInt
-            margins.right = paddingInt
-            margins.top = margin + paddingInt
-            margins.bottom = margin + paddingInt
-        }
-        else
-        {
-            let margin = (width - height) / 2
-            let frac = Float(margin) / Float(width)
-            let fracInv = 1.0 - frac
-            
-            pixelData[0].coord.x = frac + padding; pixelData[0].coord.y = 1.0 - padding
-            pixelData[1].coord.x = fracInv - padding; pixelData[1].coord.y = 1.0 - padding
-            pixelData[2].coord.x = frac + padding; pixelData[2].coord.y = 0.0 + padding
-            pixelData[3].coord.x = fracInv - padding; pixelData[3].coord.y = 0.0 + padding
-            
-            let paddingInt = Int(padding)
-            margins.left = margin + paddingInt
-            margins.right = margin + paddingInt
-            margins.top = paddingInt
-            margins.bottom = paddingInt
-        }
-        
         pixels = [Float32]()
         for pd in pixelData {
             pixels.append(contentsOf: pd.toArr())
