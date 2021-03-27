@@ -15,8 +15,15 @@ typedef struct{
 } TextureMappingVertex;
 
 vertex TextureMappingVertex mapTexture(const device TextureMappingVertex *vertices [[buffer(0)]],
+                                       constant float4x4 &transform [[ buffer(1) ]],
                                        uint vertex_id  [[vertex_id]]) {
-    return vertices[vertex_id];
+    float4 pixel = vertices[vertex_id].renderedCoordinate;
+    TextureMappingVertex ret;
+    ret.renderedCoordinate = transform*pixel;
+    ret.textureCoordinate[0] = vertices[vertex_id].textureCoordinate[0];
+    ret.textureCoordinate[1] = vertices[vertex_id].textureCoordinate[1];
+    
+    return ret;
 }
 
 
@@ -94,23 +101,48 @@ histogramReduced(texture2d<float, access::sample> texture [[ texture(0) ]],
         atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
 
+uint2 crop_rotate(uint2 dest, uint2 dims, uint rot) //why are the images flipped at this point?
+{
+    uint2 ret;
+    switch (rot) {
+        case 0:
+            ret[0] = dims[0] - dest[0];
+            ret[1] = dest[1];
+            return ret;
+        case 1:
+            ret[1] = dims[0] - dest[0];
+            ret[0] = dest[1];
+            return ret;
+        case 2:
+            ret[0] = dest[0];
+            ret[1] = dims[1] - dest[1];
+            return ret;
+        default:
+            ret[1] = dims[0] - dest[0];
+            ret[0] = dest[1];
+            return ret;
+    }
+}
+
 kernel void
 crop(texture2d<float, access::read> inTexture [[ texture(0) ]],
           texture2d<float, access::write> outTexture [[ texture(1) ]],
           device uint* offset [[ buffer(0)]],
           uint2 gid [[ thread_position_in_grid ]]) {
-    uint w = outTexture.get_width();
-    uint h = outTexture.get_height();
+    uint2 dims;
+    dims[0] = outTexture.get_width();
+    dims[1] = outTexture.get_height();
     
-    if (gid[0] < offset[0] || gid[0] > offset[0] + w)
+    if (gid[0] < offset[0] || gid[0] > offset[0] + dims[0])
         return;
         
-    if (gid[1] < offset[1] || gid[1] > offset[1] + h)
+    if (gid[1] < offset[1] || gid[1] > offset[1] + dims[1])
         return;
     
     uint2 dest;
     dest[0] = gid[0] - offset[0];
     dest[1] = gid[1] - offset[1];
+    dest = crop_rotate(dest, dims, offset[2]);
     
     float4 pix = inTexture.read(gid);
     outTexture.write(pix, dest);

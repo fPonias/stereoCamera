@@ -226,7 +226,7 @@ class CameraMasterCtrl: CameraBaseCtrl
     struct ShutterStruct
     {
         public var zoom:Float = 1.0
-        public var orientation:CameraPreview.CameraOriention = .DEG_0
+        public var orientation:ImageUtils.CameraOrientation = .DEG_0
         public var tmpPath:String = ""
     }
     
@@ -305,7 +305,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                     self.shutterEvents -= 1
                     self.shutterLocal.tmpPath = tmpUrl!.path
                     self.shutterLocal.zoom = self.zoomSlider.value
-                    self.shutterLocal.orientation = self.cameraPreview.getOrientation()
+                self.shutterLocal.orientation = ImageUtils.getOrientation()
                     self.setLoaderMessage("Waiting for remote picture ...")
                     self.shutterLock.signal()
                 self.shutterLock.unlock()
@@ -333,7 +333,7 @@ class CameraMasterCtrl: CameraBaseCtrl
                             self.shutterEvents -= 1
                             self.shutterLocal.tmpPath = tmpUrl!.path
                             self.shutterLocal.zoom = self.zoomSlider.value
-                            self.shutterLocal.orientation = self.cameraPreview.getOrientation()
+                            self.shutterLocal.orientation = ImageUtils.getOrientation()
                             self.shutterLock.signal()
                         }
                     self.shutterLock.unlock()
@@ -402,8 +402,8 @@ class CameraMasterCtrl: CameraBaseCtrl
         let remoteSideVal = (localSideVal == LEFT) ? RIGHT : LEFT
         
         imageProcessor_setProcessorType(Int32(SPLIT.rawValue))
-        imageProcessor_setImageN(Int32(localSideVal.rawValue), localPtr, Int32(CameraPreview.orientationToByte(self.shutterLocal.orientation)), self.shutterLocal.zoom)
-        imageProcessor_setImageN(Int32(remoteSideVal.rawValue), remotePtr, Int32(CameraPreview.orientationToByte(self.shutterRemote.orientation)), self.shutterRemote.zoom)
+        imageProcessor_setImageN(Int32(localSideVal.rawValue), localPtr, Int32(ImageUtils.orientationToByte(self.shutterLocal.orientation)), self.shutterLocal.zoom)
+        imageProcessor_setImageN(Int32(remoteSideVal.rawValue), remotePtr, Int32(ImageUtils.orientationToByte(self.shutterRemote.orientation)), self.shutterRemote.zoom)
         
         let outurl = Files.getRandomFile()
         guard (outurl != nil) else { shutterReset(); return }

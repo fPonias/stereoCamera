@@ -102,7 +102,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                     { fireShutter.data = [UInt8](data!) }
                 
                 fireShutter.id = command.id
-                fireShutter.orientation = self.cameraPreview.getOrientation()
+                fireShutter.orientation = ImageUtils.getOrientation()
                 fireShutter.zoom = self.currentZoom
                 fireShutter.isResponse = true
                 

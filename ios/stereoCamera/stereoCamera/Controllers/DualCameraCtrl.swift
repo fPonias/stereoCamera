@@ -48,9 +48,9 @@ class DualCameraCtrl: UIViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
                     
-        leftCameraPreview?.initializeMetal()
+        leftCameraPreview?.initialize()
         leftCameraPreview?.previewDelegate = self
-        rightCameraPreview?.initializeMetal()
+        rightCameraPreview?.initialize()
         rightCameraPreview?.previewDelegate = self
         
         
@@ -219,10 +219,10 @@ class DualCameraCtrl: UIViewController,
         let queue = DispatchQueue.init(label: "shutter thread")
         let proc = ImageProcessorGreenMagenta(size: ImageUtils.Size(width: 1080, height: 1080))
         var count = 2
-        leftCameraPreview.getNextFrame(callback: { (buf, margin ) in
+        leftCameraPreview.getNextFrame(callback: { (buf, margin, orient ) in
             queue.async { [weak self] in
                 print("processing left side")
-                proc.setPixels(pixels: buf, margins: margin)
+                proc.setPixels(pixels: buf, margins: margin, orientation: orient)
                 proc.processCurrentInTexture(.LEFT)
                 print("finished processing left side")
                 
@@ -232,10 +232,10 @@ class DualCameraCtrl: UIViewController,
                 }
             }
         })
-        rightCameraPreview.getNextFrame(callback: { (buf, margin) in
+        rightCameraPreview.getNextFrame(callback: { (buf, margin, orient) in
             queue.async { [weak self] in
                 print("processing right side")
-                proc.setPixels(pixels: buf, margins: margin)
+                proc.setPixels(pixels: buf, margins: margin, orientation: orient)
                 proc.processCurrentInTexture(.RIGHT)
                 print("finished processing right side")
                 
@@ -351,9 +351,6 @@ class DualCameraCtrl: UIViewController,
             return false
         }
         session.add(backCameraVideoDataOutputConnection)
-        backCameraVideoDataOutputConnection.videoOrientation = .portrait
-        backCameraVideoDataOutputConnection.automaticallyAdjustsVideoMirroring = false
-        //frontCameraVideoDataOutputConnection.isVideoMirrored = true
         
         return true
     }
@@ -411,9 +408,6 @@ class DualCameraCtrl: UIViewController,
             return false
         }
         session.add(frontCameraVideoDataOutputConnection)
-        frontCameraVideoDataOutputConnection.videoOrientation = .portrait
-        frontCameraVideoDataOutputConnection.automaticallyAdjustsVideoMirroring = false
-        //frontCameraVideoDataOutputConnection.isVideoMirrored = true
 
         return true
     }
@@ -512,7 +506,7 @@ class DualCameraCtrl: UIViewController,
         }
     }
     
-    func firstTextureReceived(_ preview: VideoPreview, image: CVImageBuffer) {
+    func firstTextureReceived(_ preview: VideoPreview, image: CVImageBuffer, orientation:ImageUtils.CameraOrientation) {
         if (preview == leftCameraPreview) {
             zoomFinder.baseHist.setPixels(pixels: image)
         }

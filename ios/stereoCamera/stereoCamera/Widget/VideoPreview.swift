@@ -16,7 +16,17 @@ import CoreMedia
 
 public protocol VideoPreviewDelegate
 {
-    func firstTextureReceived(_ preview: VideoPreview, image:CVImageBuffer)
+    func firstTextureReceived(_ preview: VideoPreview, image:CVImageBuffer, orientation:ImageUtils.CameraOrientation)
+}
+
+extension Matrix
+{
+    func fillMemory(_ ptr:UnsafeMutablePointer<Float32>)
+    {
+        for i in 0 ..< 16 {
+            (ptr + i).pointee = Float32(m[i])
+        }
+    }
 }
 
 public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate, MTKViewDelegate {
@@ -26,12 +36,17 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     public override init(frame frameRect: CGRect, device: MTLDevice?)
     {
         super.init(frame: frameRect, device: device)
-        guard let _device = device else { return }
     }
 
     public required init(coder: NSCoder)
     {
         super.init(coder: coder)
+    }
+
+    deinit {
+        UIDevice.current.endGeneratingDeviceOrientationNotifications()
+        NotificationCenter.default.removeObserver(self)
+        
     }
     
     private var _zoom:Float = 1.0
@@ -45,107 +60,12 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         }
     }
     
-    private var previewTransform:CGAffineTransform = CGAffineTransform()
-    
-    public enum CameraOriention:CGFloat
-    {
-        case DEG_0 = 0.0,
-        DEG_90 = 90.0,
-        DEG_180 = 180.0,
-        DEG_270 = 270.0
+    public func initialize() {
+        initializeMetal()
+        initializeListeners()
     }
     
-    public static func orientationToRadians(_ orientation:CameraOriention) -> CGFloat
-    {
-        switch(orientation)
-        {
-        case .DEG_0:
-            return 0.0
-        case .DEG_90:
-            return CGFloat(Double.pi)
-        case .DEG_180:
-            return CGFloat(Double.pi / 2.0)
-        case .DEG_270:
-            return CGFloat(3 * Double.pi / 2.0)
-        }
-    }
-    
-    public static func orientationToByte(_ orientation:CameraOriention) -> UInt8
-    {
-        switch(orientation)
-        {
-        case .DEG_0:
-            return 0
-        case .DEG_90:
-            return 1
-        case .DEG_180:
-            return 2
-        case .DEG_270:
-            return 3
-        }
-    }
-    
-    public static func orientationFromByte(_ b:UInt8) -> CameraOriention
-    {
-        switch(b)
-        {
-        case 0:
-            return .DEG_0
-        case 1:
-            return .DEG_90
-        case 2:
-            return .DEG_180
-        case 3:
-            return .DEG_270
-        default:
-            return .DEG_0
-        }
-    }
-    
-    open func isFacing() -> Bool
-    {
-        return false
-    }
-    
-    public func getScreenOrientation() -> CameraOriention
-    {
-        let facing = isFacing()
-        let orient = UIDevice.current.orientation
-        switch(orient)
-        {
-        case .portrait:
-            return .DEG_270
-        case .portraitUpsideDown:
-            return .DEG_90
-        case .landscapeRight:
-            return (facing) ? .DEG_0 : .DEG_90 //why is this offset by 90 degrees?  I'm so confused.
-        case .landscapeLeft:
-            return (facing) ? .DEG_90 : .DEG_0
-        default:
-            return .DEG_0
-        }
-    }
-    
-    public func getOrientation() -> CameraOriention
-    {
-        let facing = isFacing()
-        let orient = UIDevice.current.orientation
-        switch(orient)
-        {
-        case .portrait:
-            return .DEG_90
-        case .portraitUpsideDown:
-            return .DEG_270
-        case .landscapeRight:
-            return (facing) ? .DEG_180 : .DEG_0
-        case .landscapeLeft:
-            return (facing) ? .DEG_0 : .DEG_180
-        default:
-            return .DEG_0
-        }
-    }
-    
-    public func initializeMetal(){
+    private func initializeMetal(){
         if (device == nil) {
             device = MTLCreateSystemDefaultDevice()
         }
@@ -160,23 +80,28 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         contentScaleFactor = UIScreen.main.scale
         autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
+        let sz = MemoryLayout<Float32>.size
+        transformBuffer = device.makeBuffer(length: sz * 16, options: .storageModeShared)
+        transformPtr = transformBuffer?.contents().bindMemory(to: Float32.self, capacity: 16)
+        
         setupPixels()
         
         initializeRenderPipelineState()
     }
     
-    func rotateScaleImage(image: CIImage) -> CIImage
-    {
-        var ret:CIImage = image
+    public func initializeListeners() {
+        NotificationCenter.default.addObserver(self, selector: #selector(onOrientation(_:)), name: .UIDeviceOrientationDidChange, object: nil)
         
-        let inRect = image.extent
-        let margin = (inRect.width - inRect.height) / 2
-        let cropped = CGRect(x: margin, y: 0, width: inRect.height, height: inRect.height)
-        ret = ret.cropped(to: cropped)
-        
-        ret = ret.transformed(by: previewTransform)
-        
-        return ret
+        let device = UIDevice.current
+        device.beginGeneratingDeviceOrientationNotifications()
+        let orient = UIApplication.shared.statusBarOrientation
+        orientation = ImageUtils.imageOrientationToProcOrientation(UIApplication.shared.statusBarOrientation, false)
+        updateTransform()
+    }
+    
+    @objc func onOrientation(_ notification: Notification) {
+        orientation =  ImageUtils.deviceOrientationToProcOrientation(UIDevice.current.orientation, false)
+        updateTransform()
     }
     
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
@@ -185,6 +110,8 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     private var _texture:MTLTexture?
     private var _textureCache:CVMetalTextureCache?
     private var renderPipelineState:MTLRenderPipelineState?
+    private var transformBuffer:MTLBuffer?
+    private var transformPtr:UnsafeMutablePointer<Float32>?
     private var width:Int = 0
     private var height:Int = 0
     private var hasNewTexture:Bool = false
@@ -206,13 +133,13 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
                 let now = NSDate().timeIntervalSince1970
                 if (now - firstTextureReceived >= 1.0) {
                     sentFirstTexture = true
-                    previewDelegate?.firstTextureReceived(self, image: pixelBuffer)
+                    previewDelegate?.firstTextureReceived(self, image: pixelBuffer, orientation: orientation ?? .DEG_0)
                 }
             }
         }
         
         if (nextFrameCallback != nil) {
-            nextFrameCallback?(pixelBuffer, margins)
+            nextFrameCallback?(pixelBuffer, margins, orientation ?? .DEG_0)
             nextFrameCallback = nil
         }
         
@@ -237,9 +164,9 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         draw()
     }
     
-    private var nextFrameCallback:((CVImageBuffer, ImageUtils.Margin) -> Void)?
+    private var nextFrameCallback:((CVImageBuffer, ImageUtils.Margin, ImageUtils.CameraOrientation) -> Void)?
     
-    func getNextFrame(callback: @escaping (CVImageBuffer, ImageUtils.Margin) -> Void) {
+    func getNextFrame(callback: @escaping (CVImageBuffer, ImageUtils.Margin, ImageUtils.CameraOrientation) -> Void) {
         guard nextFrameCallback == nil else { return }
         nextFrameCallback = callback
     }
@@ -296,11 +223,14 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     }
     
     private var margins = ImageUtils.Margin(left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0)
+    private let mtlTransform = Matrix()
+    
+    private var orientation:ImageUtils.CameraOrientation?
     
     func updateTransform()
     {
-        //let orientation = getScreenOrientation();
-        //let rotation = CameraPreview.orientationToRadians(orientation)
+        let orientation = self.orientation ?? .DEG_0
+        let rotation = ImageUtils.orientationToRadians(orientation)
         
         margins = ImageUtils.findMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
         let floatMargin = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
@@ -318,6 +248,11 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         for pd in pixelData {
             pixels.append(contentsOf: pd.toArr())
         }
+        
+        mtlTransform.identity()
+        mtlTransform.rotate(Float3(x: 0, y: 0, z: Float(rotation)))
+        guard let ptr = transformPtr else { return }
+        mtlTransform.fillMemory(ptr)
     }
     
     public func draw(in view: MTKView) {
@@ -333,6 +268,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         let ptr = pixelBuf.contents().bindMemory(to: Float32.self, capacity: pixels.count)
         ptr.assign(from: pixels, count: pixels.count)
         
+        
         guard let currentRenderPassDesc = view.currentRenderPassDescriptor,
               let currentDrawable = view.currentDrawable,
               let renderPipelineState = renderPipelineState
@@ -342,6 +278,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         encoder?.pushDebugGroup("RenderFrame")
         encoder?.setRenderPipelineState(renderPipelineState)
         encoder?.setVertexBuffer(pixelBuf, offset: 0, index: 0)
+        encoder?.setVertexBuffer(transformBuffer, offset: 0, index: 1)
         encoder?.setFragmentTexture(texture, index: 0)
         encoder?.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4, instanceCount: 1)
         encoder?.popDebugGroup()

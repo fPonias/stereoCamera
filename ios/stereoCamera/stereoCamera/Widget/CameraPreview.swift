@@ -179,10 +179,11 @@ class CameraPreview : VideoPreview
         }*/
     }
     
+    /*
     override func isFacing() -> Bool
     {
         return (_currentCamera?.position == AVCaptureDevice.Position.front) ? true : false
-    }
+    }*/
 
     private func cameraPicker(cameraPosition: AVCaptureDevice.Position) -> AVCaptureDevice?
     {

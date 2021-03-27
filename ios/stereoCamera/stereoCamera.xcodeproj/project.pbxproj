@@ -140,6 +140,7 @@
 		7EA1717C2609866000EF314C /* ImageSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA1717B2609866000EF314C /* ImageSaver.swift */; };
 		7EA56533260162120064809A /* VideoPreview.metal in Sources */ = {isa = PBXBuildFile; fileRef = 7EA56532260162120064809A /* VideoPreview.metal */; };
 		7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAE4282260AA815001E67C7 /* ImageUtils.swift */; };
+		7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED4E2CF260CC8D40085112E /* Matrix.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -281,6 +282,7 @@
 		7EA1717B2609866000EF314C /* ImageSaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageSaver.swift; sourceTree = "<group>"; };
 		7EA56532260162120064809A /* VideoPreview.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VideoPreview.metal; sourceTree = "<group>"; };
 		7EAE4282260AA815001E67C7 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
+		7ED4E2CF260CC8D40085112E /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -412,6 +414,7 @@
 				7EA171782609402800EF314C /* ImageProcessor.swift */,
 				7EA1717B2609866000EF314C /* ImageSaver.swift */,
 				7EAE4282260AA815001E67C7 /* ImageUtils.swift */,
+				7ED4E2CF260CC8D40085112E /* Matrix.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -739,6 +742,7 @@
 				7E691E3D25F4640600ED228E /* jidctfst.c in Sources */,
 				7E691E1025F463AD00ED228E /* jcsample.c in Sources */,
 				7E691E1425F463AD00ED228E /* jcprepct.c in Sources */,
+				7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */,
 				7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */,
 				7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */,
 				7E691DF825F4638400ED228E /* jcomapi.c in Sources */,

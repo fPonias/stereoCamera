@@ -51,15 +51,24 @@ class ImageProcessor {
         createOutTexture(size)
         
         let intsz = MemoryLayout<Int32>.size
-        offsetBuf = device.makeBuffer(length: 2 * intsz, options: .storageModeShared)
-        offsetPtr = offsetBuf?.contents().bindMemory(to: Int32.self, capacity: 2)
+        offsetBuf = device.makeBuffer(length: 3 * intsz, options: .storageModeShared)
+        offsetPtr = offsetBuf?.contents().bindMemory(to: Int32.self, capacity: 3)
         
         let floatsz = MemoryLayout<Float32>.size
         maskBuf = device.makeBuffer(length: 3 * floatsz, options: .storageModeShared)
         maskPtr = maskBuf?.contents().bindMemory(to: Float32.self, capacity: 3)
     }
     
-    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin)
+    private func orientationToRotation(_ orient: ImageUtils.CameraOrientation) -> Int32 {
+        switch (orient) {
+        case .DEG_0:  return 2
+        case .DEG_90: return 0
+        case .DEG_270: return 3
+        default: return 1
+        }
+    }
+    
+    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, orientation:ImageUtils.CameraOrientation)
     {        
         createInTexture(pixels)
         
@@ -70,6 +79,9 @@ class ImageProcessor {
         guard let offsetPtr = offsetPtr else { return }
         offsetPtr.pointee = Int32(margins.left)
         (offsetPtr + 1).pointee = Int32(margins.top)
+        let rot = orientationToRotation(orientation)
+        print("image processor orientation " + String(rot))
+        (offsetPtr + 2).pointee = rot
     }
     
     private func createInTexture(_ pixels:CVImageBuffer)

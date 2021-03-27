@@ -13,7 +13,7 @@ class FireShutter : Command
 {
     var data = [UInt8]()
     var zoom:Float = 1.0
-    var orientation:CameraPreview.CameraOriention = .DEG_0
+    var orientation:ImageUtils.CameraOrientation = .DEG_0
 
     override init()
     {
@@ -21,7 +21,7 @@ class FireShutter : Command
         doInit()
     }
     
-    init(data:Data, zoom:Float, orientation:CameraPreview.CameraOriention)
+    init(data:Data, zoom:Float, orientation:ImageUtils.CameraOrientation)
     {
         super.init()
         
@@ -48,7 +48,7 @@ class FireShutter : Command
         
         print ("writing Float value " + String(zoom))
         
-        let orientB = CameraPreview.orientationToByte(orientation)
+        let orientB = ImageUtils.orientationToByte(orientation)
         bytes += [orientB]
         
         let sz = data.count
@@ -79,7 +79,7 @@ class FireShutter : Command
         print ("read zoom value " + String(zoom))
         
         var orientB = buf2[4]
-        orientation = CameraPreview.orientationFromByte(orientB)
+        orientation = ImageUtils.orientationFromByte(orientB)
         
         print ("read orientation value " + String(orientB))
         

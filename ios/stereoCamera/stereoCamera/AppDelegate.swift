@@ -98,6 +98,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate
         }}
     }
     
+    
+    
     private var listeners = NSPointerArray.weakObjects()
     
     func addListener(_ listener:UIApplicationDelegate)
