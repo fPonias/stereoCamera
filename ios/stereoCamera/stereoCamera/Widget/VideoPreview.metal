@@ -60,10 +60,7 @@ histogram(texture2d<float, access::read> texture [[ texture(0) ]],
     float4 val = texture.read(gid);
     uint idx = getIndex(val);
     
-    atomic_fetch_add_explicit(histArray + 1, 1, memory_order_relaxed);
-    
-    if (idx != 1)
-        atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
+    atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
 
 typedef struct{
@@ -95,10 +92,7 @@ histogramReduced(texture2d<float, access::sample> texture [[ texture(0) ]],
     float4 color = float4(texture.sample(s, c));
     uint idx = getIndex(color);
     
-    atomic_fetch_add_explicit(histArray + 1, 1, memory_order_relaxed);
-    
-    if (idx != 1)
-        atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
+    atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
 
 uint2 crop_rotate(uint2 dest, uint2 dims, uint rot) //why are the images flipped at this point?
@@ -152,13 +146,20 @@ kernel void
 colorMask(texture2d<float, access::sample> inTexture [[ texture(0) ]],
           texture2d<float, access::read_write> outTexture [[ texture(1) ]],
           device float* mask [[ buffer(0)]],
+          device uint2* offset [[ buffer(1) ]],
           uint2 gid [[ thread_position_in_grid ]]) {
+    uint2 sz = offset[1];
+    
+    if (gid[0] > sz[0] || gid[1] > sz[1])
+        return;
+    
     float2 texCoord;
-    texCoord[0] = (float) gid[0] / (float) outTexture.get_width();
-    texCoord[1] = (float) gid[1] / (float) outTexture.get_height();
+    texCoord[0] = (float) gid[0] / ((float) sz[0]);
+    texCoord[1] = (float) gid[1] / ((float) sz[1]);
     
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float4 val = inTexture.sample(s, texCoord);
+    gid += offset[0];
     float4 cur = outTexture.read(gid);
     
     for (int i = 0; i < 3; i++)

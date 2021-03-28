@@ -23,8 +23,11 @@ class ImageProcessor {
     private var offsetBuf:MTLBuffer?
     private var offsetPtr:UnsafeMutablePointer<Int32>?
     
+    var outSize = ImageUtils.Size(width: 0, height: 0)
     private var maskBuf:MTLBuffer?
     var maskPtr:UnsafeMutablePointer<Float32>?
+    private var outOffsetBuf:MTLBuffer?
+    var outOffsetPtr:UnsafeMutablePointer<UInt32>?
     
 
     init(size:ImageUtils.Size)
@@ -57,6 +60,10 @@ class ImageProcessor {
         let floatsz = MemoryLayout<Float32>.size
         maskBuf = device.makeBuffer(length: 3 * floatsz, options: .storageModeShared)
         maskPtr = maskBuf?.contents().bindMemory(to: Float32.self, capacity: 3)
+        
+        let uintsz = MemoryLayout<UInt32>.size
+        outOffsetBuf = device.makeBuffer(length: 4 * uintsz, options: .storageModeShared)
+        outOffsetPtr = outOffsetBuf?.contents().bindMemory(to: UInt32.self, capacity: 4)
     }
     
     private func orientationToRotation(_ orient: ImageUtils.CameraOrientation) -> Int32 {
@@ -120,6 +127,8 @@ class ImageProcessor {
         textureDesc.usage = [.shaderRead, .shaderWrite]
         
         _outTexture = _device?.makeTexture(descriptor: textureDesc)
+        
+        outSize = size
     }
     
     enum Side {
@@ -157,6 +166,7 @@ class ImageProcessor {
         encoder.setTexture(_midTexture, index: 0)
         encoder.setTexture(outTexture, index: 1)
         encoder.setBuffer(maskBuf, offset: 0, index: 0)
+        encoder.setBuffer(outOffsetBuf, offset: 0, index: 1)
         
         gridSize = MTLSizeMake(outTexture.width, outTexture.height, 1)
         groupSize = MTLSizeMake(cropState.maxTotalThreadsPerThreadgroup, 1, 1)
@@ -189,6 +199,65 @@ class ImageProcessorGreenMagenta : ImageProcessor
             maskPtr.pointee = 1.0
             (maskPtr + 1).pointee = 0.0
             (maskPtr + 2).pointee = 1.0
+        }
+        
+        guard let outOffsetPtr = outOffsetPtr else { return }
+        (outOffsetPtr + 0).pointee = 0
+        (outOffsetPtr + 1).pointee = 0
+        (outOffsetPtr + 2).pointee = UInt32(outSize.width)
+        (outOffsetPtr + 3).pointee = UInt32(outSize.height)
+        
+        
+        calculate()
+    }
+}
+
+class ImageProcessorRedCyan : ImageProcessor
+{
+    public override func processCurrentInTexture(_ side: ImageProcessor.Side) {
+        guard let maskPtr = maskPtr else { return }
+        if (side == .LEFT) {
+            maskPtr.pointee = 1.0
+            (maskPtr + 1).pointee = 0.0
+            (maskPtr + 2).pointee = 0.0
+        }
+        else {
+            maskPtr.pointee = 0.0
+            (maskPtr + 1).pointee = 1.0
+            (maskPtr + 2).pointee = 1.0
+        }
+        
+        guard let outOffsetPtr = outOffsetPtr else { return }
+        (outOffsetPtr + 0).pointee = 0
+        (outOffsetPtr + 1).pointee = 0
+        (outOffsetPtr + 2).pointee = UInt32(outSize.width)
+        (outOffsetPtr + 3).pointee = UInt32(outSize.height)
+        
+        calculate()
+    }
+}
+
+class ImageProcessorSplit : ImageProcessor
+{
+    public override func processCurrentInTexture(_ side: ImageProcessor.Side) {
+        guard let maskPtr = maskPtr else { return }
+        (maskPtr + 0).pointee = 1.0
+        (maskPtr + 1).pointee = 1.0
+        (maskPtr + 2).pointee = 1.0
+        
+        let pieceWidth = outSize.width / 2
+        
+        guard let outOffsetPtr = outOffsetPtr else { return }
+        if (side == .LEFT) {
+            (outOffsetPtr + 0).pointee = 0
+            (outOffsetPtr + 1).pointee = 0
+            (outOffsetPtr + 2).pointee = UInt32(pieceWidth)
+            (outOffsetPtr + 3).pointee = UInt32(outSize.height)
+        } else {
+            (outOffsetPtr + 0).pointee = UInt32(pieceWidth)
+            (outOffsetPtr + 1).pointee = 0
+            (outOffsetPtr + 2).pointee = UInt32(pieceWidth)
+            (outOffsetPtr + 3).pointee = UInt32(outSize.height)
         }
         
         calculate()

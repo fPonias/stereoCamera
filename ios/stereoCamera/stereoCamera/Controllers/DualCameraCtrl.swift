@@ -217,7 +217,7 @@ class DualCameraCtrl: UIViewController,
     
     @IBAction func shutterClicked(_ sender: Any) {
         let queue = DispatchQueue.init(label: "shutter thread")
-        let proc = ImageProcessorGreenMagenta(size: ImageUtils.Size(width: 1080, height: 1080))
+        let proc = ImageProcessorSplit(size: ImageUtils.Size(width: 2160, height: 1080))
         var count = 2
         leftCameraPreview.getNextFrame(callback: { (buf, margin, orient ) in
             queue.async { [weak self] in
