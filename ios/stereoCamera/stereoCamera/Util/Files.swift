@@ -10,14 +10,27 @@ import Foundation
 import Photos
 import UIKit
 
+public protocol FilesDelegate {
+    func onNewFile(asset: PHAsset)
+}
+
 public class Files
 {
-    public static func getTmpDir() -> URL
+    static let instance:Files = Files()
+    
+    private init() {}
+    
+    private var delegates = MulticastDelegate<FilesDelegate>()
+    public func addDelegate(_ delegate:FilesDelegate) {
+        delegates.add(delegate)
+    }
+    
+    public func getTmpDir() -> URL
     {
         return FileManager.default.temporaryDirectory
     }
     
-    public static func getDataDir() -> URL?
+    public func getDataDir() -> URL?
     {
         let outDirs:[URL] = FileManager.default.urls(for: FileManager.SearchPathDirectory.cachesDirectory, in: FileManager.SearchPathDomainMask.userDomainMask)
         guard (outDirs.count > 0) else { return nil }
@@ -25,7 +38,7 @@ public class Files
         return outDirs[0]
     }
     
-    public static func getRandomFile() -> URL?
+    public func getRandomFile() -> URL?
     {
         let outDir = getDataDir()
         guard(outDir != nil) else { return nil }
@@ -37,7 +50,7 @@ public class Files
     }
     
     
-    static func getGalleryFiles() -> [PHAsset]
+    func getGalleryFiles() -> [PHAsset]
     {
         let galleryTitle:String = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as! String
         var files = [PHAsset]()
@@ -63,7 +76,7 @@ public class Files
         return files
     }
     
-    static func dateToLabel(_ date:Date) -> String
+    func dateToLabel(_ date:Date) -> String
     {
         let fmt = DateFormatter()
         
@@ -87,7 +100,7 @@ public class Files
         return ret
     }
     
-    static func getGroupedGalleryFiles() -> ([String], [[PHAsset]])
+    func getGroupedGalleryFiles() -> ([String], [[PHAsset]])
     {
         var headers = [String]()
         var files = [[PHAsset]]()
@@ -124,7 +137,7 @@ public class Files
         return (headers, files)
     }
     
-    static func getSortedGalleryFiles() -> [PHAsset]
+    func getSortedGalleryFiles() -> [PHAsset]
     {
         let (_, files) = getGroupedGalleryFiles()
         var ret = [PHAsset]()
@@ -137,7 +150,7 @@ public class Files
         return ret
     }
     
-    static func assetToImage(_ asset: PHAsset, asThumbnail:Bool = false) -> UIImage
+    func assetToImage(_ asset: PHAsset, asThumbnail:Bool = false) -> UIImage
     {
         let manager = PHImageManager.default()
         let option = PHImageRequestOptions()
@@ -168,7 +181,7 @@ public class Files
         return thumbnail
     }
     
-    static func deleteAssets(_ assets:[PHAsset]) -> Bool
+    func deleteAssets(_ assets:[PHAsset]) -> Bool
     {
         do
         {
@@ -183,5 +196,99 @@ public class Files
         }
         
         return true
+    }
+    
+    public func saveToPhotos(data:Data, onSaved: @escaping (String?) -> Void)
+    {
+        PHPhotoLibrary.requestAuthorization {
+        [unowned self, onSaved] status in
+            guard status == .authorized else { return }
+            do{ try PHPhotoLibrary.shared().performChangesAndWait({ self.saveToPhotos2(data) })}
+                catch { return; }
+            
+            if (self.placeholder == nil)
+                { return; }
+            
+            let localID = self.placeholder!.localIdentifier
+            let assetID = localID.replacingOccurrences(of: "/.*", with: "", options: NSString.CompareOptions.regularExpression, range: nil)
+            let ext = "jpg"
+            let assetURLStr = "assets-library://asset/asset.\(ext)?id=\(assetID)&ext=\(ext)"
+            self.placeholder = nil
+            
+            onSaved(assetURLStr)
+            guard let asset = getFile(assetURLStr) else { return }
+            
+            delegates.invoke { $0.onNewFile(asset: asset) }
+        }
+    }
+    
+    public func saveToPhotos(dataPath:String, onSaved: @escaping (String?) -> Void)
+    {
+        do
+        {
+            let url = URL(fileURLWithPath: dataPath)
+            let data = try Data(contentsOf: url)
+            saveToPhotos(data:data, onSaved: onSaved)
+        }
+        catch{
+        }
+    }
+    
+    let galleryTitle:String = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as! String
+    var placeholder:PHObjectPlaceholder? = nil
+    
+    func getGallery() -> PHAssetCollection?
+    {
+        let assets = PHAssetCollection.fetchAssetCollections(with: PHAssetCollectionType.album, subtype: PHAssetCollectionSubtype.albumRegular, options: nil)
+        
+        let sz = assets.count
+        if (sz == 0)
+            { return nil }
+        
+        for i in 0 ... sz - 1
+        {
+            let asset = assets.object(at: i)
+            
+            if (asset.localizedTitle == galleryTitle)
+                { return asset }
+        }
+        
+        return nil
+    }
+    
+    func saveToPhotos2(_ data:Data)
+    {
+        let gallery = self.getGallery()
+        var galleryReq:PHAssetCollectionChangeRequest
+        if (gallery == nil)
+        {
+            galleryReq = PHAssetCollectionChangeRequest.creationRequestForAssetCollection(withTitle: self.galleryTitle)
+        }
+        else
+        {
+            galleryReq = PHAssetCollectionChangeRequest(for: gallery!)!
+        }
+        
+        let createRequest = PHAssetCreationRequest.forAsset()
+        createRequest.addResource(with: PHAssetResourceType.photo, data: data, options: nil)
+        placeholder = createRequest.placeholderForCreatedAsset
+        
+        let list = NSSet(object: createRequest.placeholderForCreatedAsset as Any)
+        galleryReq.addAssets(list)
+    }
+    
+    func getFile(_ urlStr: String) -> PHAsset? {
+        let queryItems = URLComponents(string: urlStr)?.queryItems
+        guard let id = queryItems?.filter({$0.name == "id"}).first,
+              let idStr = id.value
+        else { return nil }
+                
+        let collectionResult = PHAsset.fetchAssets(withLocalIdentifiers: [idStr], options: nil)
+        
+        let sz = collectionResult.count
+        guard sz > 0 else { return nil }
+        
+        let asset = collectionResult.object(at: 0)
+        return asset
     }
 }

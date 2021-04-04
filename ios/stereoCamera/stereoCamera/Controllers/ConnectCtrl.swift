@@ -97,8 +97,6 @@ class ConnectCtrl: UIViewController, UITextFieldDelegate
         connectPrimaryInput.delegate = self
         connectPrimaryInput.addDoneButtonToKeyboard(target: self, myAction: #selector(inputReturn))
         
-        galleryBtn.setNavigationController(ctrl: navigationController)
-        
         appListener = AppListener(parent: self)
         AppDelegate.instance?.addListener(appListener!)
     }

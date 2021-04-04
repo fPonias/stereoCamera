@@ -21,7 +21,7 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
     var pingReceived = false;
     var cameraPosition = AVCaptureDevice.Position.back
     var captureQuality = ImageQuality.LOW
-    var imageSaver = ImageSaver()
+    var imageSaver = Files.instance
     
     func onCommand(_ command: Command)
     {
@@ -136,11 +136,6 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
                 imageSaver.saveToPhotos(dataPath: url!.path, onSaved: {
                 (_ path:String?) in
                     self.showLoader(false)
-                    
-                    DispatchQueue.main.async {
-                        [ unowned self ] in
-                        self.galleryBtn.update()
-                    }
                 })
             }
         case CommandTypes.DISCONNECT:
@@ -180,7 +175,6 @@ class CameraSlaveCtrl : CameraBaseCtrl, CommandListener
         
         showLoader(true)
         
-        galleryBtn.setNavigationController(ctrl: navigationController)
         galleryBtn.update()
     }
     

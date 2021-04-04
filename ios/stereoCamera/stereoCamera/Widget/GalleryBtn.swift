@@ -10,8 +10,16 @@ import Foundation
 import UIKit
 import Photos
 
-class GalleryBtn : UIImageView //I'd make this a UIButton but the image won't display properly
+class GalleryBtn : UIImageView, FilesDelegate //I'd make this a UIButton but the image won't display properly
 {
+    func onNewFile(asset: PHAsset) {
+        let img = Files.instance.assetToImage(asset)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.image = img
+        }
+    }
+    
     var files = [PHAsset]()
     
     override init(frame: CGRect)
@@ -32,6 +40,12 @@ class GalleryBtn : UIImageView //I'd make this a UIButton but the image won't di
         
         let gest = UITapGestureRecognizer(target: self, action: #selector(GalleryBtn.onTap))
         addGestureRecognizer(gest)
+        
+        Files.instance.addDelegate(self)
+        if let nc = AppDelegate.instance?.window?.rootViewController, nc is UINavigationController {
+            navCtrl = (nc as! UINavigationController)
+        }
+        
     }
     
     //hack.  adding this via the storyboard is proving difficult
@@ -49,14 +63,9 @@ class GalleryBtn : UIImageView //I'd make this a UIButton but the image won't di
     
     private weak var navCtrl:UINavigationController? = nil
     
-    func setNavigationController(ctrl:UINavigationController?)
-    {
-        navCtrl = ctrl
-    }
-    
     func update()
     {
-        files = Files.getGalleryFiles()
+        files = Files.instance.getGalleryFiles()
         if (files.count > 0)
         {
             let asset = files[files.count - 1]
@@ -66,7 +75,7 @@ class GalleryBtn : UIImageView //I'd make this a UIButton but the image won't di
     
     func update(with: PHAsset)
     {
-        let image = Files.assetToImage(with)
+        let image = Files.instance.assetToImage(with)
         self.image = image
     }
 }

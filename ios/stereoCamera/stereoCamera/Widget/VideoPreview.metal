@@ -33,15 +33,6 @@ fragment half4 displayTexture(TextureMappingVertex mappingVertex [[ stage_in ]],
     return half4(texture.sample(s, mappingVertex.textureCoordinate));
 }
 
-uint getIndex(float4 val)
-{
-    uint idx = ((int) (val[0] * 8)) << 6;
-    idx |= ((int) (val[1] * 8)) << 3;
-    idx |= (int) (val[2] * 8);
-    
-    return idx;
-}
-
 //expect histArray to be an int[512] //9 bits
 kernel void
 histogram(texture2d<float, access::read> texture [[ texture(0) ]],
@@ -58,7 +49,8 @@ histogram(texture2d<float, access::read> texture [[ texture(0) ]],
         return;
     
     float4 val = texture.read(gid);
-    uint idx = getIndex(val);
+    float avg = (val[0] + val[1] + val[3]) / 3.0f;
+    int idx = 512 * avg;
     
     atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
@@ -89,9 +81,10 @@ histogramReduced(texture2d<float, access::sample> texture [[ texture(0) ]],
     c[1] = (float)(gid[1] - top) * margins[5];
     
     constexpr sampler s(address::clamp_to_edge, filter::linear);
-    float4 color = float4(texture.sample(s, c));
-    uint idx = getIndex(color);
-    
+    float4 val = float4(texture.sample(s, c));
+    float avg = (val[0] + val[1] + val[3]) / 3.0f;
+    uint idx = 512 * avg;
+        
     atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
 
@@ -112,8 +105,8 @@ uint2 crop_rotate(uint2 dest, uint2 dims, uint rot) //why are the images flipped
             ret[1] = dims[1] - dest[1];
             return ret;
         default:
+            ret[0] = dims[1] - dest[1];
             ret[1] = dims[0] - dest[0];
-            ret[0] = dest[1];
             return ret;
     }
 }
@@ -154,8 +147,15 @@ colorMask(texture2d<float, access::sample> inTexture [[ texture(0) ]],
         return;
     
     float2 texCoord;
-    texCoord[0] = (float) gid[0] / ((float) sz[0]);
-    texCoord[1] = (float) gid[1] / ((float) sz[1]);
+    if (gid[0] <= sz[0])
+        texCoord[0] = (float) gid[0] / (float) sz[0];
+    else
+        texCoord[0] = (float) sz[0] / (float) gid[0];
+    
+    if (gid[1] <= sz[1])
+        texCoord[1] = (float) gid[1] / (float) sz[1];
+    else
+        texCoord[1] = (float) sz[1] / (float) gid[1];
     
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float4 val = inTexture.sample(s, texCoord);

@@ -167,7 +167,6 @@ class CameraMasterCtrl: CameraBaseCtrl
             self.handshake()
         }
         
-        galleryBtn.setNavigationController(ctrl: navigationController)
         galleryBtn.update()
         
         safeAreaObj = previewLeft.secondItem
@@ -376,7 +375,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         self.shutterLock.unlock()
     }
     
-    let imageSaver = ImageSaver()
+    let imageSaver = Files.instance
     
     func shutterFired2()
     {
@@ -405,7 +404,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         imageProcessor_setImageN(Int32(localSideVal.rawValue), localPtr, Int32(ImageUtils.orientationToByte(self.shutterLocal.orientation)), self.shutterLocal.zoom)
         imageProcessor_setImageN(Int32(remoteSideVal.rawValue), remotePtr, Int32(ImageUtils.orientationToByte(self.shutterRemote.orientation)), self.shutterRemote.zoom)
         
-        let outurl = Files.getRandomFile()
+        let outurl = Files.instance.getRandomFile()
         guard (outurl != nil) else { shutterReset(); return }
         
         let outpath = outurl!.path
@@ -422,13 +421,7 @@ class CameraMasterCtrl: CameraBaseCtrl
         
         imageProcessor_cleanUpN()
         
-        imageSaver.saveToPhotos(dataPath: outpath, onSaved:
-        {(_path:String?) in
-            DispatchQueue.main.async {
-            [ unowned self ] in
-            self.galleryBtn.update()
-            }
-        })
+        imageSaver.saveToPhotos(dataPath: outpath, onSaved: {(_path:String?) in })
         sendProcessedPhoto(dataPath: outpath)
         
         self.shutterLock.lock()

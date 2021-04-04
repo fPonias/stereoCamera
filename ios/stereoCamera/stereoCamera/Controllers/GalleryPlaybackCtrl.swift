@@ -14,7 +14,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         super.viewDidLoad()
         
-        files = Files.getSortedGalleryFiles()
+        files = Files.instance.getSortedGalleryFiles()
         index = _startIndex
         
         toolbarHeight = toolbarHeightConstraint.constant
@@ -196,7 +196,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         var toShare = [ImageProvider]()
         let file = files[index]
-        let img = Files.assetToImage(file)
+        let img = Files.instance.assetToImage(file)
         toShare.append( ImageProvider(placeholderItem: img, type: type ) )
         
         let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
@@ -208,7 +208,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         cancelPlay()
         
         let file = files[index]
-        let result = Files.deleteAssets([file])
+        let result = Files.instance.deleteAssets([file])
         
         if (!result)
         {
@@ -219,7 +219,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         if (index == files.count - 1)
             { index -= 1 }
 
-        files = Files.getGalleryFiles()
+        files = Files.instance.getGalleryFiles()
         setImage(page: index, image: slides.slides[2])
         setImage(page: index + 1, image: slides.slides[3])
         setImage(page: index + 2, image: slides.slides[4])
@@ -331,7 +331,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             return
         }
         
-        let image = Files.assetToImage(files[page])
+        let image = Files.instance.assetToImage(files[page])
         img.imgView!.image = image
         let isz = image.size
         let idim = CGFloat.maximum(isz.width, isz.height)

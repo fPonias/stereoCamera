@@ -14,11 +14,6 @@ import MetalPerformanceShaders
 import Photos
 import CoreMedia
 
-public protocol VideoPreviewDelegate
-{
-    func firstTextureReceived(_ preview: VideoPreview, image:CVImageBuffer, orientation:ImageUtils.CameraOrientation)
-}
-
 extension Matrix
 {
     func fillMemory(_ ptr:UnsafeMutablePointer<Float32>)
@@ -30,8 +25,6 @@ extension Matrix
 }
 
 public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate, MTKViewDelegate {
-    
-    public var previewDelegate: VideoPreviewDelegate?
     
     public override init(frame frameRect: CGRect, device: MTLDevice?)
     {
@@ -55,6 +48,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         get {return _zoom}
         set
         {
+            
             _zoom = newValue
             updateTransform()
         }
@@ -66,7 +60,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     }
     
     private func initializeMetal(){
-        if (device == nil) {
+        if  (device == nil) {
             device = MTLCreateSystemDefaultDevice()
         }
         
@@ -94,7 +88,6 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         
         let device = UIDevice.current
         device.beginGeneratingDeviceOrientationNotifications()
-        let orient = UIApplication.shared.statusBarOrientation
         orientation = ImageUtils.imageOrientationToProcOrientation(UIApplication.shared.statusBarOrientation, false)
         updateTransform()
     }
@@ -121,28 +114,17 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer:CMSampleBuffer!, fromConnection connection: AVCaptureConnection!)
     {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        renderBuffer(pixelBuffer)
+    }
+    
+    public func renderBuffer(sampleBuffer: CMSampleBuffer) {
+        guard let lPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        renderBuffer(lPixelBuffer)
+    }
+    
+    func renderBuffer(_ pixelBuffer:CVImageBuffer) {
         let w = CVPixelBufferGetWidth(pixelBuffer)
         let h = CVPixelBufferGetHeight(pixelBuffer)
-        
-        if (previewDelegate != nil && !sentFirstTexture)
-        {
-            if (firstTextureReceived == 0) {
-                firstTextureReceived = NSDate().timeIntervalSince1970
-            }
-            else {
-                let now = NSDate().timeIntervalSince1970
-                if (now - firstTextureReceived >= 1.0) {
-                    sentFirstTexture = true
-                    previewDelegate?.firstTextureReceived(self, image: pixelBuffer, orientation: orientation ?? .DEG_0)
-                }
-            }
-        }
-        
-        if (nextFrameCallback != nil) {
-            nextFrameCallback?(pixelBuffer, margins, orientation ?? .DEG_0)
-            nextFrameCallback = nil
-        }
-        
         
         if (w != width || h != height)
         {
@@ -164,11 +146,30 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         draw()
     }
     
-    private var nextFrameCallback:((CVImageBuffer, ImageUtils.Margin, ImageUtils.CameraOrientation) -> Void)?
+    private var processing = false
     
-    func getNextFrame(callback: @escaping (CVImageBuffer, ImageUtils.Margin, ImageUtils.CameraOrientation) -> Void) {
-        guard nextFrameCallback == nil else { return }
-        nextFrameCallback = callback
+    public func renderTexture(_ texture:MTLTexture?) {
+        guard processing == false else { return }
+        guard let texture = texture else { return }
+        
+        processing = true
+        
+        _texture = texture
+        hasNewTexture = true
+        
+        let w = texture.width
+        let h = texture.height
+        
+        if (w != width || h != height)
+        {
+            width = w
+            height = h
+            updateTransform()
+        }
+        
+        draw()
+        
+        processing = false
     }
     
     public func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
@@ -225,7 +226,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     private var margins = ImageUtils.Margin(left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0)
     private let mtlTransform = Matrix()
     
-    private var orientation:ImageUtils.CameraOrientation?
+    var orientation:ImageUtils.CameraOrientation?
     
     func updateTransform()
     {
@@ -255,7 +256,19 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         mtlTransform.fillMemory(ptr)
     }
     
+    var okayToDraw = true
+    
+    public func stopDrawing() {
+        okayToDraw = false
+    }
+    
+    public func resumeDrawing() {
+        okayToDraw = true
+    }
+    
     public func draw(in view: MTKView) {
+        guard okayToDraw else { return }
+        
         guard let texture = _texture,
               let device = device,
               hasNewTexture
@@ -264,6 +277,8 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         hasNewTexture = false
         
         let commandBuffer = device.makeCommandQueue()?.makeCommandBuffer()
+        
+        guard pixels.count > 0 else { return }
         guard let pixelBuf = device.makeBuffer(length: pixels.count, options: .storageModeShared) else { return }
         let ptr = pixelBuf.contents().bindMemory(to: Float32.self, capacity: pixels.count)
         ptr.assign(from: pixels, count: pixels.count)

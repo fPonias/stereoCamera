@@ -46,7 +46,7 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     
     private func refresh()
     {
-        (headers, files) = Files.getGroupedGalleryFiles()
+        (headers, files) = Files.instance.getGroupedGalleryFiles()
         
         DispatchQueue.main.async {
         [unowned self] in
@@ -99,7 +99,7 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
             indices.append(files[cell.section][cell.item])
         }
         
-        let result = Files.deleteAssets(indices)
+        let result = Files.instance.deleteAssets(indices)
         
         if (result == true)
         {
@@ -165,7 +165,7 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         for cell in selectedCells
         {
             let file = files[cell.section][cell.item]
-            let img = Files.assetToImage(file)
+            let img = Files.instance.assetToImage(file)
             toShare.append( ImageProvider(placeholderItem: img, type: type ) )
         }
         
@@ -239,7 +239,7 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         
         
         let file:PHAsset = files[indexPath.section][indexPath.item]
-        let image:UIImage = Files.assetToImage(file, asThumbnail: true)
+        let image:UIImage = Files.instance.assetToImage(file, asThumbnail: true)
         cell2.displayContent(image: image)
         let selected = selectedCells.contains(indexPath)
         cell2.isHighlighted = selected

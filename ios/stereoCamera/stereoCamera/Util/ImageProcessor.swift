@@ -12,9 +12,9 @@ import CoreImage
 import Photos
 
 class ImageProcessor {
-    private var _inTexture:MTLTexture?
-    private var _midTexture:MTLTexture?
-    private var _outTexture:MTLTexture?
+    private(set) var _inTexture:MTLTexture?
+    private(set) var _midTexture:MTLTexture?
+    private(set) var _outTexture:MTLTexture?
     private var _textureCache:CVMetalTextureCache?
     private var _device:MTLDevice?
     private var cropState:MTLComputePipelineState?

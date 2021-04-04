@@ -89,6 +89,8 @@ public class ImageUtils
             ret.right = wPaddingPx
             ret.top = hPaddingPx
             ret.bottom = hPaddingPx
+            ret.width = size.width - 2 * wPaddingPx
+            ret.height = size.height - 2 * hPaddingPx
         }
         
         return ret

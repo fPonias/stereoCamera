@@ -15,14 +15,16 @@ import CoreMedia
 @available(iOS 13, *)
 class DualCameraCtrl: UIViewController,
                       AVCaptureAudioDataOutputSampleBufferDelegate,
-                      AVCaptureVideoDataOutputSampleBufferDelegate,
-                      VideoPreviewDelegate {
+                      AVCaptureVideoDataOutputSampleBufferDelegate, AVCapturePhotoCaptureDelegate
+{
     
     
     @IBOutlet weak var leftCameraPreview: VideoPreview!
     @IBOutlet weak var rightCameraPreview: VideoPreview!
     @IBOutlet weak var shutterBtn: UIButton!
     @IBOutlet weak var zoomSlider: UISlider!
+    @IBOutlet weak var debugPreview: VideoPreview!
+    @IBOutlet weak var galleryBtn: GalleryBtn!
     
     private let session = AVCaptureMultiCamSession()
     private var isSessionRunning = false
@@ -30,13 +32,8 @@ class DualCameraCtrl: UIViewController,
     private let dataOutputQueue = DispatchQueue(label: "data output queue")
     private var setupResult: SessionSetupResult = .success
     
-    private var backCameraDeviceInput: AVCaptureDeviceInput?
-    private let backCameraVideoDataOutput = AVCaptureVideoDataOutput()
-    private var backCameraVideoDataOutputConnection: AVCaptureConnection?
-    
-    private var frontCameraDeviceInput: AVCaptureDeviceInput?
-    private let frontCameraVideoDataOutput = AVCaptureVideoDataOutput()
-    private var frontCameraVideoDataOutputConnection: AVCaptureConnection?
+    private var leftCameraStr: CameraStr?
+    private var rightCameraStr: CameraStr?
     
     private let zoomFinder = ZoomFinder()
     
@@ -44,14 +41,32 @@ class DualCameraCtrl: UIViewController,
     
     
     // MARK: View Controller Life Cycle
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        leftCameraPreview.resumeDrawing()
+        rightCameraPreview.resumeDrawing()
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        
+        leftCameraPreview.stopDrawing()
+        rightCameraPreview.stopDrawing()
+    }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
                     
         leftCameraPreview?.initialize()
-        leftCameraPreview?.previewDelegate = self
         rightCameraPreview?.initialize()
-        rightCameraPreview?.previewDelegate = self
+        debugPreview?.initialize()
+        debugPreview?.orientation = ImageUtils.CameraOrientation.DEG_90
         
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
@@ -75,6 +90,8 @@ class DualCameraCtrl: UIViewController,
         zoomSlider.minimumValue = 1.0
         zoomSlider.maximumValue = Float(maxZoom)
         zoomSlider.isContinuous = true
+        zoomSlider.value = 1.0
+        zoomUpdated(self)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -215,44 +232,151 @@ class DualCameraCtrl: UIViewController,
         case multiCamNotSupported
     }
     
-    @IBAction func shutterClicked(_ sender: Any) {
-        let queue = DispatchQueue.init(label: "shutter thread")
-        let proc = ImageProcessorSplit(size: ImageUtils.Size(width: 2160, height: 1080))
-        var count = 2
-        leftCameraPreview.getNextFrame(callback: { (buf, margin, orient ) in
-            queue.async { [weak self] in
-                print("processing left side")
-                proc.setPixels(pixels: buf, margins: margin, orientation: orient)
-                proc.processCurrentInTexture(.LEFT)
-                print("finished processing left side")
+    private var shutterProcessing = false
+    private var shutterWaiting = false
+    private var shutterLeft:CMSampleBuffer?
+    private var shutterRight:CMSampleBuffer?
+    
+    private var zoomLeft:CMSampleBuffer?
+    private var zoomRight:CMSampleBuffer?
+    private var zoomCalculated = false
+    private var frameCounter = Date()
+    
+    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        if output is AVCaptureVideoDataOutput {
+            if (shutterWaiting) {
+                guard shutterProcessing == false else { return }
+                if (connection == leftCameraStr?.videoDataOutputConnection) {
+                    shutterLeft = sampleBuffer
+                } else if (connection == rightCameraStr?.videoDataOutputConnection) {
+                    shutterRight = sampleBuffer
+                }
                 
-                count -= 1
-                if (count == 0) {
-                    self?.shutterClicked2(proc)
+                if (shutterLeft != nil && shutterRight != nil) {
+                    shutterProcessing = true
+                    shutterClicked2(shutterLeft!, shutterRight!)
+                }
+            } else {
+                if (connection == leftCameraStr?.videoDataOutputConnection) {
+                    leftCameraPreview.captureOutput(captureOutput: output, didOutputSampleBuffer: sampleBuffer, fromConnection: connection)
+                }
+                else if (connection == rightCameraStr?.videoDataOutputConnection) {
+                    rightCameraPreview.captureOutput(captureOutput: output, didOutputSampleBuffer: sampleBuffer, fromConnection: connection)
                 }
             }
-        })
-        rightCameraPreview.getNextFrame(callback: { (buf, margin, orient) in
-            queue.async { [weak self] in
-                print("processing right side")
-                proc.setPixels(pixels: buf, margins: margin, orientation: orient)
-                proc.processCurrentInTexture(.RIGHT)
-                print("finished processing right side")
+            
+            if (!zoomCalculated && Date().timeIntervalSince(frameCounter) > 1.0) {
+                if (connection == leftCameraStr?.videoDataOutputConnection) {
+                    zoomLeft = sampleBuffer
+                } else if (connection == rightCameraStr?.videoDataOutputConnection) {
+                    zoomRight = sampleBuffer
+                }
                 
-                count -= 1
-                if (count == 0) {
-                    self?.shutterClicked2(proc)
+                if (zoomLeft != nil && zoomRight != nil) {
+                    zoomCalculated = true
+                    guard let zoomLeft = zoomLeft,
+                          let zoomRight = zoomRight,
+                          let lPixelBuffer = CMSampleBufferGetImageBuffer(zoomLeft),
+                          let rPixelBuffer = CMSampleBufferGetImageBuffer(zoomRight)
+                    else { return }
+                    calculateZoom(leftImage: lPixelBuffer, rightImage: rPixelBuffer)
                 }
             }
-        })
+        }
     }
     
-    private let saver = ImageSaver()
+    @IBAction func shutterClicked(_ sender: Any) {
+        guard shutterProcessing == false && shutterWaiting == false else { return }
+        if (shutterWaiting || shutterProcessing) { return }
+        
+        shutterLeft = nil
+        shutterRight = nil
+        shutterWaiting = true
+        shutterProcessing = false
+        
+        showLoader(true)
+    }
     
-    private func shutterClicked2(_ proc:ImageProcessor)
+    private var loaderCtrl:LoadingPopupCtrl?
+    private var loaderMessage:String = "Saving ..."
+    
+    func showLoader(_ show:Bool, message:String? = nil)
     {
+        DispatchQueue.main.async
+        {
+            [unowned self] in
+            if (message != nil)
+                { loaderMessage = message! }
+            
+            if (show && loaderCtrl == nil)
+            {
+                loaderCtrl = LoadingPopupCtrl.initFromStoryboard()
+                
+                loaderCtrl!.header = loaderMessage
+                
+                present(loaderCtrl!, animated: true, completion: nil)
+            }
+            else if (!show && loaderCtrl != nil)
+            {
+                loaderCtrl = nil
+                dismiss(animated: false, completion: nil)
+            }
+        }
+    }
+    
+    private let saver = Files.instance
+    
+    private func shutterClicked2(_ leftPixels:CMSampleBuffer, _ rightPixels:CMSampleBuffer)
+    {
+        guard let lPixelBuffer = CMSampleBufferGetImageBuffer(leftPixels) else { return }
+        let lw = CVPixelBufferGetWidth(lPixelBuffer)
+        let lh = CVPixelBufferGetHeight(lPixelBuffer)
+        let lMargin = ImageUtils.findMargins(size: ImageUtils.Size(width: lw, height: lh), zoom: 1.0)
+        
+        guard let rPixelBuffer = CMSampleBufferGetImageBuffer(rightPixels) else { return }
+        let rw = CVPixelBufferGetWidth(rPixelBuffer)
+        let rh = CVPixelBufferGetHeight(rPixelBuffer)
+        let rMargin = ImageUtils.findMargins(size: ImageUtils.Size(width: rw, height: rh), zoom: 1.0)
+        guard let orientation = leftCameraPreview.orientation else { return }
+        
+        let proc = ImageProcessorSplit(size: ImageUtils.Size(width: Int(rMargin.width) * 2, height: Int(rMargin.height)))
+        print("processing")
+        
+        proc.setPixels(pixels: lPixelBuffer, margins: lMargin, orientation: orientation)
+        proc.processCurrentInTexture(.LEFT)
+        print("finished processing left side")
+        
+        proc.setPixels(pixels: rPixelBuffer, margins: rMargin, orientation: orientation)
+        proc.processCurrentInTexture(.RIGHT)
+        print("finished processing right side")
+        
+        
+        saveProcessedImage(proc: proc)
+        
+        AudioServicesPlaySystemSound(1108)
+        showLoader(false)
+        
+        shutterWaiting = false
+        shutterProcessing = false
+    }
+    
+    private var current = -1
+    private func nextTexture(proc: ImageProcessor) -> MTLTexture {
+        current = (current + 1) % 3;
+        switch(current){
+        case 0: return proc._inTexture!
+        case 1: return proc._midTexture!
+        default: return proc._outTexture!
+        }
+    }
+    
+    private func saveProcessedImage(proc: ImageProcessor) {
         guard let img = proc.getOutput() else { return }
-        guard let cs = CGColorSpace(name: CGColorSpace.sRGB) else { return }
+        saveProcessedImage(img: img)
+    }
+    
+    func saveProcessedImage(img:CIImage) {
+        guard let cs = CGColorSpace(name: CGColorSpace.displayP3) else { return }
         let ctx = CIContext()
         let jpegData = ctx.jpegRepresentation(of: img, colorSpace: cs, options: [:])
         guard let data = jpegData else { return }
@@ -260,12 +384,22 @@ class DualCameraCtrl: UIViewController,
         saver.saveToPhotos(data: data, onSaved: { savedImg in
             print ("saved successfully")
         })
-        
     }
     
+    
+    
+    private var currentZoom:Float = 1.0
+    
     @IBAction func zoomUpdated(_ sender: Any) {
-        let newZoom = zoomSlider.value
-        rightCameraPreview.zoom = newZoom
+        currentZoom = zoomSlider.value
+        //rightCameraPreview.zoom = currentZoom
+        
+        do {
+            try rightCameraStr?.deviceInput?.device.lockForConfiguration()
+            rightCameraStr?.deviceInput?.device.videoZoomFactor = CGFloat(currentZoom)
+            rightCameraStr?.deviceInput?.device.unlockForConfiguration()
+        } catch {}
+        
     }
     
     // Must be called on the session queue
@@ -286,130 +420,139 @@ class DualCameraCtrl: UIViewController,
                 checkSystemCost()
             }
         }
-
-        guard configureBackCamera() else {
+        
+        
+        rightCameraStr = configureCamera(.builtInUltraWideCamera)
+        guard rightCameraStr != nil else {
             setupResult = .configurationFailed
             return
         }
         
-        guard configureFrontCamera() else {
+        
+        let rightDim = rightCameraStr?.device?.activeFormat.highResolutionStillImageDimensions.height ?? 1024
+        let maxDim = Int32(Float(rightDim) * 0.8)
+        leftCameraStr = configureCamera(.builtInWideAngleCamera, maxDim: maxDim)
+        guard leftCameraStr != nil else {
             setupResult = .configurationFailed
             return
         }
     }
+
+    struct CameraStr {
+        var device:AVCaptureDevice?
+        var deviceInput:AVCaptureDeviceInput?
+        var videoDataOutput:AVCaptureVideoDataOutput?
+        var videoDataOutputConnection:AVCaptureConnection?
+        var photoOutput:AVCapturePhotoOutput?
+    }
     
-    private func configureBackCamera() -> Bool {
+    private func configureCamera(_ type:AVCaptureDevice.DeviceType, maxDim:Int32 = Int32.max) -> CameraStr? {
         session.beginConfiguration()
         defer {
             session.commitConfiguration()
         }
         
         // Find the back camera
-        guard let backCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+        guard let backCamera = AVCaptureDevice.default(type, for: .video, position: .back) else {
             print("Could not find the back camera")
-            return false
+            return nil
         }
+        
+        let deviceInput:AVCaptureDeviceInput
+        let videoDataOutput = AVCaptureVideoDataOutput()
         
         // Add the back camera input to the session
         do {
-            backCameraDeviceInput = try AVCaptureDeviceInput(device: backCamera)
+            deviceInput = try AVCaptureDeviceInput(device: backCamera)
             
-            guard let backCameraDeviceInput = backCameraDeviceInput,
-                session.canAddInput(backCameraDeviceInput) else {
+            guard session.canAddInput(deviceInput) else {
                     print("Could not add back camera device input")
-                    return false
+                    return nil
             }
-            session.addInputWithNoConnections(backCameraDeviceInput)
+            session.addInputWithNoConnections(deviceInput)
         } catch {
             print("Could not create back camera device input: \(error)")
-            return false
+            return nil
         }
         
+        var sorted:[AVCaptureDevice.Format] = []
+        let formats = deviceInput.device.formats
+        for fmt in formats {
+            if fmt.isMultiCamSupported && fmt.formatDescription.dimensions.height < maxDim {
+                sorted.append(fmt)
+                
+                let hiRes = fmt.highResolutionStillImageDimensions
+                let preRes = fmt.formatDescription.dimensions
+                
+                //print ("hi", hiRes.width, "x", hiRes.height, "lo", preRes.width, "x", preRes.height, separator: " ")
+            }
+        }
+        
+        sorted.sort { (a, b) -> Bool in
+            return a.formatDescription.dimensions.height > b.formatDescription.dimensions.height
+        }
+        
+        let attempt = 0
+        
+        do {
+            try backCamera.lockForConfiguration()
+            backCamera.activeFormat = sorted[attempt]
+            let fr = sorted[attempt].videoSupportedFrameRateRanges
+            let videoMinFrameDurationOverride = CMTimeMake(1, Int32(15))
+            backCamera.activeVideoMaxFrameDuration = fr[0].maxFrameDuration
+            backCamera.activeVideoMinFrameDuration = videoMinFrameDurationOverride
+            backCamera.unlockForConfiguration()
+        } catch {
+            print ("Could not adjust camera resolution")
+            return nil
+        }
+        
+        let fmt = sorted[attempt]
+        let hiRes = fmt.highResolutionStillImageDimensions
+        let preRes = fmt.formatDescription.dimensions
+        
+        print ("set camera resoulution to hi", hiRes.width, "x", hiRes.height, "lo", preRes.width, "x", preRes.height, separator: " ")
+        
         // Find the back camera device input's video port
-        guard let backCameraDeviceInput = backCameraDeviceInput,
-            let backCameraVideoPort = backCameraDeviceInput.ports(for: .video,
-                                                              sourceDeviceType: backCamera.deviceType,
-                                                              sourceDevicePosition: backCamera.position).first else {
-                                                                print("Could not find the back camera device input's video port")
-                                                                return false
+        guard let backCameraVideoPort = deviceInput.ports(for: .video,
+                  sourceDeviceType: backCamera.deviceType,
+                  sourceDevicePosition: backCamera.position).first
+        else {
+                    print("Could not find the back camera device input's video port")
+                    return nil
         }
         
         // Add the back camera video data output
-        guard session.canAddOutput(backCameraVideoDataOutput) else {
+        guard session.canAddOutput(videoDataOutput) else {
             print("Could not add the back camera video data output")
-            return false
+            return nil
         }
-        session.addOutputWithNoConnections(backCameraVideoDataOutput)
-        backCameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-        backCameraVideoDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
+        session.addOutputWithNoConnections(videoDataOutput)
+        videoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+        videoDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
         
         // Connect the back camera device input to the back camera video data output
-        backCameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [backCameraVideoPort], output: backCameraVideoDataOutput)
-        guard let backCameraVideoDataOutputConnection = backCameraVideoDataOutputConnection,
-            session.canAdd(backCameraVideoDataOutputConnection) else {
+        let videoDataOutputConnection = AVCaptureConnection(inputPorts: [backCameraVideoPort], output: videoDataOutput)
+        guard session.canAdd(videoDataOutputConnection) else {
             print("Could not add a connection to the back camera video data output")
-            return false
+            return nil 
         }
-        session.add(backCameraVideoDataOutputConnection)
+        session.add(videoDataOutputConnection)
         
-        return true
-    }
-    
-    private func configureFrontCamera() -> Bool {
-        session.beginConfiguration()
-        defer {
-            session.commitConfiguration()
+        /*let stillOutput = AVCapturePhotoOutput()
+        guard session.canAddOutput(stillOutput) else {
+            print ("Could not add still image capture")
+            return nil
         }
+        session.addOutputWithNoConnections(stillOutput)
+        let stillDataOutputConnection = AVCaptureConnection(inputPorts: [backCameraVideoPort], output: stillOutput)
+        guard session.canAdd(stillDataOutputConnection) else {
+            print ("Could not add a connection to the back camera still output")
+            return nil
+        }
+        session.add(stillDataOutputConnection)*/
         
-        // Find the front camera
-        guard let frontCamera = AVCaptureDevice.default(.builtInUltraWideCamera, for: .video, position: .back) else {
-            print("Could not find the front camera")
-            return false
-        }
-        
-        // Add the front camera input to the session
-        do {
-            frontCameraDeviceInput = try AVCaptureDeviceInput(device: frontCamera)
-            
-            guard let frontCameraDeviceInput = frontCameraDeviceInput,
-                session.canAddInput(frontCameraDeviceInput) else {
-                    print("Could not add front camera device input")
-                    return false
-            }
-            session.addInputWithNoConnections(frontCameraDeviceInput)
-        } catch {
-            print("Could not create front camera device input: \(error)")
-            return false
-        }
-        
-        // Find the front camera device input's video port
-        guard let frontCameraDeviceInput = frontCameraDeviceInput,
-            let frontCameraVideoPort = frontCameraDeviceInput.ports(for: .video,
-                                                                    sourceDeviceType: frontCamera.deviceType,
-                                                                    sourceDevicePosition: frontCamera.position).first else {
-                                                                        print("Could not find the front camera device input's video port")
-                                                                        return false
-        }
-        
-        // Add the front camera video data output
-        guard session.canAddOutput(frontCameraVideoDataOutput) else {
-            print("Could not add the front camera video data output")
-            return false
-        }
-        session.addOutputWithNoConnections(frontCameraVideoDataOutput)
-        frontCameraVideoDataOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-        frontCameraVideoDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
-        
-        // Connect the front camera device input to the front camera video data output
-        frontCameraVideoDataOutputConnection = AVCaptureConnection(inputPorts: [frontCameraVideoPort], output: frontCameraVideoDataOutput)
-        guard let frontCameraVideoDataOutputConnection = frontCameraVideoDataOutputConnection,
-              session.canAdd(frontCameraVideoDataOutputConnection) else {
-            print("Could not add a connection to the front camera video data output")
-            return false
-        }
-        session.add(frontCameraVideoDataOutputConnection)
-
-        return true
+        return CameraStr(device: backCamera, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil)
     }
     
     @objc // Expose to Objective-C for use with #selector()
@@ -495,31 +638,15 @@ class DualCameraCtrl: UIViewController,
         self.present(alertController, animated: true, completion: nil)
     }
     
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        if output is AVCaptureVideoDataOutput {
-            if (connection == backCameraVideoDataOutputConnection) {
-                leftCameraPreview.captureOutput(captureOutput: output, didOutputSampleBuffer: sampleBuffer, fromConnection: connection)
-            }
-            else if (connection == frontCameraVideoDataOutputConnection) {
-                rightCameraPreview.captureOutput(captureOutput: output, didOutputSampleBuffer: sampleBuffer, fromConnection: connection)
-            }
-        }
-    }
-    
-    func firstTextureReceived(_ preview: VideoPreview, image: CVImageBuffer, orientation:ImageUtils.CameraOrientation) {
-        if (preview == leftCameraPreview) {
-            zoomFinder.baseHist.setPixels(pixels: image)
-        }
-        else {
-            zoomFinder.adjHist.setPixels(pixels: image)
-        }
+    func calculateZoom(leftImage: CVImageBuffer, rightImage: CVImageBuffer) {
+        zoomFinder.baseHist.setPixels(pixels: leftImage)
+        zoomFinder.adjHist.setPixels(pixels: rightImage)
         
         if (zoomFinder.canFindZoom()) {
             zoomFinder.findZoom(max: Float(maxZoom)) { [weak self] (zoom) in
-                self?.rightCameraPreview.zoom = zoom
-                
                 DispatchQueue.main.async {
-                    self?.zoomSlider.value = zoom
+                    self?.zoomSlider.value = Float(zoom)
+                    self?.zoomUpdated(self as Any)
                 }
             }
         }
@@ -549,22 +676,22 @@ class DualCameraCtrl: UIViewController,
             
         case .systemPressureCost:
             // Choice #1: Reduce front camera resolution
-            if reduceResolutionForCamera(.front) {
-                checkSystemCost()
-            }
+            //if reduceResolutionForCamera(.front) {
+            //    checkSystemCost()
+            //}
                 
             // Choice 2: Reduce the number of video input ports
-            else if reduceVideoInputPorts() {
-                checkSystemCost()
-            }
+            //else if reduceVideoInputPorts() {
+            //    checkSystemCost()
+            //}
                 
             // Choice #3: Reduce back camera resolution
-            else if reduceResolutionForCamera(.back) {
-                checkSystemCost()
-            }
+            //else if reduceResolutionForCamera(.back) {
+            //    checkSystemCost()
+            //}
                 
             // Choice #4: Reduce front camera frame rate
-            else if reduceFrameRateForCamera(.front) {
+            if reduceFrameRateForCamera(.front) {
                 checkSystemCost()
             }
                 

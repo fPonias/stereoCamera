@@ -31,7 +31,7 @@ class CameraBaseCtrl : UIViewController
         zoomSlider.minimumValue = 1.0
         zoomSlider.value = 1.0
         
-        let tmpUrl = Files.getTmpDir()
+        let tmpUrl = Files.instance.getTmpDir()
         let tmpUrlStr = tmpUrl.path
         let ptr = Bytes.toPointer(tmpUrlStr)
         imageProcessor_initN(ptr)
@@ -150,7 +150,7 @@ class CameraBaseCtrl : UIViewController
     {
         let dt = Date()
         let rnd = arc4random_uniform(1000)
-        var tmpUrl = Files.getTmpDir()
+        var tmpUrl = Files.instance.getTmpDir()
         let fileName = String(Int(dt.timeIntervalSince1970)) + "-" + String(rnd) + ".jpg"
         tmpUrl = tmpUrl.appendingPathComponent(fileName)
         
