@@ -11,13 +11,14 @@ import AVKit
 
 class Cookie
 {
-    let version:Float = 5.0
+    let version:Float = 7.0
 
     let versionKey = "VERSION"
     let masterKey = "MASTER"
     let clientKey = "CLIENT"
     let cameraKey = "CAMERA"
     let cameraZoomsKey = "CAMERA_ZOOMS"
+    let dualZoomKey = "DUAL_ZOOM"
     let sideKey = "SIDE"
     let overlayKey = "OVERLAY"
     let syncTestKey = "SYNC_TEST"
@@ -92,6 +93,12 @@ class Cookie
             prefs.set(version, forKey: versionKey)
             prefs.set(false, forKey: introSeenKey)
         }
+        
+        if (ver < 7.0)
+        {
+            prefs.set(version, forKey: versionKey)
+            prefs.set(1.0, forKey: dualZoomKey)
+        }
     }
     
     var master:Bool
@@ -156,9 +163,20 @@ class Cookie
         currentClientPlatform = value
     }
     
+    func getZoomForDual() -> Float
+    {
+        return UserDefaults.standard.float(forKey: dualZoomKey)
+    }
+    
+    func setZoomForDual(zoom:Float)
+    {
+        UserDefaults.standard.setValue(zoom, forKey: dualZoomKey)
+    }
+    
     func getZoomForClient(isMaster: Bool, client: String, camera: AVCaptureDevice.Position = AVCaptureDevice.Position.back) -> Float
     {
         let dict = UserDefaults.standard.dictionary(forKey: cameraZoomsKey)
+        
         let key = (isMaster ? "1" : "0") + "-" + client + "-" + String(camera.rawValue)
         if (dict![key] != nil)
         {

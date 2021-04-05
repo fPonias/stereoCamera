@@ -18,9 +18,9 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         index = _startIndex
         
         toolbarHeight = toolbarHeightConstraint.constant
-        
-        
-        
+    }
+    
+    override func viewDidLayoutSubviews() {
         doInit()
     }
     
@@ -251,8 +251,8 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     
     func doInit()
     {
-        let w = view.frame.width
-        var h = view.frame.height - (navigationController?.navigationBar.frame.size.height)!
+        let w = scroller.frame.width
+        var h = scroller.frame.height
         let sz = files.count
         
         scroller.contentSize = CGSize(width: w * CGFloat(sz), height: h)
@@ -298,8 +298,8 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
 
     fileprivate func createPage() -> ImageView
     {
-        let w = view.frame.width
-        var h = view.frame.height - (navigationController?.navigationBar.frame.size.height)!
+        let w = scroller.frame.width
+        let h = scroller.frame.height
         
         let newImageView = UIImageView(image: nil)
         newImageView.contentMode = .scaleAspectFit
@@ -333,20 +333,14 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         
         let image = Files.instance.assetToImage(files[page])
         img.imgView!.image = image
-        let isz = image.size
-        let idim = CGFloat.maximum(isz.width, isz.height)
-        
-        let top = (navigationController?.navigationBar.frame.size.height)!
-        let bottom = toolbar.frame.size.height
-        let w = view.frame.width
-        let h = view.frame.height
+        let w = scroller.frame.width
+        let h = scroller.frame.height
 
         img.widthConst?.constant = w
-        img.heightConst?.constant = h - top - bottom
+        img.heightConst?.constant = h
         img.topConst?.constant = 0
         
         let offset = w * CGFloat(page)
-        img.leadConst?.constant = offset
         img.leadConst?.constant = offset
         
         img.imgView!.setNeedsLayout()
@@ -408,13 +402,13 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
 
     fileprivate func gotoPage(page: Int, animated: Bool)
     {
-        let w = view.frame.width
+        var bounds = scroller.bounds
+        let w = bounds.width
         index = page
         navigationItem.title = "Image " + String(index + 1) + "/" + String(files.count)
         
         loadCurrentPages()
         
-        var bounds = scroller.bounds
         bounds.origin.x = w * CGFloat(page)
         bounds.origin.y = 0
         scroller.scrollRectToVisible(bounds, animated: animated)

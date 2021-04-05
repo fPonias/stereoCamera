@@ -125,7 +125,7 @@ public class Files
                 currentList = [PHAsset]()
             }
             
-            currentList.append(asset)
+            currentList.insert(asset, at: 0)
         }
         
         if (currentLabel != "")

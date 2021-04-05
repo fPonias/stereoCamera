@@ -64,6 +64,7 @@
 		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
 		7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59845211234980015260C /* SetCaptureQuality.swift */; };
 		7E5A01222618EFDC00BF8D86 /* MulticastDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */; };
+		7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */; };
 		7E691D1425F461FE00ED228E /* jpegCtrl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E691C3D25F461FD00ED228E /* jpegCtrl.cpp */; };
 		7E691D1525F461FE00ED228E /* util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E691C3E25F461FD00ED228E /* util.cpp */; };
 		7E691D1625F461FE00ED228E /* PreProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E691C3F25F461FD00ED228E /* PreProcessor.cpp */; };
@@ -207,6 +208,7 @@
 		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
 		7CF59845211234980015260C /* SetCaptureQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetCaptureQuality.swift; sourceTree = "<group>"; };
 		7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MulticastDelegate.swift; sourceTree = "<group>"; };
+		7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraMultiCameraCtrl.swift; sourceTree = "<group>"; };
 		7E691C3D25F461FD00ED228E /* jpegCtrl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = jpegCtrl.cpp; sourceTree = "<group>"; };
 		7E691C3E25F461FD00ED228E /* util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = util.cpp; sourceTree = "<group>"; };
 		7E691C3F25F461FD00ED228E /* PreProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PreProcessor.cpp; sourceTree = "<group>"; };
@@ -338,6 +340,7 @@
 		7C6CD12C20D1B2080010F6B1 /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				7E5A0124261A85EC00BF8D86 /* subCtrl */,
 				7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */,
 				7CEE471E21433334009909EF /* ExportSelectCtrl.swift */,
 				7CC66B7520E0BC5800AF811B /* MasterShake.swift */,
@@ -439,6 +442,14 @@
 				7EA56532260162120064809A /* VideoPreview.metal */,
 			);
 			path = Widget;
+			sourceTree = "<group>";
+		};
+		7E5A0124261A85EC00BF8D86 /* subCtrl */ = {
+			isa = PBXGroup;
+			children = (
+				7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */,
+			);
+			path = subCtrl;
 			sourceTree = "<group>";
 		};
 		7E691C3C25F461FD00ED228E /* cpp */ = {
@@ -644,6 +655,7 @@
 				7E691E0025F4638400ED228E /* jccolor.c in Sources */,
 				7E691E3925F4640600ED228E /* jmemname.c in Sources */,
 				7CCB72A320F41602000BE923 /* Disconnect.swift in Sources */,
+				7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */,
 				7E691E1125F463AD00ED228E /* jdatadst.c in Sources */,
 				7E691DFC25F4638400ED228E /* jcmarker.c in Sources */,
 				7CAE81CF2138C2850022569D /* SettingsHtmlCtrl.swift in Sources */,

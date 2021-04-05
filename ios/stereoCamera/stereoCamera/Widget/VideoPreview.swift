@@ -48,9 +48,9 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         get {return _zoom}
         set
         {
-            
-            _zoom = newValue
-            updateTransform()
+            print ("manual zoom deprecated in favor of session zoom")
+            //_zoom = newValue
+            //updateTransform()
         }
     }
     
@@ -111,18 +111,12 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     private var sentFirstTexture:Bool = false
     private var firstTextureReceived:TimeInterval = 0
     
-    func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer:CMSampleBuffer!, fromConnection connection: AVCaptureConnection!)
-    {
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        renderBuffer(pixelBuffer)
-    }
-    
     public func renderBuffer(sampleBuffer: CMSampleBuffer) {
         guard let lPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         renderBuffer(lPixelBuffer)
     }
     
-    func renderBuffer(_ pixelBuffer:CVImageBuffer) {
+    public func renderBuffer(_ pixelBuffer:CVImageBuffer) {
         let w = CVPixelBufferGetWidth(pixelBuffer)
         let h = CVPixelBufferGetHeight(pixelBuffer)
         

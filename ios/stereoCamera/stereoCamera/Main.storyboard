@@ -345,25 +345,15 @@
                                     <constraint firstItem="oh5-Q0-0CQ" firstAttribute="centerY" secondItem="osf-4x-kP1" secondAttribute="centerY" id="os9-iq-9uH"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6R9-Oi-GNZ" customClass="VideoPreview" customModule="stereoCamera" customModuleProvider="target">
-                                <rect key="frame" x="16" y="470.66666666666669" width="343" height="171.33333333333331"/>
-                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" secondItem="6R9-Oi-GNZ" secondAttribute="height" multiplier="2:1" id="9jY-bt-wnG"/>
-                                </constraints>
-                            </view>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="fgf-me-1aC"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
-                            <constraint firstItem="6R9-Oi-GNZ" firstAttribute="leading" secondItem="fgf-me-1aC" secondAttribute="leading" constant="16" id="9i9-Eq-IzK"/>
                             <constraint firstItem="osf-4x-kP1" firstAttribute="leading" secondItem="fgf-me-1aC" secondAttribute="leading" id="DWa-78-UI8"/>
                             <constraint firstItem="fgf-me-1aC" firstAttribute="trailing" secondItem="osf-4x-kP1" secondAttribute="trailing" id="De8-gn-miX"/>
                             <constraint firstItem="fgf-me-1aC" firstAttribute="trailing" secondItem="4Um-sM-If6" secondAttribute="trailing" id="Dj7-CO-6dV"/>
                             <constraint firstItem="fnm-v4-I11" firstAttribute="leading" secondItem="fgf-me-1aC" secondAttribute="leading" id="EHb-E9-bAG"/>
                             <constraint firstItem="fgf-me-1aC" firstAttribute="bottom" secondItem="4Um-sM-If6" secondAttribute="bottom" id="Qmv-aZ-h3N"/>
-                            <constraint firstItem="fgf-me-1aC" firstAttribute="trailing" secondItem="6R9-Oi-GNZ" secondAttribute="trailing" constant="16" id="Rkq-pD-c46"/>
-                            <constraint firstItem="fnm-v4-I11" firstAttribute="top" secondItem="6R9-Oi-GNZ" secondAttribute="bottom" constant="10" id="ZiP-ox-dUK"/>
                             <constraint firstItem="osf-4x-kP1" firstAttribute="centerX" secondItem="fgf-me-1aC" secondAttribute="centerX" id="bvF-hF-4rm"/>
                             <constraint firstItem="fnm-v4-I11" firstAttribute="top" secondItem="osf-4x-kP1" secondAttribute="bottom" constant="-21" id="ejM-Rm-B04"/>
                             <constraint firstItem="osf-4x-kP1" firstAttribute="top" secondItem="fgf-me-1aC" secondAttribute="top" id="fFU-ne-LOt"/>
@@ -394,7 +384,6 @@
                     </view>
                     <navigationItem key="navigationItem" id="Hnd-Bx-gnh"/>
                     <connections>
-                        <outlet property="debugPreview" destination="6R9-Oi-GNZ" id="mu1-pN-Sad"/>
                         <outlet property="galleryBtn" destination="4Um-sM-If6" id="73j-vi-ewY"/>
                         <outlet property="leftCameraPreview" destination="VdF-XY-qgB" id="lmF-W3-V24"/>
                         <outlet property="rightCameraPreview" destination="hEK-zc-r80" id="vHe-CB-pSk"/>
