@@ -16,8 +16,9 @@ protocol DualCameraController
 {
     func getZoom() -> Float
     func setZoom(_ zoom:Float)
-    func configureSession()
+    func configureSession() -> Bool
     func viewWillAppear()
+    func getSyncedFrames(callback:@escaping (_ left:CVPixelBuffer, _ right:CVPixelBuffer) -> Void)
 }
 
 class DualCameraCtrl: UIViewController
@@ -26,7 +27,7 @@ class DualCameraCtrl: UIViewController
     @IBOutlet weak var rightCameraPreview: VideoPreview!
     @IBOutlet weak var shutterBtn: UIButton!
     @IBOutlet weak var zoomSlider: UISlider!
-    @IBOutlet weak var galleryBtn: GalleryBtn!
+    @IBOutlet weak var debugView: UIImageView!
     
     private let zoomFinder = ZoomFinder()
     
@@ -77,11 +78,23 @@ class DualCameraCtrl: UIViewController
         sessionQueue.async {
             if #available(iOS 13, *) {
                 self.cameraCtrl = DualCameraMultiCameraCtrl(dualCameraCtrl: self)
+                let result = self.cameraCtrl?.configureSession() ?? false
+                
+                if !result {
+                    self.cameraCtrl = DualCameraLegacyCameraCtrl(dualCameraCtrl: self)
+                    let result2 = self.cameraCtrl?.configureSession() ?? false
+                    
+                    if !result2 {
+                        self.cameraCtrl = nil
+                    }
+                }
             } else {
-                return
+                self.cameraCtrl = nil
             }
             
-            self.cameraCtrl?.configureSession()
+            if (self.cameraCtrl == nil) {
+                return
+            }
             
             if self.viewWillAppearFlag {
                 self.cameraCtrl?.viewWillAppear()
@@ -156,36 +169,17 @@ class DualCameraCtrl: UIViewController
         case multiCamNotSupported
     }
     
-    private var shutterProcessing = false
-    private var shutterWaiting = false
-    private var shutterLeft:CMSampleBuffer?
-    private var shutterRight:CMSampleBuffer?
-    
     private var zoomLeft:CMSampleBuffer?
     private var zoomRight:CMSampleBuffer?
     private var zoomCalculated = true
     private var frameCounter = Date()
     
     func captureOutput(didOutput sampleBuffer: CMSampleBuffer, isLeft:Bool) {
-        if (shutterWaiting) {
-            guard shutterProcessing == false else { return }
-            if isLeft {
-                shutterLeft = sampleBuffer
-            } else {
-                shutterRight = sampleBuffer
-            }
-            
-            if (shutterLeft != nil && shutterRight != nil) {
-                shutterProcessing = true
-                shutterClicked2(shutterLeft!, shutterRight!)
-            }
-        } else {
-            if isLeft {
-                leftCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
-            }
-            else {
-                rightCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
-            }
+        if isLeft {
+            leftCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
+        }
+        else {
+            rightCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
         }
         
         if (!zoomCalculated && Date().timeIntervalSince(frameCounter) > 1.0) {
@@ -208,13 +202,10 @@ class DualCameraCtrl: UIViewController
     }
     
     @IBAction func shutterClicked(_ sender: Any) {
-        guard shutterProcessing == false && shutterWaiting == false else { return }
-        if (shutterWaiting || shutterProcessing) { return }
-        
-        shutterLeft = nil
-        shutterRight = nil
-        shutterWaiting = true
-        shutterProcessing = false
+        self.cameraCtrl?.getSyncedFrames(callback: {[weak self] (left, right) in
+            
+            self?.shutterClicked2(left, right)
+        })
         
         showLoader(true)
     }
@@ -248,38 +239,18 @@ class DualCameraCtrl: UIViewController
     
     private let saver = Files.instance
     
-    private func shutterClicked2(_ leftPixels:CMSampleBuffer, _ rightPixels:CMSampleBuffer)
+    private func shutterClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
     {
-        guard let lPixelBuffer = CMSampleBufferGetImageBuffer(leftPixels) else { return }
-        let lw = CVPixelBufferGetWidth(lPixelBuffer)
-        let lh = CVPixelBufferGetHeight(lPixelBuffer)
-        let lMargin = ImageUtils.findMargins(size: ImageUtils.Size(width: lw, height: lh), zoom: 1.0)
+        let zoom:Float = 1.0
+        let orient = leftCameraPreview.orientation ?? .DEG_0
+        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, orientation: orient)
+        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, orientation: orient)
         
-        guard let rPixelBuffer = CMSampleBufferGetImageBuffer(rightPixels) else { return }
-        let rw = CVPixelBufferGetWidth(rPixelBuffer)
-        let rh = CVPixelBufferGetHeight(rPixelBuffer)
-        let rMargin = ImageUtils.findMargins(size: ImageUtils.Size(width: rw, height: rh), zoom: 1.0)
-        guard let orientation = leftCameraPreview.orientation else { return }
+        let exporter = ImageExporter(leftData: leftData, rightData: rightData)
+        exporter.debugView = debugView
+        exporter.export()
         
-        let proc = ImageProcessorSplit(size: ImageUtils.Size(width: Int(rMargin.width) * 2, height: Int(rMargin.height)))
-        print("processing")
-        
-        proc.setPixels(pixels: lPixelBuffer, margins: lMargin, orientation: orientation)
-        proc.processCurrentInTexture(.LEFT)
-        print("finished processing left side")
-        
-        proc.setPixels(pixels: rPixelBuffer, margins: rMargin, orientation: orientation)
-        proc.processCurrentInTexture(.RIGHT)
-        print("finished processing right side")
-        
-        
-        saveProcessedImage(proc: proc)
-        
-        AudioServicesPlaySystemSound(1108)
         showLoader(false)
-        
-        shutterWaiting = false
-        shutterProcessing = false
     }
     
     private var current = -1
@@ -290,22 +261,6 @@ class DualCameraCtrl: UIViewController
         case 1: return proc._midTexture!
         default: return proc._outTexture!
         }
-    }
-    
-    private func saveProcessedImage(proc: ImageProcessor) {
-        guard let img = proc.getOutput() else { return }
-        saveProcessedImage(img: img)
-    }
-    
-    func saveProcessedImage(img:CIImage) {
-        guard let cs = CGColorSpace(name: CGColorSpace.displayP3) else { return }
-        let ctx = CIContext()
-        let jpegData = ctx.jpegRepresentation(of: img, colorSpace: cs, options: [:])
-        guard let data = jpegData else { return }
-        
-        saver.saveToPhotos(data: data, onSaved: { savedImg in
-            print ("saved successfully")
-        })
     }
     
     

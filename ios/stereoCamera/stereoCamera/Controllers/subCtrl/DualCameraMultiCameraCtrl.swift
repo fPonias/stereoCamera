@@ -6,7 +6,6 @@
 //  Copyright © 2021 cody. All rights reserved.
 //
 
-import UIKit
 import AVFoundation
 import Photos
 import MetalKit
@@ -215,12 +214,24 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
                 dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false)
             }
         }
+        
+        if (shutterWaiting) {
+            if (connection == leftCameraStr?.videoDataOutputConnection) {
+                shutterLeft = sampleBuffer
+            } else {
+                shutterRight = sampleBuffer
+            }
+            
+            if (shutterLeft != nil && shutterRight != nil) {
+                getSyncedFrames2()
+            }
+        }
     }
         
         
     func getZoom() -> Float {
         let z = rightCameraStr?.deviceInput?.device.videoZoomFactor
-        if z != nil { return Float(z!) } else { return 1.0 }
+        if z != nil { return Float(z!) } else { return 1.6 }
     }
     
     func setZoom(_ zoom:Float) {
@@ -233,13 +244,13 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     }
     
     // Must be called on the session queue
-    func configureSession() {
-        guard setupResult == .success else { return }
+    func configureSession() -> Bool {
+        guard setupResult == .success else { return true }
         
         guard AVCaptureMultiCamSession.isMultiCamSupported else {
             print("MultiCam not supported on this device")
             setupResult = .multiCamNotSupported
-            return
+            return false
         }
         
         // When using AVCaptureMultiCamSession, it is best to manually add connections from AVCaptureInputs to AVCaptureOutputs
@@ -255,7 +266,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         rightCameraStr = configureCamera(.builtInUltraWideCamera)
         guard rightCameraStr != nil else {
             setupResult = .configurationFailed
-            return
+            return false
         }
         
         
@@ -264,8 +275,12 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         leftCameraStr = configureCamera(.builtInWideAngleCamera, maxDim: maxDim)
         guard leftCameraStr != nil else {
             setupResult = .configurationFailed
-            return
+            return false
         }
+        
+        setZoom(1.6)
+        
+        return true
     }
     
     struct CameraStr {
@@ -644,5 +659,36 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         } else if pressureLevel == .shutdown {
             print("Session stopped running due to system pressure level.")
         }
+    }
+    
+    private var shutterProcessing = false
+    private var shutterWaiting = false
+    private var shutterLeft:CMSampleBuffer?
+    private var shutterRight:CMSampleBuffer?
+    private var shutterCallback:((_ left:CVPixelBuffer, _ right:CVPixelBuffer) -> Void)?
+    
+    func getSyncedFrames(callback: @escaping(CVPixelBuffer, CVPixelBuffer) -> Void)
+    {
+        if (shutterWaiting) {
+            return
+        }
+        
+        shutterLeft = nil
+        shutterRight = nil
+        shutterWaiting = true
+        shutterCallback = callback
+    }
+    
+    private func getSyncedFrames2()
+    {
+        guard let ls = shutterLeft,
+              let rs = shutterRight,
+              let lPixelBuffer = CMSampleBufferGetImageBuffer(ls),
+              let rPixelBuffer = CMSampleBufferGetImageBuffer(rs)
+        else { return }
+        
+        AudioServicesPlaySystemSound(1108)
+        shutterCallback?(lPixelBuffer, rPixelBuffer)
+        shutterWaiting = false
     }
 }

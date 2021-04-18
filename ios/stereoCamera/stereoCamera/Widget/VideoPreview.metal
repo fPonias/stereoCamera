@@ -50,7 +50,7 @@ histogram(texture2d<float, access::read> texture [[ texture(0) ]],
     
     float4 val = texture.read(gid);
     float avg = (val[0] + val[1] + val[3]) / 3.0f;
-    int idx = 512 * avg;
+    int idx = 256 * avg;
     
     atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
 }
@@ -83,9 +83,21 @@ histogramReduced(texture2d<float, access::sample> texture [[ texture(0) ]],
     constexpr sampler s(address::clamp_to_edge, filter::linear);
     float4 val = float4(texture.sample(s, c));
     float avg = (val[0] + val[1] + val[3]) / 3.0f;
-    uint idx = 512 * avg;
+    uint idx = 256 * avg;
         
     atomic_fetch_add_explicit(histArray + idx, 1, memory_order_relaxed);
+}
+
+kernel void
+autoContrast(texture2d<float, access::read_write> texture [[texture(0)]],
+             device float* values [[ buffer(0)]],
+             uint2 gid [[ thread_position_in_grid ]]) {
+    float4 val = texture.read(gid);
+    for (int i = 0; i < 3; i++) {
+        val[i] = values[0] * val[i] + values[1];
+    }
+    
+    texture.write(val, gid);
 }
 
 uint2 crop_rotate(uint2 dest, uint2 dims, uint rot) //why are the images flipped at this point?

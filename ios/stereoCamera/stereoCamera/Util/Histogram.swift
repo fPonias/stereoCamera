@@ -19,7 +19,7 @@ class Histogram
     private var marginBuf:MTLBuffer?
     private var resultBuf:MTLBuffer?
     private var histogramPtr:UnsafeMutablePointer<Int32>?
-    private let SZ = 512
+    private let SZ = 256
     private var width:Int = 0
     private var height:Int = 0
     
@@ -87,6 +87,13 @@ class Histogram
               let unwrappedTexture = texture
         else { return }
         _texture = CVMetalTextureGetTexture(unwrappedTexture)
+    }
+    
+    func setPixels(mtlPixels:MTLTexture)
+    {
+        width = mtlPixels.width
+        height = mtlPixels.height
+        _texture = mtlPixels
     }
     
     public func hasTexture() -> Bool {
@@ -168,6 +175,103 @@ class Histogram
         
         return Array(UnsafeBufferPointer(start: histogramPtr, count: SZ))
     }
+    
+    func average() -> Float {
+        guard let arr = calculate() else { return 0 }
+        
+        let sz = Float(width - margins.left - margins.right) * Float(height - margins.top - margins.bottom)
+        
+        var ret:Float = 0.0
+        var c = 0
+        
+        for i in 0 ..< arr.count {
+            c += Int(arr[i])
+            ret += Float(Int(arr[i]) * i) / sz
+        }
+        
+        return ret
+    }
+    
+    struct ContrastParams {
+        var min:Double
+        var max:Double
+        var a:Double
+        var b:Double
+    }
+    
+    private func getPercentIndex(histogram:[Int32], percent:Double) -> Double {
+        guard(percent >= 0 && percent <= 1.0) else { return 0 }
+        
+        var count:Int32 = 0
+        for value in histogram {
+            count += value
+        }
+        
+        var ret = 0.0
+        var total:Int32 = 0
+        var percentSum = 0.0
+        let countf = Double(count)
+        let p = Int32(countf * percent)
+        let incPercent = 1.0 / Double(histogram.count)
+        
+        for i in 0 ..< histogram.count {
+            let inc = histogram[i]
+            total += inc
+            percentSum = Double(total) / countf
+            
+            if percentSum > percent {
+                let rem = total - p
+                let subPercent = Double(rem) / Double(inc)
+                ret = Double(i - 1) / Double(histogram.count) + incPercent * subPercent
+                break
+            }
+        }
+        
+        return ret
+    }
+    
+    private func getBottomIndex(histogram:[Int32], threshold: Int) -> Double {
+        for i in 0 ..< histogram.count - 1 {
+            if histogram[i] > threshold && histogram[i] < histogram[i + 1] {
+                return Double(i) / Double(histogram.count)
+            }
+        }
+        
+        return 0
+    }
+    
+    private func getTopIndex(histogram:[Int32], threshold: Int) -> Double {
+        for i in 0 ..< histogram.count - 1 {
+            let idx = histogram.count - i - 1
+            if histogram[idx] > threshold && histogram[idx] < histogram[idx - 1] {
+                return Double(idx) / Double(histogram.count)
+            }
+        }
+        
+        return 1.0
+    }
+    
+    func autoContrastParams() -> ContrastParams {
+        var ret = ContrastParams(min: 0.0, max: 1.0, a:0.0, b:0.0)
+        guard let hist = calculate() else { return ret }
+        //ret.min = getPercentIndex(histogram: hist, percent: 0.05)
+        //ret.max = getPercentIndex(histogram: hist, percent: 0.95)
+        
+        let dampening = 0.5
+        ret.min = getBottomIndex(histogram: hist, threshold: 1) * dampening
+        let top = getTopIndex(histogram: hist, threshold: 1)
+        ret.max = (1.0 - top) * dampening + top
+        
+        //a*p5+b=0 and a*p95+b=255
+        let p_div = ret.min / ret.max
+        ret.b = -1.0 * p_div / (1.0 - p_div)
+        ret.a = (1.0 - ret.b) / ret.max
+        
+        //let checkOne = ret.a * ret.min + ret.b  //should be close to 0
+        //let checkTwo = ret.a * ret.max + ret.b  //should be close to 1
+        
+        return ret
+    }
 }
 
 public class ReducedHistogram {
@@ -179,7 +283,7 @@ public class ReducedHistogram {
     private var resultBuf:MTLBuffer?
     private var histogramPtr:UnsafeMutablePointer<Int32>?
     private var marginPtr:UnsafeMutablePointer<Float32>?
-    private let SZ = 512
+    private let SZ = 256
     private var width:Int = 0
     private var height:Int = 0
     

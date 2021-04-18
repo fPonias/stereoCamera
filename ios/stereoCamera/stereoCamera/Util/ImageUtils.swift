@@ -75,8 +75,8 @@ public class ImageUtils
             ret.right = wPaddingPx
             ret.top = hPaddingPx
             ret.bottom = hPaddingPx
-            ret.width = size.width - 2 * hPaddingPx
-            ret.height = size.height - 2 * wPaddingPx
+            ret.width = size.width - 2 * wPaddingPx
+            ret.height = size.height - 2 * hPaddingPx
         }
         else
         {
@@ -105,10 +105,10 @@ public class ImageUtils
         let ptr = CVPixelBufferGetBaseAddress(base)
         
         var ret:CVPixelBuffer?
-        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, nil, &ret)
+        let status = CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &ret)
         guard ret != nil else { return nil }
         CVPixelBufferLockBaseAddress(ret!, CVPixelBufferLockFlags())
-        var retPtr = CVPixelBufferGetBaseAddress(ret!)
+        let retPtr = CVPixelBufferGetBaseAddress(ret!)
         
         memcpy(retPtr, ptr, height * widthSz)
         CVPixelBufferUnlockBaseAddress(base, CVPixelBufferLockFlags())
