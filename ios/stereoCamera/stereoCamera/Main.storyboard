@@ -250,16 +250,10 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fnm-v4-I11" userLabel="Controls">
-                                <rect key="frame" x="44" y="311" width="838" height="96"/>
+                                <rect key="frame" x="44" y="351" width="838" height="56"/>
                                 <subviews>
-                                    <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="Xkk-IT-Zh7">
-                                        <rect key="frame" x="18" y="10" width="802" height="31"/>
-                                        <connections>
-                                            <action selector="zoomUpdated:" destination="LXJ-4f-s59" eventType="valueChanged" id="IxA-0H-7rJ"/>
-                                        </connections>
-                                    </slider>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="QNb-dr-iRE" userLabel="Shutter">
-                                        <rect key="frame" x="401" y="50" width="36" height="36"/>
+                                        <rect key="frame" x="401" y="10" width="36" height="36"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="36" id="K2u-R1-wi9"/>
@@ -281,14 +275,20 @@
                                             <action selector="shutterClicked:" destination="LXJ-4f-s59" eventType="primaryActionTriggered" id="6jA-Xj-cQl"/>
                                         </connections>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="y1p-QL-EAp">
+                                        <rect key="frame" x="10" y="13" width="95" height="30"/>
+                                        <state key="normal" title="Camera Swap"/>
+                                        <connections>
+                                            <action selector="swapCameraPairTapped:" destination="LXJ-4f-s59" eventType="primaryActionTriggered" id="3dx-05-G9O"/>
+                                        </connections>
+                                    </button>
                                 </subviews>
                                 <constraints>
                                     <constraint firstAttribute="bottom" secondItem="QNb-dr-iRE" secondAttribute="bottom" constant="10" id="5p6-bi-IYe"/>
                                     <constraint firstItem="QNb-dr-iRE" firstAttribute="centerX" secondItem="fnm-v4-I11" secondAttribute="centerX" id="AT0-Vc-wOU"/>
-                                    <constraint firstItem="Xkk-IT-Zh7" firstAttribute="leading" secondItem="fnm-v4-I11" secondAttribute="leading" constant="20" id="E3e-Kb-Wpa"/>
-                                    <constraint firstItem="QNb-dr-iRE" firstAttribute="top" secondItem="Xkk-IT-Zh7" secondAttribute="bottom" constant="10" id="LYr-Rd-WRJ"/>
-                                    <constraint firstAttribute="trailing" secondItem="Xkk-IT-Zh7" secondAttribute="trailing" constant="20" id="ZWs-9T-ev7"/>
-                                    <constraint firstItem="Xkk-IT-Zh7" firstAttribute="top" secondItem="fnm-v4-I11" secondAttribute="top" constant="10" id="qnr-qx-ldt"/>
+                                    <constraint firstItem="y1p-QL-EAp" firstAttribute="centerY" secondItem="fnm-v4-I11" secondAttribute="centerY" id="Kam-0D-fBd"/>
+                                    <constraint firstItem="QNb-dr-iRE" firstAttribute="top" secondItem="fnm-v4-I11" secondAttribute="top" constant="10" id="NnG-QX-h50"/>
+                                    <constraint firstItem="y1p-QL-EAp" firstAttribute="leading" secondItem="fnm-v4-I11" secondAttribute="leading" constant="10" id="W5m-DQ-jho"/>
                                 </constraints>
                             </view>
                             <button opaque="NO" contentMode="scaleAspectFit" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="4Um-sM-If6" userLabel="galleryBtn" customClass="GalleryBtn" customModule="stereoCamera" customModuleProvider="target">
@@ -307,18 +307,18 @@
                                 </userDefinedRuntimeAttributes>
                             </button>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="osf-4x-kP1" userLabel="CameraHolder">
-                                <rect key="frame" x="44" y="44" width="838" height="267"/>
+                                <rect key="frame" x="44" y="44" width="838" height="307"/>
                                 <subviews>
-                                    <view contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="VdF-XY-qgB" customClass="VideoPreview" customModule="stereoCamera" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="0.0" width="267" height="267"/>
+                                    <view contentMode="scaleAspectFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="VdF-XY-qgB" customClass="VideoPreview" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="307" height="307"/>
                                         <color key="backgroundColor" systemColor="systemGray6Color"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="267" id="Jdh-pK-ape"/>
                                             <constraint firstAttribute="width" constant="267" id="hnD-18-Rmu"/>
                                         </constraints>
                                     </view>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hEK-zc-r80" customClass="VideoPreview" customModule="stereoCamera" customModuleProvider="target">
-                                        <rect key="frame" x="267" y="0.0" width="267" height="267"/>
+                                    <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hEK-zc-r80" customClass="VideoPreview" customModule="stereoCamera" customModuleProvider="target">
+                                        <rect key="frame" x="315" y="0.0" width="306" height="307"/>
                                         <color key="backgroundColor" systemColor="systemGray6Color"/>
                                         <constraints>
                                             <constraint firstAttribute="width" constant="267" id="C3p-mT-Kff"/>
@@ -365,6 +365,7 @@
                     </navigationItem>
                     <connections>
                         <outlet property="cameraContainer" destination="osf-4x-kP1" id="tZu-sk-3bk"/>
+                        <outlet property="cameraSwapBtn" destination="y1p-QL-EAp" id="bEk-aS-8JA"/>
                         <outlet property="leftCameraPreview" destination="VdF-XY-qgB" id="lmF-W3-V24"/>
                         <outlet property="leftHeightConstraint" destination="Jdh-pK-ape" id="ONB-43-M2Q"/>
                         <outlet property="leftOffsetConstraint" destination="5fI-Yr-Yyo" id="uGX-qq-0J1"/>
@@ -374,13 +375,12 @@
                         <outlet property="rightHeightConstraint" destination="ZHh-ne-r5b" id="IRn-sZ-6Xv"/>
                         <outlet property="rightWidthConstraint" destination="C3p-mT-Kff" id="gZe-ts-ioJ"/>
                         <outlet property="shutterBtn" destination="QNb-dr-iRE" id="1HJ-60-mZf"/>
-                        <outlet property="zoomSlider" destination="Xkk-IT-Zh7" id="NEa-bm-WRE"/>
                         <segue destination="gMc-DZ-BOE" kind="show" identifier="measureSegue" id="c4O-AT-Q8p"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sxj-3H-enD" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2072.8000000000002" y="-1481.5270935960591"/>
+            <point key="canvasLocation" x="2072.1382289416847" y="-1481.7757009345794"/>
         </scene>
         <!--Camera-->
         <scene sceneID="8Qt-Qj-rC3">

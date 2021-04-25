@@ -18,6 +18,7 @@ protocol DualCameraController
     func getZoom() -> Float
     func setZoom(_ zoom:Float)
     func configureSession() -> Bool
+    func setCameraPair(pair: DualCameraCtrl.CameraPair)
     func viewWillAppear()
     func getSyncedFrames(callback:@escaping (_ left:CVPixelBuffer, _ right:CVPixelBuffer) -> Void)
 }
@@ -34,10 +35,17 @@ class DualCameraCtrl: UIViewController
     @IBOutlet weak var leftCameraPreview: VideoPreview!
     @IBOutlet weak var rightCameraPreview: VideoPreview!
     @IBOutlet weak var shutterBtn: UIButton!
-    @IBOutlet weak var zoomSlider: UISlider!
     @IBOutlet weak var measureBtn: UIBarButtonItem!
+    @IBOutlet weak var cameraSwapBtn: UIButton!
     
     private let zoomFinder = ZoomFinder()
+    
+    struct CameraPair{
+        let left:AVCaptureDevice
+        let right:AVCaptureDevice
+    }
+    
+    var cameraPairs:[CameraPair] = Array()
     
     private let maxZoom = 3.0
     let sessionQueue = DispatchQueue(label: "session queue") // Communicate with the session and other session objects on this queue.
@@ -75,7 +83,6 @@ class DualCameraCtrl: UIViewController
         
         leftCameraPreview.resumeDrawing()
         rightCameraPreview.resumeDrawing()
-        zoomSlider.value = 1.0//cameraCtrl?.getZoom() ?? 1.0
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -95,6 +102,37 @@ class DualCameraCtrl: UIViewController
         
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+        
+        let sess:AVCaptureDevice.DiscoverySession
+        if #available(iOS 13.0, *) {
+            sess = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTelephotoCamera, .builtInWideAngleCamera, .builtInUltraWideCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInTripleCamera, .builtInTrueDepthCamera], mediaType: .video, position: .back)
+            
+            let pairs = sess.supportedMultiCamDeviceSets
+            for pair in pairs {
+                if (pair.count == 2) {
+                    let pist = pair.sorted(by: { _,_ in return true })
+                    if pist[0].formats[0].videoFieldOfView < pist[1].formats[0].videoFieldOfView {
+                        cameraPairs.append(CameraPair(left: pist[0], right: pist[1]))
+                    } else {
+                        cameraPairs.append(CameraPair(left: pist[1], right: pist[0]))
+                    }
+                }
+            }
+        } else {
+            sess = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTelephotoCamera, .builtInWideAngleCamera], mediaType: .video, position: .back)
+            
+            
+            let list = sess.devices
+            //back tele, back ; back tele, back ultra ; back ultra, back ;
+            //top - back, tele
+            //bottom - tele
+            //side - ultrawide, tele
+        }
+        
+        guard (cameraPairs.count > 1)  else {
+            print ("phone needs multiple cameras to function")
+            return
+        }
         
         /*
         Configure the capture session.
@@ -126,6 +164,8 @@ class DualCameraCtrl: UIViewController
                 return
             }
             
+            self.setCameraPair(0)
+            
             if self.viewWillAppearFlag {
                 self.cameraCtrl?.viewWillAppear()
             }
@@ -133,12 +173,25 @@ class DualCameraCtrl: UIViewController
         
         // Keep the screen awake
         UIApplication.shared.isIdleTimerDisabled = true
+    }
+    
+    @IBAction func swapCameraPairTapped(_ sender: Any) {
+        let nextIdx = (currentCameraPair + 1) % cameraPairs.count
+        setCameraPair(nextIdx)
+    }
+    
+    private var currentCameraPair:Int = -1
+    
+    private func setCameraPair(_ index:Int) {
+        guard (index >= 0 && index < cameraPairs.count) else { return }
+        guard (index != currentCameraPair) else { return }
         
-        zoomSlider.minimumValue = 1.0
-        zoomSlider.maximumValue = Float(maxZoom)
-        zoomSlider.isContinuous = true
-        zoomSlider.value = 1.0//self.cameraCtrl?.getZoom() ?? 1.0
-        zoomUpdated(self)
+        currentCameraPair = index
+        
+        let pair = cameraPairs[index]
+        print ("switching to left: \(pair.left.localizedName) and right: \(pair.right.localizedName)")
+        
+        cameraCtrl?.setCameraPair(pair: pair)
     }
     
     private var viewWillAppearFlag:Bool = false
@@ -155,7 +208,6 @@ class DualCameraCtrl: UIViewController
     
     private func cleanUp()
     {
-        Cookie.instance.setZoomForDual(zoom: zoomSlider.value)
         motion.stopAccelerometerUpdates()
     }
     
@@ -214,13 +266,22 @@ class DualCameraCtrl: UIViewController
         {
             let x = accel.acceleration.x
             let y = accel.acceleration.y
-            angle = atan2(x, y)
             
-            if (x < 0) {
-                angle += 2.0 * Double.pi
+            if (abs(x) < 0.15) {
+                if (y < 0) {
+                    angle = 0.0
+                } else {
+                    angle = Double.pi
+                }
+            } else {
+                angle = atan2(x, y)
+                
+                if (x < 0) {
+                    angle += 2.0 * Double.pi
+                }
+                
+                angle -= Double.pi
             }
-            
-            angle -= Double.pi
             
             //print ("accel angle \(angle)")
         } else {
@@ -250,24 +311,6 @@ class DualCameraCtrl: UIViewController
         else {
             rightCameraPreview.rotation = Float(angle)
             rightCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
-        }
-        
-        if (!zoomCalculated && Date().timeIntervalSince(frameCounter) > 1.0) {
-            if isLeft {
-                zoomLeft = sampleBuffer
-            } else {
-                zoomRight = sampleBuffer
-            }
-            
-            if (zoomLeft != nil && zoomRight != nil) {
-                zoomCalculated = true
-                guard let zoomLeft = zoomLeft,
-                      let zoomRight = zoomRight,
-                      let lPixelBuffer = CMSampleBufferGetImageBuffer(zoomLeft),
-                      let rPixelBuffer = CMSampleBufferGetImageBuffer(zoomRight)
-                else { return }
-                calculateZoom(leftImage: lPixelBuffer, rightImage: rPixelBuffer)
-            }
         }
     }
     
@@ -361,16 +404,6 @@ class DualCameraCtrl: UIViewController
         }
     }
     
-    
-    @IBAction func zoomUpdated(_ sender: Any) {
-        
-        let z = zoomSlider.value
-        print("zoom: \(z)")
-        cameraCtrl?.setZoom(z)
-    }
-    
-
-    
     public func alert(title: String, message: String, actions: [UIAlertAction]) {
         let alertController = UIAlertController(title: title,
                                                 message: message,
@@ -381,19 +414,5 @@ class DualCameraCtrl: UIViewController
         }
         
         self.present(alertController, animated: true, completion: nil)
-    }
-    
-    func calculateZoom(leftImage: CVImageBuffer, rightImage: CVImageBuffer) {
-        zoomFinder.baseHist.setPixels(pixels: leftImage)
-        zoomFinder.adjHist.setPixels(pixels: rightImage)
-        
-        if (zoomFinder.canFindZoom()) {
-            zoomFinder.findZoom(max: Float(maxZoom)) { [weak self] (zoom) in
-                DispatchQueue.main.async {
-                    self?.zoomSlider.value = Float(zoom)
-                    self?.zoomUpdated(self as Any)
-                }
-            }
-        }
     }
 }

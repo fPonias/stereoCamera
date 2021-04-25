@@ -235,12 +235,19 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     }
     
     func setZoom(_ zoom:Float) {
+        if let device = rightCameraStr?.deviceInput?.device {
+            setZoom(1.0, device: device)
+        }
+    }
+    
+    private func setZoom(_ zoom:Float, device:AVCaptureDevice?)
+    {
+        guard let device = device else { return }
         do {
-            try rightCameraStr?.deviceInput?.device.lockForConfiguration()
-            rightCameraStr?.deviceInput?.device.videoZoomFactor = CGFloat(zoom)
-            rightCameraStr?.deviceInput?.device.unlockForConfiguration()
+            try device.lockForConfiguration()
+            device.videoZoomFactor = CGFloat(zoom)
+            device.unlockForConfiguration()
         } catch {}
-        
     }
     
     // Must be called on the session queue
@@ -262,11 +269,35 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             }
         }
         
+        return true
+    }
+    
+    func setCameraPair(pair: DualCameraCtrl.CameraPair) {
+        if (rightCameraStr != nil) {
+            setZoom(1.0, device: rightCameraStr?.deviceInput?.device)
+            setZoom(1.0, device: leftCameraStr?.deviceInput?.device)
+
+            session.stopRunning()
+            session.beginConfiguration()
+            
+            for conn in session.connections {
+                session.remove(conn)
+            }
+            
+            for input in session.inputs {
+                session.removeInput(input)
+            }
+            
+            for output in session.outputs {
+                session.removeOutput(output)
+            }
+            session.commitConfiguration()
+        }
         
-        rightCameraStr = configureCamera(.builtInUltraWideCamera)
+        rightCameraStr = configureCamera(pair.right)
         guard rightCameraStr != nil else {
             setupResult = .configurationFailed
-            return false
+            return
         }
         
         let rightFov = rightCameraStr?.fieldOfView ?? 0.0
@@ -276,10 +307,10 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         
         //let rightDim = rightCameraStr?.device?.activeFormat.highResolutionStillImageDimensions.height ?? 1024
         //let maxDim = Int32(Float(rightDim) * 0.8)
-        leftCameraStr = configureCamera(.builtInWideAngleCamera)
+        leftCameraStr = configureCamera(pair.left)
         guard leftCameraStr != nil else {
             setupResult = .configurationFailed
-            return false
+            return
         }
         
         let leftFov = leftCameraStr?.fieldOfView ?? 0.0
@@ -287,9 +318,9 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         let leftWidth = 2.0 * tan(leftFovRad / 2.0)
         
         let zoom = rightWidth / leftWidth
-        setZoom(zoom)
+        setZoom(zoom, device: rightCameraStr?.device)
         
-        return true
+        session.startRunning()
     }
     
     struct CameraStr {
@@ -301,16 +332,10 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         var fieldOfView:Float?
     }
     
-    private func configureCamera(_ type:AVCaptureDevice.DeviceType, maxDim:Int32 = Int32.max) -> CameraStr? {
+    private func configureCamera(_ device:AVCaptureDevice, maxDim:Int32 = Int32.max) -> CameraStr? {
         session.beginConfiguration()
         defer {
             session.commitConfiguration()
-        }
-        
-        // Find the back camera
-        guard let backCamera = AVCaptureDevice.default(type, for: .video, position: .back) else {
-            print("Could not find the back camera")
-            return nil
         }
         
         let deviceInput:AVCaptureDeviceInput
@@ -318,7 +343,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         
         // Add the back camera input to the session
         do {
-            deviceInput = try AVCaptureDeviceInput(device: backCamera)
+            deviceInput = try AVCaptureDeviceInput(device: device)
             
             guard session.canAddInput(deviceInput) else {
                     print("Could not add back camera device input")
@@ -335,11 +360,6 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         for fmt in formats {
             if fmt.isMultiCamSupported && fmt.formatDescription.dimensions.height < maxDim {
                 sorted.append(fmt)
-                
-                let hiRes = fmt.highResolutionStillImageDimensions
-                let preRes = fmt.formatDescription.dimensions
-                
-                //print ("hi", hiRes.width, "x", hiRes.height, "lo", preRes.width, "x", preRes.height, separator: " ")
             }
         }
         
@@ -350,13 +370,13 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         let attempt = 0
         
         do {
-            try backCamera.lockForConfiguration()
-            backCamera.activeFormat = sorted[attempt]
+            try device.lockForConfiguration()
+            device.activeFormat = sorted[attempt]
             let fr = sorted[attempt].videoSupportedFrameRateRanges
             let videoMinFrameDurationOverride = CMTimeMake(1, Int32(15))
-            backCamera.activeVideoMaxFrameDuration = fr[0].maxFrameDuration
-            backCamera.activeVideoMinFrameDuration = videoMinFrameDurationOverride
-            backCamera.unlockForConfiguration()
+            device.activeVideoMaxFrameDuration = fr[0].maxFrameDuration
+            device.activeVideoMinFrameDuration = videoMinFrameDurationOverride
+            device.unlockForConfiguration()
         } catch {
             print ("Could not adjust camera resolution")
             return nil
@@ -373,8 +393,8 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         
         // Find the back camera device input's video port
         guard let backCameraVideoPort = deviceInput.ports(for: .video,
-                  sourceDeviceType: backCamera.deviceType,
-                  sourceDevicePosition: backCamera.position).first
+                  sourceDeviceType: device.deviceType,
+                  sourceDevicePosition: device.position).first
         else {
                     print("Could not find the back camera device input's video port")
                     return nil
@@ -410,7 +430,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         }
         session.add(stillDataOutputConnection)*/
         
-        return CameraStr(device: backCamera, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil, fieldOfView: fov)
+        return CameraStr(device: device, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil, fieldOfView: fov)
     }
     
     // MARK: - Session Cost Check
