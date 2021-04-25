@@ -28,9 +28,9 @@ class ImageEditorCtrl : UIViewController
     }
     
     override func viewDidLoad() {
-        zoomSlider.minimumValue = 0.0
-        zoomSlider.maximumValue = 1.0
-        zoomSlider.value = 1.0
+        zoomSlider.minimumValue = -Float.pi / 2.0
+        zoomSlider.maximumValue = Float.pi / 2.0
+        zoomSlider.value = 0
         zoomSlider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
     }
     
@@ -70,24 +70,31 @@ class ImageEditorCtrl : UIViewController
     }
     
     private func adjust(data:ImageEditorData, preview:UIImageView?)
-    {/*
+    {
         guard let preview = preview,
-              let buf = data.previewBuf
+              let buffer = data.origData
         else { return }
         
-        var img = data.tmpImg
+        var img:CIImage? = CIImage(cvPixelBuffer: buffer)
+        let squareFilter = SquareFilter(orientation: .DEG_0, zoom: 1.0)
+        img = squareFilter.update(img!)
         
-        let filter = ScaleWidget(type: .RELATIVE)
-        filter.value = Float(preview.frame.width)
-        img = filter.update(img!)
+        let rotateFIlter = RotateFilter(rotation: zoomSlider.value, dimension: 2160)
+        img = rotateFIlter.update(img!)
         
-        guard let pimg = img else { return }
+        guard let imgout = img else { return }
         
         let ctx = CIContext()
-        ctx.render(pimg, to: buf)
-        let ciImage = CIImage(cvPixelBuffer: buf)
+        let sz = imgout.extent
+        var outBuf:CVPixelBuffer?
+        CVPixelBufferCreate(kCFAllocatorDefault, Int(2160), Int(2160), kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &outBuf)
+        
+        guard let outBufConst = outBuf else { return }
+        
+        ctx.render(imgout, to: outBufConst)
+        let ciImage = CIImage(cvPixelBuffer: outBufConst)
         let uiImage = UIImage(ciImage: ciImage)
-        preview.image = uiImage*/
+        preview.image = uiImage
     }
     
     private let saver = Files.instance

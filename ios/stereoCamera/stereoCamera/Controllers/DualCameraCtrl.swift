@@ -129,7 +129,7 @@ class DualCameraCtrl: UIViewController
             //side - ultrawide, tele
         }
         
-        guard (cameraPairs.count > 1)  else {
+        guard (cameraPairs.count >= 1)  else {
             print ("phone needs multiple cameras to function")
             return
         }
@@ -320,7 +320,7 @@ class DualCameraCtrl: UIViewController
             self?.shutterClicked2(left, right)
         })
         
-        showLoader(true)
+        //showLoader(true)
     }
     
     private var loaderCtrl:LoadingPopupCtrl?
@@ -385,9 +385,17 @@ class DualCameraCtrl: UIViewController
     private func shutterClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
     {
         let zoom:Float = 1.0
-        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, orientation: .DEG_0)
-        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, orientation: .DEG_0)
-        
+        let lRot = leftCameraPreview.rotation
+        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, rotation: lRot)
+        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, rotation: lRot)
+        /*
+        DispatchQueue.main.async {
+            let ctrl = ImageEditorCtrl.initFromStoryboard()
+            ctrl.leftData = leftData
+            ctrl.rightData = rightData
+            self.navigationController?.pushViewController(ctrl, animated: true)
+        }
+        */
         let exporter = ImageExporter(leftData: leftData, rightData: rightData)
         exporter.export()
         

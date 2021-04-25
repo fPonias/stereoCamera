@@ -11,13 +11,16 @@ import CoreImage
 
 class ImageEditorData //mutable struct
 {
-    init(origData:CVPixelBuffer, zoom: Float, orientation: ImageUtils.CameraOrientation) {
+    init(origData:CVPixelBuffer, zoom: Float, rotation: Float) {
         self.origData = ImageUtils.copyBuffer(base: origData)
         self.zoom = zoom
-        self.orientation = orientation
+        self.margins = ImageEditorData.getMargin(origData, zoom: zoom)
+        self.rotation = rotation
         
-        let cropWidget = SquareFilter(orientation: orientation, zoom: zoom)
+        let cropWidget = SquareFilter(orientation: .DEG_0, zoom: zoom)
         automaticFilters.append(cropWidget)
+        let rotateWidget = RotateFilter(rotation: rotation, dimension: margins.width)
+        automaticFilters.append(rotateWidget)
         
         let gammaWidget = GammaFilter(value: 2.2)
         processFilters.append(gammaWidget)
@@ -25,34 +28,22 @@ class ImageEditorData //mutable struct
     
     var origData: CVPixelBuffer?
     var zoom: Float
-    var orientation: ImageUtils.CameraOrientation
+    var rotation: Float
     
     var automaticFilters:[ImageEditorFilter] = Array()
     var manualFilters:[ImageEditorWidget] = Array()
     var previewFilters:[ImageEditorFilter] = Array()
     var processFilters:[ImageEditorFilter] = Array()
     
-    var margins:ImageUtils.Margin {
-        get {
-            let w:Int
-            let h:Int
-            if (origData != nil) {
-                w = CVPixelBufferGetWidth(origData!)
-                h = CVPixelBufferGetHeight(origData!)
-            } else {
-                w = 0
-                h = 0
-            }
-            
-            let sz:ImageUtils.Size
-            if orientation == ImageUtils.CameraOrientation.DEG_0 || orientation == .DEG_180 {
-                sz = ImageUtils.Size(width: w, height: h)
-            } else {
-                sz = ImageUtils.Size(width: h, height: w)
-            }
-            
-            return ImageUtils.findMargins(size: sz, zoom: zoom)
-        }
+    var margins:ImageUtils.Margin
+    
+    private static func getMargin(_ origData:CVPixelBuffer, zoom:Float) -> ImageUtils.Margin {
+
+        let w = CVPixelBufferGetWidth(origData)
+        let h = CVPixelBufferGetHeight(origData)
+        
+        let sz:ImageUtils.Size = ImageUtils.Size(width: h, height: w)
+        return ImageUtils.findMargins(size: sz, zoom: zoom)
     }
     
     enum ProcessType {

@@ -154,6 +154,7 @@
 		7EA68B45262FA68E00D96250 /* PlotWidget.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7EA68B44262FA68E00D96250 /* PlotWidget.xib */; };
 		7EA68B482630AEA300D96250 /* MeasureCtrlScroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */; };
 		7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAE4282260AA815001E67C7 /* ImageUtils.swift */; };
+		7ED00E592635D9A500D12A4C /* RotateFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E582635D9A500D12A4C /* RotateFilter.swift */; };
 		7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED4E2CF260CC8D40085112E /* Matrix.swift */; };
 		AF4B2513198ADAE563F8B80C /* libPods-stereoCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 545F2C46DF4B13D705EC9A8B /* libPods-stereoCamera.a */; };
 /* End PBXBuildFile section */
@@ -313,6 +314,7 @@
 		7EA68B44262FA68E00D96250 /* PlotWidget.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PlotWidget.xib; sourceTree = "<group>"; };
 		7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasureCtrlScroller.swift; sourceTree = "<group>"; };
 		7EAE4282260AA815001E67C7 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
+		7ED00E582635D9A500D12A4C /* RotateFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotateFilter.swift; sourceTree = "<group>"; };
 		7ED4E2CF260CC8D40085112E /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 		EC2420F70CDDEE952EAF95AA /* Pods-stereoCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-stereoCamera.release.xcconfig"; path = "Target Support Files/Pods-stereoCamera/Pods-stereoCamera.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -600,6 +602,7 @@
 				7EA68B1A262B3BC600D96250 /* GammaFilter.swift */,
 				7EA68B1D262B3BF600D96250 /* SquareFilter.swift */,
 				7EA68B23262B65A400D96250 /* ScaleFilter.swift */,
+				7ED00E582635D9A500D12A4C /* RotateFilter.swift */,
 			);
 			path = ImageEditor;
 			sourceTree = "<group>";
@@ -766,6 +769,7 @@
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
 				7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */,
 				7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */,
+				7ED00E592635D9A500D12A4C /* RotateFilter.swift in Sources */,
 				7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */,
 				7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */,
 				7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */,

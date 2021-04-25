@@ -261,7 +261,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         let x = sin(rot45) * rad // find the x coordinate from the input rotation
         let ysq = rad * rad - x * x //find the y coordinate of the arc equation sqrt(radius^2 - x^2)
         let zoom = sqrt(ysq) //zoom should be a number between 1.0 and the radius 1.4
-        print ("rot \(x) zoom \(zoom)")
+        //print ("rot \(x) zoom \(zoom)")
         mtlTransform = mtlTransform.multiply(Matrix(scale: zoom))
         
         var rot:Float = -Float.pi / 2.0

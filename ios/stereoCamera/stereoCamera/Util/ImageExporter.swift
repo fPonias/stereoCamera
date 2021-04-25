@@ -23,19 +23,30 @@ class ImageExporter {
     private func processSide(data:ImageEditorData, size:CGSize) -> CVPixelBuffer? {
         guard let imgBig = data.process(type: .EXPORT) else { return nil }
         
-        let scaler = ScaleFilter(value: Float(size.width))
-        guard let img = scaler.update(imgBig) else { return nil }
+        guard let buffer = data.origData else { return nil }
         
-        var ret:CVPixelBuffer?
-        let _ = CVPixelBufferCreate(kCFAllocatorDefault, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &ret)
-        guard ret != nil else { return nil }
+        var img:CIImage? = CIImage(cvPixelBuffer: buffer)
+        let squareFilter = SquareFilter(orientation: .DEG_0, zoom: 1.0)
+        img = squareFilter.update(img!)
+        
+        let rotateFIlter = RotateFilter(rotation: data.rotation, dimension: Int(size.width))
+        img = rotateFIlter.update(img!)
+        
+        let gammaFilter = GammaFilter(value: 2.2)
+        img = gammaFilter.update(img!)
+        
+        guard let imgout = img else { return nil }
         
         let ctx = CIContext()
-        CVPixelBufferLockBaseAddress(ret!, CVPixelBufferLockFlags())
-            ctx.render(img, to: ret!)
-        CVPixelBufferUnlockBaseAddress(ret!, CVPixelBufferLockFlags())
+        let sz = imgout.extent
+        var outBuf:CVPixelBuffer?
+        CVPixelBufferCreate(kCFAllocatorDefault, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &outBuf)
         
-        return ret!
+        guard let outBufConst = outBuf else { return nil }
+        
+        ctx.render(imgout, to: outBufConst)
+        
+        return outBufConst
     }
     
     public func export() {
