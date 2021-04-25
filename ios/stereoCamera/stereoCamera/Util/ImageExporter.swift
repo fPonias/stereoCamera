@@ -50,11 +50,6 @@ class ImageExporter {
         guard let rightImg = processSide(data: rightData, size:sz) else { return }
         let outSz = ImageUtils.Size(width: dim * 2, height: dim)
         
-        DispatchQueue.main.async {
-            let cimg = CIImage(cvImageBuffer: rightImg)
-            self.debugView?.image = UIImage(ciImage: cimg)
-        }
-        
         let proc = ImageProcessorSplit(size: outSz)
         proc.setPixels(pixels: leftImg)
         proc.processCurrentInTexture(.LEFT)

@@ -231,7 +231,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         
     func getZoom() -> Float {
         let z = rightCameraStr?.deviceInput?.device.videoZoomFactor
-        if z != nil { return Float(z!) } else { return 1.6 }
+        if z != nil { return Float(z!) } else { return 1.0 }
     }
     
     func setZoom(_ zoom:Float) {
@@ -269,16 +269,25 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             return false
         }
         
+        let rightFov = rightCameraStr?.fieldOfView ?? 0.0
+        let rightFovRad = rightFov * Float.pi / 180.0
+        let rightWidth = 2.0 * tan(rightFovRad / 2.0)
         
-        let rightDim = rightCameraStr?.device?.activeFormat.highResolutionStillImageDimensions.height ?? 1024
-        let maxDim = Int32(Float(rightDim) * 0.8)
-        leftCameraStr = configureCamera(.builtInWideAngleCamera, maxDim: maxDim)
+        
+        //let rightDim = rightCameraStr?.device?.activeFormat.highResolutionStillImageDimensions.height ?? 1024
+        //let maxDim = Int32(Float(rightDim) * 0.8)
+        leftCameraStr = configureCamera(.builtInWideAngleCamera)
         guard leftCameraStr != nil else {
             setupResult = .configurationFailed
             return false
         }
         
-        setZoom(1.6)
+        let leftFov = leftCameraStr?.fieldOfView ?? 0.0
+        let leftFovRad = leftFov * Float.pi / 180.0
+        let leftWidth = 2.0 * tan(leftFovRad / 2.0)
+        
+        let zoom = rightWidth / leftWidth
+        setZoom(zoom)
         
         return true
     }
@@ -289,6 +298,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         var videoDataOutput:AVCaptureVideoDataOutput?
         var videoDataOutputConnection:AVCaptureConnection?
         var photoOutput:AVCapturePhotoOutput?
+        var fieldOfView:Float?
     }
     
     private func configureCamera(_ type:AVCaptureDevice.DeviceType, maxDim:Int32 = Int32.max) -> CameraStr? {
@@ -355,6 +365,9 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         let fmt = sorted[attempt]
         let hiRes = fmt.highResolutionStillImageDimensions
         let preRes = fmt.formatDescription.dimensions
+        let fov = fmt.videoFieldOfView
+        
+        print ("fov \(fov)")
         
         print ("set camera resoulution to hi", hiRes.width, "x", hiRes.height, "lo", preRes.width, "x", preRes.height, separator: " ")
         
@@ -397,7 +410,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         }
         session.add(stillDataOutputConnection)*/
         
-        return CameraStr(device: backCamera, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil)
+        return CameraStr(device: backCamera, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil, fieldOfView: fov)
     }
     
     // MARK: - Session Cost Check

@@ -88,13 +88,13 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         
         let device = UIDevice.current
         device.beginGeneratingDeviceOrientationNotifications()
-        orientation = ImageUtils.imageOrientationToProcOrientation(UIApplication.shared.statusBarOrientation, false)
-        updateTransform()
+        //orientation = ImageUtils.imageOrientationToProcOrientation(UIApplication.shared.statusBarOrientation, false)
+        //updateTransform()
     }
     
     @objc func onOrientation(_ notification: Notification) {
-        orientation =  ImageUtils.deviceOrientationToProcOrientation(UIDevice.current.orientation, false)
-        updateTransform()
+        //orientation =  ImageUtils.deviceOrientationToProcOrientation(UIDevice.current.orientation, false)
+        //updateTransform()
     }
     
     func captureOutput(_ output: AVCaptureOutput, didDrop sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
@@ -218,14 +218,21 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
     }
     
     private var margins = ImageUtils.Margin(left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0)
-    private let mtlTransform = Matrix()
     
-    var orientation:ImageUtils.CameraOrientation?
+    //var orientation:ImageUtils.CameraOrientation?
+    private var _rotation:Float = 0.0
+    public var rotation:Float {
+        get { return _rotation }
+        set(value) {
+            _rotation = value
+            updateTransform()
+        }
+    }
     
     func updateTransform()
     {
-        let orientation = self.orientation ?? .DEG_0
-        let rotation = ImageUtils.orientationToRadians(orientation)
+        //let orientation = self.orientation ?? .DEG_0
+        //let rotation = ImageUtils.orientationToRadians(orientation)
         
         margins = ImageUtils.findMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
         let floatMargin = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
@@ -244,8 +251,25 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
             pixels.append(contentsOf: pd.toArr())
         }
         
-        mtlTransform.identity()
-        mtlTransform.rotate(Float3(x: 0, y: 0, z: Float(rotation)))
+        var mtlTransform = Matrix()
+        
+        //plots the arc of a circle traced by a square of width 2 centered on 0,0
+        let rad:Float = sqrt(2.0 * 1.0) //the circle's radius is sqrt(2 * w ^ 2) - from c^2 = a^2 + b^2
+        let fortyFive = Float.pi / 4.0
+        let ninety = Float.pi / 2.0
+        let rot45 = (_rotation - fortyFive).remainder(dividingBy: ninety) //constrain the input rotation to -45 to 45 degrees
+        let x = sin(rot45) * rad // find the x coordinate from the input rotation
+        let ysq = rad * rad - x * x //find the y coordinate of the arc equation sqrt(radius^2 - x^2)
+        let zoom = sqrt(ysq) //zoom should be a number between 1.0 and the radius 1.4
+        //print ("rot \(x) zoom \(zoom)")
+        mtlTransform = mtlTransform.multiply(Matrix(scale: zoom))
+        
+        var rot:Float = -Float.pi / 2.0
+        rot += _rotation
+        mtlTransform = mtlTransform.multiply(Matrix(rotation: Float3(x: 0, y: 0, z: rot)))
+        //print ("debug rot \(rot)")
+        
+        
         guard let ptr = transformPtr else { return }
         mtlTransform.fillMemory(ptr)
     }
@@ -282,7 +306,7 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
               let currentDrawable = view.currentDrawable,
               let renderPipelineState = renderPipelineState
         else { return }
-        
+
         let encoder = commandBuffer?.makeRenderCommandEncoder(descriptor: currentRenderPassDesc)
         encoder?.pushDebugGroup("RenderFrame")
         encoder?.setRenderPipelineState(renderPipelineState)

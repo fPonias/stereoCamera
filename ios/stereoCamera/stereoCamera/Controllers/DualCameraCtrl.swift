@@ -10,6 +10,7 @@ import AVFoundation
 import Photos
 import MetalKit
 import CoreMedia
+import CoreMotion
 
 
 protocol DualCameraController
@@ -23,15 +24,22 @@ protocol DualCameraController
 
 class DualCameraCtrl: UIViewController
 {
+    @IBOutlet weak var leftHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var leftWidthConstraint: NSLayoutConstraint!
+    @IBOutlet weak var rightHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var rightWidthConstraint: NSLayoutConstraint!
+    @IBOutlet weak var leftOffsetConstraint: NSLayoutConstraint!
+    
+    @IBOutlet weak var cameraContainer: UIView!
     @IBOutlet weak var leftCameraPreview: VideoPreview!
     @IBOutlet weak var rightCameraPreview: VideoPreview!
     @IBOutlet weak var shutterBtn: UIButton!
     @IBOutlet weak var zoomSlider: UISlider!
-    @IBOutlet weak var debugView: UIImageView!
+    @IBOutlet weak var measureBtn: UIBarButtonItem!
     
     private let zoomFinder = ZoomFinder()
     
-    private let maxZoom = 4.0
+    private let maxZoom = 3.0
     let sessionQueue = DispatchQueue(label: "session queue") // Communicate with the session and other session objects on this queue.
     var cameraCtrl:DualCameraController?
     
@@ -44,9 +52,30 @@ class DualCameraCtrl: UIViewController
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
+        let frm = cameraContainer.frame
+        
+        if (frm.height > frm.width / 2.0) {
+            let w = frm.width / 2.0
+            
+            leftWidthConstraint.constant = w
+            rightWidthConstraint.constant = w
+            leftHeightConstraint.constant = w
+            rightHeightConstraint.constant = w
+            leftOffsetConstraint.constant = 0
+        } else {
+            let w = frm.height
+            let margin = (frm.width - 2.0 * w) / 2.0
+            
+            leftWidthConstraint.constant = w
+            rightWidthConstraint.constant = w
+            leftHeightConstraint.constant = w
+            rightHeightConstraint.constant = w
+            leftOffsetConstraint.constant = margin
+        }
+        
         leftCameraPreview.resumeDrawing()
         rightCameraPreview.resumeDrawing()
-        zoomSlider.value = cameraCtrl?.getZoom() ?? 1.0
+        zoomSlider.value = 1.0//cameraCtrl?.getZoom() ?? 1.0
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -62,6 +91,7 @@ class DualCameraCtrl: UIViewController
                     
         leftCameraPreview?.initialize()
         rightCameraPreview?.initialize()
+        motion.startAccelerometerUpdates()
         
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
@@ -107,7 +137,7 @@ class DualCameraCtrl: UIViewController
         zoomSlider.minimumValue = 1.0
         zoomSlider.maximumValue = Float(maxZoom)
         zoomSlider.isContinuous = true
-        zoomSlider.value = self.cameraCtrl?.getZoom() ?? 1.0
+        zoomSlider.value = 1.0//self.cameraCtrl?.getZoom() ?? 1.0
         zoomUpdated(self)
     }
     
@@ -126,7 +156,7 @@ class DualCameraCtrl: UIViewController
     private func cleanUp()
     {
         Cookie.instance.setZoomForDual(zoom: zoomSlider.value)
-        
+        motion.stopAccelerometerUpdates()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -173,12 +203,52 @@ class DualCameraCtrl: UIViewController
     private var zoomRight:CMSampleBuffer?
     private var zoomCalculated = true
     private var frameCounter = Date()
+    private let motion = CMMotionManager()
+    private var motionArr:[Double] = Array(repeating: 0.0, count: 5)
+    
+    private func calculateAngle() -> Double {
+        var angle:Double
+        
+        if motion.isAccelerometerAvailable,
+           let accel = motion.accelerometerData
+        {
+            let x = accel.acceleration.x
+            let y = accel.acceleration.y
+            angle = atan2(x, y)
+            
+            if (x < 0) {
+                angle += 2.0 * Double.pi
+            }
+            
+            angle -= Double.pi
+            
+            //print ("accel angle \(angle)")
+        } else {
+            angle = 0.0
+        }
+        
+        //angle += Double.pi / 2.0
+        
+        motionArr.removeFirst()
+        motionArr.append(angle)
+        
+        var total = 0.0
+        for item in motionArr {
+            total += item
+        }
+        
+        return total / Double(motionArr.count)
+    }
     
     func captureOutput(didOutput sampleBuffer: CMSampleBuffer, isLeft:Bool) {
+        let angle = calculateAngle()
+        
         if isLeft {
+            leftCameraPreview.rotation = Float(angle)
             leftCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
         }
         else {
+            rightCameraPreview.rotation = Float(angle)
             rightCameraPreview.renderBuffer(sampleBuffer: sampleBuffer)
         }
         
@@ -213,6 +283,15 @@ class DualCameraCtrl: UIViewController
     private var loaderCtrl:LoadingPopupCtrl?
     private var loaderMessage:String = "Saving ..."
     
+    @IBAction func measureClicked(_ sender: Any) {
+        self.cameraCtrl?.getSyncedFrames(callback: {[weak self] (left, right) in
+            
+            self?.measureClicked2(left, right)
+        })
+        
+        //showLoader(true)
+    }
+    
     func showLoader(_ show:Bool, message:String? = nil)
     {
         DispatchQueue.main.async
@@ -237,17 +316,36 @@ class DualCameraCtrl: UIViewController
         }
     }
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?)
+    {
+        if (segue.identifier == "measureSegue"){
+            let vc = segue.destination as! MeasureCtrl
+            let arr = sender as! [CVPixelBuffer]
+            vc.leftPixels = arr[0]
+            vc.rightPixels = arr[1]
+        }
+    }
+    
+    private func measureClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
+    {
+        //self.showLoader(false)
+        //sleep(100)
+        
+        DispatchQueue.main.async {
+            self.performSegue(withIdentifier: "measureSegue", sender: [lPixelBuffer, rPixelBuffer])
+        }
+        
+    }
+    
     private let saver = Files.instance
     
     private func shutterClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
     {
         let zoom:Float = 1.0
-        let orient = leftCameraPreview.orientation ?? .DEG_0
-        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, orientation: orient)
-        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, orientation: orient)
+        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, orientation: .DEG_0)
+        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, orientation: .DEG_0)
         
         let exporter = ImageExporter(leftData: leftData, rightData: rightData)
-        exporter.debugView = debugView
         exporter.export()
         
         showLoader(false)
@@ -267,6 +365,7 @@ class DualCameraCtrl: UIViewController
     @IBAction func zoomUpdated(_ sender: Any) {
         
         let z = zoomSlider.value
+        print("zoom: \(z)")
         cameraCtrl?.setZoom(z)
     }
     

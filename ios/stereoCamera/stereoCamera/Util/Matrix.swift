@@ -15,34 +15,27 @@ struct Float3 {
 }
 
 class Matrix {
-    var m: [Float]
+    var m:[Float] = [1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1 ]
     
-    init() {
-        m = [1, 0, 0, 0,
-             0, 1, 0, 0,
-             0, 0, 1, 0,
-             0, 0, 0, 1
-        ]
-    }
+    init() {}
     
-    func set(_ index:Int, _ value:Float) {
-        m[index] = value
-    }
-    
-    func translate(_ position: Float3){
+    init(translation position: Float3){
         m[12] = position.x
         m[13] = position.y
         m[14] = position.z
     }
     
-    func scale(_ scale: Float) {
+    init(scale: Float) {
         m[0] = scale
         m[5] = scale
         m[10] = scale
         m[15] = 1.0
     }
     
-    func rotate(_ rot: Float3) {
+    init(rotation rot: Float3) {
         m[0] = cos(rot.y) * cos(rot.z)
         m[4] = cos(rot.z) * sin(rot.x) * sin(rot.y) - cos(rot.x) * sin(rot.z)
         m[8] = cos(rot.x) * cos(rot.z) * sin(rot.y) + sin(rot.x) * sin(rot.z)
@@ -55,16 +48,22 @@ class Matrix {
         m[15] = 1.0
     }
     
-    func identity() {
+    func multiply(_ b:Matrix) -> Matrix {
+        let ret = Matrix()
         for r in 0 ..< 4 {
             for c in 0 ..< 4 {
-                let idx = r * 4 + c
-                if (r == c) {
-                    m[idx] = 1
-                } else {
-                    m[idx] = 0
+                var val:Float = 0.0
+                for i in 0 ..< 4 {
+                    let aidx = r * 4 + i
+                    let bidx = i * 4 + c
+                    val += m[aidx] * b.m[bidx]
                 }
+                
+                let vidx = r * 4 + c
+                ret.m[vidx] = val
             }
         }
+        
+        return ret
     }
 }

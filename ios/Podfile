@@ -1,0 +1,3 @@
+target 'stereoCamera' do
+	project './stereoCamera/stereoCamera.xcodeproj'
+end

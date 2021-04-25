@@ -100,6 +100,19 @@ class Histogram
         return _texture != nil
     }
     
+    func setPixelZoom(_ zoom:Int) {
+        let margin:TextureMargin
+        if (width > height) {
+            let trim = (width - height) / 2
+            margin = TextureMargin(left: zoom + trim, top: zoom, right: zoom + trim, bottom: zoom)
+        } else {
+            let trim = (height - width) / 2
+            margin = TextureMargin(left: zoom, top: zoom + trim, right: zoom, bottom: zoom + trim)
+        }
+        
+        setMargins(margin)
+    }
+    
     func setZoom(_ zoom:Float)
     {
         let margin:TextureMargin
@@ -187,6 +200,35 @@ class Histogram
         for i in 0 ..< arr.count {
             c += Int(arr[i])
             ret += Float(Int(arr[i]) * i) / sz
+        }
+        
+        return ret
+    }
+    
+    func smooth(data:[Int32]) -> [Int32] {
+        let sz = data.count
+        
+        if (sz <= 5) { return data }
+        
+        let weights = [1.0/16.0, 3.0/16.0, 0.5, 3.0/16.0, 1.0/16.0]
+        var ret:[Int32] = Array(repeating: 0, count: sz)
+        for i in 0 ..< sz {
+            var val = 0.0
+            for j in 0 ..< weights.count {
+                let idx = min(max(i + j - 2, 0), sz - 1)
+                val += Double(data[idx]) * weights[j]
+            }
+            ret[i] = Int32(val)
+        }
+        
+        return ret
+    }
+    
+    func derivative(data:[Int32]) -> [Int32] {
+        let sz = data.count
+        var ret:[Int32] = Array(repeating: 0, count: sz - 1)
+        for i in 1 ..< sz {
+            ret[i - 1] = data[i] - data[i - 1]
         }
         
         return ret
