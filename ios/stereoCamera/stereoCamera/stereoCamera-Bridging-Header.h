@@ -30,5 +30,3 @@ enum CompositeImageType
     GREEN_MAGENTA,
     RED_CYAN
 };
-
-#import "CorePlot-CocoaTouch.h"

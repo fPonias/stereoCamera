@@ -198,30 +198,6 @@ public class Files
         return true
     }
     
-    public func saveToPhotos(data:Data, onSaved: @escaping (String?) -> Void)
-    {
-        PHPhotoLibrary.requestAuthorization {
-        [unowned self, onSaved] status in
-            guard status == .authorized else { return }
-            do{ try PHPhotoLibrary.shared().performChangesAndWait({ self.saveToPhotos2(data) })}
-                catch { return; }
-            
-            if (self.placeholder == nil)
-                { return; }
-            
-            let localID = self.placeholder!.localIdentifier
-            let assetID = localID.replacingOccurrences(of: "/.*", with: "", options: NSString.CompareOptions.regularExpression, range: nil)
-            let ext = "jpg"
-            let assetURLStr = "assets-library://asset/asset.\(ext)?id=\(assetID)&ext=\(ext)"
-            self.placeholder = nil
-            
-            onSaved(assetURLStr)
-            guard let asset = getFile(assetURLStr) else { return }
-            
-            delegates.invoke { $0.onNewFile(asset: asset) }
-        }
-    }
-    
     public func saveToPhotos(dataPath:String, onSaved: @escaping (String?) -> Void)
     {
         do
@@ -256,7 +232,7 @@ public class Files
         return nil
     }
     
-    func saveToPhotos2(_ data:Data)
+    func saveToPhotos2(_ item:Any)
     {
         let gallery = self.getGallery()
         var galleryReq:PHAssetCollectionChangeRequest
@@ -269,11 +245,19 @@ public class Files
             galleryReq = PHAssetCollectionChangeRequest(for: gallery!)!
         }
         
-        let createRequest = PHAssetCreationRequest.forAsset()
-        createRequest.addResource(with: PHAssetResourceType.photo, data: data, options: nil)
-        placeholder = createRequest.placeholderForCreatedAsset
+        if item is Data,
+           let data = item as? Data {
+            let createRequest = PHAssetCreationRequest.forAsset()
+            createRequest.addResource(with: PHAssetResourceType.photo, data: data, options: nil)
+            placeholder = createRequest.placeholderForCreatedAsset
+        }
+        else if item is URL,
+                let url = item as? URL {
+            let assetRequest = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+            placeholder = assetRequest?.placeholderForCreatedAsset
+        }
         
-        let list = NSSet(object: createRequest.placeholderForCreatedAsset as Any)
+        let list = NSSet(object: placeholder as Any)
         galleryReq.addAssets(list)
     }
     
@@ -290,5 +274,43 @@ public class Files
         
         let asset = collectionResult.object(at: 0)
         return asset
+    }
+    
+    public func saveToPhotos(data:Data, onSaved: @escaping (String?) -> Void)
+    {
+        saveAssetToPhotos(item: data, ext: "jpg", onSaved: onSaved)
+    }
+    
+    public func saveVideoToPhotos(url:URL, onSaved: @escaping (String?) -> Void){
+        saveAssetToPhotos(item: url, ext: "mpg", onSaved: onSaved)
+    }
+    
+    private func saveAssetToPhotos(item:Any, ext: String, onSaved: @escaping (String?) -> Void){
+        PHPhotoLibrary.requestAuthorization {
+        [unowned self, onSaved] status in
+            guard status == .authorized else { return }
+            PHPhotoLibrary.shared().performChanges({ self.saveToPhotos2(item) }, completionHandler: { success, err in
+                if success {
+                    self.saveAssetToPhotos2(ext: ext, onSaved: onSaved)
+                } else {
+                    print (err)
+                }
+            })
+        }
+    }
+    
+    private func saveAssetToPhotos2(ext:String, onSaved: @escaping (String?) -> Void) {
+        if (self.placeholder == nil)
+            { return; }
+        
+        let localID = self.placeholder!.localIdentifier
+        let assetID = localID.replacingOccurrences(of: "/.*", with: "", options: NSString.CompareOptions.regularExpression, range: nil)
+        let assetURLStr = "assets-library://asset/asset.\(ext)?id=\(assetID)&ext=\(ext)"
+        self.placeholder = nil
+        
+        onSaved(assetURLStr)
+        guard let asset = getFile(assetURLStr) else { return }
+        
+        delegates.invoke { $0.onNewFile(asset: asset) }
     }
 }

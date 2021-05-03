@@ -124,6 +124,18 @@ uint2 crop_rotate(uint2 dest, uint2 dims, uint rot) //why are the images flipped
 }
 
 kernel void
+clear(texture2d<float, access::write> inTexture [[ texture(0) ]],
+      uint2 gid [[ thread_position_in_grid ]]) {
+    float4 pix;
+    pix[0] = 0.0;
+    pix[1] = 0.0;
+    pix[2] = 0.0;
+    pix[3] = 1.0;
+    
+    inTexture.write(pix, gid);
+}
+
+kernel void
 crop(texture2d<float, access::read> inTexture [[ texture(0) ]],
           texture2d<float, access::write> outTexture [[ texture(1) ]],
           device uint* offset [[ buffer(0)]],
@@ -152,13 +164,14 @@ colorMask(texture2d<float, access::sample> inTexture [[ texture(0) ]],
           texture2d<float, access::read_write> outTexture [[ texture(1) ]],
           device float* mask [[ buffer(0)]],
           device uint2* offset [[ buffer(1) ]],
+          device float3x3* transform [[ buffer(2) ]],
           uint2 gid [[ thread_position_in_grid ]]) {
     uint2 sz = offset[1];
     
     if (gid[0] > sz[0] || gid[1] > sz[1])
         return;
     
-    float2 texCoord;
+    float3 texCoord;
     if (gid[0] <= sz[0])
         texCoord[0] = (float) gid[0] / (float) sz[0];
     else
@@ -169,8 +182,14 @@ colorMask(texture2d<float, access::sample> inTexture [[ texture(0) ]],
     else
         texCoord[1] = (float) sz[1] / (float) gid[1];
     
+    texCoord[2] = 1.0f;
+    
+    texCoord += float3 {-0.5f, -0.5f, 0.0f};
+    texCoord = *transform * texCoord;
+    texCoord += float3 {0.5f, 0.5f, 0.0f};
+    
     constexpr sampler s(address::clamp_to_edge, filter::linear);
-    float4 val = inTexture.sample(s, texCoord);
+    float4 val = inTexture.sample(s, float2 {texCoord[0], texCoord[1]});
     gid += offset[0];
     float4 cur = outTexture.read(gid);
     
@@ -180,4 +199,48 @@ colorMask(texture2d<float, access::sample> inTexture [[ texture(0) ]],
     }
     
     outTexture.write(val, gid);
+}
+
+kernel void
+difference(texture2d<float, access::read> textureA [[ texture(0) ]],
+          texture2d<float, access::read> textureB [[ texture(1) ]],
+          device atomic_int* diff [[ buffer(0) ]],
+          device int* args [[ buffer(1)]],
+          uint2 gid [[ thread_position_in_grid ]]) {
+    int spacing = args[0];
+    int magnitude = args[1];
+    int width = textureA.get_width();
+    int height = textureA.get_height();
+    
+    uint cols = width / spacing;
+    uint rows = height / spacing;
+    
+    if (gid[0] >= cols || gid[1] >= rows)
+    {
+        return;
+    }
+    
+    int cOffset = gid[0] * spacing;
+    int rOffset = gid[1] * spacing;
+    float aTotal = 0.0;
+    float bTotal = 0.0;
+    for (int r = rOffset; r < rOffset + spacing; r++)
+    {
+        for (int c = cOffset; c < cOffset + spacing; c++)
+        {
+            uint2 crd; crd[0] = c; crd[1] = r;
+            float4 aval = textureA.read(crd);
+            float4 bval = textureB.read(crd);
+            
+            aTotal += (aval[0] + aval[1] + aval[2]) / 3.0f;
+            bTotal += (bval[0] + bval[1] + bval[2]) / 3.0f;
+        }
+    }
+    
+    float area = (float) (spacing * spacing);
+    aTotal /= area;
+    bTotal /= area;
+    int diffAdd = abs(bTotal - aTotal) * magnitude;
+    
+    atomic_fetch_add_explicit(diff, diffAdd, memory_order_relaxed);
 }

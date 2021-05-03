@@ -13,7 +13,8 @@ import CoreMedia
 
 @available(iOS 13, *)
 public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
-                                         AVCaptureVideoDataOutputSampleBufferDelegate {
+                                         AVCaptureVideoDataOutputSampleBufferDelegate,
+                                         AVCaptureAudioDataOutputSampleBufferDelegate{
     let dualCameraCtrl:DualCameraCtrl
     
     init(dualCameraCtrl:DualCameraCtrl) {
@@ -417,18 +418,17 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         }
         session.add(videoDataOutputConnection)
         
-        /*let stillOutput = AVCapturePhotoOutput()
-        guard session.canAddOutput(stillOutput) else {
-            print ("Could not add still image capture")
-            return nil
-        }
-        session.addOutputWithNoConnections(stillOutput)
-        let stillDataOutputConnection = AVCaptureConnection(inputPorts: [backCameraVideoPort], output: stillOutput)
-        guard session.canAdd(stillDataOutputConnection) else {
-            print ("Could not add a connection to the back camera still output")
-            return nil
-        }
-        session.add(stillDataOutputConnection)*/
+        
+        let audioDevice = AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .back)
+        guard let audioInput = try? AVCaptureDeviceInput(device: audioDevice!),
+              session.canAddInput(audioInput)
+        else { return nil }
+        session.addInputWithNoConnections(audioInput)
+        
+        let audioOutput = AVCaptureAudioDataOutput()
+        guard session.canAddOutput(audioOutput) else { return nil }
+        session.addOutputWithNoConnections(audioOutput)
+        audioOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
         
         return CameraStr(device: device, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil, fieldOfView: fov)
     }

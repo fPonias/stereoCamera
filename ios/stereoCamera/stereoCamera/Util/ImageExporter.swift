@@ -51,20 +51,23 @@ class ImageExporter {
     
     public func export() {
         let context = CIContext()
+        
         let leftMargin = leftData.margins
         let rightMargin = rightData.margins
         
         let dim = (leftMargin.width < rightMargin.width) ? leftMargin.width : rightMargin.width
         
         let sz = CGSize(width: CGFloat(dim), height: CGFloat(dim))
-        guard let leftImg = processSide(data: leftData, size:sz) else { return }
-        guard let rightImg = processSide(data: rightData, size:sz) else { return }
         let outSz = ImageUtils.Size(width: dim * 2, height: dim)
         
-        let proc = ImageProcessorSplit(size: outSz)
-        proc.setPixels(pixels: leftImg)
+        guard let leftImg = leftData.origData,
+              let rightImg = rightData.origData
+        else { return }
+        
+        let proc = ImageProcessorSplit(outSize: outSz)
+        proc.setPixels(pixels: leftImg, rotation: leftData.rotation)
         proc.processCurrentInTexture(.LEFT)
-        proc.setPixels(pixels: rightImg)
+        proc.setPixels(pixels: rightImg, rotation: rightData.rotation)
         proc.processCurrentInTexture(.RIGHT)
         
         guard let img = proc.getOutput(),

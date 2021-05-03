@@ -67,3 +67,55 @@ class Matrix {
         return ret
     }
 }
+
+struct Float2 {
+    var x:Float
+    var y:Float
+}
+
+class Matrix2D {
+    var m:[Float] = [1, 0, 0,
+                     0, 1, 0,
+                     0, 0, 1]
+    
+    init() {}
+    
+    init(translation position: Float2){
+        m[2] = position.x
+        m[5] = position.y
+        m[8] = 1.0
+    }
+    
+    init(scale: Float) {
+        m[0] = scale
+        m[4] = scale
+        m[8] = 1.0
+    }
+    
+    init(rotation rot: Float) {
+        m[0] = cos(rot)
+        m[1] = sin(rot)
+        m[3] = -sin(rot)
+        m[4] = cos(rot)
+        m[8] = 1.0
+    }
+    
+    func multiply(_ b:Matrix2D) -> Matrix2D {
+        let ret = Matrix2D()
+        for r in 0 ..< 3 {
+            for c in 0 ..< 3 {
+                var val:Float = 0.0
+                for i in 0 ..< 3 {
+                    let aidx = r * 3 + i
+                    let bidx = i * 3 + c
+                    val += m[aidx] * b.m[bidx]
+                }
+                
+                let vidx = r * 3 + c
+                ret.m[vidx] = val
+            }
+        }
+        
+        return ret
+    }
+}

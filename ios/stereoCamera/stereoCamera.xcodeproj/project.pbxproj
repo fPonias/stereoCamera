@@ -16,7 +16,6 @@
 		7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD11420D0DA530010F6B1 /* AppDelegate.swift */; };
 		7C6CD11C20D0DA550010F6B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */; };
 		7C6CD11F20D0DA550010F6B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD11D20D0DA550010F6B1 /* LaunchScreen.storyboard */; };
-		7C6CD12B20D1B1A70010F6B1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD12A20D1B1A70010F6B1 /* Main.storyboard */; };
 		7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */; };
 		7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD13B20D2223B0010F6B1 /* CommManager.swift */; };
 		7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84966E20F990CF00C50601 /* SendGravity.swift */; };
@@ -139,6 +138,7 @@
 		7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */; };
 		7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5E25FECA0900ED228E /* VideoPreview.swift */; };
 		7E691E642600908C00ED228E /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E632600908C00ED228E /* PreviewView.swift */; };
+		7E9AB3CF2636656F009A25B3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7E9AB3CE2636656F009A25B3 /* Main.storyboard */; };
 		7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE292607DF1000223114 /* Histogram.swift */; };
 		7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE2C26080DB300223114 /* ZoomFinder.swift */; };
 		7EA171792609402800EF314C /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA171782609402800EF314C /* ImageProcessor.swift */; };
@@ -155,13 +155,16 @@
 		7EA68B482630AEA300D96250 /* MeasureCtrlScroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */; };
 		7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAE4282260AA815001E67C7 /* ImageUtils.swift */; };
 		7ED00E592635D9A500D12A4C /* RotateFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E582635D9A500D12A4C /* RotateFilter.swift */; };
+		7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E5B26361FDC00D12A4C /* OffsetFinder.swift */; };
+		7ED00E5F2636567600D12A4C /* VideoProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E5E2636567600D12A4C /* VideoProcessor.swift */; };
+		7ED00E6226365D3400D12A4C /* VideoPreviewDouble.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E6126365D3400D12A4C /* VideoPreviewDouble.swift */; };
 		7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED4E2CF260CC8D40085112E /* Matrix.swift */; };
-		AF4B2513198ADAE563F8B80C /* libPods-stereoCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 545F2C46DF4B13D705EC9A8B /* libPods-stereoCamera.a */; };
+		7ED8F30926391E1400F3AC92 /* MoviePlayerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED8F30826391E1400F3AC92 /* MoviePlayerVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		545F2C46DF4B13D705EC9A8B /* libPods-stereoCamera.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-stereoCamera.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		60973B20CF136EB93500D7B4 /* Pods-stereoCamera.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-stereoCamera.debug.xcconfig"; path = "Target Support Files/Pods-stereoCamera/Pods-stereoCamera.debug.xcconfig"; sourceTree = "<group>"; };
+		6A60E4A48676C41FF65654A2 /* libPods-stereoCamera.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-stereoCamera.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C1E4A0C2139A287005F1944 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; name = assets; path = ../../../android/app/src/main/assets; sourceTree = "<group>"; };
 		7C1E4A0E214103AA005F1944 /* GalleryGridHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridHeader.swift; sourceTree = "<group>"; };
 		7C1E4A1021419B96005F1944 /* ImageProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProvider.swift; sourceTree = "<group>"; };
@@ -173,7 +176,6 @@
 		7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C6CD11E20D0DA550010F6B1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7C6CD12020D0DA550010F6B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7C6CD12A20D1B1A70010F6B1 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectCtrl.swift; sourceTree = "<group>"; };
 		7C6CD13A20D1C2870010F6B1 /* stereoCamera.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = stereoCamera.entitlements; sourceTree = "<group>"; };
 		7C6CD13B20D2223B0010F6B1 /* CommManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommManager.swift; sourceTree = "<group>"; };
@@ -299,6 +301,7 @@
 		7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraCtrl.swift; sourceTree = "<group>"; };
 		7E691E5E25FECA0900ED228E /* VideoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreview.swift; sourceTree = "<group>"; };
 		7E691E632600908C00ED228E /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		7E9AB3CE2636656F009A25B3 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		7E9FCE292607DF1000223114 /* Histogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Histogram.swift; sourceTree = "<group>"; };
 		7E9FCE2C26080DB300223114 /* ZoomFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomFinder.swift; sourceTree = "<group>"; };
 		7EA171782609402800EF314C /* ImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
@@ -315,7 +318,11 @@
 		7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasureCtrlScroller.swift; sourceTree = "<group>"; };
 		7EAE4282260AA815001E67C7 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
 		7ED00E582635D9A500D12A4C /* RotateFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotateFilter.swift; sourceTree = "<group>"; };
+		7ED00E5B26361FDC00D12A4C /* OffsetFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffsetFinder.swift; sourceTree = "<group>"; };
+		7ED00E5E2636567600D12A4C /* VideoProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessor.swift; sourceTree = "<group>"; };
+		7ED00E6126365D3400D12A4C /* VideoPreviewDouble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreviewDouble.swift; sourceTree = "<group>"; };
 		7ED4E2CF260CC8D40085112E /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
+		7ED8F30826391E1400F3AC92 /* MoviePlayerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePlayerVC.swift; sourceTree = "<group>"; };
 		EC2420F70CDDEE952EAF95AA /* Pods-stereoCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-stereoCamera.release.xcconfig"; path = "Target Support Files/Pods-stereoCamera/Pods-stereoCamera.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -324,7 +331,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AF4B2513198ADAE563F8B80C /* libPods-stereoCamera.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,6 +368,7 @@
 		7C6CD11320D0DA530010F6B1 /* stereoCamera */ = {
 			isa = PBXGroup;
 			children = (
+				7E9AB3CE2636656F009A25B3 /* Main.storyboard */,
 				7E691E5025F4687E00ED228E /* wrapper.cpp */,
 				7E691E5125F4687E00ED228E /* wrapper.hpp */,
 				7E691C3C25F461FD00ED228E /* cpp */,
@@ -372,7 +379,6 @@
 				7C6CD13120D1BF260010F6B1 /* Comm */,
 				7CDC416E20D75BFD005BE7A8 /* Widget */,
 				7C6CD12C20D1B2080010F6B1 /* Controllers */,
-				7C6CD12A20D1B1A70010F6B1 /* Main.storyboard */,
 				7C6CD11420D0DA530010F6B1 /* AppDelegate.swift */,
 				7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */,
 				7C6CD11D20D0DA550010F6B1 /* LaunchScreen.storyboard */,
@@ -401,6 +407,7 @@
 				7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */,
 				7E5A012B261EBB0B00BF8D86 /* ImageEditorCtrl.swift */,
 				7EA68B32262CD88A00D96250 /* MeaureCtrl.swift */,
+				7ED8F30826391E1400F3AC92 /* MoviePlayerVC.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -421,7 +428,7 @@
 		7C6CD13720D1C2870010F6B1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				545F2C46DF4B13D705EC9A8B /* libPods-stereoCamera.a */,
+				6A60E4A48676C41FF65654A2 /* libPods-stereoCamera.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -469,6 +476,8 @@
 				7E5A0132262678A400BF8D86 /* ImagePostProcessor.swift */,
 				7EA68B27262BB3F400D96250 /* ImageExporter.swift */,
 				7EA68B2A262BB46900D96250 /* ImageEditorData.swift */,
+				7ED00E5B26361FDC00D12A4C /* OffsetFinder.swift */,
+				7ED00E5E2636567600D12A4C /* VideoProcessor.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -494,6 +503,7 @@
 				7EA68B41262DE5A800D96250 /* GraphPlot.swift */,
 				7EA68B44262FA68E00D96250 /* PlotWidget.xib */,
 				7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */,
+				7ED00E6126365D3400D12A4C /* VideoPreviewDouble.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -695,8 +705,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C6CD12B20D1B1A70010F6B1 /* Main.storyboard in Resources */,
 				7C1E4A0D2139A287005F1944 /* assets in Resources */,
+				7E9AB3CF2636656F009A25B3 /* Main.storyboard in Resources */,
 				7C6CD11F20D0DA550010F6B1 /* LaunchScreen.storyboard in Resources */,
 				7C6CD11C20D0DA550010F6B1 /* Assets.xcassets in Resources */,
 				7EA68B45262FA68E00D96250 /* PlotWidget.xib in Resources */,
@@ -803,6 +813,7 @@
 				7E691E3E25F4640600ED228E /* jfdctfst.c in Sources */,
 				7CCB729020E2F2C0000BE923 /* Version.swift in Sources */,
 				7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */,
+				7ED8F30926391E1400F3AC92 /* MoviePlayerVC.swift in Sources */,
 				7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */,
 				7E691E3A25F4640600ED228E /* jquant2.c in Sources */,
 				7EA56533260162120064809A /* VideoPreview.metal in Sources */,
@@ -839,11 +850,14 @@
 				7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */,
 				7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */,
 				7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */,
+				7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */,
 				7E691E3C25F4640600ED228E /* jdmaster.c in Sources */,
+				7ED00E6226365D3400D12A4C /* VideoPreviewDouble.swift in Sources */,
 				7E691E1E25F463CB00ED228E /* jdhuff.c in Sources */,
 				7CCB72A720F418F1000BE923 /* ConnectionPause.swift in Sources */,
 				7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */,
 				7CDC417020D75C16005BE7A8 /* CameraPreview.swift in Sources */,
+				7ED00E5F2636567600D12A4C /* VideoProcessor.swift in Sources */,
 				7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */,
 				7E691D1525F461FE00ED228E /* util.cpp in Sources */,
 				7E691E0325F4638400ED228E /* jcarith.c in Sources */,

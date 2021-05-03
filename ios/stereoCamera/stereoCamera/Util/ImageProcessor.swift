@@ -19,23 +19,21 @@ class ImageProcessor {
     private var _device:MTLDevice?
     private var cropState:MTLComputePipelineState?
     private var maskState:MTLComputePipelineState?
-    private var autoContrastState:MTLComputePipelineState?
+    private var clearState:MTLComputePipelineState?
     
     private var offsetBuf:MTLBuffer?
     private var offsetPtr:UnsafeMutablePointer<Int32>?
     
+    var rotation:Float = 0.0
     var outSize = ImageUtils.Size(width: 0, height: 0)
     private var maskBuf:MTLBuffer?
     var maskPtr:UnsafeMutablePointer<Float32>?
     private var outOffsetBuf:MTLBuffer?
     var outOffsetPtr:UnsafeMutablePointer<UInt32>?
-    private var contrastArgsBuf:MTLBuffer?
-    var contrastArgsPtr:UnsafeMutablePointer<Float32>?
+    private var outTransformBuf:MTLBuffer?
+    var outTransformPtr:UnsafeMutablePointer<Float32>?
     
-    
-    
-
-    init(size:ImageUtils.Size)
+    init(outSize:ImageUtils.Size)
     {
         if (_device == nil) {
             _device = MTLCreateSystemDefaultDevice()
@@ -48,17 +46,17 @@ class ImageProcessor {
         guard let library = device.makeDefaultLibrary() else { return }
         guard let cropfcn = library.makeFunction(name: "crop") else { return }
         guard let maskfcn = library.makeFunction(name: "colorMask") else { return }
-        guard let autoContrastFcn = library.makeFunction(name: "autoContrast") else { return }
+        guard let clearfcn = library.makeFunction(name: "clear") else { return }
         do {
             cropState = try device.makeComputePipelineState(function: cropfcn)
             maskState = try device.makeComputePipelineState(function: maskfcn)
-            autoContrastState = try device.makeComputePipelineState(function: autoContrastFcn)
+            clearState = try device.makeComputePipelineState(function: clearfcn)
         }
         catch {
             return
         }
         
-        createOutTexture(size)
+        createOutTexture(outSize)
         
         let intsz = MemoryLayout<Int32>.size
         offsetBuf = device.makeBuffer(length: 3 * intsz, options: .storageModeShared)
@@ -72,8 +70,9 @@ class ImageProcessor {
         outOffsetBuf = device.makeBuffer(length: 4 * uintsz, options: .storageModeShared)
         outOffsetPtr = outOffsetBuf?.contents().bindMemory(to: UInt32.self, capacity: 4)
         
-        contrastArgsBuf = device.makeBuffer(length: 2 * floatsz, options: .storageModeShared)
-        contrastArgsPtr = contrastArgsBuf?.contents().bindMemory(to: Float32.self, capacity: 2)
+        //3x3 matrix takes up 4 floats per row
+        outTransformBuf = device.makeBuffer(length: 12 * floatsz, options: .storageModeShared)
+        outTransformPtr = outTransformBuf?.contents().bindMemory(to: Float32.self, capacity: 12)
     }
     
     private func orientationToRotation(_ orient: ImageUtils.CameraOrientation) -> Int32 {
@@ -86,15 +85,21 @@ class ImageProcessor {
     }
     
     func setPixels(pixels:CVImageBuffer) {
-        let w = CVPixelBufferGetWidth(pixels)
-        let h = CVPixelBufferGetHeight(pixels)
-        let margins = ImageUtils.Margin(left: 0, top: 0, right: 0, bottom: 0, width: w, height: h)
-        setPixels(pixels: pixels, margins: margins, orientation: .DEG_0)
+        setPixels(pixels: pixels, rotation: 0.0)
     }
     
-    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, orientation:ImageUtils.CameraOrientation)
+    func setPixels(pixels:CVImageBuffer, rotation:Float) {
+        let w = CVPixelBufferGetWidth(pixels)
+        let h = CVPixelBufferGetHeight(pixels)
+        let margins = ImageUtils.findMargins(size: ImageUtils.Size(width: w, height: h), zoom: 1.0)
+        
+        setPixels(pixels: pixels, margins: margins, rotation: rotation)
+    }
+    
+    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float)
     {        
         createInTexture(pixels)
+        self.rotation = rotation
         
         let w = CVPixelBufferGetWidth(pixels) - margins.left - margins.right
         let h = CVPixelBufferGetHeight(pixels) - margins.top - margins.bottom
@@ -103,9 +108,7 @@ class ImageProcessor {
         guard let offsetPtr = offsetPtr else { return }
         offsetPtr.pointee = Int32(margins.left)
         (offsetPtr + 1).pointee = Int32(margins.top)
-        let rot = orientationToRotation(orientation)
-        print("image processor orientation " + String(rot))
-        (offsetPtr + 2).pointee = rot
+        (offsetPtr + 2).pointee = 0
     }
     
     private func createInTexture(_ pixels:CVImageBuffer)
@@ -157,6 +160,29 @@ class ImageProcessor {
         print ("using unimplemented version of ImageProcessor")
     }
     
+    func clear() {
+        guard let device = _device,
+              let clearState = clearState,
+              let outTexture = _outTexture
+        else { return }
+        
+        guard let queue = device.makeCommandQueue(),
+              let cmdBuf = queue.makeCommandBuffer(),
+              let encoder = cmdBuf.makeComputeCommandEncoder()
+        else { return }
+        
+        encoder.setComputePipelineState(clearState)
+        encoder.setTexture(outTexture, index: 0)
+        
+        let gridSize = MTLSizeMake(outTexture.width, outTexture.height, 1)
+        let groupSize = MTLSizeMake(clearState.maxTotalThreadsPerThreadgroup, 1, 1)
+        encoder.dispatchThreads(gridSize, threadsPerThreadgroup: groupSize)
+        
+        encoder.endEncoding()
+        cmdBuf.commit()
+        cmdBuf.waitUntilCompleted()
+    }
+    
     func calculate() {
         guard let device = _device,
               let cropState = cropState,
@@ -184,44 +210,11 @@ class ImageProcessor {
         encoder.setTexture(outTexture, index: 1)
         encoder.setBuffer(maskBuf, offset: 0, index: 0)
         encoder.setBuffer(outOffsetBuf, offset: 0, index: 1)
+        setOutTransform()
+        encoder.setBuffer(outTransformBuf, offset: 0, index: 2)
         
         gridSize = MTLSizeMake(outTexture.width, outTexture.height, 1)
         groupSize = MTLSizeMake(cropState.maxTotalThreadsPerThreadgroup, 1, 1)
-        encoder.dispatchThreads(gridSize, threadsPerThreadgroup: groupSize)
-        
-        encoder.endEncoding()
-        cmdBuf.commit()
-        cmdBuf.waitUntilCompleted()
-    }
-    
-    func autoContrast()
-    {
-        guard let outTexture = _inTexture else { return }
-        let hist = Histogram()
-        hist.setPixels(mtlPixels: outTexture)
-        hist.setMargins(Histogram.TextureMargin(left: 0, top: 0, right: 0, bottom: 0))
-        hist.setZoom(1.0)
-        let params = hist.autoContrastParams()
-        
-        guard (params.min > 0.0 || params.max < 1.0) else { return }
-        
-        guard let device = _device,
-              let queue = device.makeCommandQueue(),
-              let cmdBuf = queue.makeCommandBuffer(),
-              let encoder = cmdBuf.makeComputeCommandEncoder(),
-              let autoContrastState = autoContrastState,
-              let contrastArgsPtr = contrastArgsPtr
-        else { return }
-        
-        (contrastArgsPtr + 0).pointee = Float(params.a)
-        (contrastArgsPtr + 1).pointee = Float(params.b)
-        
-        encoder.setComputePipelineState(autoContrastState)
-        encoder.setTexture(outTexture, index: 0)
-        encoder.setBuffer(contrastArgsBuf, offset: 0, index: 0)
-        
-        let gridSize = MTLSizeMake(outTexture.width, outTexture.height, 1)
-        let groupSize = MTLSizeMake(autoContrastState.maxTotalThreadsPerThreadgroup, 1, 1)
         encoder.dispatchThreads(gridSize, threadsPerThreadgroup: groupSize)
         
         encoder.endEncoding()
@@ -234,6 +227,36 @@ class ImageProcessor {
         let ret = CIImage(mtlTexture: outTexture, options: nil)
         
         return ret
+    }
+    
+    private func setOutTransform() {
+        guard let transformPtr = outTransformPtr else { return }
+        var mtlTransform = Matrix2D()
+        
+        //plots the arc of a circle traced by a square of width 2 centered on 0,0
+        let rad:Float = sqrt(2.0 * 1.0) //the circle's radius is sqrt(2 * w ^ 2) - from c^2 = a^2 + b^2
+        let fortyFive = Float.pi / 4.0
+        let ninety = Float.pi / 2.0
+        let rot45 = (rotation - fortyFive).remainder(dividingBy: ninety) //constrain the input rotation to -45 to 45 degrees
+        let x = sin(rot45) * rad // find the x coordinate from the input rotation
+        let ysq = rad * rad - x * x //find the y coordinate of the arc equation sqrt(radius^2 - x^2)
+        let zoom = sqrt(ysq) //zoom should be a number between 1.0 and the radius 1.4
+        //print ("rot \(x) zoom \(zoom)")
+        mtlTransform = mtlTransform.multiply(Matrix2D(scale: 1.0 / zoom))
+        
+        var rot:Float = -Float.pi / 2.0
+        rot -= rotation
+        mtlTransform = mtlTransform.multiply(Matrix2D(rotation: rot))
+        //print ("debug rot \(rot)")
+        
+        for row in 0 ..< 3 {
+            for col in 0 ..< 4 {
+                let srcidx = row * 3 + col
+                let destidx = row * 4 + col
+                
+                (transformPtr + destidx).pointee = (col == 3) ? 0 : mtlTransform.m[srcidx]
+            }
+        }
     }
 }
 
@@ -318,8 +341,8 @@ class ImageProcessorSplit : ImageProcessor
 
 class ImageProcessorSingle : ImageProcessor
 {
-    override init(size: ImageUtils.Size) {
-        super.init(size: size)
+    override init(outSize: ImageUtils.Size) {
+        super.init(outSize: outSize)
         
         guard let maskPtr = maskPtr else { return }
         (maskPtr + 0).pointee = 1.0
