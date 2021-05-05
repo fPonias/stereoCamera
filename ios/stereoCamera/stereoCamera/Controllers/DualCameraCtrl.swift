@@ -21,6 +21,7 @@ protocol DualCameraController
     func setCameraPair(pair: DualCameraCtrl.CameraPair)
     func viewWillAppear()
     func getSyncedFrames(callback:@escaping (_ left:CVPixelBuffer, _ right:CVPixelBuffer) -> Void)
+    func getAudioSettings() -> [String: NSObject]?
 }
 
 class DualCameraCtrl: UIViewController
@@ -326,13 +327,18 @@ class DualCameraCtrl: UIViewController
             doubleCameraPreview.renderBuffer(sampleBuffer: sampleBuffer, side: .RIGHT)
         }
     }
+    
+    func captureOutput(audioOutput sampleBuffer: CMSampleBuffer) {
+        videoProc.addAudioFrame(sampleBuffer: sampleBuffer)
+    }
         
     private let videoProc = VideoProcessor()
     private var bufferPool:CVPixelBufferPool?
     
     @IBAction func videoTapped(_ sender: Any) {
         if (!videoProc.videoRecording) {
-            videoProc.start()
+            let audioSettings = cameraCtrl?.getAudioSettings()
+            videoProc.start(audioSettings: audioSettings)
         } else {
             videoProc.stop()
         }

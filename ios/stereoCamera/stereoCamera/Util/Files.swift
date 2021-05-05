@@ -248,13 +248,18 @@ public class Files
         if item is Data,
            let data = item as? Data {
             let createRequest = PHAssetCreationRequest.forAsset()
-            createRequest.addResource(with: PHAssetResourceType.photo, data: data, options: nil)
+            let options = PHAssetResourceCreationOptions()
+            options.shouldMoveFile = true
+            createRequest.addResource(with: PHAssetResourceType.photo, data: data, options: options)
             placeholder = createRequest.placeholderForCreatedAsset
         }
         else if item is URL,
                 let url = item as? URL {
-            let assetRequest = PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-            placeholder = assetRequest?.placeholderForCreatedAsset
+            let options = PHAssetResourceCreationOptions()
+            options.shouldMoveFile = true
+            let assetRequest = PHAssetCreationRequest.forAsset()
+            assetRequest.addResource(with: .video, fileURL: url, options: options)
+            placeholder = assetRequest.placeholderForCreatedAsset
         }
         
         let list = NSSet(object: placeholder as Any)
@@ -291,6 +296,17 @@ public class Files
             guard status == .authorized else { return }
             PHPhotoLibrary.shared().performChanges({ self.saveToPhotos2(item) }, completionHandler: { success, err in
                 if success {
+                    // Clean up
+                    if item is URL, let url = item as? URL,
+                       FileManager.default.fileExists(atPath: url.path)
+                    {
+                        do {
+                            try FileManager.default.removeItem(atPath: url.path)
+                        } catch {
+                            print("Could not remove file at url: \(url.path)")
+                        }
+                    }
+                    
                     self.saveAssetToPhotos2(ext: ext, onSaved: onSaved)
                 } else {
                     print (err)

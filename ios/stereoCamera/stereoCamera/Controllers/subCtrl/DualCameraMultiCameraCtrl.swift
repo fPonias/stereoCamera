@@ -28,6 +28,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     
     var leftCameraStr: CameraStr?
     var rightCameraStr: CameraStr?
+    var audioStr: AudioStr?
     
     
     private func cleanUp()
@@ -214,6 +215,20 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             } else {
                 dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false)
             }
+        } else if output is AVCaptureAudioDataOutput {
+            do {
+                let dbuf = sampleBuffer.dataBuffer
+                let bytes = try dbuf?.dataBytes()
+                
+                for i in 0 ..< bytes!.count {
+                    
+                }
+                let byte = bytes![0]
+                let i = 0
+                let j = i
+            } catch {}
+            
+            dualCameraCtrl.captureOutput(audioOutput: sampleBuffer)
         }
         
         if (shutterWaiting) {
@@ -321,6 +336,14 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         let zoom = rightWidth / leftWidth
         setZoom(zoom, device: rightCameraStr?.device)
         
+        
+        audioStr = configureAudio()
+        guard audioStr != nil else {
+            setupResult = .configurationFailed
+            return
+        }
+        
+        
         session.startRunning()
     }
     
@@ -418,19 +441,86 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         }
         session.add(videoDataOutputConnection)
         
-        
-        let audioDevice = AVCaptureDevice.default(.builtInMicrophone, for: .audio, position: .back)
-        guard let audioInput = try? AVCaptureDeviceInput(device: audioDevice!),
-              session.canAddInput(audioInput)
-        else { return nil }
-        session.addInputWithNoConnections(audioInput)
-        
-        let audioOutput = AVCaptureAudioDataOutput()
-        guard session.canAddOutput(audioOutput) else { return nil }
-        session.addOutputWithNoConnections(audioOutput)
-        audioOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
-        
         return CameraStr(device: device, deviceInput: deviceInput, videoDataOutput: videoDataOutput, videoDataOutputConnection: videoDataOutputConnection, photoOutput: nil, fieldOfView: fov)
+    }
+    
+    struct AudioStr {
+        var input:AVCaptureDeviceInput?
+        var output:AVCaptureAudioDataOutput?
+        var connection:AVCaptureConnection?
+    }
+    
+    func configureAudio() -> AudioStr? {
+        session.beginConfiguration()
+        defer {
+            session.commitConfiguration()
+        }
+        
+        // Find the microphone
+        guard let microphone = AVCaptureDevice.default(for: .audio) else {
+            print("Could not find the microphone")
+            return nil
+        }
+        
+        // Add the microphone input to the session
+        let microphoneDeviceInput:AVCaptureDeviceInput
+        do {
+            microphoneDeviceInput = try AVCaptureDeviceInput(device: microphone)
+            
+            guard session.canAddInput(microphoneDeviceInput) else {
+                    print("Could not add microphone device input")
+                    return nil
+            }
+            session.addInputWithNoConnections(microphoneDeviceInput)
+        } catch {
+            print("Could not create microphone input: \(error)")
+            return nil
+        }
+        
+        // Find the audio device input's back audio port
+        guard let backMicrophonePort = microphoneDeviceInput.ports(for: .audio,
+             sourceDeviceType: microphone.deviceType,
+             sourceDevicePosition: .back).first
+        else {
+                print("Could not find the back camera device input's audio port")
+                return nil
+        }
+        
+        // Add the back microphone audio data output
+        let backMicrophoneAudioDataOutput = AVCaptureAudioDataOutput()
+        guard session.canAddOutput(backMicrophoneAudioDataOutput)
+        else {
+            print("Could not add the back microphone audio data output")
+            return nil
+        }
+        session.addOutputWithNoConnections(backMicrophoneAudioDataOutput)
+        backMicrophoneAudioDataOutput.setSampleBufferDelegate(self, queue: dataOutputQueue)
+        
+        // Connect the back microphone to the back audio data output
+        let backMicrophoneAudioDataOutputConnection = AVCaptureConnection(inputPorts: [backMicrophonePort], output: backMicrophoneAudioDataOutput)
+        guard session.canAdd(backMicrophoneAudioDataOutputConnection)
+        else {
+            print("Could not add a connection to the back microphone audio data output")
+            return nil
+        }
+        session.add(backMicrophoneAudioDataOutputConnection)
+        
+        return AudioStr(input: microphoneDeviceInput, output: backMicrophoneAudioDataOutput, connection: backMicrophoneAudioDataOutputConnection)
+    }
+    
+    func getAudioSettings() -> [String : NSObject]? {
+        guard let audioStr = audioStr,
+              let audioOut = audioStr.output
+        else { return nil }
+        
+        let backMicrophoneAudioSettings = audioOut.recommendedAudioSettingsForAssetWriter(writingTo: .mp4) as? [String: NSObject]
+        
+        if backMicrophoneAudioSettings == nil {
+            print("Could not get back microphone audio settings")
+            return nil
+        }
+        
+        return backMicrophoneAudioSettings
     }
     
     // MARK: - Session Cost Check

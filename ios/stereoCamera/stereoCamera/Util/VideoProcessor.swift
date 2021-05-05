@@ -23,6 +23,7 @@ class VideoProcessor
     private var videoSession:VTCompressionSession?
     private var writer:AVAssetWriter?
     private var writerInput:AVAssetWriterInput?
+    private var audioWriterInput:AVAssetWriterInput?
     private var lastFrameTime:CMTime?
     private var videoOutputURL:URL?
     private var timestamp:Double = 0.0
@@ -30,7 +31,7 @@ class VideoProcessor
     func addFrame(sampleBuffer:CVPixelBuffer) {
         if let session = videoSession {
             let doStart = lastFrameTime == nil ? true : false
-            let interval = Double(Date().timeIntervalSince1970) - timestamp
+            let interval = Double(Date().timeIntervalSince1970)
             lastFrameTime = CMTime(seconds: interval, preferredTimescale: CMTimeScale(600))
             
             if (doStart) {
@@ -42,6 +43,14 @@ class VideoProcessor
         }
     }
     
+    func addAudioFrame(sampleBuffer:CMSampleBuffer) {
+        guard let writer = audioWriterInput,
+              writer.isReadyForMoreMediaData
+        else { return }
+        
+        writer.append(sampleBuffer)
+    }
+    
     private let frameEncoded:VTCompressionOutputCallback = {outputCallbackRefCon, sourceFrameRefCon, status, infoFlags, sampleBuffer in
         guard status == noErr,
               let sampleBuffer = sampleBuffer,
@@ -50,7 +59,7 @@ class VideoProcessor
             return
         }
 
-        debugPrint("[INFO]: outputCallback: sampleBuffer: \(sampleBuffer)")
+        //debugPrint("[INFO]: outputCallback: sampleBuffer: \(sampleBuffer)")
         
         let parent = Unmanaged<VideoProcessor>.fromOpaque(ptr).takeUnretainedValue()
         
@@ -61,11 +70,11 @@ class VideoProcessor
         input.append(sampleBuffer)
     }
     
-    func start()
+    func start(audioSettings: [String: NSObject]?)
     {
         guard (!videoRecording) else { return }
         if #available(iOS 13.0, *) {
-            startVideo()
+            startVideo(audioSettings: audioSettings)
         }
     }
     
@@ -79,6 +88,7 @@ class VideoProcessor
         VTCompressionSessionCompleteFrames(videoSession, lastFrameTime)
         VTCompressionSessionInvalidate(self.videoSession!)
         
+        audioWriterInput?.markAsFinished()
         writerInput?.markAsFinished()
         writer?.finishWriting {
             if let url = self.videoOutputURL {
@@ -101,7 +111,7 @@ class VideoProcessor
     }
     
     @available(iOS 13.0, *)
-    private func startVideo()
+    private func startVideo(audioSettings: [String: NSObject]?)
     {
         let ptr = Unmanaged.passUnretained(self).toOpaque()
         
@@ -128,6 +138,8 @@ class VideoProcessor
             timestamp = Date().timeIntervalSince1970
             writer = try AVAssetWriter(outputURL: videoOutputURL!, fileType: .mp4)
             writerInput = try AVAssetWriterInput(mediaType: .video, outputSettings: nil, sourceFormatHint: CMFormatDescription(videoCodecType: .h264, width: 1920, height: 960))
+            audioWriterInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+            audioWriterInput?.expectsMediaDataInRealTime = true
                         
         } catch { return }
         
@@ -136,6 +148,9 @@ class VideoProcessor
         guard let writer = writer,
               writer.canAdd(writerInput!) else { return }
         writer.add(writerInput!)
+        
+        guard writer.canAdd(audioWriterInput!) else { return }
+        writer.add(audioWriterInput!)
         
 
         _videoRecording = true

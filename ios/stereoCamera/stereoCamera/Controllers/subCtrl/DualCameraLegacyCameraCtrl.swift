@@ -302,4 +302,8 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
             shutterWaiting = false
         }
     }
+    
+    func getAudioSettings() -> [String : NSObject]? {
+        return nil
+    }
 }
