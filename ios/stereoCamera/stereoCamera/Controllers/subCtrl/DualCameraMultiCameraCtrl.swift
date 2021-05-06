@@ -216,18 +216,6 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
                 dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false)
             }
         } else if output is AVCaptureAudioDataOutput {
-            do {
-                let dbuf = sampleBuffer.dataBuffer
-                let bytes = try dbuf?.dataBytes()
-                
-                for i in 0 ..< bytes!.count {
-                    
-                }
-                let byte = bytes![0]
-                let i = 0
-                let j = i
-            } catch {}
-            
             dualCameraCtrl.captureOutput(audioOutput: sampleBuffer)
         }
         
@@ -397,7 +385,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             try device.lockForConfiguration()
             device.activeFormat = sorted[attempt]
             let fr = sorted[attempt].videoSupportedFrameRateRanges
-            let videoMinFrameDurationOverride = CMTimeMake(1, Int32(15))
+            let videoMinFrameDurationOverride = CMTimeMake(1, Int32(30))
             device.activeVideoMaxFrameDuration = fr[0].maxFrameDuration
             device.activeVideoMinFrameDuration = videoMinFrameDurationOverride
             device.unlockForConfiguration()
@@ -508,12 +496,27 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         return AudioStr(input: microphoneDeviceInput, output: backMicrophoneAudioDataOutput, connection: backMicrophoneAudioDataOutputConnection)
     }
     
-    func getAudioSettings() -> [String : NSObject]? {
+    func getVideoSettings() -> [String : Any]? {
+        guard let videoStr = leftCameraStr,
+              let videoOut = videoStr.videoDataOutput
+        else { return nil }
+        
+        let videoSettings = videoOut.recommendedVideoSettingsForAssetWriter(writingTo: .mov) as? [String: NSObject]
+        
+        if videoSettings == nil {
+            print ("Could not get video settings")
+            return nil
+        }
+        
+        return videoSettings
+    }
+    
+    func getAudioSettings() -> [String : Any]? {
         guard let audioStr = audioStr,
               let audioOut = audioStr.output
         else { return nil }
         
-        let backMicrophoneAudioSettings = audioOut.recommendedAudioSettingsForAssetWriter(writingTo: .mp4) as? [String: NSObject]
+        let backMicrophoneAudioSettings = audioOut.recommendedAudioSettingsForAssetWriter(writingTo: .mov) as? [String: NSObject]
         
         if backMicrophoneAudioSettings == nil {
             print("Could not get back microphone audio settings")
@@ -661,7 +664,6 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
                                     do {
                                         try videoDeviceInput.device.lockForConfiguration()
                                         videoDeviceInput.device.activeFormat = format
-                                        
                                         videoDeviceInput.device.unlockForConfiguration()
                                         
                                         print("reduced width = \(width), reduced height = \(height)")

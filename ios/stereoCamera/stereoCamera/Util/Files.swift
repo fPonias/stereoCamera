@@ -287,7 +287,7 @@ public class Files
     }
     
     public func saveVideoToPhotos(url:URL, onSaved: @escaping (String?) -> Void){
-        saveAssetToPhotos(item: url, ext: "mpg", onSaved: onSaved)
+        saveAssetToPhotos(item: url, ext: "mov", onSaved: onSaved)
     }
     
     private func saveAssetToPhotos(item:Any, ext: String, onSaved: @escaping (String?) -> Void){

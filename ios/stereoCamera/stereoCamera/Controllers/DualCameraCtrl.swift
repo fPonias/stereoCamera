@@ -21,7 +21,8 @@ protocol DualCameraController
     func setCameraPair(pair: DualCameraCtrl.CameraPair)
     func viewWillAppear()
     func getSyncedFrames(callback:@escaping (_ left:CVPixelBuffer, _ right:CVPixelBuffer) -> Void)
-    func getAudioSettings() -> [String: NSObject]?
+    func getAudioSettings() -> [String: Any]?
+    func getVideoSettings() -> [String: Any]?
 }
 
 class DualCameraCtrl: UIViewController
@@ -173,10 +174,11 @@ class DualCameraCtrl: UIViewController
         
         doubleCameraPreview.frameListener = {[weak self] frame in
             guard let self = self,
-                  let bufferPool = self.bufferPool
+                  let bufferPool = self.bufferPool,
+                  let videoProc = self.videoProc
             else { return }
             
-            if (self.videoProc.videoRecording) {
+            if (videoProc.isRecording) {
                 var buf:CVPixelBuffer?
             
                 CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, bufferPool, &buf)
@@ -185,7 +187,7 @@ class DualCameraCtrl: UIViewController
                 guard let image = img, let buffer = buf else { return }
                 let ctx = CIContext()
                 ctx.render(image, to: buffer)
-                self.videoProc.addFrame(sampleBuffer: buffer)
+                videoProc.recordVideo(pixelBuffer: buffer, timing: self.videoFrameTiming)
             }
         }
     }
@@ -316,10 +318,15 @@ class DualCameraCtrl: UIViewController
         return total / Double(motionArr.count)
     }
     
+    private var videoFrameTiming = CMSampleTimingInfo()
+    private var videoDescription:CMFormatDescription?
+    
     func captureOutput(didOutput sampleBuffer: CMSampleBuffer, isLeft:Bool) {
         let angle = calculateAngle()
         
         if isLeft {
+            videoDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
+            CMSampleBufferGetSampleTimingInfo(sampleBuffer, 0, &videoFrameTiming)
             doubleCameraPreview.rotation = Float(angle)
             doubleCameraPreview.renderBuffer(sampleBuffer: sampleBuffer, side: .LEFT)
         }
@@ -329,18 +336,29 @@ class DualCameraCtrl: UIViewController
     }
     
     func captureOutput(audioOutput sampleBuffer: CMSampleBuffer) {
-        videoProc.addAudioFrame(sampleBuffer: sampleBuffer)
+        videoProc?.recordAudio(sampleBuffer: sampleBuffer)
     }
         
-    private let videoProc = VideoProcessor()
+    private var videoProc:VideoProcessor?
+    //private var videoProc:MovieRecorder?
     private var bufferPool:CVPixelBufferPool?
     
     @IBAction func videoTapped(_ sender: Any) {
-        if (!videoProc.videoRecording) {
-            let audioSettings = cameraCtrl?.getAudioSettings()
-            videoProc.start(audioSettings: audioSettings)
+        if (videoProc == nil){
+            videoProc = VideoProcessor()
+        }
+        
+        if (!videoProc!.isRecording) {
+            
+            
+            if let audioSettings = cameraCtrl?.getAudioSettings(),
+               let videoSettings = cameraCtrl?.getVideoSettings(),
+               let videoDescription = videoDescription {
+                videoProc!.start(audioSettings: audioSettings, videoSettings: videoSettings, videoDescription: videoDescription)
+            }
         } else {
-            videoProc.stop()
+            videoProc!.stop()
+            self.videoProc = nil
         }
     }
     

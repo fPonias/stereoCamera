@@ -303,7 +303,11 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
         }
     }
     
-    func getAudioSettings() -> [String : NSObject]? {
+    func getAudioSettings() -> [String : Any]? {
+        return nil
+    }
+    
+    func getVideoSettings() -> [String : Any]? {
         return nil
     }
 }
