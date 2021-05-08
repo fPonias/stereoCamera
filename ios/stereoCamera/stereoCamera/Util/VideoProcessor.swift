@@ -48,8 +48,6 @@ class VideoProcessor
         else { return }
         
         writerInput.append(sampleBuffer)
-        
-        //VTCompressionSessionEncodeFrame(session, sampleBuffer, lastFrameTime!, kCMTimeInvalid, nil, nil, nil)
     }
     
     private func createVideoSampleBufferWithPixelBuffer(_ pixelBuffer: CVPixelBuffer, presentationTime: CMTime) -> CMSampleBuffer? {
@@ -67,40 +65,24 @@ class VideoProcessor
         return sampleBuffer
     }
     
-    /*
-     formatDescription = <CMVideoFormatDescription 0x280e7b090 [0x206825860]> {
-     mediaType:'vide'
-     mediaSubType:'BGRA'
-     mediaSpecific: {
-         codecType: 'BGRA'        dimensions: 3840 x 2160
-     }
-     extensions: {{
-     CVBytesPerRow = 15360;
-     CVImageBufferColorPrimaries = "ITU_R_709_2";
-     CVImageBufferTransferFunction = "ITU_R_709_2";
-     CVImageBufferYCbCrMatrix = "ITU_R_709_2";
-     Version = 2;
- }}
- }
-     */
-    
     func recordAudio(sampleBuffer:CMSampleBuffer) {
         guard _videoRecording,
               let writer = audioWriterInput,
               writer.isReadyForMoreMediaData
         else { return }
         
-        //let interval = Double(Date().timeIntervalSince1970)
-        //let frameTime = CMSampleBufferGetOutputPresentationTimeStamp(sampleBuffer)
-        //lastFrameTime = CMTime(seconds: interval, preferredTimescale: CMTimeScale(44100))
-        //CMSampleBufferSetOutputPresentationTimeStamp(sampleBuffer, lastFrameTime!)
         writer.append(sampleBuffer)
         
     }
     
+    //static let ENCODED_HEIGHT:Int32 = 960
+    //static let ENCODED_WIDTH:Int32 = 1920
+    static let ENCODED_HEIGHT:Int32 = 2160
+    static let ENCODED_WIDTH:Int32 = 4320
+    
     func start(audioSettings: [String: Any]?, videoSettings: [String: Any]?, videoDescription:CMFormatDescription)
     {
-        CMVideoFormatDescriptionCreate(kCFAllocatorDefault, kCMPixelFormat_32BGRA, 1920, 960, nil, &videoFormatDescription)
+        CMVideoFormatDescriptionCreate(kCFAllocatorDefault, kCMPixelFormat_32BGRA, VideoProcessor.ENCODED_WIDTH, VideoProcessor.ENCODED_HEIGHT, nil, &videoFormatDescription)
         
         guard (!_videoRecording) else { return }
         if #available(iOS 13.0, *) {
@@ -111,13 +93,13 @@ class VideoProcessor
     func stop()
     {
         guard _videoRecording else { return }
+        _videoRecording = false
         
         //VTCompressionSessionCompleteFrames(videoSession, lastFrameTime)
         //VTCompressionSessionInvalidate(self.videoSession!)
         
         audioWriterInput?.markAsFinished()
         writerInput?.markAsFinished()
-        _videoRecording = false
         writer?.finishWriting {
             let stat = self.writer?.status
             let err = self.writer?.error
@@ -145,10 +127,6 @@ class VideoProcessor
     @available(iOS 13.0, *)
     private func startVideo(audioSettings: [String: Any]?, videoSettings: [String: Any]?)
     {
-        //VTCompressionSessionCreate(nil, 1920, 960, kCMVideoCodecType_HEVC, nil, nil, nil, self.frameEncoded, ptr, &videoSession)
-        //guard let sess = videoSession else { return }
-        //VTSessionSetProperty(sess, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue)
-        
         let fileManager = FileManager.default
         let urls = fileManager.urls(for: .documentDirectory, in: .userDomainMask)
         guard let documentDirectory: URL = urls.first else {
@@ -184,75 +162,3 @@ class VideoProcessor
         _videoRecording = true
     }
 }
-
-/* recommended video settings
- ▿ 0 : 2 elements
-   - key : "AVVideoWidthKey"
-   - value : 1080
- ▿ 1 : 2 elements
-   - key : "AVVideoHeightKey"
-   - value : 1920
- ▿ 2 : 2 elements
-   - key : "AVVideoCompressionPropertiesKey"
-   ▿ value : 12 elements
-     ▿ 0 : 2 elements
-       - key : AverageBitRate
-       - value : 7651584
-     ▿ 1 : 2 elements
-       - key : MaxKeyFrameIntervalDuration
-       - value : 1
-     ▿ 2 : 2 elements
-       - key : Priority
-       - value : 80
-     ▿ 3 : 2 elements
-       - key : SoftMinQuantizationParameter
-       - value : 18
-     ▿ 4 : 2 elements
-       - key : ProfileLevel
-       - value : HEVC_Main_AutoLevel
-     ▿ 5 : 2 elements
-       - key : AllowOpenGOP
-       - value : 1
-     ▿ 6 : 2 elements
-       - key : AllowFrameReordering
-       - value : 1
-     ▿ 7 : 2 elements
-       - key : MinimizeMemoryUsage
-       - value : 1
-     ▿ 8 : 2 elements
-       - key : RelaxAverageBitRateTarget
-       - value : 1
-     ▿ 9 : 2 elements
-       - key : MaxQuantizationParameter
-       - value : 41
-     ▿ 10 : 2 elements
-       - key : ExpectedFrameRate
-       - value : 30
-     ▿ 11 : 2 elements
-       - key : RealTime
-       - value : 1
- ▿ 3 : 2 elements
-   - key : "AVVideoCodecKey"
-   - value : hvc1
- 
- 
- recommended audio settings
- ▿ 0 : 2 elements
-   - key : "AVSampleRateKey"
-   - value : 44100
- ▿ 1 : 2 elements
-   - key : "AVEncoderBitRatePerChannelKey"
-   - value : 96000
- ▿ 2 : 2 elements
-   - key : "AVFormatIDKey"
-   - value : 1633772320
- ▿ 3 : 2 elements
-   - key : "AVEncoderBitRateStrategyKey"
-   - value : AVAudioBitRateStrategy_Variable
- ▿ 4 : 2 elements
-   - key : "AVNumberOfChannelsKey"
-   - value : 1
- ▿ 5 : 2 elements
-   - key : "AVEncoderQualityForVBRKey"
-   - value : 91
- */

@@ -29,13 +29,17 @@ class DualCameraCtrl: UIViewController
 {
     @IBOutlet weak var doubleWidthConstraint: NSLayoutConstraint!
     @IBOutlet weak var doubleHeightConstraint: NSLayoutConstraint!
-    @IBOutlet weak var doubleOffsetConstraint: NSLayoutConstraint!
+    @IBOutlet weak var doubleXOffsetConstraint: NSLayoutConstraint!
+    @IBOutlet weak var doubleYOffsetConstraint: NSLayoutConstraint!
     
     @IBOutlet weak var cameraContainer: UIView!
     @IBOutlet weak var doubleCameraPreview: VideoPreviewDouble!
     @IBOutlet weak var shutterBtn: UIButton!
+    @IBOutlet weak var playbackLbl: UILabel!
     @IBOutlet weak var measureBtn: UIBarButtonItem!
-    @IBOutlet weak var cameraSwapBtn: UIButton!
+    
+    @IBOutlet weak var typePickerContainer: UIView!
+    var typePicker: CameraTypePicker!
     
     private let zoomFinder = ZoomFinder()
     
@@ -53,7 +57,12 @@ class DualCameraCtrl: UIViewController
     
     // MARK: View Controller Life Cycle
     override func viewWillLayoutSubviews() {
+        
         super.viewWillLayoutSubviews()
+    }
+    
+    override public var shouldAutorotate: Bool {
+        return true
     }
     
     override func viewDidLayoutSubviews() {
@@ -63,17 +72,21 @@ class DualCameraCtrl: UIViewController
         
         if (frm.height > frm.width / 2.0) {
             let w = frm.width / 2.0
+            let margin = (frm.height - w) / 2.0
             
             doubleWidthConstraint.constant = 2.0 * w
             doubleHeightConstraint.constant = w
-            doubleOffsetConstraint.constant = 0
+            doubleXOffsetConstraint.constant = 0
+            doubleYOffsetConstraint.constant = margin
         } else {
-            let w = frm.height
-            let margin = (frm.width - 2.0 * w) / 2.0
+            let w = frm.height * 2.0
+            let xmargin = (frm.width - w) / 2.0
             
-            doubleWidthConstraint.constant = 2.0 * w
-            doubleHeightConstraint.constant = w
-            doubleOffsetConstraint.constant = margin
+            doubleWidthConstraint.constant = w
+            doubleHeightConstraint.constant = w / 2.0
+            doubleXOffsetConstraint.constant = xmargin
+            doubleYOffsetConstraint.constant = 0
+            
         }
         
         doubleCameraPreview.resumeDrawing()
@@ -85,17 +98,33 @@ class DualCameraCtrl: UIViewController
         doubleCameraPreview.stopDrawing()
     }
     
+    var pickerViewArray:[CameraTypeItem] = [
+        CameraTypeItem(title: "Photo", type: .CAMERA),
+        CameraTypeItem(title: "Video", type: .VIDEO)
+    ]
     
     override func viewDidLoad() {
         super.viewDidLoad()
-                    
-        doubleCameraPreview?.initialize(size: CGSize(width: 1920, height: 960))
+           
+        let value:Int
+        let positioning = UIDevice.cameraPositioning
+        if (positioning == .THREE_TRIANGULAR || positioning == .TWO_VERTICAL) {
+            value = UIInterfaceOrientation.landscapeRight.rawValue
+        } else {
+            value = UIInterfaceOrientation.portrait.rawValue
+        }
+        UIDevice.current.setValue(value, forKey: "orientation")
+        
+        
+        doubleCameraPreview?.initialize(size:  CGSize(width: CGFloat(VideoProcessor.ENCODED_WIDTH), height: CGFloat(VideoProcessor.ENCODED_HEIGHT)))
+        
+        
         motion.startAccelerometerUpdates()
         
         let attr = [kCVPixelBufferMetalCompatibilityKey: true,
                     kCVPixelBufferPixelFormatTypeKey: kCVPixelFormatType_32BGRA,
-                    kCVPixelBufferWidthKey: 1920,
-                    kCVPixelBufferHeightKey: 960
+                    kCVPixelBufferWidthKey: VideoProcessor.ENCODED_WIDTH,
+                    kCVPixelBufferHeightKey: VideoProcessor.ENCODED_HEIGHT
                     ] as CFDictionary
         CVPixelBufferPoolCreate(kCFAllocatorDefault, nil, attr, &bufferPool)
         
@@ -131,6 +160,7 @@ class DualCameraCtrl: UIViewController
             print ("phone needs multiple cameras to function")
             return
         }
+        
         
         /*
         Configure the capture session.
@@ -182,19 +212,30 @@ class DualCameraCtrl: UIViewController
                 var buf:CVPixelBuffer?
             
                 CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, bufferPool, &buf)
-                let img = CIImage.init(mtlTexture: frame, options: nil)
+                guard let img = CIImage.init(mtlTexture: frame, options: nil) else { return }
                 
-                guard let image = img, let buffer = buf else { return }
+                let gammaFilter = GammaFilter(value: 2.2)
+                guard let gammaImg = gammaFilter.update(img),
+                      let buffer = buf
+                else { return }
+                
                 let ctx = CIContext()
-                ctx.render(image, to: buffer)
+                ctx.render(gammaImg, to: buffer)
                 videoProc.recordVideo(pixelBuffer: buffer, timing: self.videoFrameTiming)
             }
         }
+        
+        typePicker = CameraTypePicker(frame: typePickerContainer.frame)
+        typePicker.listener = TypeListener()
+        typePicker.valueList = pickerViewArray
+        typePickerContainer.addSubview(typePicker)
+        
+        playbackLbl.text = ""
     }
     
-    @IBAction func swapCameraPairTapped(_ sender: Any) {
-        let nextIdx = (currentCameraPair + 1) % cameraPairs.count
-        setCameraPair(nextIdx)
+    class TypeListener : CameraTypePickerDelegate {
+        func onSelected(_ picker: CameraTypePicker, index: Int, value: CameraTypeItem) {
+        }
     }
     
     private var currentCameraPair:Int = -1
@@ -221,6 +262,8 @@ class DualCameraCtrl: UIViewController
         if (cameraCtrl != nil) {
             cameraCtrl?.viewWillAppear()
         }
+        
+        motion.startAccelerometerUpdates()
     }
     
     private func cleanUp()
@@ -283,13 +326,17 @@ class DualCameraCtrl: UIViewController
         {
             let x = accel.acceleration.x
             let y = accel.acceleration.y
+            let z = accel.acceleration.z
             
-            if (abs(x) < 0.15) {
-                if (y < 0) {
-                    angle = 0.0
-                } else {
-                    angle = Double.pi
-                }
+            let xs = NSString(format:"%.2f", x)
+            let ys = NSString(format:"%.2f", y)
+            let zs = NSString(format:"%.2f", z)
+            //print ("\(xs), \(ys), \(zs)")
+            
+            let threshold = 0.08
+            
+            if (abs(x) < threshold) {
+                angle = (y < 0) ? 0.0 : Double.pi
             } else {
                 angle = atan2(x, y)
                 
@@ -300,7 +347,6 @@ class DualCameraCtrl: UIViewController
                 angle -= Double.pi
             }
             
-            //print ("accel angle \(angle)")
         } else {
             angle = 0.0
         }
@@ -322,6 +368,16 @@ class DualCameraCtrl: UIViewController
     private var videoDescription:CMFormatDescription?
     
     func captureOutput(didOutput sampleBuffer: CMSampleBuffer, isLeft:Bool) {
+        if let videoProc = videoProc, videoProc.isRecording {
+            let now = Date()
+            let diff = now.timeIntervalSince1970 - recordLabelStart.timeIntervalSince1970
+            let text = diff.formattedString("hh:mm:ss.ms")
+            
+            DispatchQueue.main.async { [weak self] in
+                self?.playbackLbl?.text = text
+            }
+        }
+        
         let angle = calculateAngle()
         
         if isLeft {
@@ -338,37 +394,51 @@ class DualCameraCtrl: UIViewController
     func captureOutput(audioOutput sampleBuffer: CMSampleBuffer) {
         videoProc?.recordAudio(sampleBuffer: sampleBuffer)
     }
-        
+    
+    
+    
+    @IBAction func shutterClicked(_ sender: Any) {
+        if (typePicker.selectedItem.type == .CAMERA) {
+            capturePhoto()
+        } else {
+            videoTapped()
+        }
+    }
+    
     private var videoProc:VideoProcessor?
     //private var videoProc:MovieRecorder?
     private var bufferPool:CVPixelBufferPool?
+    private var shutterColor = UIColor.black
     
-    @IBAction func videoTapped(_ sender: Any) {
+    func videoTapped() {
         if (videoProc == nil){
             videoProc = VideoProcessor()
         }
         
         if (!videoProc!.isRecording) {
-            
+            shutterColor = shutterBtn.tintColor
+            shutterBtn.tintColor = UIColor.red
             
             if let audioSettings = cameraCtrl?.getAudioSettings(),
                let videoSettings = cameraCtrl?.getVideoSettings(),
                let videoDescription = videoDescription {
+                recordLabelStart = Date()
                 videoProc!.start(audioSettings: audioSettings, videoSettings: videoSettings, videoDescription: videoDescription)
             }
         } else {
             videoProc!.stop()
             self.videoProc = nil
+            self.shutterBtn.tintColor = self.shutterColor
+            self.playbackLbl.text = ""
         }
     }
     
-    @IBAction func shutterClicked(_ sender: Any) {
+    private var recordLabelStart = Date()
+    
+    private func capturePhoto() {
         self.cameraCtrl?.getSyncedFrames(callback: {[weak self] (left, right) in
-            
             self?.shutterClicked2(left, right)
         })
-        
-        //showLoader(true)
     }
     
     private var loaderCtrl:LoadingPopupCtrl?
@@ -436,14 +506,7 @@ class DualCameraCtrl: UIViewController
         let lRot = calculateAngle()
         let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, rotation: Float(lRot))
         let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, rotation: Float(lRot))
-        /*
-        DispatchQueue.main.async {
-            let ctrl = ImageEditorCtrl.initFromStoryboard()
-            ctrl.leftData = leftData
-            ctrl.rightData = rightData
-            self.navigationController?.pushViewController(ctrl, animated: true)
-        }
-        */
+        
         let exporter = ImageExporter(leftData: leftData, rightData: rightData)
         exporter.export()
         

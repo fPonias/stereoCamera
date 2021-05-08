@@ -74,7 +74,10 @@ class ImageExporter {
               let cs = CGColorSpace(name: CGColorSpace.sRGB)
         else { return }
         
-        let jpegData = context.jpegRepresentation(of: img, colorSpace: cs, options: [:])
+        let gammaFilter = GammaFilter(value: 2.2)
+        guard let gammaImg = gammaFilter.update(img) else { return }
+        
+        let jpegData = context.jpegRepresentation(of: gammaImg, colorSpace: cs, options: [:])
         guard let data = jpegData else { return }
         
         Files.instance.saveToPhotos(data: data, onSaved: { savedImg in

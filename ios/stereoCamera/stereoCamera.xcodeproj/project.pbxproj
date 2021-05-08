@@ -161,6 +161,9 @@
 		7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED4E2CF260CC8D40085112E /* Matrix.swift */; };
 		7ED8F30926391E1400F3AC92 /* MoviePlayerVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED8F30826391E1400F3AC92 /* MoviePlayerVC.swift */; };
 		7EFFA0F12642D72C0084F31D /* FrameRateCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0F02642D72C0084F31D /* FrameRateCounter.swift */; };
+		7EFFA0F5264456DF0084F31D /* CameraTypePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0F4264456DF0084F31D /* CameraTypePicker.swift */; };
+		7EFFA0FA2645FDBF0084F31D /* DeviceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0F92645FDBE0084F31D /* DeviceList.swift */; };
+		7EFFA0FC264620640084F31D /* TimeIntervalExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0FB264620640084F31D /* TimeIntervalExt.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -325,6 +328,9 @@
 		7ED4E2CF260CC8D40085112E /* Matrix.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix.swift; sourceTree = "<group>"; };
 		7ED8F30826391E1400F3AC92 /* MoviePlayerVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePlayerVC.swift; sourceTree = "<group>"; };
 		7EFFA0F02642D72C0084F31D /* FrameRateCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameRateCounter.swift; sourceTree = "<group>"; };
+		7EFFA0F4264456DF0084F31D /* CameraTypePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTypePicker.swift; sourceTree = "<group>"; };
+		7EFFA0F92645FDBE0084F31D /* DeviceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceList.swift; sourceTree = "<group>"; };
+		7EFFA0FB264620640084F31D /* TimeIntervalExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeIntervalExt.swift; sourceTree = "<group>"; };
 		EC2420F70CDDEE952EAF95AA /* Pods-stereoCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-stereoCamera.release.xcconfig"; path = "Target Support Files/Pods-stereoCamera/Pods-stereoCamera.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -481,6 +487,8 @@
 				7ED00E5B26361FDC00D12A4C /* OffsetFinder.swift */,
 				7ED00E5E2636567600D12A4C /* VideoProcessor.swift */,
 				7EFFA0F02642D72C0084F31D /* FrameRateCounter.swift */,
+				7EFFA0F92645FDBE0084F31D /* DeviceList.swift */,
+				7EFFA0FB264620640084F31D /* TimeIntervalExt.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -507,6 +515,7 @@
 				7EA68B44262FA68E00D96250 /* PlotWidget.xib */,
 				7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */,
 				7ED00E6126365D3400D12A4C /* VideoPreviewDouble.swift */,
+				7EFFA0F4264456DF0084F31D /* CameraTypePicker.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -773,6 +782,7 @@
 				7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */,
 				7CCB729F20F024C0000BE923 /* SetZoom.swift in Sources */,
 				7E691E5225F4687F00ED228E /* wrapper.cpp in Sources */,
+				7EFFA0FC264620640084F31D /* TimeIntervalExt.swift in Sources */,
 				7CCB729A20E75072000BE923 /* DesignableTextField.swift in Sources */,
 				7E691DE425F461FF00ED228E /* GreenMagentaCompositeImageStream.cpp in Sources */,
 				7E5A0133262678A400BF8D86 /* ImagePostProcessor.swift in Sources */,
@@ -811,6 +821,7 @@
 				7E5A01222618EFDC00BF8D86 /* MulticastDelegate.swift in Sources */,
 				7E691E0E25F463AD00ED228E /* jctrans.c in Sources */,
 				7E691DE725F461FF00ED228E /* SplitCompositeImageStream.cpp in Sources */,
+				7EFFA0FA2645FDBF0084F31D /* DeviceList.swift in Sources */,
 				7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */,
 				7CF59844211157810015260C /* SettingsListWidget.swift in Sources */,
 				7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */,
@@ -874,6 +885,7 @@
 				7CDC416620D39DF6005BE7A8 /* CommandTypes.swift in Sources */,
 				7E691E4325F4640600ED228E /* jidctflt.c in Sources */,
 				7E691E3D25F4640600ED228E /* jidctfst.c in Sources */,
+				7EFFA0F5264456DF0084F31D /* CameraTypePicker.swift in Sources */,
 				7E691E1025F463AD00ED228E /* jcsample.c in Sources */,
 				7EA68B482630AEA300D96250 /* MeasureCtrlScroller.swift in Sources */,
 				7E691E1425F463AD00ED228E /* jcprepct.c in Sources */,
