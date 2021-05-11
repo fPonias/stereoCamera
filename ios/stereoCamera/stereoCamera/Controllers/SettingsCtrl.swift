@@ -13,7 +13,6 @@ class SettingsCtrl : UIViewController
 {
     @IBOutlet weak var previewOverlayBtn: UIButton!
     @IBOutlet weak var imageQualityBtn: UIButton!
-    @IBOutlet weak var syncTestSwitch: UISwitch!
     @IBOutlet weak var syncView: UIView!
     
     override func viewDidLoad()

@@ -164,6 +164,8 @@
 		7EFFA0F5264456DF0084F31D /* CameraTypePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0F4264456DF0084F31D /* CameraTypePicker.swift */; };
 		7EFFA0FA2645FDBF0084F31D /* DeviceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0F92645FDBE0084F31D /* DeviceList.swift */; };
 		7EFFA0FC264620640084F31D /* TimeIntervalExt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0FB264620640084F31D /* TimeIntervalExt.swift */; };
+		7EFFA0FE2646EB810084F31D /* PopupButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0FD2646EB810084F31D /* PopupButton.swift */; };
+		7EFFA100264723FB0084F31D /* PopupButtonPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EFFA0FF264723FB0084F31D /* PopupButtonPicker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -331,6 +333,8 @@
 		7EFFA0F4264456DF0084F31D /* CameraTypePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraTypePicker.swift; sourceTree = "<group>"; };
 		7EFFA0F92645FDBE0084F31D /* DeviceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceList.swift; sourceTree = "<group>"; };
 		7EFFA0FB264620640084F31D /* TimeIntervalExt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeIntervalExt.swift; sourceTree = "<group>"; };
+		7EFFA0FD2646EB810084F31D /* PopupButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupButton.swift; sourceTree = "<group>"; };
+		7EFFA0FF264723FB0084F31D /* PopupButtonPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopupButtonPicker.swift; sourceTree = "<group>"; };
 		EC2420F70CDDEE952EAF95AA /* Pods-stereoCamera.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-stereoCamera.release.xcconfig"; path = "Target Support Files/Pods-stereoCamera/Pods-stereoCamera.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -516,6 +520,8 @@
 				7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */,
 				7ED00E6126365D3400D12A4C /* VideoPreviewDouble.swift */,
 				7EFFA0F4264456DF0084F31D /* CameraTypePicker.swift */,
+				7EFFA0FD2646EB810084F31D /* PopupButton.swift */,
+				7EFFA0FF264723FB0084F31D /* PopupButtonPicker.swift */,
 			);
 			path = Widget;
 			sourceTree = "<group>";
@@ -765,6 +771,7 @@
 				7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */,
 				7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */,
 				7CAD57BC211A2BEC007205B2 /* ClickableButton.swift in Sources */,
+				7EFFA100264723FB0084F31D /* PopupButtonPicker.swift in Sources */,
 				7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */,
 				7CCB729D20E8B4AC000BE923 /* Cookie.swift in Sources */,
 				7E691E4025F4640600ED228E /* jutils.c in Sources */,
@@ -864,6 +871,7 @@
 				7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */,
 				7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */,
 				7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */,
+				7EFFA0FE2646EB810084F31D /* PopupButton.swift in Sources */,
 				7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */,
 				7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */,
 				7E691E3C25F4640600ED228E /* jdmaster.c in Sources */,

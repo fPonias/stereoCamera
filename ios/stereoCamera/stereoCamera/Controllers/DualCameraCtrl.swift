@@ -25,24 +25,8 @@ protocol DualCameraController
     func getVideoSettings() -> [String: Any]?
 }
 
-class DualCameraCtrl: UIViewController
+class DualCameraCtrl: UIViewController, PopupButtonDelegate
 {
-    @IBOutlet weak var doubleWidthConstraint: NSLayoutConstraint!
-    @IBOutlet weak var doubleHeightConstraint: NSLayoutConstraint!
-    @IBOutlet weak var doubleXOffsetConstraint: NSLayoutConstraint!
-    @IBOutlet weak var doubleYOffsetConstraint: NSLayoutConstraint!
-    
-    @IBOutlet weak var cameraContainer: UIView!
-    @IBOutlet weak var doubleCameraPreview: VideoPreviewDouble!
-    @IBOutlet weak var shutterBtn: UIButton!
-    @IBOutlet weak var playbackLbl: UILabel!
-    @IBOutlet weak var measureBtn: UIBarButtonItem!
-    
-    @IBOutlet weak var typePickerContainer: UIView!
-    var typePicker: CameraTypePicker!
-    
-    private let zoomFinder = ZoomFinder()
-    
     struct CameraPair{
         let left:AVCaptureDevice
         let right:AVCaptureDevice
@@ -57,8 +41,40 @@ class DualCameraCtrl: UIViewController
     
     // MARK: View Controller Life Cycle
     override func viewWillLayoutSubviews() {
-        
         super.viewWillLayoutSubviews()
+        
+        let controlPanel = root?.viewWithTag(6)
+        
+        guard let dblCameraPreview = doubleCameraPreview,
+              let ctrlPanel = controlPanel,
+              let horizRoot = horizontalRoot
+        else { return }
+        
+        let height = horizRoot.frame.height
+        let maxWidth = ctrlPanel.frame.origin.x
+        let proposedWidth = height * 2.0
+        let constraintHeight:CGFloat
+        let constraintWidth:CGFloat
+        
+        if (proposedWidth <= maxWidth) {
+            constraintWidth = proposedWidth
+            constraintHeight = height
+        } else {
+            let maxHeight = maxWidth / 2.0
+            constraintHeight = maxHeight
+            constraintWidth = maxWidth
+        }
+        
+        for constraint in dblCameraPreview.constraints {
+            if constraint.firstAttribute == NSLayoutConstraint.Attribute.width {
+                constraint.constant = constraintWidth
+            } else if constraint.firstAttribute == NSLayoutConstraint.Attribute.height {
+                constraint.constant = constraintHeight
+            }
+        }
+        
+        dblCameraPreview.setNeedsLayout()
+        ctrlPanel.setNeedsLayout()
     }
     
     override public var shouldAutorotate: Bool {
@@ -68,53 +84,61 @@ class DualCameraCtrl: UIViewController
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
-        let frm = cameraContainer.frame
         
-        if (frm.height > frm.width / 2.0) {
-            let w = frm.width / 2.0
-            let margin = (frm.height - w) / 2.0
-            
-            doubleWidthConstraint.constant = 2.0 * w
-            doubleHeightConstraint.constant = w
-            doubleXOffsetConstraint.constant = 0
-            doubleYOffsetConstraint.constant = margin
-        } else {
-            let w = frm.height * 2.0
-            let xmargin = (frm.width - w) / 2.0
-            
-            doubleWidthConstraint.constant = w
-            doubleHeightConstraint.constant = w / 2.0
-            doubleXOffsetConstraint.constant = xmargin
-            doubleYOffsetConstraint.constant = 0
-            
-        }
-        
-        doubleCameraPreview.resumeDrawing()
+        doubleCameraPreview?.resumeDrawing()
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         
-        doubleCameraPreview.stopDrawing()
+        doubleCameraPreview?.stopDrawing()
     }
     
-    var pickerViewArray:[CameraTypeItem] = [
-        CameraTypeItem(title: "Photo", type: .CAMERA),
-        CameraTypeItem(title: "Video", type: .VIDEO)
-    ]
+    private var doubleCameraPreview: VideoPreviewDouble?
+    private var typePickerBtn:PopupButtonPicker?
+    private var playbackLbl:UILabel?
+    private var shutterBtn:UIButton?
+    private var galleryBtn:GalleryBtn?
+    private var settingsBtn:UIButton?
+    
+    private var horizontalRoot:UIView?
+    private var verticalRoot:UIView?
+    private var root:UIView?
+    
+    private func setupViews()
+    {        
+        horizontalRoot = view.viewWithTag(20)
+        verticalRoot = view.viewWithTag(30)
+        
+        if (forcedOrientation == .portrait || forcedOrientation == .portraitUpsideDown) {
+            root = verticalRoot
+            verticalRoot?.isHidden = false
+            horizontalRoot?.isHidden = true
+        } else {
+            root = horizontalRoot
+            verticalRoot?.isHidden = true
+            horizontalRoot?.isHidden = false
+        }
+        
+        doubleCameraPreview = root?.viewWithTag(1) as? VideoPreviewDouble
+        typePickerBtn = root?.viewWithTag(2) as? PopupButtonPicker
+        playbackLbl = root?.viewWithTag(3) as? UILabel
+        shutterBtn = root?.viewWithTag(4) as? UIButton
+        galleryBtn = root?.viewWithTag(5) as? GalleryBtn
+        settingsBtn = root?.viewWithTag(6) as? UIButton
+        
+        
+        shutterBtn?.addTarget(self, action: #selector(shutterClicked), for: .primaryActionTriggered)
+    }
+    
+    var forcedOrientation:UIInterfaceOrientation!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-           
-        let value:Int
-        let positioning = UIDevice.cameraPositioning
-        if (positioning == .THREE_TRIANGULAR || positioning == .TWO_VERTICAL) {
-            value = UIInterfaceOrientation.landscapeRight.rawValue
-        } else {
-            value = UIInterfaceOrientation.portrait.rawValue
-        }
-        UIDevice.current.setValue(value, forKey: "orientation")
         
+        setupViews()
+
+        navigationController?.setNavigationBarHidden(true, animated: false)
         
         doubleCameraPreview?.initialize(size:  CGSize(width: CGFloat(VideoProcessor.ENCODED_WIDTH), height: CGFloat(VideoProcessor.ENCODED_HEIGHT)))
         
@@ -202,7 +226,7 @@ class DualCameraCtrl: UIViewController
         // Keep the screen awake
         UIApplication.shared.isIdleTimerDisabled = true
         
-        doubleCameraPreview.frameListener = {[weak self] frame in
+        doubleCameraPreview?.frameListener = {[weak self] frame in
             guard let self = self,
                   let bufferPool = self.bufferPool,
                   let videoProc = self.videoProc
@@ -225,18 +249,36 @@ class DualCameraCtrl: UIViewController
             }
         }
         
-        typePicker = CameraTypePicker(frame: typePickerContainer.frame)
-        typePicker.listener = TypeListener()
-        typePicker.valueList = pickerViewArray
-        typePickerContainer.addSubview(typePicker)
         
-        playbackLbl.text = ""
+        guard let typePickerBtn = typePickerBtn else { return }
+        typePickerBtn.rootView = view
+        typePickerBtn.delegate = self
+        guard let typePickerModal = typePickerBtn.createModal() as? PopupButtonModalPicker else { return }
+        typePickerModal.valueList = pickerViewArray
+        typePickerBtn.modalOrginOffset = CGPoint(x: 0, y: 0)
+        
+        playbackLbl?.text = ""
     }
     
-    class TypeListener : CameraTypePickerDelegate {
-        func onSelected(_ picker: CameraTypePicker, index: Int, value: CameraTypeItem) {
+    struct CameraTypeItem : PopupButtonModalPickerItem
+    {
+        var text: String {
+            get { return title }
         }
+        
+        enum CameraType {
+            case CAMERA
+            case VIDEO
+        }
+        
+        let title:String
+        let type:CameraType
     }
+    
+    var pickerViewArray:[CameraTypeItem] = [
+        CameraTypeItem(title: "Photo", type: .CAMERA),
+        CameraTypeItem(title: "Video", type: .VIDEO)
+    ]
     
     private var currentCameraPair:Int = -1
     
@@ -383,11 +425,11 @@ class DualCameraCtrl: UIViewController
         if isLeft {
             videoDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
             CMSampleBufferGetSampleTimingInfo(sampleBuffer, 0, &videoFrameTiming)
-            doubleCameraPreview.rotation = Float(angle)
-            doubleCameraPreview.renderBuffer(sampleBuffer: sampleBuffer, side: .LEFT)
+            doubleCameraPreview?.rotation = Float(angle)
+            doubleCameraPreview?.renderBuffer(sampleBuffer: sampleBuffer, side: .LEFT)
         }
         else {
-            doubleCameraPreview.renderBuffer(sampleBuffer: sampleBuffer, side: .RIGHT)
+            doubleCameraPreview?.renderBuffer(sampleBuffer: sampleBuffer, side: .RIGHT)
         }
     }
     
@@ -395,10 +437,13 @@ class DualCameraCtrl: UIViewController
         videoProc?.recordAudio(sampleBuffer: sampleBuffer)
     }
     
+    func itemSelected(_ button: PopupButton, value: Any?) {
+        print("camera type selected")
+    }
     
-    
-    @IBAction func shutterClicked(_ sender: Any) {
-        if (typePicker.selectedItem.type == .CAMERA) {
+    @objc func shutterClicked(_ sender: Any) {
+        guard let item = typePickerBtn?.selectedItem as? CameraTypeItem else { return }
+        if (item.type == .CAMERA) {
             capturePhoto()
         } else {
             videoTapped()
@@ -416,8 +461,8 @@ class DualCameraCtrl: UIViewController
         }
         
         if (!videoProc!.isRecording) {
-            shutterColor = shutterBtn.tintColor
-            shutterBtn.tintColor = UIColor.red
+            shutterColor = shutterBtn?.tintColor ?? UIColor.white
+            shutterBtn?.tintColor = UIColor.red
             
             if let audioSettings = cameraCtrl?.getAudioSettings(),
                let videoSettings = cameraCtrl?.getVideoSettings(),
@@ -428,8 +473,8 @@ class DualCameraCtrl: UIViewController
         } else {
             videoProc!.stop()
             self.videoProc = nil
-            self.shutterBtn.tintColor = self.shutterColor
-            self.playbackLbl.text = ""
+            self.shutterBtn?.tintColor = self.shutterColor
+            self.playbackLbl?.text = ""
         }
     }
     

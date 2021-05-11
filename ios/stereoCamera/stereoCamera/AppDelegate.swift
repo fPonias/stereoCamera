@@ -121,5 +121,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate
         
         return Unmanaged<AppDelegate>.fromOpaque(ptr!).takeUnretainedValue()
     }
+    
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask
+    {
+        guard let win = window,
+              win.rootViewController != nil
+        else { return .all }
+        
+        if let nav = win.rootViewController as? UINavigationController {
+            if nav.visibleViewController is DualCameraCtrl {
+                let positioning = UIDevice.cameraPositioning
+                if (positioning == .THREE_TRIANGULAR || positioning == .TWO_VERTICAL) {
+                    return .landscapeRight
+                } else {
+                    return .portrait
+                }
+            }
+        }
+        
+        return .all
+    }
 }
 
