@@ -12,51 +12,44 @@ import UIKit
 class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout
 {
     @IBOutlet weak var optionsList: UICollectionView!
+    @IBOutlet weak var saveBtn: UIBarButtonItem!
     
-    private var _type = Cookie.PrefType.OVERLAY
-    
-    var type : Cookie.PrefType
-    {
-        get { return _type }
-        set
-        {
-            _type = newValue
-            fillData()
-            
-            if (optionsList != nil)
-                {optionsList.reloadData() }
+    class dataItem : Hashable {
+        static func == (lhs: SettingsListSelectorCtrl.dataItem, rhs: SettingsListSelectorCtrl.dataItem) -> Bool {
+            return lhs.title == rhs.title
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(title)
+        }
+        
+        let title:String
+        let value:Any
+        var selected:Bool
+        
+        init(title:String, value:Any, selected:Bool) {
+            self.title = title
+            self.value = value
+            self.selected = selected
         }
     }
     
-    var data = [String]()
+    var data = [dataItem]()
+    
+    private var _multiSelect = false
+    var multiSelect:Bool {
+        get { return _multiSelect }
+        set {
+            _multiSelect = newValue
+            if !multiSelect {
+                navigationItem.rightBarButtonItem = nil
+            }
+        }
+    }
  
     private func fillData()
     {
-        data = [String]()
-        var i = 0
-        while (true)
-        {
-            if (_type == .OVERLAY)
-            {
-                let enumType = Overlay(rawValue: i)
-                
-                if (enumType == nil)
-                    { break }
-                
-                data.append(enumType!.toString())
-            }
-            else if (_type == .IMAGE_QUALITY)
-            {
-                let enumType = ImageQuality(rawValue: i)
-                
-                if (enumType == nil)
-                    { break }
-                
-                data.append(enumType!.toString())
-            }
-            
-            i += 1
-        }
+        
     }
  
     override func viewDidLoad()
@@ -65,6 +58,19 @@ class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, U
         
         optionsList.dataSource = self
         optionsList.delegate = self
+        multiSelect = multiSelect
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
@@ -78,7 +84,7 @@ class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, U
         let btnCell = cell as! SettingsListWidget
         let idx = indexPath.item
         let value = data[idx]
-        btnCell.setData(id: idx, title: value)
+        btnCell.setData(id: idx, title: value.title, selected: value.selected)
         btnCell.setTapListener(cellTapped)
 
         return cell
@@ -90,21 +96,16 @@ class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, U
         return sz
     }
     
-    func cellTapped(idx:Int)
-    {
-        if (_type == .OVERLAY)
-        {
-            let enumType = Overlay(rawValue: idx)
-            Cookie.instance.overlay = enumType!
-        }
-        else if (_type == .IMAGE_QUALITY)
-        {
-            let imgQual = ImageQuality(rawValue: idx)
-            Cookie.instance.imageQuality = imgQual!
+    @IBAction func saveTapped(_ sender: Any) {
+        var ret = Set<dataItem>()
+        
+        for datum in data {
+            if (datum.selected) {
+                ret.insert(datum)
+            }
         }
         
-        if (cellTappedHandler != nil)
-            { cellTappedHandler!(self, idx) }
+        savedHandler?(self, ret)
         
         DispatchQueue.main.async {
         [unowned self] in
@@ -112,23 +113,26 @@ class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, U
         }
     }
     
-    private var cellTappedHandler:Optional<(SettingsListSelectorCtrl, Int) -> Void> = nil
-    func setCellTappedHandler(_ listener:@escaping (SettingsListSelectorCtrl, Int) -> Void)
+    func cellTapped(idx:Int)
     {
-        cellTappedHandler = listener
+        data[idx].selected = !data[idx].selected
+        optionsList.reloadItems(at: [IndexPath(item: idx, section: 0)])
+        
+        cellTappedHandler?(self, data[idx])
+        
+        if (!multiSelect) {
+            DispatchQueue.main.async {
+            [unowned self] in
+                self.navigationController?.popViewController(animated: true)
+            }
+        }
     }
+    
+    var cellTappedHandler:((SettingsListSelectorCtrl, dataItem) -> Void)? = nil
+    var savedHandler:((SettingsListSelectorCtrl, Set<dataItem>) -> Void)? = nil
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
     {
-        switch _type
-        {
-        case .OVERLAY:
-            let value = Overlay(rawValue: indexPath.item)!
-            Cookie.instance.overlay = value
-        case .IMAGE_QUALITY:
-            let value = ImageQuality(rawValue: indexPath.item)!
-            Cookie.instance.imageQuality = value
-        }
     
         DispatchQueue.main.async {
         [unowned self] in

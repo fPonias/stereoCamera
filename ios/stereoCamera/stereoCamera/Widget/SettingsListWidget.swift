@@ -11,16 +11,23 @@ import UIKit
 
 class SettingsListWidget : UICollectionViewCell
 {
+    override func didMoveToSuperview() {
+        let regoc = UITapGestureRecognizer(target: self, action: #selector(tapped))
+        regoc.numberOfTapsRequired = 1
+        rootView.addGestureRecognizer(regoc)
+    }
+    
     private var _id:Int = 0
     var id:Int
     {
         get { return _id }
     }
 
-    func setData(id:Int, title:String)
+    func setData(id:Int, title:String, selected:Bool)
     {
         _id = id
-        button.setTitle(title, for: .normal)
+        label.text = title
+        checkbox.image = (selected) ? UIImage(named: "checkbox-checked") : UIImage(named: "checkbox-unchecked")
     }
     
     private var listener:Optional<(Int) -> Void> = nil
@@ -29,13 +36,12 @@ class SettingsListWidget : UICollectionViewCell
         self.listener = listener
     }
 
-    @IBOutlet weak var button: UIButton!
+    @IBOutlet weak var rootView: UIView!
+    @IBOutlet weak var label: UILabel!
+    @IBOutlet weak var checkbox: UIImageView!
     
-    @IBAction func tapped(_ sender: Any)
+    @objc func tapped()
     {
-        if (listener != nil)
-        {
-            listener!(_id)
-        }
+        listener?(_id)
     }
 }

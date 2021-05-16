@@ -16,52 +16,24 @@
 		7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD11420D0DA530010F6B1 /* AppDelegate.swift */; };
 		7C6CD11C20D0DA550010F6B1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */; };
 		7C6CD11F20D0DA550010F6B1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7C6CD11D20D0DA550010F6B1 /* LaunchScreen.storyboard */; };
-		7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */; };
-		7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C6CD13B20D2223B0010F6B1 /* CommManager.swift */; };
-		7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84966E20F990CF00C50601 /* SendGravity.swift */; };
 		7C84967120FD4D8E00C50601 /* LevelWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84967020FD4D8E00C50601 /* LevelWidget.swift */; };
-		7C84967320FD5B0F00C50601 /* Angles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C84967220FD5B0F00C50601 /* Angles.swift */; };
 		7CA546FB21085A9600C81830 /* SettingsCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA546FA21085A9600C81830 /* SettingsCtrl.swift */; };
 		7CAD57B82118F493007205B2 /* LoadingPopupCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */; };
 		7CAD57BA2119215D007205B2 /* LoadSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD57B92119215D007205B2 /* LoadSpinner.swift */; };
 		7CAD57BC211A2BEC007205B2 /* ClickableButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */; };
-		7CAE81C921273B2A0022569D /* LatencyTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81C821273B2A0022569D /* LatencyTest.swift */; };
-		7CAE81CB212F408F0022569D /* ID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CA212F408F0022569D /* ID.swift */; };
 		7CAE81CD212F69E20022569D /* Statistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CC212F69E20022569D /* Statistics.swift */; };
 		7CAE81CF2138C2850022569D /* SettingsHtmlCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */; };
-		7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */; };
-		7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */; };
 		7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */; };
-		7CC66B7620E0BC5800AF811B /* MasterShake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CC66B7520E0BC5800AF811B /* MasterShake.swift */; };
-		7CCB728620E1B137000BE923 /* Handshake.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728520E1B137000BE923 /* Handshake.swift */; };
-		7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728720E20CFA000BE923 /* SendStatus.swift */; };
-		7CCB728C20E2137F000BE923 /* SlaveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728B20E2137F000BE923 /* SlaveState.swift */; };
 		7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728D20E2A412000BE923 /* Listeners.swift */; };
-		7CCB729020E2F2C0000BE923 /* Version.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB728F20E2F2C0000BE923 /* Version.swift */; };
-		7CCB729220E36EA8000BE923 /* SetFacing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729120E36EA8000BE923 /* SetFacing.swift */; };
-		7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729320E374C4000BE923 /* SetOverlay.swift */; };
-		7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729520E3ECFA000BE923 /* FireShutter.swift */; };
-		7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729720E5ADCA000BE923 /* SendPhoto.swift */; };
 		7CCB729A20E75072000BE923 /* DesignableTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729920E75072000BE923 /* DesignableTextField.swift */; };
 		7CCB729D20E8B4AC000BE923 /* Cookie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729C20E8B4AC000BE923 /* Cookie.swift */; };
-		7CCB729F20F024C0000BE923 /* SetZoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB729E20F024C0000BE923 /* SetZoom.swift */; };
-		7CCB72A320F41602000BE923 /* Disconnect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A220F41602000BE923 /* Disconnect.swift */; };
-		7CCB72A720F418F1000BE923 /* ConnectionPause.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CCB72A620F418F1000BE923 /* ConnectionPause.swift */; };
-		7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416020D397C4005BE7A8 /* Comm.swift */; };
-		7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416320D39DD3005BE7A8 /* Ping.swift */; };
-		7CDC416620D39DF6005BE7A8 /* CommandTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416520D39DF6005BE7A8 /* CommandTypes.swift */; };
-		7CDC416820D40F21005BE7A8 /* Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416720D40F21005BE7A8 /* Command.swift */; };
 		7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416A20D4F0F6005BE7A8 /* Bytes.swift */; };
-		7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */; };
-		7CDC417020D75C16005BE7A8 /* CameraPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC416F20D75C16005BE7A8 /* CameraPreview.swift */; };
 		7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */; };
 		7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */; };
 		7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */; };
 		7CEE471F21433334009909EF /* ExportSelectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEE471E21433334009909EF /* ExportSelectCtrl.swift */; };
-		7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */; };
 		7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */; };
 		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
-		7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59845211234980015260C /* SetCaptureQuality.swift */; };
 		7E5A01222618EFDC00BF8D86 /* MulticastDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */; };
 		7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */; };
 		7E5A0129261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */; };
@@ -131,7 +103,6 @@
 		7E691E4625F4640600ED228E /* jdpostct.c in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E3525F4640600ED228E /* jdpostct.c */; };
 		7E691E4725F4640600ED228E /* jdmerge.c in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E3625F4640600ED228E /* jdmerge.c */; };
 		7E691E4825F4640600ED228E /* jfdctint.c in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E3725F4640600ED228E /* jfdctint.c */; };
-		7E691E4D25F4654900ED228E /* Comm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7CDC415D20D39458005BE7A8 /* Comm.cpp */; };
 		7E691E5225F4687F00ED228E /* wrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5025F4687E00ED228E /* wrapper.cpp */; };
 		7E691E5325F4687F00ED228E /* wrapper.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 7E691E5125F4687E00ED228E /* wrapper.hpp */; };
 		7E691E5925F57BE700ED228E /* jpeglib.h in Headers */ = {isa = PBXBuildFile; fileRef = 7E691E5825F57BE700ED228E /* jpeglib.h */; };
@@ -182,56 +153,26 @@
 		7C6CD11B20D0DA550010F6B1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		7C6CD11E20D0DA550010F6B1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		7C6CD12020D0DA550010F6B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectCtrl.swift; sourceTree = "<group>"; };
 		7C6CD13A20D1C2870010F6B1 /* stereoCamera.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = stereoCamera.entitlements; sourceTree = "<group>"; };
-		7C6CD13B20D2223B0010F6B1 /* CommManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommManager.swift; sourceTree = "<group>"; };
 		7C6CD13F20D247520010F6B1 /* stereoCamera-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "stereoCamera-Bridging-Header.h"; sourceTree = "<group>"; };
-		7C84966E20F990CF00C50601 /* SendGravity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendGravity.swift; sourceTree = "<group>"; };
 		7C84967020FD4D8E00C50601 /* LevelWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelWidget.swift; sourceTree = "<group>"; };
-		7C84967220FD5B0F00C50601 /* Angles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Angles.swift; sourceTree = "<group>"; };
 		7CA546FA21085A9600C81830 /* SettingsCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCtrl.swift; sourceTree = "<group>"; };
 		7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingPopupCtrl.swift; sourceTree = "<group>"; };
 		7CAD57B92119215D007205B2 /* LoadSpinner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadSpinner.swift; sourceTree = "<group>"; };
 		7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClickableButton.swift; sourceTree = "<group>"; };
-		7CAE81C821273B2A0022569D /* LatencyTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LatencyTest.swift; sourceTree = "<group>"; };
-		7CAE81CA212F408F0022569D /* ID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ID.swift; sourceTree = "<group>"; };
 		7CAE81CC212F69E20022569D /* Statistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Statistics.swift; sourceTree = "<group>"; };
 		7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsHtmlCtrl.swift; sourceTree = "<group>"; };
-		7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraSlaveCtrl.swift; sourceTree = "<group>"; };
-		7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraBaseCtrl.swift; sourceTree = "<group>"; };
 		7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryBtn.swift; sourceTree = "<group>"; };
-		7CC66B7520E0BC5800AF811B /* MasterShake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MasterShake.swift; path = stereoCamera/Controllers/MasterShake.swift; sourceTree = SOURCE_ROOT; };
-		7CCB728520E1B137000BE923 /* Handshake.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Handshake.swift; sourceTree = "<group>"; };
-		7CCB728720E20CFA000BE923 /* SendStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendStatus.swift; sourceTree = "<group>"; };
-		7CCB728B20E2137F000BE923 /* SlaveState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SlaveState.swift; sourceTree = "<group>"; };
 		7CCB728D20E2A412000BE923 /* Listeners.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Listeners.swift; sourceTree = "<group>"; };
-		7CCB728F20E2F2C0000BE923 /* Version.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Version.swift; sourceTree = "<group>"; };
-		7CCB729120E36EA8000BE923 /* SetFacing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetFacing.swift; sourceTree = "<group>"; };
-		7CCB729320E374C4000BE923 /* SetOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetOverlay.swift; sourceTree = "<group>"; };
-		7CCB729520E3ECFA000BE923 /* FireShutter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FireShutter.swift; sourceTree = "<group>"; };
-		7CCB729720E5ADCA000BE923 /* SendPhoto.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendPhoto.swift; sourceTree = "<group>"; };
 		7CCB729920E75072000BE923 /* DesignableTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignableTextField.swift; sourceTree = "<group>"; };
 		7CCB729C20E8B4AC000BE923 /* Cookie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cookie.swift; sourceTree = "<group>"; };
-		7CCB729E20F024C0000BE923 /* SetZoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetZoom.swift; sourceTree = "<group>"; };
-		7CCB72A220F41602000BE923 /* Disconnect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Disconnect.swift; sourceTree = "<group>"; };
-		7CCB72A620F418F1000BE923 /* ConnectionPause.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionPause.swift; sourceTree = "<group>"; };
-		7CDC415D20D39458005BE7A8 /* Comm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Comm.cpp; sourceTree = "<group>"; };
-		7CDC415E20D39458005BE7A8 /* Comm.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Comm.hpp; sourceTree = "<group>"; };
-		7CDC416020D397C4005BE7A8 /* Comm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Comm.swift; sourceTree = "<group>"; };
-		7CDC416320D39DD3005BE7A8 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };
-		7CDC416520D39DF6005BE7A8 /* CommandTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandTypes.swift; sourceTree = "<group>"; };
-		7CDC416720D40F21005BE7A8 /* Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Command.swift; sourceTree = "<group>"; };
 		7CDC416A20D4F0F6005BE7A8 /* Bytes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bytes.swift; sourceTree = "<group>"; };
-		7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraMasterCtrl.swift; sourceTree = "<group>"; };
-		7CDC416F20D75C16005BE7A8 /* CameraPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreview.swift; sourceTree = "<group>"; };
 		7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignableWidget.swift; sourceTree = "<group>"; };
 		7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridCtrl.swift; sourceTree = "<group>"; };
 		7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryGridWidget.swift; sourceTree = "<group>"; };
 		7CEE471E21433334009909EF /* ExportSelectCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSelectCtrl.swift; sourceTree = "<group>"; };
-		7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewOverlay.swift; sourceTree = "<group>"; };
 		7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListSelectorCtrl.swift; sourceTree = "<group>"; };
 		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
-		7CF59845211234980015260C /* SetCaptureQuality.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetCaptureQuality.swift; sourceTree = "<group>"; };
 		7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MulticastDelegate.swift; sourceTree = "<group>"; };
 		7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraMultiCameraCtrl.swift; sourceTree = "<group>"; };
 		7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraLegacyCameraCtrl.swift; sourceTree = "<group>"; };
@@ -388,7 +329,6 @@
 				7C6CD13F20D247520010F6B1 /* stereoCamera-Bridging-Header.h */,
 				7CDC416920D4F0D8005BE7A8 /* Util */,
 				7C6CD13A20D1C2870010F6B1 /* stereoCamera.entitlements */,
-				7C6CD13120D1BF260010F6B1 /* Comm */,
 				7CDC416E20D75BFD005BE7A8 /* Widget */,
 				7C6CD12C20D1B2080010F6B1 /* Controllers */,
 				7C6CD11420D0DA530010F6B1 /* AppDelegate.swift */,
@@ -406,13 +346,8 @@
 				7E5A0124261A85EC00BF8D86 /* subCtrl */,
 				7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */,
 				7CEE471E21433334009909EF /* ExportSelectCtrl.swift */,
-				7CC66B7520E0BC5800AF811B /* MasterShake.swift */,
-				7C6CD12F20D1B4FD0010F6B1 /* ConnectCtrl.swift */,
-				7CDC416C20D751EC005BE7A8 /* CameraMasterCtrl.swift */,
 				7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */,
 				7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */,
-				7CC66B6F20E09F4900AF811B /* CameraSlaveCtrl.swift */,
-				7CC66B7120E09FB500AF811B /* CameraBaseCtrl.swift */,
 				7CA546FA21085A9600C81830 /* SettingsCtrl.swift */,
 				7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */,
 				7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */,
@@ -424,49 +359,12 @@
 			path = Controllers;
 			sourceTree = "<group>";
 		};
-		7C6CD13120D1BF260010F6B1 /* Comm */ = {
-			isa = PBXGroup;
-			children = (
-				7CDC416220D39DBA005BE7A8 /* Commands */,
-				7C6CD13B20D2223B0010F6B1 /* CommManager.swift */,
-				7CDC416020D397C4005BE7A8 /* Comm.swift */,
-				7CDC415D20D39458005BE7A8 /* Comm.cpp */,
-				7CDC415E20D39458005BE7A8 /* Comm.hpp */,
-				7CCB728B20E2137F000BE923 /* SlaveState.swift */,
-			);
-			path = Comm;
-			sourceTree = "<group>";
-		};
 		7C6CD13720D1C2870010F6B1 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				6A60E4A48676C41FF65654A2 /* libPods-stereoCamera.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		7CDC416220D39DBA005BE7A8 /* Commands */ = {
-			isa = PBXGroup;
-			children = (
-				7CDC416320D39DD3005BE7A8 /* Ping.swift */,
-				7CDC416520D39DF6005BE7A8 /* CommandTypes.swift */,
-				7CDC416720D40F21005BE7A8 /* Command.swift */,
-				7CCB728520E1B137000BE923 /* Handshake.swift */,
-				7CCB728720E20CFA000BE923 /* SendStatus.swift */,
-				7CCB728F20E2F2C0000BE923 /* Version.swift */,
-				7CCB729120E36EA8000BE923 /* SetFacing.swift */,
-				7CCB729320E374C4000BE923 /* SetOverlay.swift */,
-				7CCB729520E3ECFA000BE923 /* FireShutter.swift */,
-				7CCB729720E5ADCA000BE923 /* SendPhoto.swift */,
-				7CCB729E20F024C0000BE923 /* SetZoom.swift */,
-				7CCB72A220F41602000BE923 /* Disconnect.swift */,
-				7CCB72A620F418F1000BE923 /* ConnectionPause.swift */,
-				7C84966E20F990CF00C50601 /* SendGravity.swift */,
-				7CF59845211234980015260C /* SetCaptureQuality.swift */,
-				7CAE81C821273B2A0022569D /* LatencyTest.swift */,
-				7CAE81CA212F408F0022569D /* ID.swift */,
-			);
-			path = Commands;
 			sourceTree = "<group>";
 		};
 		7CDC416920D4F0D8005BE7A8 /* Util */ = {
@@ -476,7 +374,6 @@
 				7C2E237120DB0A380027A2F5 /* Files.swift */,
 				7CCB728D20E2A412000BE923 /* Listeners.swift */,
 				7CCB729C20E8B4AC000BE923 /* Cookie.swift */,
-				7C84967220FD5B0F00C50601 /* Angles.swift */,
 				7CAE81CC212F69E20022569D /* Statistics.swift */,
 				7C1E4A1021419B96005F1944 /* ImageProvider.swift */,
 				7E9FCE292607DF1000223114 /* Histogram.swift */,
@@ -500,14 +397,12 @@
 		7CDC416E20D75BFD005BE7A8 /* Widget */ = {
 			isa = PBXGroup;
 			children = (
-				7CDC416F20D75C16005BE7A8 /* CameraPreview.swift */,
 				7CDC417320D987AD005BE7A8 /* DesignableWidget.swift */,
 				7CDC467A20DB02AB005BE7A8 /* GalleryGridWidget.swift */,
 				7C35B69320DD6B5C00500196 /* GalleryGridLayout.swift */,
 				7CC66B7320E0A04E00AF811B /* GalleryBtn.swift */,
 				7CCB729920E75072000BE923 /* DesignableTextField.swift */,
 				7C84967020FD4D8E00C50601 /* LevelWidget.swift */,
-				7CF5983F210B828F0015260C /* CameraPreviewOverlay.swift */,
 				7CF59843211157810015260C /* SettingsListWidget.swift */,
 				7CAD57B92119215D007205B2 /* LoadSpinner.swift */,
 				7CAD57BB211A2BEC007205B2 /* ClickableButton.swift */,
@@ -765,20 +660,16 @@
 			files = (
 				7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */,
 				7EFFA0F12642D72C0084F31D /* FrameRateCounter.swift in Sources */,
-				7E691E4D25F4654900ED228E /* Comm.cpp in Sources */,
 				7EA171792609402800EF314C /* ImageProcessor.swift in Sources */,
 				7E691E4425F4640600ED228E /* jfdctflt.c in Sources */,
 				7CDC467B20DB02AB005BE7A8 /* GalleryGridWidget.swift in Sources */,
-				7CCB729820E5ADCA000BE923 /* SendPhoto.swift in Sources */,
 				7CAD57BC211A2BEC007205B2 /* ClickableButton.swift in Sources */,
 				7EFFA100264723FB0084F31D /* PopupButtonPicker.swift in Sources */,
-				7CCB729420E374C4000BE923 /* SetOverlay.swift in Sources */,
 				7CCB729D20E8B4AC000BE923 /* Cookie.swift in Sources */,
 				7E691E4025F4640600ED228E /* jutils.c in Sources */,
 				7E691DFF25F4638400ED228E /* jcmainct.c in Sources */,
 				7E691E0025F4638400ED228E /* jccolor.c in Sources */,
 				7E691E3925F4640600ED228E /* jmemname.c in Sources */,
-				7CCB72A320F41602000BE923 /* Disconnect.swift in Sources */,
 				7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */,
 				7EA68B1B262B3BC600D96250 /* GammaFilter.swift in Sources */,
 				7E691E1125F463AD00ED228E /* jdatadst.c in Sources */,
@@ -786,33 +677,25 @@
 				7E691DFC25F4638400ED228E /* jcmarker.c in Sources */,
 				7CAE81CF2138C2850022569D /* SettingsHtmlCtrl.swift in Sources */,
 				7E691E2125F463CB00ED228E /* jdmarker.c in Sources */,
-				7CC66B7220E09FB500AF811B /* CameraBaseCtrl.swift in Sources */,
-				7CCB729F20F024C0000BE923 /* SetZoom.swift in Sources */,
 				7E691E5225F4687F00ED228E /* wrapper.cpp in Sources */,
 				7EFFA0FC264620640084F31D /* TimeIntervalExt.swift in Sources */,
 				7CCB729A20E75072000BE923 /* DesignableTextField.swift in Sources */,
 				7E691DE425F461FF00ED228E /* GreenMagentaCompositeImageStream.cpp in Sources */,
 				7E5A0133262678A400BF8D86 /* ImagePostProcessor.swift in Sources */,
 				7E691E1F25F463CB00ED228E /* jdcoefct.c in Sources */,
-				7CC66B7620E0BC5800AF811B /* MasterShake.swift in Sources */,
 				7CAD57BA2119215D007205B2 /* LoadSpinner.swift in Sources */,
 				7E691DD825F461FF00ED228E /* AnaglyphCompositeImageStream.cpp in Sources */,
 				7CDC467720DAFE9E005BE7A8 /* GalleryGridCtrl.swift in Sources */,
-				7C84966F20F990CF00C50601 /* SendGravity.swift in Sources */,
-				7CCB728820E20CFA000BE923 /* SendStatus.swift in Sources */,
 				7ED00E592635D9A500D12A4C /* RotateFilter.swift in Sources */,
 				7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */,
-				7CF59840210B828F0015260C /* CameraPreviewOverlay.swift in Sources */,
 				7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */,
 				7E691E0525F4638400ED228E /* jcmaster.c in Sources */,
-				7C84967320FD5B0F00C50601 /* Angles.swift in Sources */,
 				7C2E237220DB0A380027A2F5 /* Files.swift in Sources */,
 				7E691E1225F463AD00ED228E /* jdapimin.c in Sources */,
 				7C1E4A0F214103AA005F1944 /* GalleryGridHeader.swift in Sources */,
 				7EA68B28262BB3F400D96250 /* ImageExporter.swift in Sources */,
 				7E691E3B25F4640600ED228E /* jquant1.c in Sources */,
 				7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */,
-				7CAE81CB212F408F0022569D /* ID.swift in Sources */,
 				7E691E0F25F463AD00ED228E /* jdapistd.c in Sources */,
 				7E691D1725F461FE00ED228E /* Image.cpp in Sources */,
 				7E691E4125F4640600ED228E /* jdtrans.c in Sources */,
@@ -820,20 +703,16 @@
 				7E691E2225F463CB00ED228E /* jddctmgr.c in Sources */,
 				7E691E4225F4640600ED228E /* jidctint.c in Sources */,
 				7E691E2525F463CB00ED228E /* jdatasrc.c in Sources */,
-				7CCB729220E36EA8000BE923 /* SetFacing.swift in Sources */,
 				7E691DFA25F4638400ED228E /* jccoefct.c in Sources */,
 				7E691E4825F4640600ED228E /* jfdctint.c in Sources */,
-				7CC66B7020E09F4900AF811B /* CameraSlaveCtrl.swift in Sources */,
 				7E691DFB25F4638400ED228E /* jcdctmgr.c in Sources */,
 				7E5A01222618EFDC00BF8D86 /* MulticastDelegate.swift in Sources */,
 				7E691E0E25F463AD00ED228E /* jctrans.c in Sources */,
 				7E691DE725F461FF00ED228E /* SplitCompositeImageStream.cpp in Sources */,
 				7EFFA0FA2645FDBF0084F31D /* DeviceList.swift in Sources */,
-				7CF59846211234980015260C /* SetCaptureQuality.swift in Sources */,
 				7CF59844211157810015260C /* SettingsListWidget.swift in Sources */,
 				7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */,
 				7E691E3E25F4640600ED228E /* jfdctfst.c in Sources */,
-				7CCB729020E2F2C0000BE923 /* Version.swift in Sources */,
 				7CCB728E20E2A412000BE923 /* Listeners.swift in Sources */,
 				7ED8F30926391E1400F3AC92 /* MoviePlayerVC.swift in Sources */,
 				7CC66B7420E0A04E00AF811B /* GalleryBtn.swift in Sources */,
@@ -846,7 +725,6 @@
 				7E691E3825F4640600ED228E /* jdsample.c in Sources */,
 				7E691E4725F4640600ED228E /* jdmerge.c in Sources */,
 				7E691E2025F463CB00ED228E /* jdinput.c in Sources */,
-				7CCB729620E3ECFA000BE923 /* FireShutter.swift in Sources */,
 				7E691D1625F461FE00ED228E /* PreProcessor.cpp in Sources */,
 				7E691E642600908C00ED228E /* PreviewView.swift in Sources */,
 				7E691E2325F463CB00ED228E /* jdmainct.c in Sources */,
@@ -855,13 +733,11 @@
 				7E691E3F25F4640600ED228E /* jmemmgr.c in Sources */,
 				7E691DFD25F4638400ED228E /* jcapimin.c in Sources */,
 				7C84967120FD4D8E00C50601 /* LevelWidget.swift in Sources */,
-				7CAE81C921273B2A0022569D /* LatencyTest.swift in Sources */,
 				7CDC417420D987AD005BE7A8 /* DesignableWidget.swift in Sources */,
 				7E691E0425F4638400ED228E /* jcparam.c in Sources */,
 				7E691DD625F461FF00ED228E /* RedCyanCompositeImageStream.cpp in Sources */,
 				7E691E2425F463CB00ED228E /* jdcolor.c in Sources */,
 				7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */,
-				7CDC416D20D751EC005BE7A8 /* CameraMasterCtrl.swift in Sources */,
 				7C1E4A1121419B96005F1944 /* ImageProvider.swift in Sources */,
 				7E691DF925F4638400ED228E /* jcapistd.c in Sources */,
 				7E691E0125F4638400ED228E /* jcinit.c in Sources */,
@@ -869,17 +745,12 @@
 				7E691E4525F4640600ED228E /* jerror.c in Sources */,
 				7CEE471F21433334009909EF /* ExportSelectCtrl.swift in Sources */,
 				7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */,
-				7C6CD13C20D2223B0010F6B1 /* CommManager.swift in Sources */,
-				7CDC416420D39DD3005BE7A8 /* Ping.swift in Sources */,
 				7EFFA0FE2646EB810084F31D /* PopupButton.swift in Sources */,
-				7CDC416120D397C4005BE7A8 /* Comm.swift in Sources */,
 				7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */,
 				7E691E3C25F4640600ED228E /* jdmaster.c in Sources */,
 				7ED00E6226365D3400D12A4C /* VideoPreviewDouble.swift in Sources */,
 				7E691E1E25F463CB00ED228E /* jdhuff.c in Sources */,
-				7CCB72A720F418F1000BE923 /* ConnectionPause.swift in Sources */,
 				7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */,
-				7CDC417020D75C16005BE7A8 /* CameraPreview.swift in Sources */,
 				7ED00E5F2636567600D12A4C /* VideoProcessor.swift in Sources */,
 				7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */,
 				7E691D1525F461FE00ED228E /* util.cpp in Sources */,
@@ -887,10 +758,8 @@
 				7EA68B24262B65A400D96250 /* ScaleFilter.swift in Sources */,
 				7E691E4625F4640600ED228E /* jdpostct.c in Sources */,
 				7EA68B182626BA9500D96250 /* ImageEditorWidget.swift in Sources */,
-				7CCB728620E1B137000BE923 /* Handshake.swift in Sources */,
 				7E691DFE25F4638400ED228E /* jaricom.c in Sources */,
 				7E5A012C261EBB0B00BF8D86 /* ImageEditorCtrl.swift in Sources */,
-				7CDC416620D39DF6005BE7A8 /* CommandTypes.swift in Sources */,
 				7E691E4325F4640600ED228E /* jidctflt.c in Sources */,
 				7E691E3D25F4640600ED228E /* jidctfst.c in Sources */,
 				7EFFA0F5264456DF0084F31D /* CameraTypePicker.swift in Sources */,
@@ -899,12 +768,9 @@
 				7E691E1425F463AD00ED228E /* jcprepct.c in Sources */,
 				7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */,
 				7E5A0129261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift in Sources */,
-				7C6CD13020D1B4FD0010F6B1 /* ConnectCtrl.swift in Sources */,
 				7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */,
 				7EA68B2B262BB46900D96250 /* ImageEditorData.swift in Sources */,
 				7E691DF825F4638400ED228E /* jcomapi.c in Sources */,
-				7CDC416820D40F21005BE7A8 /* Command.swift in Sources */,
-				7CCB728C20E2137F000BE923 /* SlaveState.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -14,25 +14,20 @@ class Cookie
     let version:Float = 7.0
 
     let versionKey = "VERSION"
-    let masterKey = "MASTER"
-    let clientKey = "CLIENT"
-    let cameraKey = "CAMERA"
-    let cameraZoomsKey = "CAMERA_ZOOMS"
-    let dualZoomKey = "DUAL_ZOOM"
-    let sideKey = "SIDE"
-    let overlayKey = "OVERLAY"
-    let syncTestKey = "SYNC_TEST"
-    let imageQualityKey = "IMAGE_QUALITY"
-    let remoteSyncKey = "REMOTE_SYNC"
-    let localSyncKey = "LOCAL_SYNC"
-    let useSyncKey = "USE_SYNC"
-    let deviceIDKey = "DEVICE_ID"
+    let photoImageQualityKey = "PHOTO_IMAGE_QUALITY"
+    let photoFormatKey = "PHOTO_FORMAT"
+    let videoImageQualityKey = "VIDEO_IMAGE_QUALITY"
+    let videoFormatKey = "VIDEO_FORMAT"
+    let preferredOrientationKey = "PREFERRED_ORIENTATION"
     let introSeenKey = "INTRO_SEEN"
     
     enum PrefType
     {
-        case OVERLAY,
-        IMAGE_QUALITY
+        case PHOTO_IMAGE_QUALITY,
+             PHOTO_IMAGE_FORMAT,
+             VIDEO_IMAGE_QUALITY,
+             VIDEO_IMAGE_FORMAT,
+             ORIENTATION
     }
     
     private static let _instance:Cookie = Cookie()
@@ -55,221 +50,11 @@ class Cookie
         let ver = UserDefaults.standard.float(forKey: versionKey)
         let prefs = UserDefaults.standard
         
-        if (ver == 0)
-        {
-            prefs.set(version, forKey: versionKey)
-            prefs.set(false, forKey: masterKey)
-            prefs.set("", forKey: clientKey)
-            prefs.set(false, forKey: cameraKey)
-            prefs.set([String:Float](), forKey: cameraZoomsKey)
-            prefs.set(RIGHT.rawValue, forKey: sideKey)
-        }
-        
-        if (ver < 4.0)
-        {
-            prefs.set(version, forKey: versionKey)
-            let id = UUID.init()
-            prefs.set(id.uuidString, forKey: deviceIDKey)
-            prefs.set(true, forKey: useSyncKey)
-        }
-        
-        if (ver < 5.0)
-        {
-            prefs.set(version, forKey: versionKey)
-            let dict = prefs.dictionaryRepresentation()
-            for (key, _) in dict
-            {
-                if (key.starts(with: remoteSyncKey) || key.starts(with: localSyncKey))
-                {
-                    prefs.removeObject(forKey: key)
-                }
-            }
-            
-            prefs.set(false, forKey: useSyncKey)
-        }
-        
         if (ver < 6.0)
         {
             prefs.set(version, forKey: versionKey)
             prefs.set(false, forKey: introSeenKey)
         }
-        
-        if (ver < 7.0)
-        {
-            prefs.set(version, forKey: versionKey)
-            prefs.set(1.0, forKey: dualZoomKey)
-        }
-    }
-    
-    var master:Bool
-    {
-        get { return UserDefaults.standard.bool(forKey: masterKey) }
-        set { UserDefaults.standard.set(newValue, forKey: masterKey) }
-    }
-    
-    var client:String
-    {
-        get { return UserDefaults.standard.string(forKey: clientKey)! }
-        set { UserDefaults.standard.set(newValue, forKey: clientKey) }
-    }
-    
-    var camera: AVCaptureDevice.Position
-    {
-        get
-        {
-            let cameraInt = UserDefaults.standard.integer(forKey: cameraKey)
-            return AVCaptureDevice.Position(rawValue: cameraInt)!
-        }
-        set
-        {
-            let value = newValue.rawValue
-            UserDefaults.standard.set(value, forKey: cameraKey)
-        }
-    }
-    
-    private var currentClientID:String = ""
-    
-    func getCurrentClientID() -> String
-    {
-        return currentClientID
-    }
-    
-    func setCurrentClientID(value:String)
-    {
-        currentClientID = value
-    }
-    
-    private var currentClientVersion:UInt32 = 0
-    
-    func getCurrentClientVersion() -> UInt32
-    {
-        return currentClientVersion
-    }
-    
-    func setCurrentClientVersion(value:UInt32)
-    {
-        currentClientVersion = value
-    }
-    
-    private var currentClientPlatform:Version.Platform = .IOS
-    
-    func getCurrentClientPlatform() -> Version.Platform
-    {
-        return currentClientPlatform
-    }
-    
-    func setCurrentClientPlatform(value:Version.Platform)
-    {
-        currentClientPlatform = value
-    }
-    
-    func getZoomForDual() -> Float
-    {
-        return UserDefaults.standard.float(forKey: dualZoomKey)
-    }
-    
-    func setZoomForDual(zoom:Float)
-    {
-        UserDefaults.standard.setValue(zoom, forKey: dualZoomKey)
-    }
-    
-    func getZoomForClient(isMaster: Bool, client: String, camera: AVCaptureDevice.Position = AVCaptureDevice.Position.back) -> Float
-    {
-        let dict = UserDefaults.standard.dictionary(forKey: cameraZoomsKey)
-        
-        let key = (isMaster ? "1" : "0") + "-" + client + "-" + String(camera.rawValue)
-        if (dict![key] != nil)
-        {
-            return dict![key] as! Float
-        }
-        else
-        {
-            return 1.0
-        }
-    }
-    
-    func setZoomForClient(zoom: Float, isMaster: Bool, client: String, camera: AVCaptureDevice.Position = AVCaptureDevice.Position.back)
-    {
-        var dict = UserDefaults.standard.dictionary(forKey: cameraZoomsKey)
-        let key = (isMaster ? "1" : "0") + "-" + client + "-" + String(camera.rawValue)
-        dict![key] = zoom
-        
-        UserDefaults.standard.set(dict, forKey: cameraZoomsKey)
-    }
-    
-    var side:Side
-    {
-        get
-        {
-            let val = UserDefaults.standard.integer(forKey: sideKey)
-            return Side(UInt32(val))
-        }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: sideKey) }
-    }
-    
-    var overlay:Overlay
-    {
-        get
-        {
-            let val = UserDefaults.standard.integer(forKey: overlayKey)
-            return Overlay(rawValue: val)!
-        }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: overlayKey)}
-    }
-    
-    var imageQuality:ImageQuality
-    {
-        get
-        {
-            let val = UserDefaults.standard.integer(forKey: imageQualityKey)
-            return ImageQuality(rawValue: val)!
-        }
-        set { UserDefaults.standard.set(newValue.rawValue, forKey: imageQualityKey)}
-    }
-    
-    var runSyncTest:Bool
-    {
-        get { return UserDefaults.standard.bool(forKey: syncTestKey )}
-        set { UserDefaults.standard.set(newValue, forKey: syncTestKey)}
-    }
-    
-    func getLocalSync(id:String) -> [Int]
-    {
-        var ret:[Any]? = UserDefaults.standard.array(forKey: localSyncKey + id)
-        if (ret == nil)
-            { ret = [Int]() }
-        
-        return ret as! [Int]
-    }
-    
-    func setLocalSync(_ value:[Int], id:String)
-    {
-        UserDefaults.standard.set(value, forKey: localSyncKey + id)
-    }
-    
-    func getRemoteSync(id:String) -> [Int]
-    {
-        var ret:[Any]? = UserDefaults.standard.array(forKey: remoteSyncKey + id)
-        if (ret == nil)
-            { ret = [Int]() }
-        
-        return ret as! [Int]
-    }
-    
-    func setRemoteSync(_ value:[Int], id:String)
-    {
-        UserDefaults.standard.set(value, forKey: remoteSyncKey + id)
-    }
-    
-    var id:String
-    {
-        get { return UserDefaults.standard.string(forKey: deviceIDKey)!}
-    }
-    
-    var useSync:Bool
-    {
-        get { return UserDefaults.standard.bool(forKey: useSyncKey) }
-        set { UserDefaults.standard.set(newValue, forKey: useSyncKey) }
     }
     
     var introSeen:Bool
@@ -277,56 +62,124 @@ class Cookie
         get { return UserDefaults.standard.bool(forKey: introSeenKey) }
         set { UserDefaults.standard.set(newValue, forKey: introSeenKey) }
     }
-}
-
-
-
-enum Overlay: Int
-{
-    case NONE,
-    HALF,
-    THIRDS,
-    FOURTHS
     
-    func toString() -> String
+    var photoImageQuality:ImageQuality
     {
-        switch self
-        {
-            case .NONE: return "None"
-            case .HALF: return "Half"
-            case .THIRDS: return "Thirds"
-            case .FOURTHS: return "Fourths"
+        get {
+            let val = UserDefaults.standard.integer(forKey: photoImageQualityKey)
+            return ImageQuality.init(rawValue: val) ?? ImageQuality.ULTRA_HI_DEF
+        }
+        set {
+            UserDefaults.standard.setValue(newValue.rawValue, forKey: photoImageQualityKey)
         }
     }
     
-    //this shouldn't be necessary, but swift lacks good reflection utilities
-    static let allValues = [
-        NONE.rawValue: NONE.toString(),
-        HALF.rawValue: HALF.toString(),
-        THIRDS.rawValue: THIRDS.toString(),
-        FOURTHS.rawValue: FOURTHS.toString()
-    ]
-}
-
-enum ImageQuality: Int
-{
-    case PREVIEW,
-    LOW,
-    HIGH
-    
-    func toString() -> String
+    var photoFormat:Set<ImageFormat>
     {
-        switch self
-        {
-            case .HIGH: return "High"
-            case .LOW: return "Low"
-            case .PREVIEW: return "Preview"
+        get {
+            let val = UserDefaults.standard.integer(forKey: photoFormatKey)
+            var ret = ImageFormat.intToSet(val)
+            
+            if ret.isEmpty {
+                ret.insert(.SPLIT)
+            }
+            
+            return ret
+        }
+        set {
+            let val = ImageFormat.setToInt(newValue)
+            UserDefaults.standard.setValue(val, forKey: photoFormatKey)
         }
     }
     
-    //this shouldn't be necessary, but swift lacks good reflection utilities
-    static let allValues = [
-        HIGH.rawValue: HIGH.toString(),
-        LOW.rawValue: LOW.toString()
-    ]
+    var videoImageQuality:ImageQuality
+    {
+        get {
+            let val = UserDefaults.standard.integer(forKey: videoImageQualityKey)
+            return ImageQuality.init(rawValue: val) ?? ImageQuality.ULTRA_HI_DEF
+        }
+        set {
+            UserDefaults.standard.setValue(newValue.rawValue, forKey: videoImageQualityKey)
+        }
+    }
+    
+    var videoFormat:ImageFormat {
+        get {
+            let val = UserDefaults.standard.integer(forKey: videoFormatKey)
+            return ImageFormat.init(rawValue: val) ?? ImageFormat.SPLIT
+        }
+        set {
+            UserDefaults.standard.setValue(newValue.rawValue, forKey: videoFormatKey)
+        }
+    }
+    
+    var preferredOrientation:UIDeviceOrientation {
+        get {
+            let exists = UserDefaults.standard.value(forKey: preferredOrientationKey)
+            
+            if (exists != nil) {
+                let val = UserDefaults.standard.integer(forKey: preferredOrientationKey)
+                return UIDeviceOrientation.init(rawValue: val) ?? UIDeviceOrientation.landscapeRight
+            } else {
+                return UIDeviceOrientation.landscapeRight
+            }
+        }
+        set {
+            UserDefaults.standard.setValue(newValue.rawValue, forKey: preferredOrientationKey)
+        }
+    }
+}
+
+enum ImageFormat: Int, CaseIterable
+{
+    case SPLIT = 0x1,
+         GREEN_MAGENTA = 0x2,
+         RED_BLUE = 0x4,
+         ANIMATED = 0x8
+    
+    static func intToSet(_ val:Int) -> Set<ImageFormat> {
+        var ret = Set<ImageFormat>()
+        for value in ImageFormat.allCases {
+            if (val & value.rawValue) != 0 {
+                ret.insert(value)
+            }
+        }
+        
+        return ret
+    }
+    
+    static func setToInt(_ newValue:Set<ImageFormat>) -> Int {
+        var val = 0
+        for value in ImageFormat.allCases {
+            if newValue.contains(value) {
+                val = val | value.rawValue
+            }
+        }
+        
+        return val
+    }
+    
+    func toString() -> String {
+        switch(self) {
+        case .ANIMATED: return "animated"
+        case .GREEN_MAGENTA: return "green-magenta"
+        case .RED_BLUE: return "red-blue"
+        case .SPLIT: return "split"
+        }
+    }
+}
+
+enum ImageQuality: Int, CaseIterable
+{
+    case STANDARD_DEF,
+         HI_DEF,
+         ULTRA_HI_DEF
+    
+    func toString() -> String {
+        switch(self) {
+        case .HI_DEF: return "HD"
+        case .STANDARD_DEF: return "SD"
+        case .ULTRA_HI_DEF: return "UHD"
+        }
+    }
 }
