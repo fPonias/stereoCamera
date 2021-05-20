@@ -15,72 +15,65 @@ class ImageExporter {
     let rightData:ImageEditorData
     var debugView:UIImageView?
     
-    init(leftData:ImageEditorData, rightData:ImageEditorData){
+    let processType:ImageFormat
+    let outputQuality:ImageQuality
+    
+    init(leftData:ImageEditorData, rightData:ImageEditorData, processType:ImageFormat = .SPLIT, outputQuality:ImageQuality = .ULTRA_HI_DEF){
         self.leftData = leftData
         self.rightData = rightData
+        self.processType = processType
+        self.outputQuality = outputQuality
     }
     
-    private func processSide(data:ImageEditorData, size:CGSize) -> CVPixelBuffer? {
-        guard let imgBig = data.process(type: .EXPORT) else { return nil }
-        
-        guard let buffer = data.origData else { return nil }
-        
-        var img:CIImage? = CIImage(cvPixelBuffer: buffer)
-        let squareFilter = SquareFilter(orientation: .DEG_0, zoom: 1.0)
-        img = squareFilter.update(img!)
-        
-        let rotateFIlter = RotateFilter(rotation: data.rotation, dimension: Int(size.width))
-        img = rotateFIlter.update(img!)
-        
-        let gammaFilter = GammaFilter(value: 2.2)
-        img = gammaFilter.update(img!)
-        
-        guard let imgout = img else { return nil }
-        
-        let ctx = CIContext()
-        let sz = imgout.extent
-        var outBuf:CVPixelBuffer?
-        CVPixelBufferCreate(kCFAllocatorDefault, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &outBuf)
-        
-        guard let outBufConst = outBuf else { return nil }
-        
-        ctx.render(imgout, to: outBufConst)
-        
-        return outBufConst
-    }
+    private var context = CIContext()
+    private var outSz:ImageUtils.Size?
+    private var proc:ImageProcessor?
     
-    public func export() {
-        let context = CIContext()
-        
+    private func setupProcessor() {
         let leftMargin = leftData.margins
         let rightMargin = rightData.margins
         
-        let dim = (leftMargin.width < rightMargin.width) ? leftMargin.width : rightMargin.width
+        let maxDim = (leftMargin.width < rightMargin.width) ? leftMargin.width : rightMargin.width
+        let prefDim = outputQuality.toInt()
+        let dim = min(maxDim, prefDim)
         
-        let sz = CGSize(width: CGFloat(dim), height: CGFloat(dim))
-        let outSz = ImageUtils.Size(width: dim * 2, height: dim)
-        
+        if (processType == .SPLIT) {
+            outSz = ImageUtils.Size(width: dim * 2, height: dim)
+            proc = ImageProcessorSplit(outSize: outSz!)
+        } else {
+            outSz = ImageUtils.Size(width: dim, height: dim)
+            
+            if (processType == .GREEN_MAGENTA) {
+                proc = ImageProcessorGreenMagenta(outSize: outSz!)
+            } else if (processType == .RED_BLUE) {
+                proc = ImageProcessorRedCyan(outSize: outSz!)
+            } else if (processType == .ANIMATED) {
+                proc = ImageProcessorAnimatedGif(outSize: outSz!, frameDelay: 0.15)
+            } else {
+                return
+            }
+        }
+    }
+    
+    public func export() {
         guard let leftImg = leftData.origData,
               let rightImg = rightData.origData
         else { return }
         
-        let proc = ImageProcessorSplit(outSize: outSz)
+        setupProcessor()
+        
+        guard let proc = proc else { return }
+        
+        
         proc.setPixels(pixels: leftImg, rotation: leftData.rotation)
         proc.processCurrentInTexture(.LEFT)
         proc.setPixels(pixels: rightImg, rotation: rightData.rotation)
         proc.processCurrentInTexture(.RIGHT)
         
-        guard let img = proc.getOutput(),
-              let cs = CGColorSpace(name: CGColorSpace.sRGB)
-        else { return }
+        guard let data = proc.getFinalImageData() else { return }
+        let ext = proc is ImageProcessorAnimatedGif ? "gif" : "jpg"
         
-        let gammaFilter = GammaFilter(value: 2.2)
-        guard let gammaImg = gammaFilter.update(img) else { return }
-        
-        let jpegData = context.jpegRepresentation(of: gammaImg, colorSpace: cs, options: [:])
-        guard let data = jpegData else { return }
-        
-        Files.instance.saveToPhotos(data: data, onSaved: { savedImg in
+        Files.instance.saveImageToPhotos(data: data, extension: ext, onSaved: { savedImg in
             print ("saved successfully")
         })
     }

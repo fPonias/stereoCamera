@@ -10,7 +10,6 @@ import AVFoundation
 import Photos
 import MetalKit
 import CoreMedia
-import CoreMotion
 
 
 protocol DualCameraController
@@ -37,6 +36,7 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private let maxZoom = 3.0
     let sessionQueue = DispatchQueue(label: "session queue") // Communicate with the session and other session objects on this queue.
     var cameraCtrl:DualCameraController?
+    let angleCalculator = AngleCalculator()
     
     
     // MARK: View Controller Life Cycle
@@ -139,18 +139,6 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         setupViews()
 
         navigationController?.setNavigationBarHidden(true, animated: false)
-        
-        doubleCameraPreview?.initialize(size:  CGSize(width: CGFloat(VideoProcessor.ENCODED_WIDTH), height: CGFloat(VideoProcessor.ENCODED_HEIGHT)))
-        
-        
-        motion.startAccelerometerUpdates()
-        
-        let attr = [kCVPixelBufferMetalCompatibilityKey: true,
-                    kCVPixelBufferPixelFormatTypeKey: kCVPixelFormatType_32BGRA,
-                    kCVPixelBufferWidthKey: VideoProcessor.ENCODED_WIDTH,
-                    kCVPixelBufferHeightKey: VideoProcessor.ENCODED_HEIGHT
-                    ] as CFDictionary
-        CVPixelBufferPoolCreate(kCFAllocatorDefault, nil, attr, &bufferPool)
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
         
@@ -258,6 +246,10 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         typePickerBtn.modalOrginOffset = CGPoint(x: 0, y: 0)
         
         playbackLbl?.text = ""
+        
+        
+        doubleCameraPreview?.initialize()
+        updateResolution()
     }
     
     struct CameraTypeItem : PopupButtonModalPickerItem
@@ -304,13 +296,10 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         if (cameraCtrl != nil) {
             cameraCtrl?.viewWillAppear()
         }
-        
-        motion.startAccelerometerUpdates()
     }
     
     private func cleanUp()
     {
-        motion.stopAccelerometerUpdates()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -357,54 +346,7 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private var zoomRight:CMSampleBuffer?
     private var zoomCalculated = true
     private var frameCounter = Date()
-    private let motion = CMMotionManager()
-    private var motionArr:[Double] = Array(repeating: 0.0, count: 5)
     
-    private func calculateAngle() -> Double {
-        var angle:Double
-        
-        if motion.isAccelerometerAvailable,
-           let accel = motion.accelerometerData
-        {
-            let x = accel.acceleration.x
-            let y = accel.acceleration.y
-            let z = accel.acceleration.z
-            
-            let xs = NSString(format:"%.2f", x)
-            let ys = NSString(format:"%.2f", y)
-            let zs = NSString(format:"%.2f", z)
-            //print ("\(xs), \(ys), \(zs)")
-            
-            let threshold = 0.08
-            
-            if (abs(x) < threshold) {
-                angle = (y < 0) ? 0.0 : Double.pi
-            } else {
-                angle = atan2(x, y)
-                
-                if (x < 0) {
-                    angle += 2.0 * Double.pi
-                }
-                
-                angle -= Double.pi
-            }
-            
-        } else {
-            angle = 0.0
-        }
-        
-        //angle += Double.pi / 2.0
-        
-        motionArr.removeFirst()
-        motionArr.append(angle)
-        
-        var total = 0.0
-        for item in motionArr {
-            total += item
-        }
-        
-        return total / Double(motionArr.count)
-    }
     
     private var videoFrameTiming = CMSampleTimingInfo()
     private var videoDescription:CMFormatDescription?
@@ -420,7 +362,7 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
             }
         }
         
-        let angle = calculateAngle()
+        let angle = angleCalculator.calculate()
         
         if isLeft {
             videoDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
@@ -438,7 +380,23 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     }
     
     func itemSelected(_ button: PopupButton, value: Any?) {
-        print("camera type selected")
+        updateResolution()
+    }
+    
+    private func updateResolution() {
+        guard let captureType = typePickerBtn?.pickedItem as? CameraTypeItem else { return }
+        let quality = (captureType.type == .CAMERA) ? Cookie.instance.photoImageQuality : Cookie.instance.videoImageQuality
+        let qualityVal = quality.toInt()
+        let resolution = CGSize(width: qualityVal * 2, height: qualityVal)
+        let procType = Cookie.instance.videoFormat
+        doubleCameraPreview?.setupProcessor(type: procType, size: resolution)
+        
+        let attr = [kCVPixelBufferMetalCompatibilityKey: true,
+                    kCVPixelBufferPixelFormatTypeKey: kCVPixelFormatType_32BGRA,
+                    kCVPixelBufferWidthKey: resolution.width,
+                    kCVPixelBufferHeightKey: resolution.height
+                    ] as CFDictionary
+        CVPixelBufferPoolCreate(kCFAllocatorDefault, nil, attr, &bufferPool)
     }
     
     @objc func shutterClicked(_ sender: Any) {
@@ -465,8 +423,12 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
             shutterBtn?.tintColor = UIColor.red
             
             if let audioSettings = cameraCtrl?.getAudioSettings(),
-               let videoSettings = cameraCtrl?.getVideoSettings(),
+               var videoSettings = cameraCtrl?.getVideoSettings(),
                let videoDescription = videoDescription {
+                let sz = videoProc!.frameSize
+                videoSettings[AVVideoWidthKey] = Int(sz.width)
+                videoSettings[AVVideoHeightKey] = Int(sz.height)
+                
                 recordLabelStart = Date()
                 videoProc!.start(audioSettings: audioSettings, videoSettings: videoSettings, videoDescription: videoDescription)
             }
@@ -548,12 +510,17 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private func shutterClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
     {
         let zoom:Float = 1.0
-        let lRot = calculateAngle()
+        let lRot = angleCalculator.calculate()
         let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, rotation: Float(lRot))
         let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, rotation: Float(lRot))
         
-        let exporter = ImageExporter(leftData: leftData, rightData: rightData)
-        exporter.export()
+        let quality = Cookie.instance.photoImageQuality
+        let exportTypes = Cookie.instance.photoFormat
+        
+        for type in exportTypes {
+            let exporter = ImageExporter(leftData: leftData, rightData: rightData, processType: type, outputQuality: quality)
+            exporter.export()
+        }
         
         showLoader(false)
     }

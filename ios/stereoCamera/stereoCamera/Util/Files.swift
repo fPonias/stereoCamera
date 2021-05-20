@@ -198,13 +198,13 @@ public class Files
         return true
     }
     
-    public func saveToPhotos(dataPath:String, onSaved: @escaping (String?) -> Void)
+    public func saveImageToPhotos(dataPath:String, extension ext:String, onSaved: @escaping (String?) -> Void)
     {
         do
         {
             let url = URL(fileURLWithPath: dataPath)
             let data = try Data(contentsOf: url)
-            saveToPhotos(data:data, onSaved: onSaved)
+            saveImageToPhotos(data:data, extension: ext, onSaved: onSaved)
         }
         catch{
         }
@@ -281,9 +281,9 @@ public class Files
         return asset
     }
     
-    public func saveToPhotos(data:Data, onSaved: @escaping (String?) -> Void)
+    public func saveImageToPhotos(data:Data, extension ext:String, onSaved: @escaping (String?) -> Void)
     {
-        saveAssetToPhotos(item: data, ext: "jpg", onSaved: onSaved)
+        saveAssetToPhotos(item: data, ext: ext, onSaved: onSaved)
     }
     
     public func saveVideoToPhotos(url:URL, onSaved: @escaping (String?) -> Void){

@@ -10,6 +10,8 @@ import Foundation
 import MetalKit
 import CoreImage
 import Photos
+import ImageIO
+import MobileCoreServices
 
 class ImageProcessor {
     private(set) var _inTexture:MTLTexture?
@@ -229,6 +231,19 @@ class ImageProcessor {
         return ret
     }
     
+    public func getFinalImageData() -> Data? {
+        guard let img = getOutput(),
+              let cs = CGColorSpace(name: CGColorSpace.sRGB)
+        else { return nil }
+        
+        let gammaFilter = GammaFilter(value: 2.2)
+        guard let gammaImg = gammaFilter.update(img) else { return nil }
+        
+        let context = CIContext()
+        let jpegData = context.jpegRepresentation(of: gammaImg, colorSpace: cs, options: [:])
+        return jpegData
+    }
+    
     private func setOutTransform() {
         guard let transformPtr = outTransformPtr else { return }
         var mtlTransform = Matrix2D()
@@ -358,11 +373,88 @@ class ImageProcessorSingle : ImageProcessor
     
     public override func processCurrentInTexture(_ side: ImageProcessor.Side)
     {
-        guard side == .RIGHT else {
-            print("Left side only is used on ImageProcessorSingle")
+        if (side == .LEFT) {
             return
         }
         
         calculate()
+    }
+}
+
+class ImageProcessorAnimatedGif : ImageProcessor
+{
+    let leftFrame:ImageProcessorSingle?
+    let rightFrame:ImageProcessorSingle?
+    
+    let frameDelay:Double
+    
+    init(outSize: ImageUtils.Size, frameDelay: Double) {
+        self.frameDelay = frameDelay
+        
+        leftFrame = ImageProcessorSingle(outSize: outSize)
+        rightFrame = ImageProcessorSingle(outSize: outSize)
+        
+        super.init(outSize: outSize)
+    }
+    
+    private var currentBuffer:CVImageBuffer?
+    private var currentMargins:ImageUtils.Margin?
+    private var currentRotation:Float = 0
+    
+    override func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float)
+    {
+        currentBuffer = pixels
+        currentMargins = margins
+        currentRotation = rotation
+    }
+    
+    override func processCurrentInTexture(_ side: ImageProcessor.Side) {
+        guard let proc = (side == .LEFT) ? leftFrame : rightFrame,
+              let buf = currentBuffer,
+              let margins = currentMargins
+        else { return }
+        
+        proc.setPixels(pixels: buf, margins: margins, rotation: currentRotation)
+        proc.processCurrentInTexture(.RIGHT)
+    }
+    
+    private func getCGImage(_ proc:ImageProcessor?) -> CGImage? {
+        guard let img = proc?.getOutput() else { return nil }
+        
+        let gammaFilter = GammaFilter(value: 2.2)
+        guard let gammaImg = gammaFilter.update(img) else { return  nil}
+        
+        let ctx = CIContext()
+        let sz = gammaImg.extent
+        let ret = ctx.createCGImage(gammaImg, from: sz)
+        
+        return ret
+    }
+    
+    public override func getFinalImageData() -> Data? {
+        guard let leftImg = getCGImage(leftFrame),
+              let rightImg = getCGImage(rightFrame),
+              let ptr = CFDataCreateMutable(nil, 0)
+        else { return nil }
+        
+        let fileProperties = [
+            (kCGImagePropertyGIFDictionary as String): [(kCGImagePropertyGIFLoopCount as String): 0]
+        ]
+        
+        let destinationGIF = CGImageDestinationCreateWithData(ptr, kUTTypeGIF, 2, nil)!
+        CGImageDestinationSetProperties(destinationGIF, fileProperties as CFDictionary?);
+
+        // This dictionary controls the delay between frames
+        // If you don't specify this, CGImage will apply a default delay
+        let frameProperties = [
+            (kCGImagePropertyGIFDictionary as String): [(kCGImagePropertyGIFDelayTime as String): frameDelay]
+        ]
+        CGImageDestinationAddImage(destinationGIF, leftImg, frameProperties as CFDictionary?)
+        CGImageDestinationAddImage(destinationGIF, rightImg, frameProperties as CFDictionary?)
+
+        // Write the GIF file to disk
+        CGImageDestinationFinalize(destinationGIF)
+        let ret = ptr as NSData as Data //the double cast is necessary for some reason
+        return ret
     }
 }

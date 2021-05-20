@@ -13,7 +13,7 @@ class SettingsCtrl : UIViewController
 {
     @IBOutlet weak var photoFormatBtn: UIButton!
     @IBOutlet weak var photoQualityBtn: UIButton!
-    @IBOutlet weak var videoFormatBtn: UIButton!
+    //@IBOutlet weak var videoFormatBtn: UIButton!
     @IBOutlet weak var videoQualityBtn: UIButton!
     @IBOutlet weak var preferredOrientationBtn: UIButton!
     
@@ -37,8 +37,8 @@ class SettingsCtrl : UIViewController
         let photoQuality = Cookie.instance.photoImageQuality
         photoQualityBtn.setTitle(photoQuality.toString(), for: .normal)
         
-        let videoFormat = Cookie.instance.videoFormat
-        videoFormatBtn.setTitle(videoFormat.toString(), for: .normal)
+        //let videoFormat = Cookie.instance.videoFormat
+        //videoFormatBtn.setTitle(videoFormat.toString(), for: .normal)
         
         let videoQuality = Cookie.instance.videoImageQuality
         videoQualityBtn.setTitle(videoQuality.toString(), for: .normal)

@@ -26,6 +26,8 @@ class VideoProcessor
     private var videoOutputURL:URL?
     private var timestamp:Double = 0.0
     private var videoFormatDescription:CMVideoFormatDescription?
+    private var _frameSize = CGSize(width: 1920, height: 960)
+    public var frameSize:CGSize { get { return _frameSize }}
     
     func recordVideo(pixelBuffer:CVPixelBuffer, timing: CMSampleTimingInfo) {
         guard _videoRecording,
@@ -37,6 +39,8 @@ class VideoProcessor
             writer.startSession(atSourceTime: timing.presentationTimeStamp)
         }
         
+        let w = CVPixelBufferGetWidth(pixelBuffer)
+        let h = CVPixelBufferGetHeight(pixelBuffer)
         guard let sampleBuffer = createVideoSampleBufferWithPixelBuffer(pixelBuffer, presentationTime: timing.presentationTimeStamp)
         else {
             print("Error: Unable to create sample buffer from pixelbuffer")
@@ -75,14 +79,16 @@ class VideoProcessor
         
     }
     
-    //static let ENCODED_HEIGHT:Int32 = 960
-    //static let ENCODED_WIDTH:Int32 = 1920
-    static let ENCODED_HEIGHT:Int32 = 2160
-    static let ENCODED_WIDTH:Int32 = 4320
-    
     func start(audioSettings: [String: Any]?, videoSettings: [String: Any]?, videoDescription:CMFormatDescription)
     {
-        CMVideoFormatDescriptionCreate(kCFAllocatorDefault, kCMPixelFormat_32BGRA, VideoProcessor.ENCODED_WIDTH, VideoProcessor.ENCODED_HEIGHT, nil, &videoFormatDescription)
+        guard let videoSettings = videoSettings,
+              let w = videoSettings[AVVideoWidthKey] as? Int,
+              let h = videoSettings[AVVideoHeightKey] as? Int
+        else { return }
+        
+        _frameSize = CGSize(width: w, height: h)
+        
+        CMVideoFormatDescriptionCreate(kCFAllocatorDefault, kCMPixelFormat_32BGRA, Int32(w), Int32(h), nil, &videoFormatDescription)
         
         guard (!_videoRecording) else { return }
         if #available(iOS 13.0, *) {

@@ -176,10 +176,14 @@ enum ImageQuality: Int, CaseIterable
          ULTRA_HI_DEF
     
     func toString() -> String {
+        return "\(toInt()) pixels"
+    }
+    
+    func toInt() -> Int {
         switch(self) {
-        case .HI_DEF: return "HD"
-        case .STANDARD_DEF: return "SD"
-        case .ULTRA_HI_DEF: return "UHD"
+        case .HI_DEF: return 480
+        case .STANDARD_DEF: return 960
+        case .ULTRA_HI_DEF: return 2160
         }
     }
 }

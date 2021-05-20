@@ -44,11 +44,19 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
         }
     }
     
-    public func initialize(size:CGSize) {
+    public func initialize() {
         initializeMetal()
         initializeListeners()
-        
-        _imageProc = ImageProcessorSplit(outSize: ImageUtils.Size(width: Int(size.width), height: Int(size.height)))
+    }
+    
+    func setupProcessor(type:ImageFormat, size:CGSize) {
+        let sz = ImageUtils.Size(width: Int(size.width), height: Int(size.height))
+        switch(type){
+        case .SPLIT: _imageProc = ImageProcessorSplit(outSize: sz)
+        case .GREEN_MAGENTA: _imageProc = ImageProcessorGreenMagenta(outSize: sz)
+        case .RED_BLUE: _imageProc = ImageProcessorRedCyan(outSize: sz)
+        case .ANIMATED: _imageProc = nil
+        }
     }
     
     private func initializeMetal(){

@@ -803,34 +803,8 @@
                                             <constraint firstAttribute="trailing" secondItem="rXF-7V-aWd" secondAttribute="trailing" id="n6G-j4-apv"/>
                                         </constraints>
                                     </view>
-                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DOU-Ov-tg8" userLabel="View3">
-                                        <rect key="frame" x="0.0" y="80" width="408" height="40"/>
-                                        <subviews>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Video Formats" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ii2-mD-CHS">
-                                                <rect key="frame" x="0.0" y="9.9999999999999982" width="110.66666666666667" height="20.333333333333329"/>
-                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                <nil key="textColor"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mK5-jJ-CCs">
-                                                <rect key="frame" x="362" y="5" width="46" height="30"/>
-                                                <state key="normal" title="Button"/>
-                                                <connections>
-                                                    <action selector="videoFormatTapped:" destination="cxW-38-uWp" eventType="primaryActionTriggered" id="IGn-6M-XDB"/>
-                                                </connections>
-                                            </button>
-                                        </subviews>
-                                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <constraints>
-                                            <constraint firstItem="Ii2-mD-CHS" firstAttribute="leading" secondItem="DOU-Ov-tg8" secondAttribute="leading" id="8ld-WD-Ad6"/>
-                                            <constraint firstAttribute="trailing" secondItem="mK5-jJ-CCs" secondAttribute="trailing" id="Qoj-gI-xor"/>
-                                            <constraint firstItem="Ii2-mD-CHS" firstAttribute="centerY" secondItem="DOU-Ov-tg8" secondAttribute="centerY" id="SEM-50-SZV"/>
-                                            <constraint firstAttribute="height" constant="40" id="mVA-ce-HoE"/>
-                                            <constraint firstItem="mK5-jJ-CCs" firstAttribute="centerY" secondItem="DOU-Ov-tg8" secondAttribute="centerY" id="pmB-3w-GtF"/>
-                                        </constraints>
-                                    </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="dsb-To-F2V">
-                                        <rect key="frame" x="0.0" y="120" width="408" height="40"/>
+                                        <rect key="frame" x="0.0" y="80" width="408" height="40"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Video Image Quality" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="lb4-5g-4bb">
                                                 <rect key="frame" x="0.0" y="9.9999999999999982" width="152.33333333333334" height="20.333333333333329"/>
@@ -856,7 +830,7 @@
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="9XX-Um-g5I">
-                                        <rect key="frame" x="0.0" y="160" width="408" height="40"/>
+                                        <rect key="frame" x="0.0" y="120" width="408" height="40"/>
                                         <subviews>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Preferred Device Orientation" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xcm-qL-859">
                                                 <rect key="frame" x="0.0" y="9.9999999999999982" width="216.66666666666666" height="20.333333333333329"/>
@@ -882,18 +856,15 @@
                                         </constraints>
                                     </view>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Ydx-4C-JaU">
-                                        <rect key="frame" x="0.0" y="200" width="408" height="628"/>
+                                        <rect key="frame" x="0.0" y="160" width="408" height="668"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                     </view>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstAttribute="trailing" secondItem="DOU-Ov-tg8" secondAttribute="trailing" id="2Xb-Ia-on3"/>
-                                    <constraint firstItem="DOU-Ov-tg8" firstAttribute="leading" secondItem="3Kg-1l-Suj" secondAttribute="leading" id="6Lh-iu-ueq"/>
                                     <constraint firstItem="Sd7-e6-qyr" firstAttribute="leading" secondItem="3Kg-1l-Suj" secondAttribute="leading" id="IQ0-9A-KTU"/>
                                     <constraint firstAttribute="trailing" secondItem="Ydx-4C-JaU" secondAttribute="trailing" id="LHn-lP-3zw"/>
                                     <constraint firstItem="SX5-ey-HmY" firstAttribute="top" secondItem="Sd7-e6-qyr" secondAttribute="bottom" id="PmO-nY-pRd"/>
                                     <constraint firstAttribute="trailing" secondItem="SX5-ey-HmY" secondAttribute="trailing" id="TjE-to-6ga"/>
-                                    <constraint firstItem="DOU-Ov-tg8" firstAttribute="top" secondItem="SX5-ey-HmY" secondAttribute="bottom" id="Vmq-2B-CK4"/>
                                     <constraint firstAttribute="trailing" secondItem="Sd7-e6-qyr" secondAttribute="trailing" id="ZQP-1N-pMi"/>
                                     <constraint firstAttribute="bottom" secondItem="Ydx-4C-JaU" secondAttribute="bottom" id="foh-wU-RQN"/>
                                     <constraint firstItem="SX5-ey-HmY" firstAttribute="leading" secondItem="3Kg-1l-Suj" secondAttribute="leading" id="g9x-Bb-fBt"/>
@@ -916,7 +887,6 @@
                         <outlet property="photoFormatBtn" destination="X4y-2r-gax" id="9xT-0u-CnD"/>
                         <outlet property="photoQualityBtn" destination="rXF-7V-aWd" id="dk3-0E-1vh"/>
                         <outlet property="preferredOrientationBtn" destination="sog-4A-IgF" id="gay-2W-0Ao"/>
-                        <outlet property="videoFormatBtn" destination="mK5-jJ-CCs" id="TxN-We-gSx"/>
                         <outlet property="videoQualityBtn" destination="hfp-WL-YVZ" id="3B2-ja-VqJ"/>
                         <segue destination="ekb-yX-jnX" kind="show" identifier="SettingsListSelectorSegue" id="udy-3d-Mvj"/>
                     </connections>
