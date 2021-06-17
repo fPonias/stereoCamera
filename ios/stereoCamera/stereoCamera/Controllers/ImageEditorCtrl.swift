@@ -85,7 +85,6 @@ class ImageEditorCtrl : UIViewController
         guard let imgout = img else { return }
         
         let ctx = CIContext()
-        let sz = imgout.extent
         var outBuf:CVPixelBuffer?
         CVPixelBufferCreate(kCFAllocatorDefault, Int(2160), Int(2160), kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &outBuf)
         

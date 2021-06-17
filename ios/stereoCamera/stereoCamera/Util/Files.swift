@@ -20,6 +20,7 @@ public class Files
     
     private init() {}
     
+    private var imgManager = PHCachingImageManager()
     private var delegates = MulticastDelegate<FilesDelegate>()
     public func addDelegate(_ delegate:FilesDelegate) {
         delegates.add(delegate)
@@ -150,16 +151,19 @@ public class Files
         return ret
     }
     
-    func assetToImage(_ asset: PHAsset, asThumbnail:Bool = false) -> UIImage
+    func assetToImage(_ asset: PHAsset, asThumbnail:Bool = false, completed:(@escaping (UIImage?) -> Void))
     {
-        let manager = PHImageManager.default()
+        let manager = imgManager
         let option = PHImageRequestOptions()
-        var thumbnail = UIImage()
-        option.isSynchronous = true
+        option.isSynchronous = false
+        option.deliveryMode = .highQualityFormat
+        option.version = .current
+        option.resizeMode = .exact
+        option.isNetworkAccessAllowed = true
         
         let dims:CGSize
             
-        if (!asThumbnail)
+        if (!asThumbnail || asset.pixelHeight == 0)
             { dims = CGSize(width: asset.pixelWidth, height: asset.pixelHeight)}
         else
         {
@@ -170,15 +174,58 @@ public class Files
             dims = CGSize(width: width, height: height)
         }
         
-        manager.requestImage(for: asset, targetSize: dims, contentMode: PHImageContentMode.aspectFill, options: option, resultHandler: {(image: UIImage?, info:[AnyHashable : Any]?) -> Void
-            in
-            
-            if (image != nil) {
-                thumbnail = image!
+        manager.requestImage(for: asset, targetSize: dims, contentMode: .aspectFit, options: option, resultHandler: {(image: UIImage?, info:[AnyHashable : Any]?) -> Void in
+                completed(image)
             }
-        })
+        )
+    }
+    
+    func assetToData(_ asset:PHAsset, completed:(@escaping (Data?) -> Void)) {
+        let manager = imgManager
+        let option = PHImageRequestOptions()
+        option.isSynchronous = false
+        option.deliveryMode = .highQualityFormat
+        option.version = .current
+        option.resizeMode = .exact
+        option.isNetworkAccessAllowed = true
         
-        return thumbnail
+        manager.requestImageData(for: asset, options: option, resultHandler: { data, type, orientation, dict in
+            completed(data)
+        })
+    }
+    
+    func assetToUrl(_ asset:PHAsset, completed:(@escaping (URL?) -> Void)) {
+        let option = PHVideoRequestOptions()
+        option.deliveryMode = .automatic
+        option.isNetworkAccessAllowed = false
+        
+        imgManager.requestAVAsset(forVideo: asset, options: option, resultHandler: {(asset, audio, dict) in
+            guard let asset = asset as? AVURLAsset else { completed(nil); return }
+            
+            completed(asset.url)
+        })
+    }
+    
+    func videoAssetPreviewImage() {
+        func videoSnapshot(filePathLocal: String) -> UIImage? {
+
+            let vidURL = URL(fileURLWithPath:filePathLocal as String)
+            let asset = AVURLAsset(url: vidURL)
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+
+            let timestamp = CMTime(seconds: 1, preferredTimescale: 60)
+
+            do {
+                let imageRef = try generator.copyCGImage(at: timestamp, actualTime: nil)
+                return UIImage(cgImage: imageRef)
+            }
+            catch let error as NSError
+            {
+                print("Image generation failed with error \(error)")
+                return nil
+            }
+        }
     }
     
     func deleteAssets(_ assets:[PHAsset]) -> Bool

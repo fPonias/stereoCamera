@@ -90,7 +90,7 @@ class SettingsCtrl : UIViewController
             case .VIDEO_IMAGE_QUALITY:
                 let sel = Cookie.instance.videoImageQuality
                 ctrl.data.removeAll()
-                for qual in ImageQuality.allCases {
+                for qual in VideoQuality.allCases {
                     ctrl.data.append(SettingsListSelectorCtrl.dataItem(
                         title: qual.toString(),
                         value: qual,
@@ -130,7 +130,7 @@ class SettingsCtrl : UIViewController
                         Cookie.instance.photoImageQuality = qual
                     }
                 } else if type == .VIDEO_IMAGE_QUALITY {
-                    if let qual = data.value as? ImageQuality {
+                    if let qual = data.value as? VideoQuality {
                         Cookie.instance.videoImageQuality = qual
                     }
                 } else if type == .VIDEO_IMAGE_FORMAT {

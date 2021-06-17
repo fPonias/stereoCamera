@@ -26,8 +26,12 @@ class VideoProcessor
     private var videoOutputURL:URL?
     private var timestamp:Double = 0.0
     private var videoFormatDescription:CMVideoFormatDescription?
-    private var _frameSize = CGSize(width: 1920, height: 960)
+    private var _frameSize:CGSize
     public var frameSize:CGSize { get { return _frameSize }}
+    
+    init(size: CGSize) {
+        _frameSize = size
+    }
     
     func recordVideo(pixelBuffer:CVPixelBuffer, timing: CMSampleTimingInfo) {
         guard _videoRecording,
@@ -86,7 +90,7 @@ class VideoProcessor
               let h = videoSettings[AVVideoHeightKey] as? Int
         else { return }
         
-        _frameSize = CGSize(width: w, height: h)
+        //_frameSize = CGSize(width: w, height: h)
         
         CMVideoFormatDescriptionCreate(kCFAllocatorDefault, kCMPixelFormat_32BGRA, Int32(w), Int32(h), nil, &videoFormatDescription)
         

@@ -253,19 +253,25 @@
                                             <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qeC-IT-SQR" userLabel="thumbnail">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qeC-IT-SQR" userLabel="thumbnail">
                                                     <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                </imageView>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="play.circle.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="4YF-8N-azW">
+                                                    <rect key="frame" x="48" y="19" width="24" height="22.666666666666671"/>
+                                                    <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                     <constraints>
-                                                        <constraint firstAttribute="width" relation="lessThanOrEqual" constant="120" id="ULz-bh-6IY"/>
-                                                        <constraint firstAttribute="width" secondItem="qeC-IT-SQR" secondAttribute="height" multiplier="2:1" id="ndH-he-b1I"/>
+                                                        <constraint firstAttribute="height" constant="24" id="I8t-Aa-Ryg"/>
+                                                        <constraint firstAttribute="width" constant="24" id="rCl-H6-GdQ"/>
                                                     </constraints>
                                                 </imageView>
                                                 <view hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="yE0-kc-ZNi">
                                                     <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
                                                     <subviews>
-                                                        <view opaque="NO" alpha="0.5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jJY-lk-MQr">
+                                                        <view alpha="0.5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="jJY-lk-MQr">
                                                             <rect key="frame" x="0.0" y="0.0" width="120" height="60"/>
                                                             <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                            <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                         </view>
                                                         <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="check_circle_icon" translatesAutoresizingMaskIntoConstraints="NO" id="kht-B4-ugK">
                                                             <rect key="frame" x="94" y="34" width="24" height="24"/>
@@ -289,12 +295,15 @@
                                             </subviews>
                                         </view>
                                         <constraints>
+                                            <constraint firstItem="4YF-8N-azW" firstAttribute="centerX" secondItem="prn-np-gCV" secondAttribute="centerX" id="2zO-zK-zpT"/>
                                             <constraint firstItem="yE0-kc-ZNi" firstAttribute="top" secondItem="prn-np-gCV" secondAttribute="top" id="EzK-An-Tex"/>
                                             <constraint firstAttribute="bottom" secondItem="yE0-kc-ZNi" secondAttribute="bottom" id="eVj-Jw-NZ5"/>
+                                            <constraint firstItem="4YF-8N-azW" firstAttribute="centerY" secondItem="prn-np-gCV" secondAttribute="centerY" id="qrT-ds-irb"/>
                                             <constraint firstAttribute="trailing" secondItem="yE0-kc-ZNi" secondAttribute="trailing" id="sv4-a6-240"/>
                                             <constraint firstItem="yE0-kc-ZNi" firstAttribute="leading" secondItem="prn-np-gCV" secondAttribute="leading" id="tJt-aQ-7Ox"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="playIcon" destination="4YF-8N-azW" id="GAX-Ho-TXs"/>
                                             <outlet property="selectedOverlay" destination="yE0-kc-ZNi" id="h0w-wi-3U9"/>
                                             <outlet property="thumbnail" destination="qeC-IT-SQR" id="1zf-67-aom"/>
                                         </connections>
@@ -358,7 +367,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nQX-M5-tkE" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3281" y="-487"/>
+            <point key="canvasLocation" x="3280.3738317757006" y="-487.25701943844496"/>
         </scene>
         <!--AV Player View Controller-->
         <scene sceneID="JdP-kl-5bF">
@@ -665,13 +674,41 @@
         <scene sceneID="EKP-yg-nWp">
             <objects>
                 <viewController id="Ycq-Ts-lyG" customClass="GalleryPlaybackCtrl" customModule="stereoCamera" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="Kvb-hV-XfX">
+                    <view key="view" multipleTouchEnabled="YES" contentMode="scaleToFill" id="Kvb-hV-XfX">
                         <rect key="frame" x="0.0" y="0.0" width="428" height="926"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <scrollView autoresizesSubviews="NO" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceHorizontal="YES" pagingEnabled="YES" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" canCancelContentTouches="NO" bouncesZoom="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ES5-W7-OQJ">
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sbp-Tc-OSH">
+                                <rect key="frame" x="0.0" y="882" width="428" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="1t9-Rl-Mde"/>
+                                </constraints>
+                                <items>
+                                    <barButtonItem systemItem="action" id="WdQ-Mm-bjB">
+                                        <connections>
+                                            <action selector="exportAction:" destination="Ycq-Ts-lyG" id="clS-VH-9Ub"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="BTh-Hd-Xuw"/>
+                                    <barButtonItem systemItem="trash" id="IjF-VR-LZd">
+                                        <connections>
+                                            <action selector="trashAction:" destination="Ycq-Ts-lyG" id="ZSi-j3-tDS"/>
+                                        </connections>
+                                    </barButtonItem>
+                                </items>
+                            </toolbar>
+                            <view userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FJs-B2-mLh">
                                 <rect key="frame" x="0.0" y="44" width="428" height="838"/>
-                            </scrollView>
+                                <subviews>
+                                    <view autoresizesSubviews="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="iEy-1C-Xem">
+                                        <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                    </view>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                                <gestureRecognizers/>
+                            </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="On7-8S-oez" userLabel="playBtn">
                                 <rect key="frame" x="372" y="836" width="36" height="36"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -695,48 +732,51 @@
                                     <action selector="playClicked:" destination="Ycq-Ts-lyG" eventType="primaryActionTriggered" id="D13-ay-9Xb"/>
                                 </connections>
                             </button>
-                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Sbp-Tc-OSH">
-                                <rect key="frame" x="0.0" y="882" width="428" height="44"/>
-                                <constraints>
-                                    <constraint firstAttribute="height" constant="44" id="1t9-Rl-Mde"/>
-                                </constraints>
-                                <items>
-                                    <barButtonItem systemItem="action" id="WdQ-Mm-bjB">
-                                        <connections>
-                                            <action selector="exportAction:" destination="Ycq-Ts-lyG" id="clS-VH-9Ub"/>
-                                        </connections>
-                                    </barButtonItem>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="BTh-Hd-Xuw"/>
-                                    <barButtonItem systemItem="trash" id="IjF-VR-LZd">
-                                        <connections>
-                                            <action selector="trashAction:" destination="Ycq-Ts-lyG" id="ZSi-j3-tDS"/>
-                                        </connections>
-                                    </barButtonItem>
-                                </items>
-                            </toolbar>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="hRd-wz-FuD"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <gestureRecognizers/>
                         <constraints>
-                            <constraint firstItem="ES5-W7-OQJ" firstAttribute="leading" secondItem="hRd-wz-FuD" secondAttribute="leading" id="5q1-cO-fOb"/>
+                            <constraint firstItem="FJs-B2-mLh" firstAttribute="top" secondItem="hRd-wz-FuD" secondAttribute="top" id="3XO-UA-Kfu"/>
+                            <constraint firstItem="hRd-wz-FuD" firstAttribute="trailing" secondItem="FJs-B2-mLh" secondAttribute="trailing" id="CKY-gh-fAs"/>
                             <constraint firstAttribute="bottom" secondItem="Sbp-Tc-OSH" secondAttribute="bottom" id="NZC-0v-aBd"/>
-                            <constraint firstItem="hRd-wz-FuD" firstAttribute="trailing" secondItem="ES5-W7-OQJ" secondAttribute="trailing" id="OTS-qi-DQ3"/>
+                            <constraint firstItem="Sbp-Tc-OSH" firstAttribute="top" secondItem="FJs-B2-mLh" secondAttribute="bottom" id="NgO-1T-gHZ"/>
                             <constraint firstItem="Sbp-Tc-OSH" firstAttribute="leading" secondItem="Kvb-hV-XfX" secondAttribute="leading" id="VAg-P1-66u"/>
                             <constraint firstItem="Sbp-Tc-OSH" firstAttribute="top" secondItem="On7-8S-oez" secondAttribute="bottom" constant="10" id="ZVT-QT-Jjb"/>
                             <constraint firstAttribute="trailing" secondItem="Sbp-Tc-OSH" secondAttribute="trailing" id="gl0-h0-Wcz"/>
-                            <constraint firstItem="ES5-W7-OQJ" firstAttribute="top" secondItem="hRd-wz-FuD" secondAttribute="top" id="r7X-4e-yKT"/>
-                            <constraint firstItem="Sbp-Tc-OSH" firstAttribute="top" secondItem="ES5-W7-OQJ" secondAttribute="bottom" id="uGY-fP-yic"/>
+                            <constraint firstItem="FJs-B2-mLh" firstAttribute="leading" secondItem="hRd-wz-FuD" secondAttribute="leading" id="p19-Vo-vWb"/>
                             <constraint firstItem="hRd-wz-FuD" firstAttribute="trailing" secondItem="On7-8S-oez" secondAttribute="trailing" constant="20" id="yf5-QD-bwD"/>
                         </constraints>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="gM9-rN-n9n" appends="YES" id="NFl-L2-GP6"/>
+                            <outletCollection property="gestureRecognizers" destination="pKb-MV-sQW" appends="YES" id="AOW-RM-FvF"/>
+                            <outletCollection property="gestureRecognizers" destination="jp9-kI-COX" appends="YES" id="NOu-iJ-1cS"/>
+                        </connections>
                     </view>
                     <connections>
                         <outlet property="playBtn" destination="On7-8S-oez" id="adG-E1-CjQ"/>
-                        <outlet property="scroller" destination="ES5-W7-OQJ" id="Z97-wU-lc9"/>
+                        <outlet property="scroller" destination="FJs-B2-mLh" id="5GM-Co-Hzn"/>
+                        <outlet property="scrollerContent" destination="iEy-1C-Xem" id="lp5-HI-i19"/>
                         <outlet property="toolbar" destination="Sbp-Tc-OSH" id="dqh-Hk-fLD"/>
                         <outlet property="toolbarHeightConstraint" destination="1t9-Rl-Mde" id="7pc-uf-kCU"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nXh-Wg-gpp" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <panGestureRecognizer requiresExclusiveTouchType="NO" minimumNumberOfTouches="1" maximumNumberOfTouches="1" id="jp9-kI-COX">
+                    <connections>
+                        <action selector="onPan:" destination="Ycq-Ts-lyG" id="req-NI-Epj"/>
+                    </connections>
+                </panGestureRecognizer>
+                <swipeGestureRecognizer requiresExclusiveTouchType="NO" direction="right" id="gM9-rN-n9n">
+                    <connections>
+                        <action selector="onRightSwipe:" destination="Ycq-Ts-lyG" id="Myf-zc-oPn"/>
+                    </connections>
+                </swipeGestureRecognizer>
+                <swipeGestureRecognizer requiresExclusiveTouchType="NO" direction="left" id="pKb-MV-sQW">
+                    <connections>
+                        <action selector="onLeftSwipe:" destination="Ycq-Ts-lyG" id="vrC-WD-eS6"/>
+                    </connections>
+                </swipeGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="4309.6000000000004" y="-487.10644677661173"/>
         </scene>
@@ -1042,6 +1082,7 @@
     <resources>
         <image name="check_circle_icon" width="24" height="24"/>
         <image name="checkbox-checked" width="24" height="24"/>
+        <image name="play.circle.fill" catalog="system" width="128" height="121"/>
         <image name="play_arrow" width="24" height="24"/>
         <image name="radio_off" width="56" height="56"/>
         <image name="shutterIcon" width="119" height="119"/>

@@ -385,8 +385,13 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     
     private func updateResolution() {
         guard let captureType = typePickerBtn?.pickedItem as? CameraTypeItem else { return }
-        let quality = (captureType.type == .CAMERA) ? Cookie.instance.photoImageQuality : Cookie.instance.videoImageQuality
-        let qualityVal = quality.toInt()
+        let qualityVal:Int
+        if (captureType.type == .CAMERA) {
+            qualityVal = Cookie.instance.photoImageQuality.toInt()
+        } else {
+            qualityVal = Cookie.instance.videoImageQuality.toInt()
+        }
+        
         let resolution = CGSize(width: qualityVal * 2, height: qualityVal)
         let procType = Cookie.instance.videoFormat
         doubleCameraPreview?.setupProcessor(type: procType, size: resolution)
@@ -414,11 +419,16 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private var shutterColor = UIColor.black
     
     func videoTapped() {
-        if (videoProc == nil){
-            videoProc = VideoProcessor()
-        }
-        
-        if (!videoProc!.isRecording) {
+        if (videoProc != nil && videoProc!.isRecording) {
+            videoProc!.stop()
+            self.videoProc = nil
+            self.shutterBtn?.tintColor = self.shutterColor
+            self.playbackLbl?.text = ""
+        } else {
+            let procHeight = Cookie.instance.videoImageQuality.toInt()
+            let procSize = CGSize(width: procHeight * 2, height: procHeight)
+            videoProc = VideoProcessor(size: procSize)
+            
             shutterColor = shutterBtn?.tintColor ?? UIColor.white
             shutterBtn?.tintColor = UIColor.red
             
@@ -432,11 +442,6 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
                 recordLabelStart = Date()
                 videoProc!.start(audioSettings: audioSettings, videoSettings: videoSettings, videoDescription: videoDescription)
             }
-        } else {
-            videoProc!.stop()
-            self.videoProc = nil
-            self.shutterBtn?.tintColor = self.shutterColor
-            self.playbackLbl?.text = ""
         }
     }
     

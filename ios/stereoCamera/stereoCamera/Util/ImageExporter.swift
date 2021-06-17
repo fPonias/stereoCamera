@@ -49,6 +49,8 @@ class ImageExporter {
                 proc = ImageProcessorRedCyan(outSize: outSz!)
             } else if (processType == .ANIMATED) {
                 proc = ImageProcessorAnimatedGif(outSize: outSz!, frameDelay: 0.15)
+            } else if (processType == .SINGLE) {
+                proc = ImageProcessorSingle(outSize: outSz!)
             } else {
                 return
             }

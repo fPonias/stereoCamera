@@ -305,6 +305,7 @@
 		7C6CD10820D0DA530010F6B1 = {
 			isa = PBXGroup;
 			children = (
+				7E9AB3CE2636656F009A25B3 /* Main.storyboard */,
 				7C6CD11320D0DA530010F6B1 /* stereoCamera */,
 				7C6CD11220D0DA530010F6B1 /* Products */,
 				7C6CD13720D1C2870010F6B1 /* Frameworks */,
@@ -323,7 +324,6 @@
 		7C6CD11320D0DA530010F6B1 /* stereoCamera */ = {
 			isa = PBXGroup;
 			children = (
-				7E9AB3CE2636656F009A25B3 /* Main.storyboard */,
 				7E691E5025F4687E00ED228E /* wrapper.cpp */,
 				7E691E5125F4687E00ED228E /* wrapper.hpp */,
 				7E691C3C25F461FD00ED228E /* cpp */,

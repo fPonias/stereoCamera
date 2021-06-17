@@ -3,7 +3,9 @@ import Photos
 
 class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDelegate, UIScrollViewDelegate, UIGestureRecognizerDelegate
 {
-    @IBOutlet weak var scroller: UIScrollView!
+    
+    @IBOutlet weak var scroller: UIView!
+    @IBOutlet weak var scrollerContent: UIView!
     @IBOutlet weak var toolbar: UIToolbar!
     @IBOutlet weak var playBtn: UIButton!
     @IBOutlet weak var toolbarHeightConstraint: NSLayoutConstraint!
@@ -20,10 +22,6 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         toolbarHeight = toolbarHeightConstraint.constant
     }
     
-    override func viewDidLayoutSubviews() {
-        doInit()
-    }
-    
     private var _startIndex:Int = 0
     var startIndex:Int
     {
@@ -34,7 +32,15 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     private var commandSenderCondition = NSCondition()
     private var isPlaying:Bool = false
     static let DELAY = 2.5
-    private var index = 0
+    private var _index:Int = -1
+    private var index:Int {
+        get { return _index }
+        set {
+            print("setting index to \(newValue)")
+            _index = newValue
+            loadCurrentPages(index: newValue)
+        }
+    }
     private var toolbarHeight:CGFloat = 44
     
     @IBAction func playClicked(_ sender: Any)
@@ -72,19 +78,41 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         coordinator.animateAlongsideTransition(in: self.view, animation: nil, completion: {
         [unowned self] (context) in
             self.resize()
-            self.gotoPage(page: self.index, animated: false)
         })
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        doInit()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+        
+        scroller.clipsToBounds = true
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        scroller.clipsToBounds = false
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+        
+        for key in renderedSlides.keys {
+            renderedSlides[key]?.deselected()
+        }
+        
+        scroller.clipsToBounds = true
     }
     
     func resize()
     {
         toolbar.layoutIfNeeded()
-        
-        for i in 0 ... 4
-        {
-            let idx = index + (i - 2)
-            setImage(page: idx, image: slides.slides[i])
-        }
     }
     
     func cancelPlay()
@@ -130,6 +158,76 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         }
     }
     
+    private var panStarted = Date()
+    private var panStartX:CGFloat = 0.0
+    private var panEndVelocity:Double = 0.0
+    private var panAnimator:UIViewPropertyAnimator? = nil
+    
+    @IBAction func onPan(_ sender: Any) {
+        guard let recog = sender as? UIPanGestureRecognizer else { return }
+        
+        if (recog.state == .began) {
+            panStarted = Date()
+            panStartX = scrollerContent.frame.origin.x
+            
+            if (panAnimator != nil) {
+                panAnimator?.stopAnimation(true)
+                panAnimator = nil
+                
+                loadCurrentPages()
+            }
+        }
+        else if (recog.state == .ended) {
+            let elapsed = Date().timeIntervalSince(panStarted)
+            let velPnt = recog.translation(in: scroller)
+            let velocity = Double(velPnt.x) / elapsed
+            panEndVelocity = velocity
+            
+            print("velocity \(velocity)")
+            
+            let x = scrollerContent.frame.origin.x
+            let w = scroller.frame.width
+            let delta = (panEndVelocity > 0) ? -1 : 1
+            
+            var nextX = panStartX + CGFloat(delta) * -w
+            let nextIdx = Int(-nextX / w) + _index
+            
+            let duration:CGFloat
+            if (nextIdx < 0 || nextIdx >= files.count) {
+                nextX = 0
+                let diff = nextX - x
+                duration = 0.5 / 1200.0 * diff
+            } else {
+                let diff = nextX - x
+                duration = 0.4 / 1200.0 * diff
+            }
+            
+            panAnimator = UIViewPropertyAnimator(duration: Double(abs(duration)), curve: .easeOut) { [weak self] in
+                guard let self = self else { return }
+                self.scrollerContent.frame.origin.x = nextX
+            }
+            panAnimator?.addCompletion { [weak self] (position) in
+                self?.loadCurrentPages()
+            }
+            panAnimator?.startAnimation()
+        } else {
+            let distPnt = recog.translation(in: scroller)
+            
+            //print("dist \(distPnt.x)")
+            
+            let rect = scrollerContent.frame
+            scrollerContent.frame = CGRect(x: panStartX + distPnt.x, y: 0, width: rect.width, height: rect.height)
+        }
+    }
+    
+    @IBAction func onLeftSwipe(_ sender: Any) {
+        index -= 1
+    }
+    
+    @IBAction func onRightSwipe(_ sender: Any) {
+        index += 1
+    }
+    
     private func setIndex(_ next:Int)
     {
         let max = files.count
@@ -139,7 +237,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             cancelPlay()
             return
         }
-        gotoPage(page: next, animated: true)
+        //scrollToNext()
     }
     
     private let SELECTION_COPY = "Copy"
@@ -196,11 +294,16 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         var toShare = [ImageProvider]()
         let file = files[index]
-        let img = Files.instance.assetToImage(file)
-        toShare.append( ImageProvider(placeholderItem: img, type: type ) )
-        
-        let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
-        present(shareCtrl, animated: true, completion: nil)
+        Files.instance.assetToImage(file, completed: {[weak self] img in
+            guard let self = self,
+                let image = img
+            else { return }
+            
+            toShare.append( ImageProvider(placeholderItem: image, type: type ) )
+            
+            let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
+            self.present(shareCtrl, animated: true, completion: nil)
+        })
     }
     
     @IBAction func trashAction(_ sender: Any)
@@ -220,62 +323,266 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             { index -= 1 }
 
         files = Files.instance.getGalleryFiles()
-        setImage(page: index, image: slides.slides[2])
-        setImage(page: index + 1, image: slides.slides[3])
-        setImage(page: index + 2, image: slides.slides[4])
+    }
+    
+    var imageCache:[ImageView] = Array()
+    var movieCache:[VideoView] = Array()
+    var toggleCache:[ToggleView] = Array()
+    
+    var renderedSlides = [Int:PreviewView]()
+    let span = 3
+    
+    func getPage(page:Int) -> PreviewView?
+    {
+        guard (page >= 0 && page <= files.count - 1) else { return nil }
         
-        let w = view.frame.width
-        scroller.contentSize.width = w * CGFloat(files.count)
+        let w = scroller.frame.width
+        let h = scroller.frame.height
+        let left = getLeft()
+        let offset = CGFloat(page - left) * w
+        let frame = CGRect(x: offset, y: 0, width: w, height: h)
+        
+        let rendered = renderedSlides[page]
+        if (rendered != nil) {
+            rendered?.frame = frame
+            scrollerContent.setNeedsLayout()
+            
+            return rendered
+        }
+        
+        let thisFile = files[page]
+        let ret:PreviewView
+        
+        if (thisFile.mediaType == .video) {
+            if (movieCache.isEmpty) {
+                ret = VideoView()
+            } else {
+                ret = movieCache.removeLast()
+            }
+        } else if (thisFile.mediaType == .image && thisFile.playbackStyle == .imageAnimated) {
+            if (toggleCache.isEmpty) {
+                ret = ToggleView()
+            } else {
+                ret = toggleCache.removeLast()
+            }
+        } else {
+            if (imageCache.isEmpty) {
+                ret = ImageView()
+            } else {
+                ret = imageCache.removeLast()
+            }
+        }
+        
+        ret.frame = frame
+        ret.setImage(thisFile: thisFile)
+        scrollerContent.addSubview(ret)
+        scrollerContent.setNeedsLayout()
+        
+        return ret
     }
     
-    struct ImageView
+    class PreviewView : UIView
     {
-        var page:UIView? = nil
-        var imgView:UIImageView? = nil
-        var widthConst:NSLayoutConstraint? = nil
-        var heightConst:NSLayoutConstraint? = nil
-        var topConst:NSLayoutConstraint? = nil
-        var leadConst:NSLayoutConstraint? = nil
+        var page:Int = -1
+        var thisFile:PHAsset? = nil
+        
+        override init(frame:CGRect) {
+            super.init(frame: frame)
+        }
+        
+        required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
+        
+        func setImage(thisFile:PHAsset) {
+            self.thisFile = thisFile
+        }
+        
+        var isSelected = false
+        
+        func selected() { isSelected = true }
+        func deselected() { isSelected = false }
     }
     
-    struct Slides
+    class ImageView : PreviewView
     {
-        var slides = [ImageView]()
-        var leftConstraints = [NSLayoutConstraint?]()
-        var centerIndex = 0
+        var imageView:UIImageView
+        var image:UIImage? = nil
+        
+        var widthConstraint:NSLayoutConstraint? = nil
+        var heightConstraint:NSLayoutConstraint? = nil
+        
+        override init(frame:CGRect) {
+            imageView = UIImageView(frame:frame)
+            
+            super.init(frame:frame)
+            addSubview(imageView)
+        }
+        
+        required init?(coder: NSCoder) {
+            imageView = UIImageView(frame:CGRect())
+            super.init(coder: coder)
+        }
+        
+        override func setImage(thisFile:PHAsset) {
+            Files.instance.assetToImage(thisFile, completed: { [weak self] image in
+                guard let self = self,
+                      let image = image
+                else { return }
+                
+                self.imageView.contentMode = .center
+                self.imageView.contentMode = .scaleAspectFit
+                
+                self.image = image
+                self.imageView.image = image
+                
+                self.setNeedsLayout()
+            })
+        }
+        
+        override var frame: CGRect {
+            get { return super.frame }
+            set {
+                super.frame = newValue
+                
+                let imgFrame = CGRect(x: 0, y: 0, width: newValue.width, height: newValue.height)
+                self.imageView.frame = imgFrame
+            }
+        }
     }
     
-    var leftPage:UIView? = nil
-    var slides = Slides()
-    var tapRecognizer:UITapGestureRecognizer? = nil
+    class VideoView : PreviewView
+    {
+        var player = AVPlayer()
+        var playerLayer:AVPlayerLayer? = nil
+        
+        override init(frame:CGRect) {
+            super.init(frame:frame)
+        }
+        
+        required init?(coder: NSCoder) {
+            super.init(coder: coder)
+        }
+        
+        
+        override var frame: CGRect {
+            get { return super.frame }
+            set {
+                super.frame = newValue
+                
+                let imgFrame = CGRect(x: 0, y: 0, width: newValue.width, height: newValue.height)
+                bounds = imgFrame
+                setupLayer()
+            }
+        }
+        
+        override func setImage(thisFile:PHAsset)
+        {
+            Files.instance.assetToUrl(thisFile, completed: { [weak self] (videoURL) in
+                guard let url = videoURL,
+                      let self = self
+                else { return }
+                
+                self.player = AVPlayer(url: url)
+                self.setupLayer()
+                
+                if (self.isSelected) {
+                    self.selected()
+                }
+            })
+        }
+        
+        private func setupLayer() {
+            if playerLayer != nil {
+                playerLayer?.removeFromSuperlayer()
+            }
+            
+            playerLayer = AVPlayerLayer.init(player: player)
+            guard let pllayer = playerLayer else { return }
+            
+            pllayer.frame = bounds
+            pllayer.videoGravity = .resizeAspect
+            pllayer.needsDisplayOnBoundsChange = true
+            
+            layer.addSublayer(pllayer)
+            layer.needsDisplayOnBoundsChange = true
+        }
+        
+        override func selected() {
+            super.selected()
+            player.play()
+        }
+        
+        override func deselected() {
+            super.deselected()
+            player.pause()
+        }
+    }
+    
+    class ToggleView : ImageView
+    {
+        override func setImage(thisFile:PHAsset) {
+            Files.instance.assetToData(thisFile, completed: { [weak self] data in
+                guard let self = self,
+                      let data = data
+                else { return }
+                
+                self.imageView.contentMode = .center
+                self.imageView.contentMode = .scaleAspectFit
+                
+                guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return }
+                
+                var images = [UIImage]()
+                let imageCount = CGImageSourceGetCount(source)
+                for i in 0 ..< imageCount {
+                    if let image = CGImageSourceCreateImageAtIndex(source, i, nil) {
+                        images.append(UIImage(cgImage: image))
+                    }
+                }
+                
+                self.imageView.animationImages = images
+                self.imageView.animationDuration = 0.4
+                self.imageView.animationRepeatCount = 0
+                
+                if (self.isSelected) {
+                    self.selected()
+                }
+                
+                self.setNeedsLayout()
+            })
+        }
+        
+        override func selected() {
+            super.selected()
+            imageView.startAnimating()
+        }
+        
+        override func deselected() {
+            super.deselected()
+            imageView.stopAnimating()
+        }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        doInit()
+    }
     
     func doInit()
     {
         let w = scroller.frame.width
-        var h = scroller.frame.height
-        let sz = files.count
+        let h = scroller.frame.height
+        guard (scrollerContent.frame.height != h) else { return }
         
-        scroller.contentSize = CGSize(width: w * CGFloat(sz), height: h)
-        scroller.delegate = self
-        scroller.contentInsetAdjustmentBehavior = .never
-        
-        tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(GalleryPlaybackCtrl.onTap))
-        tapRecognizer!.cancelsTouchesInView = false
-        scroller.addGestureRecognizer(tapRecognizer!)
-        tapRecognizer?.delegate = self
-        
-        for _ in 1 ... 5
-        {
-            slides.slides.append(createPage())
-            slides.leftConstraints.append(nil)
-        }
-        
-        setImage(page: 0, image: slides.slides[2])
-        setImage(page: 1, image: slides.slides[3])
-        setImage(page: 2, image: slides.slides[4])
-        
-        
-        gotoPage(page: index, animated: false)
+        scrollerContent.frame.size.width = w * CGFloat(span)
+        scrollerContent.frame.size.height = h
+        view.isUserInteractionEnabled = true
+        loadCurrentPages(force: true)
+    }
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        true
     }
     
     @objc func onTap()
@@ -295,138 +602,96 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     }
 
     // MARK: - Page Loading
-
-    fileprivate func createPage() -> ImageView
+    fileprivate func getLeft() -> Int {
+        return getLeft(index: _index)
+    }
+    
+    fileprivate func getLeft(index idx:Int) -> Int {
+        let center = (span - 1) / 2
+        let lft = idx - center
+        let left = max(0, lft)
+        
+        return left
+    }
+    
+    fileprivate func loadCurrentPages(index: Int) {
+        _index = index
+        loadCurrentPages2()
+    }
+    
+    fileprivate func loadCurrentPages(force: Bool = false)
     {
+        let changed = resetIndex()
+        guard force || changed else { return }
+        
+        loadCurrentPages2()
+    }
+    
+    fileprivate func loadCurrentPages2()
+    {
+        let left = getLeft()
+        let right = min(left + span - 1, files.count - 1)
+        
+        for page in left ... right {
+            let slide = getPage(page: page)
+            renderedSlides[page] = slide
+            
+            if (page == _index) {
+                slide?.selected()
+            } else {
+                slide?.deselected()
+            }
+        }
+        
+        cleanUpPages()
+        
         let w = scroller.frame.width
-        let h = scroller.frame.height
+        let offset = -1.0 * CGFloat(_index - left) * w
+        scrollerContent.frame.origin.x = offset
         
-        let newImageView = UIImageView(image: nil)
-        newImageView.contentMode = .scaleAspectFit
-        
-        let frame = CGRect(x: 0, y: 0, width: w, height: h)
-        let canvasView = UIView(frame: frame)
-        scroller.addSubview(canvasView)
-        
-        newImageView.translatesAutoresizingMaskIntoConstraints = false
-        canvasView.addSubview(newImageView)
-        
-        
-        let constraints = [
-            (newImageView.widthAnchor.constraint(equalToConstant: 100)),
-            (newImageView.heightAnchor.constraint(equalToConstant: 100)),
-            (newImageView.topAnchor.constraint(equalTo: scroller.topAnchor, constant: 0)),
-            (newImageView.leadingAnchor.constraint(equalTo: scroller.leadingAnchor, constant: 0))
-        ]
-        NSLayoutConstraint.activate(constraints)
-        
-        return ImageView(page: canvasView, imgView: newImageView, widthConst: constraints[0], heightConst: constraints[1], topConst: constraints[2], leadConst: constraints[3])
+        scrollerContent.setNeedsLayout()
     }
     
-    func setImage(page:Int, image img:ImageView)
-    {
-        if (page < 0 || page > files.count - 1)
-        {
-            img.imgView!.image = nil
-            return
-        }
+    
+    
+    fileprivate func resetIndex() -> Bool {
+        let width = scroller.frame.width
+        let actualOffset = Int(-round(scrollerContent.frame.origin.x / width))
+        let left = getLeft()
+        let nextIndex = left + actualOffset
         
-        let image = Files.instance.assetToImage(files[page])
-        img.imgView!.image = image
-        let w = scroller.frame.width
-        let h = scroller.frame.height
-
-        img.widthConst?.constant = w
-        img.heightConst?.constant = h
-        img.topConst?.constant = 0
+        let ret = (_index != nextIndex)
         
-        let offset = w * CGFloat(page)
-        img.leadConst?.constant = offset
+        _index = nextIndex
         
-        img.imgView!.setNeedsLayout()
+        return ret
     }
-
-    fileprivate func loadCurrentPages()
+    
+    fileprivate func cleanUpPages()
     {
-        if (index == slides.centerIndex)
-            { return }
-        
-        var bigdiff = index - slides.centerIndex
-        bigdiff = (bigdiff > 0) ? bigdiff : -bigdiff
-        
-        if (bigdiff < 3)
+        let left = getLeft()
+        let right = left + span - 1
+        for page in renderedSlides.keys
         {
-            if (index > slides.centerIndex)
-            {
-                let diff = index - slides.centerIndex
-                for _ in 1 ... diff
-                {
-                    shiftRight()
+            if (page >= left && page <= right) {
+                continue
+            }
+            
+            print("recycling page \(page)")
+            if let slide = renderedSlides[page] {
+                slide.deselected()
+                slide.removeFromSuperview()
+                
+                if let videoSlide = slide as? VideoView {
+                    movieCache.append(videoSlide)
+                } else if let photoSlide = slide as? ImageView {
+                    imageCache.append(photoSlide)
+                } else if let toggleSlide = slide as? ToggleView {
+                    toggleCache.append(toggleSlide)
                 }
-            }
-            else if (index < slides.centerIndex)
-            {
-                let diff = slides.centerIndex - index
-                for _ in 1 ... diff
-                {
-                    shiftLeft()
-                }
+                
+                renderedSlides[page] = nil
             }
         }
-        else
-        {
-            slides.centerIndex = index
-            for i in 0 ... 4
-            {
-                let idx = index + ( i - 2 )
-                setImage(page: idx, image: slides.slides[i])
-            }
-        }
-    }
-    
-    private func shiftRight()
-    {
-        let img = slides.slides.remove(at: 0)
-        slides.centerIndex += 1
-        setImage(page: slides.centerIndex + 2, image: img)
-        slides.slides.append(img)
-    }
-    
-    private func shiftLeft()
-    {
-        let img = slides.slides.remove(at: 4)
-        slides.centerIndex -= 1
-        setImage(page: slides.centerIndex - 2, image: img)
-        slides.slides.insert(img, at: 0)
-    }
-
-    fileprivate func gotoPage(page: Int, animated: Bool)
-    {
-        var bounds = scroller.bounds
-        let w = bounds.width
-        index = page
-        navigationItem.title = "Image " + String(index + 1) + "/" + String(files.count)
-        
-        loadCurrentPages()
-        
-        bounds.origin.x = w * CGFloat(page)
-        bounds.origin.y = 0
-        scroller.scrollRectToVisible(bounds, animated: animated)
-    }
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
-    {
-        cancelPlay()
-    
-        let offset = scroller.contentOffset
-        let pageRaw = offset.x / view.frame.width
-        index = Int(pageRaw.rounded())
-        navigationItem.title = "Image " + String(index + 1) + "/" + String(files.count)
-        loadCurrentPages()
-    }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView)
-    {
-        scroller.contentOffset.y = 0
     }
 }

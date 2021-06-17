@@ -42,6 +42,12 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     override func viewWillAppear(_ animated: Bool)
     {
         refresh()
+        
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
     
     private func refresh()
@@ -165,8 +171,10 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         for cell in selectedCells
         {
             let file = files[cell.section][cell.item]
-            let img = Files.instance.assetToImage(file)
-            toShare.append( ImageProvider(placeholderItem: img, type: type ) )
+            Files.instance.assetToImage(file, completed: {img in
+                guard let image = img else { return }
+                toShare.append( ImageProvider(placeholderItem: image, type: type ))
+            })
         }
         
         let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
@@ -233,14 +241,10 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell
     {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "galleryGridWidget", for: indexPath)
-        guard (cell is GalleryGridWidget) else { return cell }
-        
-        let cell2 = cell as! GalleryGridWidget
-        
+        guard let cell2 = cell as? GalleryGridWidget else { return cell }
         
         let file:PHAsset = files[indexPath.section][indexPath.item]
-        let image:UIImage = Files.instance.assetToImage(file, asThumbnail: true)
-        cell2.displayContent(image: image)
+        cell2.displayContent(asset: file)
         let selected = selectedCells.contains(indexPath)
         cell2.isHighlighted = selected
 

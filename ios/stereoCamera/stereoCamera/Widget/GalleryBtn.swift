@@ -13,11 +13,11 @@ import Photos
 class GalleryBtn : UIImageView, FilesDelegate //I'd make this a UIButton but the image won't display properly
 {
     func onNewFile(asset: PHAsset) {
-        let img = Files.instance.assetToImage(asset)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.image = img
-        }
+        Files.instance.assetToImage(asset, completed: { img in
+            DispatchQueue.main.async { [weak self] in
+                self?.image = img
+            }
+        })
     }
     
     var files = [PHAsset]()
@@ -75,7 +75,8 @@ class GalleryBtn : UIImageView, FilesDelegate //I'd make this a UIButton but the
     
     func update(with: PHAsset)
     {
-        let image = Files.instance.assetToImage(with)
-        self.image = image
+        let image = Files.instance.assetToImage(with, completed: {[weak self] image in
+            self?.image = image
+        })
     }
 }

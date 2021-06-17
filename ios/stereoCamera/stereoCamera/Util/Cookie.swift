@@ -92,11 +92,11 @@ class Cookie
         }
     }
     
-    var videoImageQuality:ImageQuality
+    var videoImageQuality:VideoQuality
     {
         get {
             let val = UserDefaults.standard.integer(forKey: videoImageQualityKey)
-            return ImageQuality.init(rawValue: val) ?? ImageQuality.ULTRA_HI_DEF
+            return VideoQuality.init(rawValue: val) ?? VideoQuality.MAX_H264
         }
         set {
             UserDefaults.standard.setValue(newValue.rawValue, forKey: videoImageQualityKey)
@@ -135,7 +135,8 @@ enum ImageFormat: Int, CaseIterable
     case SPLIT = 0x1,
          GREEN_MAGENTA = 0x2,
          RED_BLUE = 0x4,
-         ANIMATED = 0x8
+         ANIMATED = 0x8,
+         SINGLE = 0x10
     
     static func intToSet(_ val:Int) -> Set<ImageFormat> {
         var ret = Set<ImageFormat>()
@@ -165,6 +166,7 @@ enum ImageFormat: Int, CaseIterable
         case .GREEN_MAGENTA: return "green-magenta"
         case .RED_BLUE: return "red-blue"
         case .SPLIT: return "split"
+        case .SINGLE: return "single"
         }
     }
 }
@@ -184,6 +186,25 @@ enum ImageQuality: Int, CaseIterable
         case .HI_DEF: return 480
         case .STANDARD_DEF: return 960
         case .ULTRA_HI_DEF: return 2160
+        }
+    }
+}
+
+enum VideoQuality: Int, CaseIterable
+{
+    case DVD,
+         MAX_H264,
+         BLU_RAY_H265
+    
+    func toString() -> String {
+        return "\(toInt()) pixels"
+    }
+    
+    func toInt() -> Int {
+        switch(self) {
+        case .DVD: return 480
+        case .MAX_H264: return 960
+        case .BLU_RAY_H265: return 1080
         }
     }
 }
