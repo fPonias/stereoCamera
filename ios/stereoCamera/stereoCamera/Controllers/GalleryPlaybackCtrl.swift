@@ -153,7 +153,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             
             DispatchQueue.main.async {
             [unowned self ] in
-                self.setIndex(self.index + 1)
+                self.setIndex(_index + 1)
             }
         }
     }
@@ -185,31 +185,8 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             
             print("velocity \(velocity)")
             
-            let x = scrollerContent.frame.origin.x
-            let w = scroller.frame.width
             let delta = (panEndVelocity > 0) ? -1 : 1
-            
-            var nextX = panStartX + CGFloat(delta) * -w
-            let nextIdx = Int(-nextX / w) + _index
-            
-            let duration:CGFloat
-            if (nextIdx < 0 || nextIdx >= files.count) {
-                nextX = 0
-                let diff = nextX - x
-                duration = 0.5 / 1200.0 * diff
-            } else {
-                let diff = nextX - x
-                duration = 0.4 / 1200.0 * diff
-            }
-            
-            panAnimator = UIViewPropertyAnimator(duration: Double(abs(duration)), curve: .easeOut) { [weak self] in
-                guard let self = self else { return }
-                self.scrollerContent.frame.origin.x = nextX
-            }
-            panAnimator?.addCompletion { [weak self] (position) in
-                self?.loadCurrentPages()
-            }
-            panAnimator?.startAnimation()
+            slideBy(start: panStartX, delta: delta)
         } else {
             let distPnt = recog.translation(in: scroller)
             
@@ -237,7 +214,36 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             cancelPlay()
             return
         }
-        //scrollToNext()
+        
+        slideBy(start: scrollerContent.frame.origin.x, delta: next - _index)
+    }
+    
+    private func slideBy(start:CGFloat, delta:Int)
+    {
+        let x = scrollerContent.frame.origin.x
+        let w = scroller.frame.width
+        
+        var nextX = start + CGFloat(delta) * -w
+        let nextIdx = Int(-nextX / w) + _index
+        
+        let duration:CGFloat
+        if (nextIdx < 0 || nextIdx >= files.count) {
+            nextX = 0
+            let diff = nextX - x
+            duration = 0.5 / 1200.0 * diff
+        } else {
+            let diff = nextX - x
+            duration = 0.4 / 1200.0 * diff
+        }
+        
+        panAnimator = UIViewPropertyAnimator(duration: Double(abs(duration)), curve: .easeOut) { [weak self] in
+            guard let self = self else { return }
+            self.scrollerContent.frame.origin.x = nextX
+        }
+        panAnimator?.addCompletion { [weak self] (position) in
+            self?.loadCurrentPages()
+        }
+        panAnimator?.startAnimation()
     }
     
     private let SELECTION_COPY = "Copy"
