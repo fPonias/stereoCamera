@@ -59,6 +59,10 @@ class Histogram
     
     private var margins = TextureMargin(left: 0, top: 0, right: 0, bottom: 0)
     
+    func getMargins() -> TextureMargin {
+        return margins
+    }
+    
     func setMargins(_ margins:TextureMargin) {
         self.margins = margins
         guard let ptr = marginBuf?.contents() else { return }
@@ -99,6 +103,8 @@ class Histogram
     public func hasTexture() -> Bool {
         return _texture != nil
     }
+    
+    
     
     func setPixelZoom(_ zoom:Int) {
         let margin:TextureMargin
@@ -375,10 +381,10 @@ public class ReducedHistogram {
         return _texture != nil
     }
     
-    func setZoom(_ zoom:Float)
+    func setZoom(_ zoom:Float, offset:CGPoint)
     {
         guard let marginPtr = marginPtr else { return }
-        let margins = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: zoom)
+        let margins = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: zoom, offset: offset)
         ImageUtils.marginFloatToMtlArr(margins: margins, ptr: marginPtr)
     }
     

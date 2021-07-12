@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import UIKit
 
 class ZoomFinder {
     let baseHist = ReducedHistogram()
@@ -44,7 +45,7 @@ class ZoomFinder {
     private let searchDivs = 4
     
     private func findZoomPriv(_ callback: (Float)->Void) {
-        baseHist.setZoom(1.0)
+        baseHist.setZoom(1.0, offset: CGPoint())
         
         let ret = findZoomLin(left: 1.0, right: max, step: 0.1)
         if (ret.peak == 0 || ret.valley == Float.infinity) {
@@ -136,7 +137,7 @@ class ZoomFinder {
     }
     
     private func getDiff(zoom:Float, bucketSize:Int) -> Int {
-        baseHist.setZoom(1.0)
+        baseHist.setZoom(1.0, offset: CGPoint())
         guard let baseVal = baseHist.calculate() else { return Int.max }
         adjHist.setZoom(zoom)
         guard let adjVal = adjHist.calculate() else { return Int.max }

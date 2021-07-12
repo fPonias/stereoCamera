@@ -13,6 +13,7 @@ class MeasureCtrl : UIViewController
 {
     var leftPixels:CVPixelBuffer?
     var rightPixels:CVPixelBuffer?
+    var zoom:Float = 1.0
     
     @IBOutlet weak var histogramView: HistogramPlot!
     
@@ -42,61 +43,62 @@ class MeasureCtrl : UIViewController
         }
         
         histogramView.appendData(leftData!)
-        
-        
-        var leftCount = Float(0)
-        for i in 0 ..< leftData!.count {
-            leftCount += Float(leftData![i])
-        }
-        
+                
         let histogram2 = Histogram()
         histogram2.setPixels(pixels: rightPixels)
-        var arr:[[Float]] = Array()
-        var diffs:[Float] = Array()
-        var lows:[Float] = Array()
-        var zoom:Float = 1.0
-        let step:Float = 0.025
-        var decending = true
-        while zoom <= 2.25 {
-            histogram2.setZoom(zoom)
-            guard let data = histogram2.calculate() else { return }
-            //let data = histogram2.smooth(data: dataRough)
+        histogram2.setZoom(zoom)
+        
+        
+        var margin1 = histogram.getMargins()
+        let height1 = CVPixelBufferGetHeight(leftPixels) - margin1.top - margin1.bottom
+        var margin2 = histogram2.getMargins()
+        let height2 = CVPixelBufferGetHeight(rightPixels) - margin2.top - margin2.bottom
+        
+        var arr1:[[Float]] = Array()
+        var arr2:[[Float]] = Array()
+        let offset1:Int = 10
+        let offset2:Float = 10.0 * Float(height2) / Float(height1)
+        
+        for offset in stride(from: -50, to: 50, by: 5) {
+            var margin2 = histogram2.getMargins()
+            margin2.bottom += Int(offset)
+            margin2.top -= Int(offset)
+            histogram2.setMargins(margin2)
             
-            var rightCount = Float(0)
-            let sz = data.count
-            var dataCopy = Array(repeating: Float(0), count: sz)
-            for i in 0 ..< sz {
-                dataCopy[i] = Float(data[i])
-                rightCount += Float(data[i])
+            var margin1 = histogram.getMargins()
+            histogram.setMargins(margin1)
+            
+            guard let data2 = histogram2.calculate(),
+                  let data1 = histogram.calculate()
+            else { break }
+            
+            var data1Count:Int32 = 0
+            var data2Count:Int32 = 0
+            for i in 0 ..< data1.count {
+                data1Count += data1[i]
+                data2Count += data2[i]
             }
             
-            let ratio = leftCount / rightCount
+            let ratio = Float(data1Count) / Float(data2Count)
             
-            for i in 0 ..< sz {
-                dataCopy[i] = ratio * dataCopy[i]
+            var data1f:[Float] = Array()
+            for data1Item in data1 {
+                data1f.append(Float(data1Item))
             }
+            arr1.append(data1f)
             
-            arr.append(dataCopy)
-            diffs.append(diff(orig: leftData!, zoomed: dataCopy, ratio: 1.0))
-            let sz2 = diffs.count
-            if (sz2 > 1) {
-                if (decending && diffs[sz2 - 1] > diffs[sz2 - 2]) {
-                    lows.append(zoom)
-                    decending = false
-                    print ("low found at \(zoom)")
-                } else if (!decending && diffs[sz2 - 1] < diffs[sz2 - 2]) {
-                    decending = true
-                }
+            var data2f:[Float] = Array()
+            for data2Item in data2 {
+                let data2Val = Float(data2Item) * ratio
+                data2f.append(data2Val)
             }
-            zoom += step
+            arr2.append(data2f)
         }
         
         summaryView.reset()
-        let arg1:[[Float]] = [diffs]
-        //summaryView.append(data:arg1, size: histogramView.frame.size)
         
-        for i in 0 ..< arr.count {
-            summaryView.append(data:[leftData!,arr[i]] as [[Float]], size: histogramView.frame.size)
+        for i in 0 ..< arr1.count {
+            summaryView.append(data:[arr1[i],arr2[i]], size: histogramView.frame.size)
         }
     }
     

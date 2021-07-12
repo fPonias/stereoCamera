@@ -13,9 +13,12 @@ class SettingsCtrl : UIViewController
 {
     @IBOutlet weak var photoFormatBtn: UIButton!
     @IBOutlet weak var photoQualityBtn: UIButton!
-    //@IBOutlet weak var videoFormatBtn: UIButton!
+    @IBOutlet weak var videoFormatBtn: UIButton!
+    @IBOutlet weak var verticalOffsetBtn: UIButton!
     @IBOutlet weak var videoQualityBtn: UIButton!
     @IBOutlet weak var preferredOrientationBtn: UIButton!
+    @IBOutlet weak var zoomBtn: UIButton!
+    
     
     override func viewDidLoad()
     {
@@ -46,11 +49,21 @@ class SettingsCtrl : UIViewController
         let orientation = Cookie.instance.preferredOrientation
         let orientTitle = orientation == .portrait ? "vertical" : "horizontal"
         preferredOrientationBtn.setTitle(orientTitle, for: .normal)
+        
+        let verticalOffset = Cookie.instance.verticalOffset
+        verticalOffsetBtn.setTitle("\(verticalOffset)px", for: .normal)
+        
+        let zoom = Cookie.instance.zoom ?? 1.0
+        zoomBtn.setTitle("\(zoom)", for: .normal)
     }
     
     private func openPopup(type:Cookie.PrefType)
     {
-        performSegue(withIdentifier: "SettingsListSelectorSegue", sender: type)
+        if (type == .VERTICAL_OFFSET) {
+            performSegue(withIdentifier: "EditorSegue", sender: type)
+        } else {
+            performSegue(withIdentifier: "SettingsListSelectorSegue", sender: type)
+        }
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?)
@@ -118,6 +131,10 @@ class SettingsCtrl : UIViewController
                         selected: sel == fmt
                     ))
                 }
+            case .VERTICAL_OFFSET:
+                let val = Cookie.instance.verticalOffset
+            case .ZOOM:
+                let val = Cookie.instance.zoom
             }
             
             ctrl.cellTappedHandler = {[weak self] ctrl, data in
@@ -157,6 +174,10 @@ class SettingsCtrl : UIViewController
                 
                 self?.updateButtons()
             }
+        } else if (segue.identifier == "EditorSegue") {
+            guard let ctrl = segue.destination as? ImageEditorCtrl,
+                  let type = sender as? Cookie.PrefType
+            else { return }
         }
     }
     

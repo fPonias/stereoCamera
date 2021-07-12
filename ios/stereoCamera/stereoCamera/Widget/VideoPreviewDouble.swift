@@ -29,19 +29,6 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
     deinit {
         UIDevice.current.endGeneratingDeviceOrientationNotifications()
         NotificationCenter.default.removeObserver(self)
-        
-    }
-    
-    private var _zoom:Float = 1.0
-    var zoom:Float
-    {
-        get {return _zoom}
-        set
-        {
-            print ("manual zoom deprecated in favor of session zoom")
-            //_zoom = newValue
-            //updateTransform()
-        }
     }
     
     public func initialize() {
@@ -118,18 +105,18 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
     
     public var frameListener:(MTLTexture) -> Void = {_ in }
     
-    func renderBuffer(sampleBuffer: CMSampleBuffer, side:ImageProcessor.Side) {
+    func renderBuffer(sampleBuffer: CMSampleBuffer, side:ImageProcessor.Side, zoom:Float, offset:CGPoint) {
         guard let lPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        renderBuffer(lPixelBuffer, side: side, rotation: rotation)
+        renderBuffer(lPixelBuffer, side: side, rotation: rotation, zoom:zoom, offset:offset)
     }
     
-    func renderBuffer(_ pixelBuffer:CVImageBuffer, side:ImageProcessor.Side, rotation:Float) {
+    func renderBuffer(_ pixelBuffer:CVImageBuffer, side:ImageProcessor.Side, rotation:Float, zoom:Float, offset: CGPoint) {
         guard hasNewTexture == false,
               (side == .LEFT && !hasLeftTexture) || (side == .RIGHT && !hasRightTexture),
               let imageProc = _imageProc
         else { return }
         
-        setProcessorImage(pixelBuffer, side: side, rotation: rotation)
+        setProcessorImage(pixelBuffer, side: side, rotation: rotation, zoom: zoom, offset: offset)
         
         DispatchQueue.main.sync {
             if (side == .LEFT) {
@@ -154,7 +141,7 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
         }
     }
     
-    private func setProcessorImage(_ pixelBuffer:CVImageBuffer, side:ImageProcessor.Side, rotation:Float)
+    private func setProcessorImage(_ pixelBuffer:CVImageBuffer, side:ImageProcessor.Side, rotation:Float, zoom:Float, offset:CGPoint)
     {
         guard let imageProc = _imageProc else { return }
         
@@ -164,8 +151,8 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
         
         let w = CVPixelBufferGetWidth(pixelBuffer) - margins.left - margins.right
         let h = CVPixelBufferGetHeight(pixelBuffer) - margins.top - margins.bottom
-        let margins = ImageUtils.findMargins(size: ImageUtils.Size(width: w, height: h), zoom: 1.0)
-        imageProc.setPixels(pixels: pixelBuffer, margins: margins, rotation: rotation)
+        let margins = ImageUtils.findMargins(size: ImageUtils.Size(width: w, height: h), zoom: zoom, offset: offset)
+        imageProc.setPixels(pixels: pixelBuffer, margins: margins, rotation: rotation, offset: CGPoint())
         imageProc.processCurrentInTexture(side)
     }
     

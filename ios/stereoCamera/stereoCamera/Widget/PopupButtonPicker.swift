@@ -22,7 +22,9 @@ class PopupButtonPicker : PopupButton {
             modal.selectedItem = item as Any
             
             guard let selItem = modal.selectedItem as? PopupButtonModalPickerItem else { return }
-            setTitle(selItem.text, for: .normal)
+            let title = delegate?.getTitle(selected: selItem) ?? titleLabel?.text ?? ""
+            setTitle(title, for: .normal)
+            
             setNeedsDisplay()
         }
     }
@@ -94,17 +96,24 @@ class PopupButtonModalPicker : PopupButtonModal {
     }
     
     override func layoutSubviews() {
-        frame.size.width = CGFloat(_pickerViewArray.count * 70 + 20)
-        frame.size.height = 40.0
-        frame.origin.x = origin.x - frame.size.width
+        var offset = 0
         
         for i in 0 ..< subviews.count {
-            let offset = i * 70 + 10
-            let width = 60
+            let i2 = subviews.count - 1 - i
+            let sz = _pickerViewArray[i2].text.count
+            let width = max(50, sz * 8)
+            offset += 10
+            
             let frame = CGRect(x: offset, y: 10, width: width, height: 20)
-            let btn = subviews[i] as! UIButton
+            let btn = subviews[i2] as! UIButton
             btn.frame = frame
+            
+            offset += width
         }
+        
+        frame.size.width = CGFloat(offset + 10)
+        frame.size.height = 40.0
+        frame.origin.x = origin.x - frame.size.width
     }
     
     @objc func onTapped(sender: AnyObject) {

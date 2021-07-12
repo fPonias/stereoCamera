@@ -188,7 +188,7 @@ colorMask(texture2d<float, access::sample> inTexture [[ texture(0) ]],
     texCoord = *transform * texCoord;
     texCoord += float3 {0.5f, 0.5f, 0.0f};
     
-    constexpr sampler s(address::clamp_to_edge, filter::linear);
+    constexpr sampler s(address::clamp_to_edge, filter::nearest);
     float4 val = inTexture.sample(s, float2 {texCoord[0], texCoord[1]});
     gid += offset[0];
     float4 cur = outTexture.read(gid);

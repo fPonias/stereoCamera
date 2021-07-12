@@ -11,13 +11,13 @@ import CoreImage
 
 class ImageEditorData //mutable struct
 {
-    init(origData:CVPixelBuffer, zoom: Float, rotation: Float) {
+    init(origData:CVPixelBuffer, zoom: CGFloat, rotation: Float, offset: CGPoint) {
         self.origData = ImageUtils.copyBuffer(base: origData)
         self.zoom = zoom
-        self.margins = ImageEditorData.getMargin(origData, zoom: zoom)
+        self.margins = ImageEditorData.getMargin(origData, zoom: Float(zoom), offset: offset)
         self.rotation = rotation
         
-        let cropWidget = SquareFilter(orientation: .DEG_0, zoom: zoom)
+        let cropWidget = SquareFilter(orientation: .DEG_0, zoom: zoom, offset: offset)
         automaticFilters.append(cropWidget)
         let rotateWidget = RotateFilter(rotation: rotation, dimension: margins.width)
         automaticFilters.append(rotateWidget)
@@ -27,7 +27,7 @@ class ImageEditorData //mutable struct
     }
     
     var origData: CVPixelBuffer?
-    var zoom: Float
+    var zoom: CGFloat
     var rotation: Float
     
     var automaticFilters:[ImageEditorFilter] = Array()
@@ -37,13 +37,13 @@ class ImageEditorData //mutable struct
     
     var margins:ImageUtils.Margin
     
-    private static func getMargin(_ origData:CVPixelBuffer, zoom:Float) -> ImageUtils.Margin {
+    private static func getMargin(_ origData:CVPixelBuffer, zoom:Float, offset:CGPoint) -> ImageUtils.Margin {
 
         let w = CVPixelBufferGetWidth(origData)
         let h = CVPixelBufferGetHeight(origData)
         
-        let sz:ImageUtils.Size = ImageUtils.Size(width: h, height: w)
-        return ImageUtils.findMargins(size: sz, zoom: zoom)
+        let sz:ImageUtils.Size = ImageUtils.Size(width: w, height: h)
+        return ImageUtils.findMargins(size: sz, zoom: zoom, offset: offset)
     }
     
     enum ProcessType {

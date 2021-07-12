@@ -11,7 +11,7 @@ import AVKit
 
 class Cookie
 {
-    let version:Float = 7.0
+    let version:Float = 8.0
 
     let versionKey = "VERSION"
     let photoImageQualityKey = "PHOTO_IMAGE_QUALITY"
@@ -20,6 +20,8 @@ class Cookie
     let videoFormatKey = "VIDEO_FORMAT"
     let preferredOrientationKey = "PREFERRED_ORIENTATION"
     let introSeenKey = "INTRO_SEEN"
+    let verticalOffsetKey = "VERTICAL_OFFSET"
+    let zoomKey = "ZOOM"
     
     enum PrefType
     {
@@ -27,7 +29,9 @@ class Cookie
              PHOTO_IMAGE_FORMAT,
              VIDEO_IMAGE_QUALITY,
              VIDEO_IMAGE_FORMAT,
-             ORIENTATION
+             ORIENTATION,
+             VERTICAL_OFFSET,
+             ZOOM
     }
     
     private static let _instance:Cookie = Cookie()
@@ -50,7 +54,7 @@ class Cookie
         let ver = UserDefaults.standard.float(forKey: versionKey)
         let prefs = UserDefaults.standard
         
-        if (ver < 6.0)
+        if (ver < 8.0)
         {
             prefs.set(version, forKey: versionKey)
             prefs.set(false, forKey: introSeenKey)
@@ -126,6 +130,38 @@ class Cookie
         }
         set {
             UserDefaults.standard.setValue(newValue.rawValue, forKey: preferredOrientationKey)
+        }
+    }
+    
+    var verticalOffset:CGFloat {
+        get {
+            let exists = UserDefaults.standard.value(forKey: verticalOffsetKey)
+            
+            if exists != nil {
+                let val = UserDefaults.standard.float(forKey: verticalOffsetKey)
+                return CGFloat(val)
+            } else {
+                return CGFloat(26)
+            }
+        }
+        set {
+            UserDefaults.standard.setValue(Float(newValue), forKey: verticalOffsetKey)
+        }
+    }
+    
+    var zoom:Float? {
+        get {
+            let exists = UserDefaults.standard.value(forKey: zoomKey)
+            
+            if exists != nil {
+                let val = UserDefaults.standard.float(forKey: zoomKey)
+                return val
+            } else {
+                return nil
+            }
+        }
+        set {
+            UserDefaults.standard.setValue(newValue, forKey: zoomKey)
         }
     }
 }

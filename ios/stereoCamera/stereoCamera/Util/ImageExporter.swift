@@ -66,10 +66,9 @@ class ImageExporter {
         
         guard let proc = proc else { return }
         
-        
-        proc.setPixels(pixels: leftImg, rotation: leftData.rotation)
+        proc.setPixels(pixels: leftImg, margins: leftData.margins, rotation: leftData.rotation, offset: CGPoint(x: 0, y: 0))
         proc.processCurrentInTexture(.LEFT)
-        proc.setPixels(pixels: rightImg, rotation: rightData.rotation)
+        proc.setPixels(pixels: rightImg, margins: rightData.margins, rotation: rightData.rotation, offset: CGPoint(x: 0, y: 0))
         proc.processCurrentInTexture(.RIGHT)
         
         guard let data = proc.getFinalImageData() else { return }

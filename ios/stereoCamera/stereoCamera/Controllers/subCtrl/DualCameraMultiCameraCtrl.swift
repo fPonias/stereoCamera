@@ -30,6 +30,8 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     var rightCameraStr: CameraStr?
     var audioStr: AudioStr?
     
+    var verticalOffset:CGFloat = Cookie.instance.verticalOffset
+    
     
     private func cleanUp()
     {
@@ -211,9 +213,9 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         if output is AVCaptureVideoDataOutput {
             if (connection == leftCameraStr?.videoDataOutputConnection) {
-                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true)
+                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true, zoom: 1.0, offset: CGPoint())
             } else {
-                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false)
+                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false, zoom: _zoom, offset: _offset)
             }
         } else if output is AVCaptureAudioDataOutput {
             dualCameraCtrl.captureOutput(audioOutput: sampleBuffer)
@@ -231,28 +233,15 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             }
         }
     }
-        
-        
-    func getZoom() -> Float {
-        let z = rightCameraStr?.deviceInput?.device.videoZoomFactor
-        if z != nil { return Float(z!) } else { return 1.0 }
-    }
+      
     
-    func setZoom(_ zoom:Float) {
-        if let device = rightCameraStr?.deviceInput?.device {
-            setZoom(1.0, device: device)
-        }
-    }
+    private var _zoom:Float = 1.0
+    public func getZoom() -> Float { return _zoom }
+    public func setZoom(_ zoom:Float) { _zoom = zoom }
     
-    private func setZoom(_ zoom:Float, device:AVCaptureDevice?)
-    {
-        guard let device = device else { return }
-        do {
-            try device.lockForConfiguration()
-            device.videoZoomFactor = CGFloat(zoom)
-            device.unlockForConfiguration()
-        } catch {}
-    }
+    private var _offset = CGPoint()
+    public func getOffset() -> CGPoint { return _offset }
+    public func setOffset(_ offset: CGPoint) { _offset = offset }
     
     // Must be called on the session queue
     func configureSession() -> Bool {
@@ -278,8 +267,8 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     
     func setCameraPair(pair: DualCameraCtrl.CameraPair) {
         if (rightCameraStr != nil) {
-            setZoom(1.0, device: rightCameraStr?.deviceInput?.device)
-            setZoom(1.0, device: leftCameraStr?.deviceInput?.device)
+            setZoom(1.0)
+            setZoom(1.0)
 
             session.stopRunning()
             session.beginConfiguration()
@@ -299,30 +288,24 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         }
         
         rightCameraStr = configureCamera(pair.right)
-        guard rightCameraStr != nil else {
-            setupResult = .configurationFailed
-            return
-        }
-        
-        let rightFov = rightCameraStr?.fieldOfView ?? 0.0
-        let rightFovRad = rightFov * Float.pi / 180.0
-        let rightWidth = 2.0 * tan(rightFovRad / 2.0)
-        
-        
-        //let rightDim = rightCameraStr?.device?.activeFormat.highResolutionStillImageDimensions.height ?? 1024
-        //let maxDim = Int32(Float(rightDim) * 0.8)
         leftCameraStr = configureCamera(pair.left)
-        guard leftCameraStr != nil else {
+        guard rightCameraStr != nil && leftCameraStr != nil else {
             setupResult = .configurationFailed
             return
         }
         
-        let leftFov = leftCameraStr?.fieldOfView ?? 0.0
-        let leftFovRad = leftFov * Float.pi / 180.0
-        let leftWidth = 2.0 * tan(leftFovRad / 2.0)
+        let cookieZoom = Cookie.instance.zoom
+        let zoom:Float
+        if (cookieZoom == nil) {
+            zoom = calculateZoom(leftCameraStr: leftCameraStr!, rightCameraStr: rightCameraStr!)
+            Cookie.instance.zoom = zoom
+        } else {
+            zoom = cookieZoom!
+        }
         
-        let zoom = rightWidth / leftWidth
-        setZoom(zoom, device: rightCameraStr?.device)
+        setZoom(zoom)
+        
+        setOffset(CGPoint(x: 0.0, y: verticalOffset))
         
         
         audioStr = configureAudio()
@@ -333,6 +316,19 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         
         
         session.startRunning()
+    }
+    
+    private func calculateZoom(leftCameraStr:CameraStr, rightCameraStr:CameraStr) -> Float {
+        let rightFov = rightCameraStr.fieldOfView ?? 0.0
+        let rightFovRad = rightFov * Float.pi / 180.0
+        let rightWidth = 2.0 * tan(rightFovRad / 2.0)
+        
+        let leftFov = leftCameraStr.fieldOfView ?? 0.0
+        let leftFovRad = leftFov * Float.pi / 180.0
+        let leftWidth = 2.0 * tan(leftFovRad / 2.0)
+        
+        let zoom = rightWidth / leftWidth
+        return zoom
     }
     
     struct CameraStr {
@@ -815,5 +811,14 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         AudioServicesPlaySystemSound(1108)
         shutterCallback?(lPixelBuffer, rPixelBuffer)
         shutterWaiting = false
+    }
+    
+    func sliderChanged(value: Float, target: AdjustmentItem) {
+        if (target.type == .VERTICAL_OFFSET) {
+            verticalOffset = CGFloat(value)
+            setOffset(CGPoint(x: 0.0, y: verticalOffset))
+        } else if (target.type == .ZOOM) {
+            setZoom(value)
+        }
     }
 }

@@ -109,6 +109,7 @@
 		7E691E5C25FEB30000ED228E /* DualCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */; };
 		7E691E5F25FECA0900ED228E /* VideoPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E5E25FECA0900ED228E /* VideoPreview.swift */; };
 		7E691E642600908C00ED228E /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E691E632600908C00ED228E /* PreviewView.swift */; };
+		7E9A63A8267CE55B00754A07 /* OffsetFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9A63A7267CE55B00754A07 /* OffsetFilter.swift */; };
 		7E9AB3CF2636656F009A25B3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7E9AB3CE2636656F009A25B3 /* Main.storyboard */; };
 		7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE292607DF1000223114 /* Histogram.swift */; };
 		7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE2C26080DB300223114 /* ZoomFinder.swift */; };
@@ -249,6 +250,7 @@
 		7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraCtrl.swift; sourceTree = "<group>"; };
 		7E691E5E25FECA0900ED228E /* VideoPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreview.swift; sourceTree = "<group>"; };
 		7E691E632600908C00ED228E /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		7E9A63A7267CE55B00754A07 /* OffsetFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffsetFilter.swift; sourceTree = "<group>"; };
 		7E9AB3CE2636656F009A25B3 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		7E9FCE292607DF1000223114 /* Histogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Histogram.swift; sourceTree = "<group>"; };
 		7E9FCE2C26080DB300223114 /* ZoomFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomFinder.swift; sourceTree = "<group>"; };
@@ -529,6 +531,7 @@
 				7EA68B1D262B3BF600D96250 /* SquareFilter.swift */,
 				7EA68B23262B65A400D96250 /* ScaleFilter.swift */,
 				7ED00E582635D9A500D12A4C /* RotateFilter.swift */,
+				7E9A63A7267CE55B00754A07 /* OffsetFilter.swift */,
 			);
 			path = ImageEditor;
 			sourceTree = "<group>";
@@ -713,6 +716,7 @@
 				7E691E0E25F463AD00ED228E /* jctrans.c in Sources */,
 				7E691DE725F461FF00ED228E /* SplitCompositeImageStream.cpp in Sources */,
 				7EED494F2654E7F200640177 /* AngleCalculator.swift in Sources */,
+				7E9A63A8267CE55B00754A07 /* OffsetFilter.swift in Sources */,
 				7EFFA0FA2645FDBF0084F31D /* DeviceList.swift in Sources */,
 				7CF59844211157810015260C /* SettingsListWidget.swift in Sources */,
 				7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */,

@@ -16,15 +16,44 @@ protocol DualCameraController
 {
     func getZoom() -> Float
     func setZoom(_ zoom:Float)
+    func getOffset() -> CGPoint
+    func setOffset(_ offset:CGPoint)
     func configureSession() -> Bool
     func setCameraPair(pair: DualCameraCtrl.CameraPair)
     func viewWillAppear()
     func getSyncedFrames(callback:@escaping (_ left:CVPixelBuffer, _ right:CVPixelBuffer) -> Void)
     func getAudioSettings() -> [String: Any]?
     func getVideoSettings() -> [String: Any]?
+    func sliderChanged(value: Float, target: AdjustmentItem)
 }
 
-class DualCameraCtrl: UIViewController, PopupButtonDelegate
+class AdjustmentItem : PopupButtonModalPickerItem
+{
+    var text: String {
+        get { return title }
+    }
+    
+    enum AdjustmentType {
+        case VERTICAL_OFFSET
+        case ZOOM
+    }
+    
+    let title:String
+    let type:AdjustmentType
+    let min:Float
+    let max:Float
+    let currentValue:()->Float
+    
+    init(title:String, type:AdjustmentType, min:Float, max:Float, currentValue:@escaping ()->Float) {
+        self.title = title
+        self.type = type
+        self.min = min
+        self.max = max
+        self.currentValue = currentValue
+    }
+}
+
+class DualCameraCtrl: UIViewController
 {
     struct CameraPair{
         let left:AVCaptureDevice
@@ -100,6 +129,13 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private var shutterBtn:UIButton?
     private var galleryBtn:GalleryBtn?
     private var settingsBtn:UIButton?
+    private var adjustBtn:PopupButtonPicker?
+    private var slider:UISlider?
+    private var shutterView:UIView?
+    private var adjustView:UIView?
+    private var cancelBtn:UIButton?
+    private var saveBtn:UIButton?
+    private var debugBtn:UIButton?
     
     private var horizontalRoot:UIView?
     private var verticalRoot:UIView?
@@ -122,13 +158,24 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         
         doubleCameraPreview = root?.viewWithTag(1) as? VideoPreviewDouble
         typePickerBtn = root?.viewWithTag(2) as? PopupButtonPicker
+        adjustBtn = root?.viewWithTag(8) as? PopupButtonPicker
         playbackLbl = root?.viewWithTag(3) as? UILabel
         shutterBtn = root?.viewWithTag(4) as? UIButton
         galleryBtn = root?.viewWithTag(5) as? GalleryBtn
         settingsBtn = root?.viewWithTag(6) as? UIButton
+        slider = root?.viewWithTag(7) as? UISlider
+        shutterView = root?.viewWithTag(10)
+        adjustView = root?.viewWithTag(9)
+        saveBtn = root?.viewWithTag(11) as? UIButton
+        cancelBtn = root?.viewWithTag(12) as? UIButton
+        debugBtn = root?.viewWithTag(13) as? UIButton
         
-        
+        adjustView?.isHidden = true
+        slider?.isHidden = true
         shutterBtn?.addTarget(self, action: #selector(shutterClicked), for: .primaryActionTriggered)
+        cancelBtn?.addTarget(self, action: #selector(cancelClicked), for: .primaryActionTriggered)
+        saveBtn?.addTarget(self, action: #selector(saveClicked), for: .primaryActionTriggered)
+        debugBtn?.isHidden = true
     }
     
     var forcedOrientation:UIInterfaceOrientation!
@@ -238,18 +285,77 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         }
         
         
+        class TypePickerDelegate : PopupButtonDelegate
+        {
+            let parent: DualCameraCtrl
+            init(parent: DualCameraCtrl, target: PopupButtonPicker) {
+                self.parent = parent
+                super.init(target: target)
+            }
+            
+            override func itemSelected(_ button: PopupButton, value: Any?) {
+                parent.updateResolution()
+            }
+        }
+        
         guard let typePickerBtn = typePickerBtn else { return }
         typePickerBtn.rootView = view
-        typePickerBtn.delegate = self
+        typePickerBtn.delegate = TypePickerDelegate(parent: self, target: typePickerBtn)
         guard let typePickerModal = typePickerBtn.createModal() as? PopupButtonModalPicker else { return }
         typePickerModal.valueList = pickerViewArray
         typePickerBtn.modalOrginOffset = CGPoint(x: 0, y: 0)
+        
+        
+        class AdjustDelegate : TypePickerDelegate
+        {
+            override func getTitle(selected: PopupButtonModalPickerItem) -> String {
+                return "< Adjustments"
+            }
+            
+            override func itemSelected(_ button: PopupButton, value: Any?) {
+                guard let obj = value as? AdjustmentItem,
+                    let slider = parent.slider
+                else { return }
+                
+                slider.isHidden = false
+                slider.minimumValue = obj.min
+                slider.maximumValue = obj.max
+                slider.value = obj.currentValue()
+                parent.sliderOriginal = slider.value
+                parent.sliderTarget = obj
+                
+                parent.shutterView?.isHidden = true
+                parent.adjustView?.isHidden = false
+                slider.isHidden = false
+            }
+        }
+        
+        guard let adjustBtn = adjustBtn else { return }
+        adjustBtn.rootView = view
+        adjustBtn.delegate = AdjustDelegate(parent: self, target: adjustBtn)
+        guard let adjustModal = adjustBtn.createModal() as? PopupButtonModalPicker else { return }
+        adjustModal.valueList = adjustmentsArray
+        adjustBtn.modalOrginOffset = CGPoint(x: 0, y: 0)
+        
+        slider?.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
         
         playbackLbl?.text = ""
         
         
         doubleCameraPreview?.initialize()
         updateResolution()
+    }
+    
+    var sliderTarget:AdjustmentItem? = nil
+    var sliderOriginal:Float = 1.0
+    @objc func sliderChanged() {
+        guard let sliderTarget = sliderTarget,
+              let slider = slider,
+              let cameraCtrl = cameraCtrl
+        else { return }
+        
+        let value = slider.value
+        cameraCtrl.sliderChanged(value: value, target: sliderTarget)
     }
     
     struct CameraTypeItem : PopupButtonModalPickerItem
@@ -270,6 +376,12 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     var pickerViewArray:[CameraTypeItem] = [
         CameraTypeItem(title: "Photo", type: .CAMERA),
         CameraTypeItem(title: "Video", type: .VIDEO)
+    ]
+    
+    var adjustmentsArray:[AdjustmentItem] = [
+        AdjustmentItem(title: "Vertical Offset", type: .VERTICAL_OFFSET, min: -100, max: 100, currentValue: { return Float(Cookie.instance.verticalOffset) }),
+        AdjustmentItem(title: "Zoom", type: .ZOOM, min: 1.0, max: 4.0,
+                       currentValue: { return Cookie.instance.zoom ?? 1.0 })
     ]
     
     private var currentCameraPair:Int = -1
@@ -351,7 +463,7 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private var videoFrameTiming = CMSampleTimingInfo()
     private var videoDescription:CMFormatDescription?
     
-    func captureOutput(didOutput sampleBuffer: CMSampleBuffer, isLeft:Bool) {
+    func captureOutput(didOutput sampleBuffer: CMSampleBuffer, isLeft:Bool, zoom: Float, offset: CGPoint) {
         if let videoProc = videoProc, videoProc.isRecording {
             let now = Date()
             let diff = now.timeIntervalSince1970 - recordLabelStart.timeIntervalSince1970
@@ -368,19 +480,15 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
             videoDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
             CMSampleBufferGetSampleTimingInfo(sampleBuffer, 0, &videoFrameTiming)
             doubleCameraPreview?.rotation = Float(angle)
-            doubleCameraPreview?.renderBuffer(sampleBuffer: sampleBuffer, side: .LEFT)
+            doubleCameraPreview?.renderBuffer(sampleBuffer: sampleBuffer, side: .LEFT, zoom: zoom, offset: offset)
         }
         else {
-            doubleCameraPreview?.renderBuffer(sampleBuffer: sampleBuffer, side: .RIGHT)
+            doubleCameraPreview?.renderBuffer(sampleBuffer: sampleBuffer, side: .RIGHT, zoom: zoom, offset: offset)
         }
     }
     
     func captureOutput(audioOutput sampleBuffer: CMSampleBuffer) {
         videoProc?.recordAudio(sampleBuffer: sampleBuffer)
-    }
-    
-    func itemSelected(_ button: PopupButton, value: Any?) {
-        updateResolution()
     }
     
     private func updateResolution() {
@@ -411,6 +519,30 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         } else {
             videoTapped()
         }
+    }
+    
+    @objc func saveClicked(_ sender: Any) {
+        shutterView?.isHidden = false
+        adjustView?.isHidden = true
+        slider?.isHidden = true
+        
+        guard let value = slider?.value else { return }
+        if (sliderTarget?.type == .VERTICAL_OFFSET) {
+            Cookie.instance.verticalOffset = CGFloat(value)
+        } else if (sliderTarget?.type == .ZOOM) {
+            Cookie.instance.zoom = value
+        }
+    }
+    
+    @objc func cancelClicked(_ sender: Any) {
+        shutterView?.isHidden = false
+        adjustView?.isHidden = true
+        slider?.isHidden = true
+        
+        guard let sliderTarget = sliderTarget
+        else { return }
+        
+        cameraCtrl?.sliderChanged(value: sliderOriginal, target: sliderTarget)
     }
     
     private var videoProc:VideoProcessor?
@@ -456,6 +588,9 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
     private var loaderCtrl:LoadingPopupCtrl?
     private var loaderMessage:String = "Saving ..."
     
+    @IBAction func captureTypeTapped(_ sender: Any) {
+    }
+    
     @IBAction func measureClicked(_ sender: Any) {
         self.cameraCtrl?.getSyncedFrames(callback: {[weak self] (left, right) in
             
@@ -496,6 +631,12 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
             let arr = sender as! [CVPixelBuffer]
             vc.leftPixels = arr[0]
             vc.rightPixels = arr[1]
+            vc.zoom = Cookie.instance.zoom ?? 1.0
+        } else if (segue.identifier == "editorSegue"){
+            let arr = sender as! [CVPixelBuffer]
+            let vc = segue.destination as! ImageEditorCtrl
+            vc.leftData = ImageEditorData(origData: arr[0], zoom: 1.0, rotation: 0.0, offset: CGPoint())
+            vc.rightData = ImageEditorData(origData: arr[1], zoom: CGFloat(Cookie.instance.zoom ?? 1.0), rotation: 0.0, offset: CGPoint())
         }
     }
     
@@ -505,19 +646,26 @@ class DualCameraCtrl: UIViewController, PopupButtonDelegate
         //sleep(100)
         
         DispatchQueue.main.async {
-            self.performSegue(withIdentifier: "measureSegue", sender: [lPixelBuffer, rPixelBuffer])
+            self.performSegue(withIdentifier: "editorSegue", sender: [lPixelBuffer, rPixelBuffer])
         }
         
+        /*
+        DispatchQueue.main.async {
+            self.performSegue(withIdentifier: "measureSegue", sender: [lPixelBuffer, rPixelBuffer])
+        }
+        */
     }
     
     private let saver = Files.instance
     
     private func shutterClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
     {
-        let zoom:Float = 1.0
+        guard let ctrl = cameraCtrl else { return }
+        
         let lRot = angleCalculator.calculate()
-        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: zoom, rotation: Float(lRot))
-        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: zoom, rotation: Float(lRot))
+        
+        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: 1.0, rotation: Float(lRot), offset: CGPoint())
+        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: CGFloat(ctrl.getZoom()), rotation: Float(lRot), offset: ctrl.getOffset())
         
         let quality = Cookie.instance.photoImageQuality
         let exportTypes = Cookie.instance.photoFormat

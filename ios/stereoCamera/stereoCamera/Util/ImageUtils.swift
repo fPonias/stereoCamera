@@ -44,9 +44,9 @@ public class ImageUtils
         var height:Int
     }
     
-    static func findFloatMargins(size:Size, zoom:Float) -> MarginFloat
+    static func findFloatMargins(size:Size, zoom:Float, offset:CGPoint) -> MarginFloat
     {
-        let margins = findMargins(size: size, zoom: zoom)
+        let margins = findMargins(size: size, zoom: zoom, offset: offset)
         var ret = MarginFloat(left: 0, top: 0, right: 0, bottom: 0, widthPitch: 0, heightPitch: 0)
         
         ret.left = Float(margins.left) / Float(size.width)
@@ -59,7 +59,7 @@ public class ImageUtils
         return ret
     }
     
-    static func findMargins(size:Size, zoom:Float) -> Margin
+    static func findMargins(size:Size, zoom:Float, offset:CGPoint) -> Margin
     {
         var ret = Margin(left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0)
         
@@ -91,6 +91,16 @@ public class ImageUtils
             ret.bottom = hPaddingPx
             ret.width = size.width - 2 * wPaddingPx
             ret.height = size.height - 2 * hPaddingPx
+        }
+        
+        if (offset.x != 0) {
+            ret.left += Int(offset.x)
+            ret.right -= Int(offset.x)
+        }
+        
+        if (offset.y != 0) {
+            ret.top += Int(offset.y)
+            ret.bottom -= Int(offset.y)
         }
         
         return ret

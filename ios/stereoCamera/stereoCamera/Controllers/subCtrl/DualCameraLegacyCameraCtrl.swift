@@ -15,6 +15,7 @@ import CoreMedia
 class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
                                    AVCaptureVideoDataOutputSampleBufferDelegate,
                                    AVCapturePhotoCaptureDelegate {
+    
     private let dualCameraCtrl:DualCameraCtrl
     var setupResult: DualCameraCtrl.SessionSetupResult = .success
     private let dataOutputQueue = DispatchQueue(label: "data output queue")
@@ -44,20 +45,29 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
             }
         }
     }
-        
+    
+    private var _zoom:Float = 1.0
+    public func getZoom() -> Float { return _zoom }
+    public func setZoom(_ zoom:Float) { _zoom = zoom }
+    
+    private var _offset = CGPoint()
+    public func getOffset() -> CGPoint { return _offset }
+    public func setOffset(_ offset: CGPoint) { _offset = offset }
+    
+    /*
     func getZoom() -> Float {
-        let z = rightCameraStr?.deviceInput?.device.videoZoomFactor
-        if z != nil { return Float(z!) } else { return 1.8 }
+        //let z = rightCameraStr?.deviceInput?.device.videoZoomFactor
+        //if z != nil { return Float(z!) } else { return 1.8 }
     }
 
     func setZoom(_ zoom:Float) {
-        do {
+        /* do {
             try rightCameraStr?.deviceInput?.device.lockForConfiguration()
             rightCameraStr?.deviceInput?.device.videoZoomFactor = CGFloat(zoom)
             rightCameraStr?.deviceInput?.device.unlockForConfiguration()
-        } catch {}
+        } catch {} */
         
-    }
+    } */
     
     // Must be called on the session queue
     func configureSession() -> Bool {
@@ -261,7 +271,7 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         
         if (connection == leftCameraStr?.videoDataOutputConnection) {
-            dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true)
+            dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true, zoom: 1.0, offset: CGPoint())
             
             if shutterWaiting {
                 
@@ -278,7 +288,7 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
         } else {
             
             if (shutterWaiting) {
-                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true)
+                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true, zoom: 1.0, offset: CGPoint())
                 
                 rightCount += 1
                 guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
@@ -309,5 +319,9 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
     
     func getVideoSettings() -> [String : Any]? {
         return nil
+    }
+    
+    func sliderChanged(value: Float, target: AdjustmentItem) {
+        
     }
 }

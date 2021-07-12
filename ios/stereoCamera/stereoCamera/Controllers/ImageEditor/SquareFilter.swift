@@ -23,13 +23,15 @@ class SquareFilter : ImageEditorFilter
     var transform:CGAffineTransform
     var orientation:ImageUtils.CameraOrientation
     var rotate:CGFloat
-    var zoom:Float
+    var zoom:CGFloat
+    var offset:CGPoint
     
-    init(orientation: ImageUtils.CameraOrientation, zoom:Float) {
+    init(orientation: ImageUtils.CameraOrientation, zoom:CGFloat, offset:CGPoint) {
         transform = CGAffineTransform.identity
         self.orientation = orientation
         rotate = ImageUtils.orientationToRadians(orientation)
         self.zoom = zoom
+        self.offset = offset
         
         super.init(value: 0)
         
@@ -53,7 +55,8 @@ class SquareFilter : ImageEditorFilter
             sz = ImageUtils.Size(width: Int(rect.height), height: Int(rect.width))
         }
         
-        let margins = ImageUtils.findMargins(size: sz, zoom: zoom)
+        transform = transform.scaledBy(x: zoom, y: zoom)
+        let margins = ImageUtils.findMargins(size: sz, zoom: Float(zoom), offset:offset)
         transform = transform.translatedBy(x: CGFloat(-margins.left), y: CGFloat(-margins.top))
         
         filter.setValue(transform, forKey: "inputTransform")

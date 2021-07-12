@@ -87,18 +87,18 @@ class ImageProcessor {
     }
     
     func setPixels(pixels:CVImageBuffer) {
-        setPixels(pixels: pixels, rotation: 0.0)
+        setPixels(pixels: pixels, rotation: 0.0, offset: CGPoint(x: 0, y: 0))
     }
     
-    func setPixels(pixels:CVImageBuffer, rotation:Float) {
+    func setPixels(pixels:CVImageBuffer, rotation:Float, offset:CGPoint) {
         let w = CVPixelBufferGetWidth(pixels)
         let h = CVPixelBufferGetHeight(pixels)
-        let margins = ImageUtils.findMargins(size: ImageUtils.Size(width: w, height: h), zoom: 1.0)
+        let margins = ImageUtils.findMargins(size: ImageUtils.Size(width: w, height: h), zoom: 1.0, offset:offset)
         
-        setPixels(pixels: pixels, margins: margins, rotation: rotation)
+        setPixels(pixels: pixels, margins: margins, rotation: rotation, offset: offset)
     }
     
-    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float)
+    func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float, offset:CGPoint)
     {        
         createInTexture(pixels)
         self.rotation = rotation
@@ -108,8 +108,8 @@ class ImageProcessor {
         createMidTexture(size: ImageUtils.Size(width: w, height: h))
         
         guard let offsetPtr = offsetPtr else { return }
-        offsetPtr.pointee = Int32(margins.left)
-        (offsetPtr + 1).pointee = Int32(margins.top)
+        offsetPtr.pointee = Int32(margins.left + Int(offset.x))
+        (offsetPtr + 1).pointee = Int32(margins.top + Int(offset.y))
         (offsetPtr + 2).pointee = 0
     }
     
@@ -400,21 +400,24 @@ class ImageProcessorAnimatedGif : ImageProcessor
     private var currentBuffer:CVImageBuffer?
     private var currentMargins:ImageUtils.Margin?
     private var currentRotation:Float = 0
+    private var currentOffset:CGPoint?
     
-    override func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float)
+    override func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float, offset:CGPoint)
     {
         currentBuffer = pixels
         currentMargins = margins
         currentRotation = rotation
+        currentOffset = offset
     }
     
     override func processCurrentInTexture(_ side: ImageProcessor.Side) {
         guard let proc = (side == .LEFT) ? leftFrame : rightFrame,
               let buf = currentBuffer,
-              let margins = currentMargins
+              let margins = currentMargins,
+              let offset = currentOffset
         else { return }
         
-        proc.setPixels(pixels: buf, margins: margins, rotation: currentRotation)
+        proc.setPixels(pixels: buf, margins: margins, rotation: currentRotation, offset: offset)
         proc.processCurrentInTexture(.RIGHT)
     }
     

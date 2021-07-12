@@ -28,8 +28,8 @@ class ImageEditorCtrl : UIViewController
     }
     
     override func viewDidLoad() {
-        zoomSlider.minimumValue = -Float.pi / 2.0
-        zoomSlider.maximumValue = Float.pi / 2.0
+        zoomSlider.minimumValue = -100
+        zoomSlider.maximumValue = 100
         zoomSlider.value = 0
         zoomSlider.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
     }
@@ -76,11 +76,16 @@ class ImageEditorCtrl : UIViewController
         else { return }
         
         var img:CIImage? = CIImage(cvPixelBuffer: buffer)
-        let squareFilter = SquareFilter(orientation: .DEG_0, zoom: 1.0)
-        img = squareFilter.update(img!)
         
-        let rotateFIlter = RotateFilter(rotation: zoomSlider.value, dimension: 2160)
-        img = rotateFIlter.update(img!)
+        if (preview == leftPreview) {
+            let squareFilter = SquareFilter(orientation: .DEG_0, zoom: 1.0, offset: CGPoint())
+            img = squareFilter.update(img!)
+        } else {
+            let offset = CGPoint(x: CGFloat(0), y: CGFloat(zoomSlider.value))
+            let squareFilter = SquareFilter(orientation: .DEG_0, zoom: data.zoom, offset: offset)
+            img = squareFilter.update(img!)
+        }
+        
         
         guard let imgout = img else { return }
         

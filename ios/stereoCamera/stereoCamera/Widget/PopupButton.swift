@@ -115,8 +115,18 @@ class PopupButton : UIButton {
     }
 }
 
-protocol PopupButtonDelegate {
-    func itemSelected(_ button:PopupButton, value:Any?)
+class PopupButtonDelegate {
+    let target:PopupButtonPicker
+    
+    init (target:PopupButtonPicker) {
+        self.target = target
+    }
+        
+    func itemSelected(_ button:PopupButton, value:Any?) {}
+    
+    func getTitle(selected:PopupButtonModalPickerItem) -> String {
+        return "< \(selected.text)"
+    }
 }
 
 protocol PopupButtonModalPickerItem {

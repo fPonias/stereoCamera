@@ -48,9 +48,20 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         get {return _zoom}
         set
         {
-            print ("manual zoom deprecated in favor of session zoom")
-            //_zoom = newValue
-            //updateTransform()
+            //print ("manual zoom deprecated in favor of session zoom")
+            _zoom = newValue
+            updateTransform()
+        }
+    }
+    
+    private var _offset:CGPoint = CGPoint()
+    var offset:CGPoint
+    {
+        get { return _offset }
+        set
+        {
+            _offset = newValue
+            updateTransform()
         }
     }
     
@@ -234,8 +245,9 @@ public class VideoPreview : MTKView, AVCaptureVideoDataOutputSampleBufferDelegat
         //let orientation = self.orientation ?? .DEG_0
         //let rotation = ImageUtils.orientationToRadians(orientation)
         
-        margins = ImageUtils.findMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
-        let floatMargin = ImageUtils.findFloatMargins(size: ImageUtils.Size(width: width, height: height), zoom: _zoom)
+        let sz = ImageUtils.Size(width: width, height: height)
+        margins = ImageUtils.findMargins(size: sz, zoom: _zoom, offset: offset)
+        let floatMargin = ImageUtils.findFloatMargins(size: sz, zoom: _zoom, offset: offset)
     
         pixelData[0].coord.x = floatMargin.left
         pixelData[0].coord.y = floatMargin.bottom

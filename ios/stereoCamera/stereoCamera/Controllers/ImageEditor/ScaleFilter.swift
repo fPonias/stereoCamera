@@ -22,12 +22,7 @@ class ScaleFilter : ImageEditorFilter
         filter.setValue(1.0, forKey: "inputAspectRatio")
         filter.setValue(0.0, forKey: "inputB")
         filter.setValue(0.75, forKey: "inputC")
-        
-        let rect = img.extent
-        let bigDim = (rect.width < rect.height) ? rect.width : rect.height
-        let scale = value / Float(bigDim)
-        
-        filter.setValue(scale, forKey: "inputScale")
+        filter.setValue(value, forKey: "inputScale")
         
         return filter.outputImage
     }
