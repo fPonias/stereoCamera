@@ -34,6 +34,7 @@
 		7CEE471F21433334009909EF /* ExportSelectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CEE471E21433334009909EF /* ExportSelectCtrl.swift */; };
 		7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */; };
 		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
+		7E16ABE62737831400D8107C /* DualCameraFakeCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */; };
 		7E5A01222618EFDC00BF8D86 /* MulticastDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */; };
 		7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */; };
 		7E5A0129261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */; };
@@ -175,6 +176,7 @@
 		7CEE471E21433334009909EF /* ExportSelectCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportSelectCtrl.swift; sourceTree = "<group>"; };
 		7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListSelectorCtrl.swift; sourceTree = "<group>"; };
 		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
+		7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraFakeCtrl.swift; sourceTree = "<group>"; };
 		7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MulticastDelegate.swift; sourceTree = "<group>"; };
 		7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraMultiCameraCtrl.swift; sourceTree = "<group>"; };
 		7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraLegacyCameraCtrl.swift; sourceTree = "<group>"; };
@@ -431,6 +433,7 @@
 			children = (
 				7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */,
 				7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */,
+				7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */,
 			);
 			path = subCtrl;
 			sourceTree = "<group>";
@@ -702,6 +705,7 @@
 				7EA68B28262BB3F400D96250 /* ImageExporter.swift in Sources */,
 				7E691E3B25F4640600ED228E /* jquant1.c in Sources */,
 				7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */,
+				7E16ABE62737831400D8107C /* DualCameraFakeCtrl.swift in Sources */,
 				7E691E0F25F463AD00ED228E /* jdapistd.c in Sources */,
 				7E691D1725F461FE00ED228E /* Image.cpp in Sources */,
 				7E691E4125F4640600ED228E /* jdtrans.c in Sources */,
@@ -917,6 +921,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SL9QPRUA59;
 				GCC_CHAR_IS_UNSIGNED_CHAR = YES;
 				INFOPLIST_FILE = stereoCamera/Info.plist;
@@ -925,6 +930,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mcmunger.stereoCamera;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "stereoCamera/stereoCamera-Bridging-Header.h";
@@ -941,6 +947,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SL9QPRUA59;
 				GCC_CHAR_IS_UNSIGNED_CHAR = YES;
 				INFOPLIST_FILE = stereoCamera/Info.plist;
@@ -949,6 +956,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mcmunger.stereoCamera;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "stereoCamera/stereoCamera-Bridging-Header.h";

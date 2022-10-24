@@ -85,7 +85,7 @@ class SettingsCtrl : UIViewController
                     selected: sel == UIDeviceOrientation.landscapeRight
                 ),
                 SettingsListSelectorCtrl.dataItem(
-                    title: "vertival",
+                    title: "vertical",
                     value: UIDeviceOrientation.portrait,
                     selected: sel == UIDeviceOrientation.portrait
                 )

@@ -36,7 +36,7 @@ class GalleryBtn : UIImageView, FilesDelegate //I'd make this a UIButton but the
     
     func viewDidLoad()
     {
-        update()
+        //update()
         
         let gest = UITapGestureRecognizer(target: self, action: #selector(GalleryBtn.onTap))
         addGestureRecognizer(gest)
@@ -51,14 +51,14 @@ class GalleryBtn : UIImageView, FilesDelegate //I'd make this a UIButton but the
     //hack.  adding this via the storyboard is proving difficult
     @objc func onTap()
     {
-        if (navCtrl == nil)
+/*        if (navCtrl == nil)
         {
             print("please use setNavigationController() before opening the gallery view with GalleryBtn")
             return
         }
         
         let ctrl = GalleryGridCtrl.initFromStoryboard()
-        navCtrl?.pushViewController(ctrl, animated: true)
+        navCtrl?.pushViewController(ctrl, animated: true)*/
     }
     
     private weak var navCtrl:UINavigationController? = nil

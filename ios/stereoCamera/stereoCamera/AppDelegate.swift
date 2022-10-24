@@ -128,14 +128,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate
               win.rootViewController != nil
         else { return .all }
         
-        if let nav = win.rootViewController as? UINavigationController {
-            if nav.visibleViewController is DualCameraCtrl {
-                let positioning = UIDevice.cameraPositioning
-                if (positioning == .THREE_TRIANGULAR || positioning == .TWO_VERTICAL) {
-                    return .landscapeRight
-                } else {
-                    return .portrait
-                }
+        if let nav = win.rootViewController as? UINavigationController,
+           nav.visibleViewController is DualCameraCtrl
+        {
+            let positioning = Cookie.instance.preferredOrientation
+            
+            switch positioning {
+                case .landscapeRight: return UIInterfaceOrientationMask.landscapeRight
+                default:              return UIInterfaceOrientationMask.portrait
             }
         }
         

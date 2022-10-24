@@ -18,6 +18,7 @@ protocol DualCameraController
     func setZoom(_ zoom:Float)
     func getOffset() -> CGPoint
     func setOffset(_ offset:CGPoint)
+    func getZoomSide() -> ImageProcessor.Side
     func configureSession() -> Bool
     func setCameraPair(pair: DualCameraCtrl.CameraPair)
     func viewWillAppear()
@@ -110,6 +111,19 @@ class DualCameraCtrl: UIViewController
         return true
     }
     
+    var orientation:UIDeviceOrientation = .unknown
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        orientation = Cookie.instance.preferredOrientation
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        //let newOrientation = Cookie.instance.preferredOrientation
+        //guard (newOrientation != orientation) else { return }
+        
+        view.setNeedsDisplay()
+    }
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         
@@ -180,11 +194,17 @@ class DualCameraCtrl: UIViewController
     
     var forcedOrientation:UIInterfaceOrientation!
     
+    let cameraOrder = [
+        "Back Camera",
+        "Back Ultra Wide Camera",
+        "Back Telephoto Camera"
+    ]
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupViews()
-
+        
         navigationController?.setNavigationBarHidden(true, animated: false)
         
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
@@ -196,12 +216,15 @@ class DualCameraCtrl: UIViewController
             let pairs = sess.supportedMultiCamDeviceSets
             for pair in pairs {
                 if (pair.count == 2) {
-                    let pist = pair.sorted(by: { _,_ in return true })
-                    if pist[0].formats[0].videoFieldOfView < pist[1].formats[0].videoFieldOfView {
-                        cameraPairs.append(CameraPair(left: pist[0], right: pist[1]))
-                    } else {
-                        cameraPairs.append(CameraPair(left: pist[1], right: pist[0]))
-                    }
+                    let pist = pair.sorted(by: { itemA, itemB in
+                        let nameA = itemA.localizedName
+                        let nameB = itemB.localizedName
+                        let indexA = cameraOrder.index(of: nameA) ?? -1
+                        let indexB = cameraOrder.index(of: nameB) ?? -1
+                        return indexA < indexB
+                    })
+                    
+                    cameraPairs.append(CameraPair(left: pist[0], right: pist[1]))
                 }
             }
         } else {
@@ -215,10 +238,14 @@ class DualCameraCtrl: UIViewController
             //side - ultrawide, tele
         }
         
+        #if !DEBUG
         guard (cameraPairs.count >= 1)  else {
             print ("phone needs multiple cameras to function")
+            alert(title: "Setup error", message: "Device needs multiple cameras to function.", actions: [])
+            
             return
         }
+        #endif
         
         
         /*
@@ -231,6 +258,8 @@ class DualCameraCtrl: UIViewController
         to the sessionQueue so as not to block the main queue, which keeps the UI responsive.
         */
         sessionQueue.async {
+            
+            
             if #available(iOS 13, *) {
                 self.cameraCtrl = DualCameraMultiCameraCtrl(dualCameraCtrl: self)
                 let result = self.cameraCtrl?.configureSession() ?? false
@@ -239,7 +268,7 @@ class DualCameraCtrl: UIViewController
                     self.cameraCtrl = DualCameraLegacyCameraCtrl(dualCameraCtrl: self)
                     let result2 = self.cameraCtrl?.configureSession() ?? false
                     
-                    if !result2 {
+                    if !result2 || self.cameraPairs.count == 0 {
                         self.cameraCtrl = nil
                     }
                 }
@@ -248,7 +277,11 @@ class DualCameraCtrl: UIViewController
             }
             
             if (self.cameraCtrl == nil) {
+                #if DEBUG
+                self.cameraCtrl = DualCameraFakeCtrl(target: self)
+                #else
                 return
+                #endif
             }
             
             self.setCameraPair(0)
@@ -294,6 +327,10 @@ class DualCameraCtrl: UIViewController
             }
             
             override func itemSelected(_ button: PopupButton, value: Any?) {
+                if (parent.videoProc != nil && parent.videoProc!.isRecording) {
+                    parent.videoTapped()
+                }
+                
                 parent.updateResolution()
             }
         }
@@ -491,6 +528,18 @@ class DualCameraCtrl: UIViewController
         videoProc?.recordAudio(sampleBuffer: sampleBuffer)
     }
     
+    func captureOutput(staticOutput pixelBuffer: CVPixelBuffer, isLeft:Bool, zoom: Float, offset:CGPoint) {
+        let angle = angleCalculator.calculate()
+        
+        if isLeft {
+            doubleCameraPreview?.rotation = Float(angle)
+            doubleCameraPreview?.renderBuffer(pixelBuffer, side: .LEFT, zoom: zoom, offset: offset)
+        }
+        else {
+            doubleCameraPreview?.renderBuffer(pixelBuffer, side: .RIGHT, zoom: zoom, offset: offset)
+        }
+    }
+    
     private func updateResolution() {
         guard let captureType = typePickerBtn?.pickedItem as? CameraTypeItem else { return }
         let qualityVal:Int
@@ -660,12 +709,16 @@ class DualCameraCtrl: UIViewController
     
     private func shutterClicked2(_ lPixelBuffer:CVPixelBuffer, _ rPixelBuffer:CVPixelBuffer)
     {
-        guard let ctrl = cameraCtrl else { return }
+        guard let ctrl = cameraCtrl
+        else { return }
         
         let lRot = angleCalculator.calculate()
+        let zoomSide = ctrl.getZoomSide()
+        let leftZoom = zoomSide == .LEFT ? ctrl.getZoom() : 1.0
+        let rightZoom = zoomSide == .RIGHT ? ctrl.getZoom() : 1.0
         
-        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: 1.0, rotation: Float(lRot), offset: CGPoint())
-        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: CGFloat(ctrl.getZoom()), rotation: Float(lRot), offset: ctrl.getOffset())
+        let leftData = ImageEditorData(origData: lPixelBuffer, zoom: CGFloat(leftZoom), rotation: Float(lRot), offset: CGPoint())
+        let rightData = ImageEditorData(origData: rPixelBuffer, zoom: CGFloat(rightZoom), rotation: Float(lRot), offset: ctrl.getOffset())
         
         let quality = Cookie.instance.photoImageQuality
         let exportTypes = Cookie.instance.photoFormat

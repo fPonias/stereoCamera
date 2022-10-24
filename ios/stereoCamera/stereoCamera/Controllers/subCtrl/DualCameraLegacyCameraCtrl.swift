@@ -85,6 +85,10 @@ class DualCameraLegacyCameraCtrl : NSObject, DualCameraController,
         var photoOutput:AVCapturePhotoOutput?
     }
     
+    func getZoomSide() -> ImageProcessor.Side {
+        return .RIGHT
+    }
+    
     func setCameraPair(pair: DualCameraCtrl.CameraPair) {
         leftCameraStr = configureCamera(pair.left, maxDim: 1600)
        guard leftCameraStr != nil else {

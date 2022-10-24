@@ -122,11 +122,20 @@ class Cookie
             let exists = UserDefaults.standard.value(forKey: preferredOrientationKey)
             
             if (exists != nil) {
-                let val = UserDefaults.standard.integer(forKey: preferredOrientationKey)
-                return UIDeviceOrientation.init(rawValue: val) ?? UIDeviceOrientation.landscapeRight
-            } else {
-                return UIDeviceOrientation.landscapeRight
+                let pref = UserDefaults.standard.integer(forKey: preferredOrientationKey)
+                if let ret = UIDeviceOrientation.init(rawValue: pref) { return ret }
             }
+            
+            let val:UIDeviceOrientation
+            let positioning = UIDevice.cameraPositioning
+            if (positioning == .THREE_TRIANGULAR || positioning == .TWO_VERTICAL || positioning == .TWO_SKEWED) {
+                val = .landscapeRight
+            } else {
+                val = .portrait
+            }
+            
+            UserDefaults.standard.setValue(val.rawValue, forKey: preferredOrientationKey)
+            return val
         }
         set {
             UserDefaults.standard.setValue(newValue.rawValue, forKey: preferredOrientationKey)

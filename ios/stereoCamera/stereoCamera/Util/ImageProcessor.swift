@@ -461,3 +461,18 @@ class ImageProcessorAnimatedGif : ImageProcessor
         return ret
     }
 }
+
+class ImageProcessorFake : ImageProcessor {
+    
+    override func clear() {}
+    
+    override func setPixels(pixels:CVImageBuffer, margins:ImageUtils.Margin, rotation:Float, offset:CGPoint)
+    {
+    }
+    
+    override public func getOutput() -> CIImage? {
+        let ret = CIImage(color: .gray)
+        
+        return ret
+    }
+}

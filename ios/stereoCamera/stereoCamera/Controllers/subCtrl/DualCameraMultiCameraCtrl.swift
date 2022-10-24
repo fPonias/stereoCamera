@@ -32,6 +32,18 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     
     var verticalOffset:CGFloat = Cookie.instance.verticalOffset
     
+    func getZoomSide() -> ImageProcessor.Side {
+        guard let leftCameraStr = leftCameraStr,
+              let rightCameraStr = rightCameraStr,
+              let leftFOV = leftCameraStr.fieldOfView,
+              let rightFOV = rightCameraStr.fieldOfView
+         else {
+             return .LEFT
+        }
+
+        return (leftFOV > rightFOV) ? .LEFT : .RIGHT
+    }
+    
     
     private func cleanUp()
     {
@@ -186,7 +198,7 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             case .configurationFailed:
                 DispatchQueue.main.async {
                     let alertMsg = "Alert message when something goes wrong during capture session configuration"
-                    let message = NSLocalizedString("Unable to capture media", comment: alertMsg)
+                    let message = NSLocalizedString("acapture media", comment: alertMsg)
                     let alertController = UIAlertController(title: "foo", message: message, preferredStyle: .alert)
                     
                     alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
@@ -212,10 +224,14 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
     
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         if output is AVCaptureVideoDataOutput {
+            
+            
             if (connection == leftCameraStr?.videoDataOutputConnection) {
-                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true, zoom: 1.0, offset: CGPoint())
+                let zoom = getZoomSide() == .LEFT ? _zoom : 1.0
+                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: true, zoom: zoom, offset: CGPoint())
             } else {
-                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false, zoom: _zoom, offset: _offset)
+                let zoom = getZoomSide() == .RIGHT ? _zoom : 1.0
+                dualCameraCtrl.captureOutput(didOutput: sampleBuffer, isLeft: false, zoom: zoom, offset: _offset)
             }
         } else if output is AVCaptureAudioDataOutput {
             dualCameraCtrl.captureOutput(audioOutput: sampleBuffer)
@@ -327,7 +343,10 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
         let leftFovRad = leftFov * Float.pi / 180.0
         let leftWidth = 2.0 * tan(leftFovRad / 2.0)
         
-        let zoom = rightWidth / leftWidth
+        var zoom = rightWidth / leftWidth
+        
+        if (zoom < 1.0) { zoom = 1.0 / zoom }
+        
         return zoom
     }
     
@@ -384,6 +403,11 @@ public class DualCameraMultiCameraCtrl : NSObject, DualCameraController,
             let videoMinFrameDurationOverride = CMTimeMake(1, Int32(30))
             device.activeVideoMaxFrameDuration = fr[0].maxFrameDuration
             device.activeVideoMinFrameDuration = videoMinFrameDurationOverride
+            
+            if (device.isFocusModeSupported(.continuousAutoFocus)) {
+                device.focusMode = .continuousAutoFocus
+            }
+            
             device.unlockForConfiguration()
         } catch {
             print ("Could not adjust camera resolution")

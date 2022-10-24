@@ -38,6 +38,12 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
     
     func setupProcessor(type:ImageFormat, size:CGSize) {
         let sz = ImageUtils.Size(width: Int(size.width), height: Int(size.height))
+        
+        #if targetEnvironment(simulator)
+        _imageProc = ImageProcessorFake(outSize: sz)
+        return
+        #endif
+        
         switch(type){
         case .SPLIT: _imageProc = ImageProcessorSplit(outSize: sz)
         case .GREEN_MAGENTA: _imageProc = ImageProcessorGreenMagenta(outSize: sz)
@@ -108,6 +114,10 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
     func renderBuffer(sampleBuffer: CMSampleBuffer, side:ImageProcessor.Side, zoom:Float, offset:CGPoint) {
         guard let lPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         renderBuffer(lPixelBuffer, side: side, rotation: rotation, zoom:zoom, offset:offset)
+    }
+    
+    func renderBuffer(_ pixelBuffer:CVImageBuffer, side:ImageProcessor.Side, zoom:Float, offset: CGPoint) {
+        renderBuffer(pixelBuffer, side: side, rotation: rotation, zoom: zoom, offset: offset)
     }
     
     func renderBuffer(_ pixelBuffer:CVImageBuffer, side:ImageProcessor.Side, rotation:Float, zoom:Float, offset: CGPoint) {
@@ -241,7 +251,10 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
         get { return _rotation }
         set(value) {
             _rotation = value
+            
+            #if !targetEnvironment(simulator)
             updateTransform()
+            #endif
         }
     }
     
