@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import androidx.appcompat.app.AlertDialog;
 
 import android.nfc.tech.Ndef;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -114,6 +115,7 @@ public class ConnectBluetoothSubFragment
 		}
 		catch(BluetoothCtrl.BluetoothDiscoveryFailedException e)
 		{
+			Log.d("stereo camera", "bluetooth discovery failed " + e.toString());
 			Toast.makeText(parent.getContext(), R.string.bluetooth_discovery_failed_error, Toast.LENGTH_LONG).show();
 			return;
 		}

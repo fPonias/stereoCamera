@@ -14,7 +14,7 @@ public class CameraData
     @ColumnInfo(name = "clientid")
     public long clientid;
 
-    @ForeignKey(entity = Client.class, childColumns = "clientid", parentColumns = "id")
+    //@ForeignKey(entity = Client.class, childColumns = "clientid", parentColumns = "id")
 
     @ColumnInfo(name = "isFacing")
     public boolean isFacing;

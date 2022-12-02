@@ -67,6 +67,9 @@ public class ThumbnailWidget extends AppCompatImageView
 		if (!MainActivity.getInstance().hasPermission(Manifest.permission.READ_EXTERNAL_STORAGE))
 			return;
 
+		if (photoFile == null)
+			return;
+
 		FileSystemViewModel vm = MainActivity.getInstance().getFileSystemViewModel();
 		Bitmap bmp = vm.getPhotoFiles().getThumbnail(photoFile.id);
 		setImageBitmap(bmp);

@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 32
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 30
+        targetSdkVersion 32
         applicationId "com.munger.stereocamera"
 
         versionCode 1200
@@ -78,9 +78,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation 'com.google.android.gms:play-services-drive:17.0.0'
     implementation 'com.google.android.gms:play-services-base:17.5.0'
-    implementation 'androidx.work:work-runtime:2.4.0'
-    implementation 'androidx.room:room-runtime:2.2.6'
-    annotationProcessor "androidx.room:room-compiler:2.2.6"
+    implementation 'androidx.work:work-runtime:2.7.1'
+    implementation 'androidx.room:room-runtime:2.4.3'
+    annotationProcessor "androidx.room:room-compiler:2.4.3"
 
 }
 

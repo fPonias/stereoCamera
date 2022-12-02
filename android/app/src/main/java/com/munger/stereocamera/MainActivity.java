@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.Display;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -462,7 +463,8 @@ public class MainActivity extends AppCompatActivity
 
 	public PhotoOrientation getCurrentOrientation()
 	{
-		int rotation = getDisplay().getRotation();
+		Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+		int rotation = display.getRotation();
 
 		switch (rotation)
 		{
@@ -476,7 +478,8 @@ public class MainActivity extends AppCompatActivity
 
 	public boolean isPortrait()
 	{
-		int rotation = getDisplay().getRotation();
+		Display display = ((WindowManager) getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+		int rotation = display.getRotation();
 
 		switch (rotation)
 		{

@@ -3,6 +3,7 @@ package com.munger.stereocamera.ip.bluetooth;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -64,14 +65,34 @@ public class BluetoothCtrl implements SocketCtrlCtrl
 			return;
 		}
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(parent, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && ContextCompat.checkSelfPermission(parent, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
 		{
-			parent.requestPermissionForResult(Manifest.permission.ACCESS_COARSE_LOCATION, result -> {
+			parent.requestPermissionForResult(Manifest.permission.ACCESS_FINE_LOCATION, result -> {
 				setup(listener);
 			});
 
 			return;
 		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(parent, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED)
+		{
+			parent.requestPermissionForResult(Manifest.permission.BLUETOOTH_CONNECT, result -> {
+				setup(listener);
+			});
+
+			return;
+		}
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && ContextCompat.checkSelfPermission(parent, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED)
+		{
+			parent.requestPermissionForResult(Manifest.permission.BLUETOOTH_SCAN, result -> {
+				setup(listener);
+			});
+
+			return;
+		}
+
+
 
 		discoverer = new BluetoothDiscoverer(this);
 

@@ -1,10 +1,14 @@
 package com.munger.stereocamera.ip.bluetooth;
 
+import android.Manifest;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+
+import androidx.core.app.ActivityCompat;
 
 import java.util.Set;
 
@@ -12,16 +16,13 @@ import java.util.Set;
  * Created by hallmarklabs on 2/22/18.
  */
 
-public class BluetoothDiscoverer
-{
-	public BluetoothDiscoverer(BluetoothCtrl parent)
-	{
+public class BluetoothDiscoverer {
+	public BluetoothDiscoverer(BluetoothCtrl parent) {
 		this.parent = parent;
 		parent.getParent().registerReceiver(receiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 	}
 
-	public void cleanUp()
-	{
+	public void cleanUp() {
 		parent.getParent().unregisterReceiver(receiver);
 		cancelDiscover();
 	}
@@ -29,13 +30,13 @@ public class BluetoothDiscoverer
 	private BluetoothCtrl parent;
 	private DiscoverListener discoverListener = null;
 	private final Object lock = new Object();
-	private BroadcastReceiver receiver = new BroadcastReceiver(){public void onReceive(Context context, Intent intent)
-	{
-		handleReceive(intent);
-	}};
+	private BroadcastReceiver receiver = new BroadcastReceiver() {
+		public void onReceive(Context context, Intent intent) {
+			handleReceive(intent);
+		}
+	};
 
-	private void handleReceive(Intent i)
-	{
+	private void handleReceive(Intent i) {
 		String action = i.getAction();
 
 		if (!action.equals(BluetoothDevice.ACTION_FOUND))
@@ -45,10 +46,8 @@ public class BluetoothDiscoverer
 		sendDevice(device);
 	}
 
-	private void sendDevice(BluetoothDevice device)
-	{
-		synchronized (lock)
-		{
+	private void sendDevice(BluetoothDevice device) {
+		synchronized (lock) {
 			if (discoverListener == null)
 				return;
 
@@ -56,10 +55,8 @@ public class BluetoothDiscoverer
 		}
 	}
 
-	private void sendKnown(BluetoothDevice device)
-	{
-		synchronized (lock)
-		{
+	private void sendKnown(BluetoothDevice device) {
+		synchronized (lock) {
 			if (discoverListener == null)
 				return;
 
@@ -67,30 +64,27 @@ public class BluetoothDiscoverer
 		}
 	}
 
-	public interface DiscoverListener
-	{
+	public interface DiscoverListener {
 		void onKnown(BluetoothDevice device);
+
 		void onDiscovered(BluetoothDevice device);
 	}
 
-	public boolean isDiscovering()
-	{
-		synchronized (lock)
-		{
+	public boolean isDiscovering() {
+		synchronized (lock) {
 			return (discoverListener != null) ? true : false;
 		}
 	}
 
-	void discover(DiscoverListener listener, final long timeout) throws BluetoothCtrl.BluetoothDiscoveryFailedException
-	{
-		synchronized (lock)
-		{
+	void discover(DiscoverListener listener, final long timeout) throws BluetoothCtrl.BluetoothDiscoveryFailedException, SecurityException {
+		synchronized (lock) {
 			if (discoverListener != null)
 				return;
 
 			discoverListener = listener;
 		}
 
+		//parent.getAdapter().cancelDiscovery();
 		boolean success = parent.getAdapter().startDiscovery();
 
 		if (!success)
