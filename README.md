@@ -17,7 +17,7 @@ This app requires two android devices with the same app installed to both of the
 
 I actually had a working iOS version as well and you can see remnants of that project in the ios folder.  Notably the shared c++ code is still intact and worked on both platforms for image processing.  My git management wasn't the best and I overwrote that working project though.  
 
-The android part of the project hasn't been built in years.  I suspect it will need some major updates to work with the newest version of Android Studio.
+I updated the project so it will compile on API 32 with new bluetooth permissions.  Unfortunately something has changed with the protocols either from the bluetooth permission changes or some experiements I was trying with the connection logic, and the app no longer works.  Since I don't use this app anymore the code is just there for interested parties as I see no point in getting that project working again.
 
 I did some R&D into making a similar simitaneous camera controller for android and was unable to take previews of the multiple back facing cameras.  I attempted this on a Samsung Galaxy S7, Samsung Galaxy S10, and a OnePlus 9.  While it was possible to do this with a front facing and rear facing camera the designers of both devices made it impossible to access the rear facing cameras similtaneously.  I figured adding this functionality would require hacking the phone at the OS level and I didn't have the patience to experiment with that.
 

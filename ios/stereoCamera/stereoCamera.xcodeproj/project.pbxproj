@@ -925,7 +925,7 @@
 				DEVELOPMENT_TEAM = SL9QPRUA59;
 				GCC_CHAR_IS_UNSIGNED_CHAR = YES;
 				INFOPLIST_FILE = stereoCamera/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -951,7 +951,7 @@
 				DEVELOPMENT_TEAM = SL9QPRUA59;
 				GCC_CHAR_IS_UNSIGNED_CHAR = YES;
 				INFOPLIST_FILE = stereoCamera/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
