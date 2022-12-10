@@ -340,7 +340,7 @@ class DualCameraCtrl: UIViewController
         typePickerBtn.delegate = TypePickerDelegate(parent: self, target: typePickerBtn)
         guard let typePickerModal = typePickerBtn.createModal() as? PopupButtonModalPicker else { return }
         typePickerModal.valueList = pickerViewArray
-        typePickerBtn.modalOrginOffset = CGPoint(x: 0, y: 0)
+        typePickerBtn.modalOrginOffset = CGPoint(x: 10, y: -56)
         
         
         class AdjustDelegate : TypePickerDelegate
@@ -372,7 +372,7 @@ class DualCameraCtrl: UIViewController
         adjustBtn.delegate = AdjustDelegate(parent: self, target: adjustBtn)
         guard let adjustModal = adjustBtn.createModal() as? PopupButtonModalPicker else { return }
         adjustModal.valueList = adjustmentsArray
-        adjustBtn.modalOrginOffset = CGPoint(x: 0, y: 0)
+        adjustBtn.modalOrginOffset = CGPoint(x: -10, y: -63)
         
         slider?.addTarget(self, action: #selector(sliderChanged), for: .valueChanged)
         

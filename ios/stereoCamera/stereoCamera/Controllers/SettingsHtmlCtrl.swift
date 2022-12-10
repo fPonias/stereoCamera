@@ -17,9 +17,9 @@ class SettingsHtmlCtrl : UIViewController
     
     override func viewDidLoad()
     {
-        let url = Bundle.main.url(forResource: "about", withExtension: "html", subdirectory: "assets")
-        
-        htmlView.loadFileURL(url!, allowingReadAccessTo: url!.deletingLastPathComponent())
+        guard let url = URL(string: "https://github.com/fPonias/stereoCamera/wiki/About") else { return }
+        let req = URLRequest(url: url)
+        htmlView.load(req)
         htmlView.navigationDelegate = navDelegate
     }
     
