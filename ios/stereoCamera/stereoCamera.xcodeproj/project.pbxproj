@@ -46,6 +46,7 @@
 		7E9AB3CF2636656F009A25B3 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7E9AB3CE2636656F009A25B3 /* Main.storyboard */; };
 		7E9FCE2A2607DF1000223114 /* Histogram.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE292607DF1000223114 /* Histogram.swift */; };
 		7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E9FCE2C26080DB300223114 /* ZoomFinder.swift */; };
+		7EA1318E29485CA0001BEEB2 /* MediaExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA1318D29485C9F001BEEB2 /* MediaExporter.swift */; };
 		7EA171792609402800EF314C /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA171782609402800EF314C /* ImageProcessor.swift */; };
 		7EA56533260162120064809A /* VideoPreview.metal in Sources */ = {isa = PBXBuildFile; fileRef = 7EA56532260162120064809A /* VideoPreview.metal */; };
 		7EA68B182626BA9500D96250 /* ImageEditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA68B172626BA9500D96250 /* ImageEditorWidget.swift */; };
@@ -119,6 +120,7 @@
 		7E9AB3CE2636656F009A25B3 /* Main.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		7E9FCE292607DF1000223114 /* Histogram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Histogram.swift; sourceTree = "<group>"; };
 		7E9FCE2C26080DB300223114 /* ZoomFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZoomFinder.swift; sourceTree = "<group>"; };
+		7EA1318D29485C9F001BEEB2 /* MediaExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaExporter.swift; sourceTree = "<group>"; };
 		7EA171782609402800EF314C /* ImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
 		7EA56532260162120064809A /* VideoPreview.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VideoPreview.metal; sourceTree = "<group>"; };
 		7EA68B172626BA9500D96250 /* ImageEditorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditorWidget.swift; sourceTree = "<group>"; };
@@ -292,6 +294,7 @@
 				7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */,
 				7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */,
 				7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */,
+				7EA1318D29485C9F001BEEB2 /* MediaExporter.swift */,
 			);
 			path = subCtrl;
 			sourceTree = "<group>";
@@ -471,6 +474,7 @@
 				7CEE471F21433334009909EF /* ExportSelectCtrl.swift in Sources */,
 				7C6CD11520D0DA530010F6B1 /* AppDelegate.swift in Sources */,
 				7EFFA0FE2646EB810084F31D /* PopupButton.swift in Sources */,
+				7EA1318E29485CA0001BEEB2 /* MediaExporter.swift in Sources */,
 				7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */,
 				7ED00E6226365D3400D12A4C /* VideoPreviewDouble.swift in Sources */,
 				7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */,

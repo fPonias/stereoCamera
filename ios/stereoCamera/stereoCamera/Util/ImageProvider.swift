@@ -15,8 +15,8 @@ class ImageProvider : UIActivityItemProvider
     {
         case COPY = 1,
         ROTATE_TO_PORTRAIT,
-        SQUARE,
-        ROTATE_TO_SQUARE
+        SCALE_FOR_INSTAGRAM,
+        SQUARE
     }
 
     var target:UIImage
@@ -43,23 +43,26 @@ class ImageProvider : UIActivityItemProvider
             {
                 case .ROTATE_TO_PORTRAIT:
                     sz = CGSize(width: 1080, height: 1350)
-                case .ROTATE_TO_SQUARE, .SQUARE:
-                    sz = CGSize(width: 1080, height: 1080)
+                case .SCALE_FOR_INSTAGRAM:
+                    sz = CGSize(width:1080, height: 566)
                 default:
                     sz = nil
             }
             
-            guard(sz != nil) else { return target }
-            let (cgImage, outContext) = prepVars(outDims: sz!)
-            guard(cgImage != nil) else { return target }
-            guard(outContext != nil) else { return target }
+            guard let sz = sz else { return target }
+            let (cgImage, outContext) = prepVars(outDims: sz)
+            guard let cgImage = cgImage,
+                  let outContext = outContext
+            else { return target }
             
             switch(type)
             {
-                case .ROTATE_TO_PORTRAIT, .ROTATE_TO_SQUARE:
-                    return getRotatedImage(size: sz!, image: cgImage!, context: outContext!)
+                case .ROTATE_TO_PORTRAIT:
+                    return getRotatedImage(size: sz, image: cgImage, context: outContext)
                 case .SQUARE:
-                    return getSquaredImage(size: sz!, image: cgImage!, context: outContext!)
+                    return getSquaredImage(size: sz, image: cgImage, context: outContext)
+                case .SCALE_FOR_INSTAGRAM:
+                    return getLetterboxedImage(size: sz, image: cgImage, context: outContext)
                 default:
                     return target
             }
@@ -122,6 +125,31 @@ class ImageProvider : UIActivityItemProvider
         let ret = UIImage(cgImage: newImg!)
 
         print ("converted!")
+        return ret
+    }
+    
+    func getLetterboxedImage(size outDims:CGSize, image:CGImage, context:CGContext) -> UIImage {
+        let imgRatio = CGFloat(image.height) / CGFloat(image.width)
+        let outRatio = outDims.height / outDims.width
+        let w = image.width
+        let h = image.height
+        
+        if (imgRatio <= outRatio) {
+            let scaledHeight = outDims.width / CGFloat(w) * CGFloat(h)
+            let diff = outDims.height - scaledHeight
+            
+            let imgRect = CGRect(x: 0, y: diff / 2, width: outDims.width, height: scaledHeight)
+            context.draw(image, in: imgRect)
+        } else {
+            let scaledWidth = outDims.height / CGFloat(h) * CGFloat(w)
+            let diff = outDims.width - scaledWidth
+            
+            let imgRect = CGRect(x: diff / 2, y: 0, width: scaledWidth, height: outDims.height)
+            context.draw(image, in: imgRect)
+        }
+        
+        let newImg = context.makeImage()
+        let ret = UIImage(cgImage: newImg!)
         return ret
     }
 }

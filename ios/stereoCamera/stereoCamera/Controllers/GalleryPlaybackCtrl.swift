@@ -246,70 +246,11 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         panAnimator?.startAnimation()
     }
     
-    private let SELECTION_COPY = "Copy"
-    private let SELECTION_ROTATE_INSTA = "Rotate for Instagram"
-    private let SELECTION_SQUARE = "Square aspect"
-    private let SELECTION_SQUARE_ROTATED = "Square aspect - rotated"
+    private lazy var exporter = MediaExporter(ctrl: self)
     
     @IBAction func exportAction(_ sender: Any)
     {
-        cancelPlay()
-        
-        let popup = ExportSelectCtrl.initFromStoryboard()
-        
-        popup.header = "Export Actions"
-
-        var selections = [ExportSelectCtrl.Selection]()
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_COPY))
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_ROTATE_INSTA))
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE))
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE_ROTATED))
-        popup.setSelections(selections)
-        
-        popup.addAction(action: ExportSelectCtrl.Action(text: "Cancel", onClick: {
-        [unowned self] (ctrl, action) in
-            self.dismiss(animated: true, completion: nil)
-        }))
-        
-        popup.addAction(action: ExportSelectCtrl.Action(text: "Export", onClick: {
-        [unowned self] (ctrl, action) in
-            
-            var type = ImageProvider.ExportType.COPY
-            let selection = popup.currentSelection
-            
-            if (selection != nil)
-            {
-                if (selection!.text == self.SELECTION_ROTATE_INSTA)
-                    { type = ImageProvider.ExportType.ROTATE_TO_PORTRAIT }
-                else if (selection!.text == self.SELECTION_SQUARE_ROTATED)
-                    { type = ImageProvider.ExportType.ROTATE_TO_SQUARE }
-                else if (selection!.text == self.SELECTION_SQUARE)
-                    { type = ImageProvider.ExportType.SQUARE }
-                else
-                    { type = ImageProvider.ExportType.COPY }
-            }
-            
-            self.dismiss(animated: true, completion: nil)
-            self.exportClicked2(type)
-        }))
-        
-        present(popup, animated: true, completion: nil)
-    }
-
-    func exportClicked2(_ type:ImageProvider.ExportType)
-    {
-        var toShare = [ImageProvider]()
-        let file = files[index]
-        Files.instance.assetToImage(file, completed: {[weak self] img in
-            guard let self = self,
-                let image = img
-            else { return }
-            
-            toShare.append( ImageProvider(placeholderItem: image, type: type ) )
-            
-            let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
-            self.present(shareCtrl, animated: true, completion: nil)
-        })
+        exporter.exportAction(files: [files[index]])
     }
     
     @IBAction func trashAction(_ sender: Any)
@@ -461,15 +402,32 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         var player = AVPlayer()
         var playerLayer:AVPlayerLayer? = nil
+        var imageView: UIImageView
+        var image:UIImage? = nil
         
         override init(frame:CGRect) {
+            imageView = UIImageView(frame:frame)
+            
             super.init(frame:frame)
+            addSubview(imageView)
+            
+            //wait for a readyToPlay status update so we don't get a blank flash when loading the video
+            self.player.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), options: [.new, .initial], context: nil)
         }
         
         required init?(coder: NSCoder) {
+            imageView = UIImageView(frame:CGRect())
             super.init(coder: coder)
         }
         
+        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+            guard object is AVPlayer else { return }
+            
+            if player.status == AVPlayerStatus.readyToPlay && self.isSelected {
+                imageView.isHidden = true
+                playerLayer?.isHidden = false
+            }
+        }
         
         override var frame: CGRect {
             get { return super.frame }
@@ -484,6 +442,18 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         
         override func setImage(thisFile:PHAsset)
         {
+            Files.instance.assetToImage(thisFile, asThumbnail: false, completed: {[weak self] img in
+                guard let self = self,
+                      let image = img
+                else { return }
+                
+                self.imageView.contentMode = .center
+                self.imageView.contentMode = .scaleAspectFit
+                
+                self.image = image
+                self.imageView.image = image
+            })
+            
             Files.instance.assetToUrl(thisFile, completed: { [weak self] (videoURL) in
                 guard let url = videoURL,
                       let self = self
@@ -512,6 +482,8 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             
             layer.addSublayer(pllayer)
             layer.needsDisplayOnBoundsChange = true
+            
+            self.imageView.frame = bounds
         }
         
         override func selected() {

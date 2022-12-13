@@ -114,71 +114,21 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         }
     }
     
-    private let SELECTION_COPY = "Copy"
-    private let SELECTION_ROTATE_INSTA = "Rotate for Instagram"
-    private let SELECTION_SQUARE = "Square aspect"
-    private let SELECTION_SQUARE_ROTATED = "Square aspect - rotated"
+    private lazy var exporter = MediaExporter(ctrl: self)
     
     @objc func exportClicked()
     {
         if (selectedCells.count == 0)
             { return }
         
-        let popup = ExportSelectCtrl.initFromStoryboard()
-
-        popup.header = "Export Actions"
-
-        var selections = [ExportSelectCtrl.Selection]()
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_COPY))
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_ROTATE_INSTA))
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE))
-        selections.append(ExportSelectCtrl.Selection(text: SELECTION_SQUARE_ROTATED))
-        popup.setSelections(selections)
-        
-        popup.addAction(action: ExportSelectCtrl.Action(text: "Cancel", onClick: {
-        [unowned self] (ctrl, action) in
-            self.dismiss(animated: true, completion: nil)
-        }))
-        
-        popup.addAction(action: ExportSelectCtrl.Action(text: "Export", onClick: {
-        [unowned self] (ctrl, action) in
-            
-            var type = ImageProvider.ExportType.COPY
-            let selection = popup.currentSelection
-            
-            if (selection != nil)
-            {
-                if (selection!.text == self.SELECTION_ROTATE_INSTA)
-                    { type = ImageProvider.ExportType.ROTATE_TO_PORTRAIT }
-                else if (selection!.text == self.SELECTION_SQUARE_ROTATED)
-                    { type = ImageProvider.ExportType.ROTATE_TO_SQUARE }
-                else if (selection!.text == self.SELECTION_SQUARE)
-                    { type = ImageProvider.ExportType.SQUARE }
-                else
-                    { type = ImageProvider.ExportType.COPY }
-            }
-            
-            self.dismiss(animated: true, completion: nil)
-            self.exportClicked2(type)
-        }))
-        
-        present(popup, animated: true, completion: nil)
-    }
-
-    func exportClicked2(_ type:ImageProvider.ExportType)
-    {
-        var toShare = [ImageProvider]()
+        var assets = [PHAsset]()
         for cell in selectedCells
         {
             let file = files[cell.section][cell.item]
-            Files.instance.assetToImage(file, completed: {img in
-                guard let image = img else { return }
-                toShare.append( ImageProvider(placeholderItem: image, type: type ))
-            })
+            assets.append(file)
         }
         
-        let shareCtrl = UIActivityViewController(activityItems: toShare, applicationActivities: nil)
-        present(shareCtrl, animated: true, completion: nil)
+        exporter.exportAction(files: assets)
     }
     
     private var isSelecting = false
