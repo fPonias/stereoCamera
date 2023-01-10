@@ -11,15 +11,19 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         return ret as! GalleryGridCtrl
     }
     
+    
     @IBOutlet weak var exportBtn: UIBarButtonItem!
     @IBOutlet weak var trashBtn: UIBarButtonItem!
-    
+        
     @IBOutlet weak var bottomToolbar: UIToolbar!
     @IBOutlet weak var collectionView: UICollectionView!
     var headers = [String]()
     var files = [[PHAsset]]()
     
     var selectBtn:UIBarButtonItem? = nil
+    var filterBtn:UIBarButtonItem? = nil
+    var sortBtn:UIBarButtonItem? = nil
+    var cancelBtn:UIBarButtonItem? = nil
     
     override func viewDidLoad()
     {
@@ -27,10 +31,14 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         
         collectionView.dataSource = self
         collectionView.delegate = self
+        collectionView.allowsMultipleSelection = true
         
         navigationItem.title = "Gallery"
+        
         selectBtn = UIBarButtonItem(title: "Select", style: .plain, target: self, action: #selector(GalleryGridCtrl.selectClicked))
-        navigationItem.rightBarButtonItem = selectBtn!
+        filterBtn = UIBarButtonItem(title: "Filter", style: .plain, target: self, action: #selector(GalleryGridCtrl.filterClicked))
+        cancelBtn = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(GalleryGridCtrl.cancelClicked))
+        navigationItem.rightBarButtonItems = [selectBtn!, filterBtn!]
         
         trashBtn.target = self
         trashBtn.action = #selector(GalleryGridCtrl.trashClicked)
@@ -52,7 +60,9 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     
     private func refresh()
     {
-        (headers, files) = Files.instance.getGroupedGalleryFiles()
+        let filter = Cookie.instance.galleryFilter
+        let types = Cookie.instance.mediaTypesFilter
+        (headers, files) = Files.instance.getGroupedGalleryFiles(by: filter, ofType: types)
         
         DispatchQueue.main.async {
         [unowned self] in
@@ -134,40 +144,50 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
     private var isSelecting = false
     private var selectedCells = Set<IndexPath>()
     
-    @objc func selectClicked()
+    @objc func cancelClicked()
     {
-        if (isSelecting)
+        isSelecting = false
+        
+        for indexPath in selectedCells
         {
-            isSelecting = false
-            selectBtn?.title = "Select"
-            navigationItem.title = "Gallery"
+            let cell = collectionView.cellForItem(at: indexPath)
             
-            for indexPath in selectedCells
+            if (cell != nil)
             {
-                let cell = collectionView.cellForItem(at: indexPath)
-                
-                if (cell != nil)
-                {
-                    let widget = cell as! GalleryGridWidget
-                    widget.isHighlighted = false
-                }
+                let widget = cell as! GalleryGridWidget
+                widget.isSelected = false
             }
-            
-            selectedCells.removeAll()
-            
-            bottomToolbar.isHidden = true
         }
-        else
-        {
-            isSelecting = true
-            selectBtn?.title = "Cancel"
-            bottomToolbar.isHidden = false
-        }
+        
+        selectedCells.removeAll()
+        
+        bottomToolbar.isHidden = true
+        navigationItem.rightBarButtonItems = [selectBtn!, filterBtn!]
+    }
+    
+    @objc func selectClicked() {
+        isSelecting = true
+        bottomToolbar.isHidden = false
+        
+        navigationItem.rightBarButtonItems = [cancelBtn!]
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int
     {
         return headers.count
+    }
+    
+    @objc func filterClicked() {
+        guard let vc = storyboard?.instantiateViewController(withIdentifier: "filterSelectCtrl") else { return }
+        
+        vc.modalPresentationStyle = .popover
+        vc.popoverPresentationController?.barButtonItem = filterBtn
+        present(vc, animated: true)
+        
+        guard let vc2 = vc as? FilterSelectCtrl else { return }
+        vc2.onDismissed = { [weak self] in
+            self?.refresh()
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int
@@ -195,8 +215,9 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         
         let file:PHAsset = files[indexPath.section][indexPath.item]
         cell2.displayContent(asset: file)
+        
         let selected = selectedCells.contains(indexPath)
-        cell2.isHighlighted = selected
+        cell2.isSelected = selected
 
         return cell2
     }
@@ -225,7 +246,7 @@ class GalleryGridCtrl: UIViewController, UICollectionViewDelegate, UICollectionV
         let widget = cell as! GalleryGridWidget
         let selected = (selectedCells.contains(indexPath)) ? false : true
         
-        widget.isHighlighted = selected
+        widget.isSelected = selected
         
         if (selected)
             { selectedCells.insert(indexPath) }

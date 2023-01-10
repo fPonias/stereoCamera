@@ -86,6 +86,8 @@ class ImageProcessor {
         }
     }
     
+    public func getType() -> ImageFormat { return .SINGLE }
+    
     func setPixels(pixels:CVImageBuffer) {
         setPixels(pixels: pixels, rotation: 0.0, offset: CGPoint(x: 0, y: 0))
     }
@@ -244,6 +246,46 @@ class ImageProcessor {
         return jpegData
     }
     
+    public func addMetaData(_ data: Data) -> Data? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+            let metadata = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as NSDictionary?,
+            let metadataAsMutable = metadata.mutableCopy() as? NSMutableDictionary
+        else { return nil }
+        
+        let exifData = metadata.value(forKey: kCGImagePropertyExifDictionary as String) as? NSDictionary ?? NSDictionary()
+        guard let exifDataMut = exifData.mutableCopy() as? NSMutableDictionary else { return nil }
+        
+        if #available(iOS 13.1, *) {
+            exifDataMut.setValue(3, forKey: kCGImagePropertyExifCompositeImage as String)
+            exifDataMut.setValue([2, 2], forKey: kCGImagePropertyExifSourceImageNumberOfCompositeImage as String)
+        }
+        metadataAsMutable.setValue(exifDataMut, forKey: kCGImagePropertyExifDictionary as String)
+        
+        let tiffData = metadata.value(forKey: kCGImagePropertyTIFFDictionary as String) as? NSDictionary ?? NSDictionary()
+        guard let tiffDataMut = tiffData.mutableCopy() as? NSMutableDictionary else { return nil }
+        tiffDataMut.setValue(self.getType().toString(), forKey: kCGImagePropertyTIFFModel as String)
+        tiffDataMut.setValue("3D42", forKey: kCGImagePropertyTIFFSoftware as String)
+        metadataAsMutable.setValue(tiffDataMut, forKey: kCGImagePropertyTIFFDictionary as String)
+        
+        
+        let destData = NSMutableData(data: data)
+        guard let UTI = CGImageSourceGetType(source),
+              let destination = CGImageDestinationCreateWithData(destData as NSMutableData, UTI, 1, nil)
+        else { return nil }
+        
+        CGImageDestinationAddImageFromSource(destination, source, 0, metadataAsMutable as CFDictionary);
+
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        
+        let type = Files.instance.getImageType(destData as Data)
+        
+        return destData as Data
+    }
+    
+    public func getFileExtension() -> String {
+        return "jpg"
+    }
+    
     private func setOutTransform() {
         guard let transformPtr = outTransformPtr else { return }
         var mtlTransform = Matrix2D()
@@ -277,6 +319,8 @@ class ImageProcessor {
 
 class ImageProcessorGreenMagenta : ImageProcessor
 {
+    public override func getType() -> ImageFormat { return .GREEN_MAGENTA }
+    
     public override func processCurrentInTexture(_ side: ImageProcessor.Side)
     {
         guard let maskPtr = maskPtr else { return }
@@ -304,6 +348,8 @@ class ImageProcessorGreenMagenta : ImageProcessor
 
 class ImageProcessorRedCyan : ImageProcessor
 {
+    public override func getType() -> ImageFormat { return .RED_BLUE }
+    
     public override func processCurrentInTexture(_ side: ImageProcessor.Side) {
         guard let maskPtr = maskPtr else { return }
         if (side == .LEFT) {
@@ -329,6 +375,8 @@ class ImageProcessorRedCyan : ImageProcessor
 
 class ImageProcessorSplit : ImageProcessor
 {
+    public override func getType() -> ImageFormat { return .SPLIT }
+    
     public override func processCurrentInTexture(_ side: ImageProcessor.Side) {
         guard let maskPtr = maskPtr else { return }
         (maskPtr + 0).pointee = 1.0
@@ -356,6 +404,8 @@ class ImageProcessorSplit : ImageProcessor
 
 class ImageProcessorSingle : ImageProcessor
 {
+    public override func getType() -> ImageFormat { return .SINGLE }
+    
     override init(outSize: ImageUtils.Size) {
         super.init(outSize: outSize)
         
@@ -383,6 +433,8 @@ class ImageProcessorSingle : ImageProcessor
 
 class ImageProcessorAnimatedGif : ImageProcessor
 {
+    public override func getType() -> ImageFormat { return .ANIMATED }
+    
     let leftFrame:ImageProcessorSingle?
     let rightFrame:ImageProcessorSingle?
     
@@ -450,7 +502,7 @@ class ImageProcessorAnimatedGif : ImageProcessor
         // This dictionary controls the delay between frames
         // If you don't specify this, CGImage will apply a default delay
         let frameProperties = [
-            (kCGImagePropertyGIFDictionary as String): [(kCGImagePropertyGIFDelayTime as String): frameDelay]
+            (kCGImagePropertyGIFDictionary as String): [(kCGImagePropertyGIFUnclampedDelayTime as String): frameDelay]
         ]
         CGImageDestinationAddImage(destinationGIF, leftImg, frameProperties as CFDictionary?)
         CGImageDestinationAddImage(destinationGIF, rightImg, frameProperties as CFDictionary?)
@@ -460,9 +512,19 @@ class ImageProcessorAnimatedGif : ImageProcessor
         let ret = ptr as NSData as Data //the double cast is necessary for some reason
         return ret
     }
+    
+    override func addMetaData(_ data: Data) -> Data? {
+        return data
+    }
+    
+    override func getFileExtension() -> String {
+        return "gif"
+    }
 }
 
 class ImageProcessorFake : ImageProcessor {
+    
+    public override func getType() -> ImageFormat { return .SINGLE }
     
     override func clear() {}
     

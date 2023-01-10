@@ -64,6 +64,8 @@ class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, U
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        let saveBtn = UIBarButtonItem(title: "Save", style: .plain, target: self, action: #selector(SettingsListSelectorCtrl.saveTapped))
+        navigationItem.rightBarButtonItems = [saveBtn]
         navigationController?.setNavigationBarHidden(false, animated: animated)
     }
     
@@ -96,7 +98,7 @@ class SettingsListSelectorCtrl : UIViewController, UICollectionViewDataSource, U
         return sz
     }
     
-    @IBAction func saveTapped(_ sender: Any) {
+    @objc func saveTapped(_ sender: Any) {
         var ret = Set<dataItem>()
         
         for datum in data {

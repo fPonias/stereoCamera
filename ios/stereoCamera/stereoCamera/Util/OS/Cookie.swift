@@ -8,10 +8,11 @@
 
 import Foundation
 import AVKit
+import Photos
 
 class Cookie
 {
-    let version:Float = 8.0
+    let version:Float = 9.0
 
     let versionKey = "VERSION"
     let photoImageQualityKey = "PHOTO_IMAGE_QUALITY"
@@ -22,6 +23,8 @@ class Cookie
     let introSeenKey = "INTRO_SEEN"
     let verticalOffsetKey = "VERTICAL_OFFSET"
     let zoomKey = "ZOOM"
+    let galleryFilterKey = "GALLERY_FILTER"
+    let mediaTypesFilterKey = "MEDIA_TYPES_FILTER"
     
     enum PrefType
     {
@@ -33,6 +36,8 @@ class Cookie
              VERTICAL_OFFSET,
              ZOOM
     }
+    
+    public static let availableMediaTypes = [PHAssetMediaType.image, PHAssetMediaType.video]
     
     private static let _instance:Cookie = Cookie()
     static var instance:Cookie
@@ -59,6 +64,7 @@ class Cookie
             prefs.set(version, forKey: versionKey)
             prefs.set(false, forKey: introSeenKey)
         }
+        
     }
     
     var introSeen:Bool
@@ -83,6 +89,14 @@ class Cookie
         get {
             let val = UserDefaults.standard.integer(forKey: photoFormatKey)
             var ret = ImageFormat.intToSet(val)
+            
+            if (ret.contains(.UNKNOWN)) {
+                ret.remove(.UNKNOWN)
+            }
+            
+            if (ret.contains(.ANIMATED)) {
+                ret.remove(.ANIMATED)
+            }
             
             if ret.isEmpty {
                 ret.insert(.SPLIT)
@@ -173,11 +187,61 @@ class Cookie
             UserDefaults.standard.setValue(newValue, forKey: zoomKey)
         }
     }
+    
+    var galleryFilter:Set<ImageFormat>? {
+        get {
+            let exists = UserDefaults.standard.integer(forKey: galleryFilterKey)
+            if (exists == 0) { return nil }
+            
+            return ImageFormat.intToSet(exists)
+        }
+        set {
+            let val = ImageFormat.setToInt(newValue ?? Set())
+            UserDefaults.standard.setValue(val, forKey: galleryFilterKey)
+        }
+    }
+    
+    var mediaTypesFilter:Set<PHAssetMediaType>? {
+        get {
+            var exists = UserDefaults.standard.integer(forKey: mediaTypesFilterKey)
+            if (exists == 0) { return nil }
+            
+            var ret = Set<PHAssetMediaType>()
+            var idx = 0
+            while exists > 0 {
+                if (exists & 0x1 != 0) {
+                    if let value = PHAssetMediaType.init(rawValue: idx) {
+                        ret.insert(value)
+                    }
+                }
+                
+                exists = exists >> 1
+                idx += 1
+            }
+            
+            return ret
+        }
+        set {
+            guard let newValue = newValue else {
+                UserDefaults.standard.set(nil, forKey: mediaTypesFilterKey)
+                return
+            }
+            
+            var total = 0
+            for item in newValue {
+                let value = 0x1 << item.rawValue
+                total |= value
+            }
+            
+            UserDefaults.standard.set(total, forKey: mediaTypesFilterKey)
+        }
+    }
 }
 
 enum ImageFormat: Int, CaseIterable
 {
-    case SPLIT = 0x1,
+    case UNKNOWN = 0x0,
+         SPLIT = 0x1,
          GREEN_MAGENTA = 0x2,
          RED_BLUE = 0x4,
          ANIMATED = 0x8,
@@ -207,12 +271,23 @@ enum ImageFormat: Int, CaseIterable
     
     func toString() -> String {
         switch(self) {
+        case .UNKNOWN: return "unknown"
         case .ANIMATED: return "animated"
         case .GREEN_MAGENTA: return "green-magenta"
         case .RED_BLUE: return "red-blue"
         case .SPLIT: return "split"
         case .SINGLE: return "single"
         }
+    }
+    
+    static func fromString(_ str:String) -> ImageFormat {
+        for type in ImageFormat.allCases {
+            if (type.toString() == str) {
+                return type
+            }
+        }
+        
+        return .UNKNOWN
     }
 }
 

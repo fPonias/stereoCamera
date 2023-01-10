@@ -13,9 +13,7 @@ class MeasureCtrl : UIViewController
 {
     var leftPixels:CVPixelBuffer?
     var rightPixels:CVPixelBuffer?
-    var zoom:Float = 1.0
-    
-    @IBOutlet weak var histogramView: HistogramPlot!
+    var zoom:Float = 1.64
     
     @IBOutlet weak var summaryView: MeasureCtrlScroller!
     
@@ -31,75 +29,96 @@ class MeasureCtrl : UIViewController
               let rightPixels = rightPixels
         else { return }
         
+        
+        let leftImg = renderImage(buffer: leftPixels, zoom: 1.0, offset: 0)
+        guard let leftImg = leftImg else { return }
+        
+        
+        let leftEditData = ImageEditorData(origData: leftPixels, zoom: 1.0, rotation: 0, offset: CGPoint(x: 0.0, y: 0.0))
         let histogram = Histogram()
         histogram.setPixels(pixels: leftPixels)
-        histogram.setZoom(1.0)
-        guard let dataRough = histogram.calculate() else { return }
-        let data = histogram.smooth(data: dataRough)
-        
-        leftData = Array(repeating: Float(0), count: data.count)
-        for i in 0 ..< data.count {
-            leftData![i] = Float(data[i])
-        }
-        
-        histogramView.appendData(leftData!)
+        histogram.setMargins(Histogram.TextureMargin(left: leftEditData.margins.left, top: leftEditData.margins.top, right: leftEditData.margins.right, bottom: leftEditData.margins.bottom))
                 
         let histogram2 = Histogram()
         histogram2.setPixels(pixels: rightPixels)
-        histogram2.setZoom(zoom)
-        
-        
-        var margin1 = histogram.getMargins()
-        let height1 = CVPixelBufferGetHeight(leftPixels) - margin1.top - margin1.bottom
-        var margin2 = histogram2.getMargins()
-        let height2 = CVPixelBufferGetHeight(rightPixels) - margin2.top - margin2.bottom
-        
-        var arr1:[[Float]] = Array()
-        var arr2:[[Float]] = Array()
-        let offset1:Int = 10
-        let offset2:Float = 10.0 * Float(height2) / Float(height1)
-        
-        for offset in stride(from: -50, to: 50, by: 5) {
-            var margin2 = histogram2.getMargins()
-            margin2.bottom += Int(offset)
-            margin2.top -= Int(offset)
-            histogram2.setMargins(margin2)
-            
-            var margin1 = histogram.getMargins()
-            histogram.setMargins(margin1)
-            
-            guard let data2 = histogram2.calculate(),
-                  let data1 = histogram.calculate()
-            else { break }
-            
-            var data1Count:Int32 = 0
-            var data2Count:Int32 = 0
-            for i in 0 ..< data1.count {
-                data1Count += data1[i]
-                data2Count += data2[i]
-            }
-            
-            let ratio = Float(data1Count) / Float(data2Count)
-            
-            var data1f:[Float] = Array()
-            for data1Item in data1 {
-                data1f.append(Float(data1Item))
-            }
-            arr1.append(data1f)
-            
-            var data2f:[Float] = Array()
-            for data2Item in data2 {
-                let data2Val = Float(data2Item) * ratio
-                data2f.append(data2Val)
-            }
-            arr2.append(data2f)
-        }
         
         summaryView.reset()
-        
-        for i in 0 ..< arr1.count {
-            summaryView.append(data:[arr1[i],arr2[i]], size: histogramView.frame.size)
+        var results = [Float]()
+        for offset in stride(from: -200, to: 200, by: 40) {
+            let rightEditData = ImageEditorData(origData: rightPixels, zoom: 1.64, rotation: 0, offset: CGPoint(x: 0.0, y: CGFloat(offset)))
+            histogram2.setMargins(Histogram.TextureMargin(left: rightEditData.margins.left, top: rightEditData.margins.top, right: rightEditData.margins.right, bottom: rightEditData.margins.bottom)
+            )
+            histogram2.setZoom(Float(rightEditData.zoom))
+            
+            let (leftData, rightData) = compareHistograms(histogram1: histogram, histogram2: histogram2)
+
+            
+            let img = renderImage(buffer: rightPixels, zoom: 1.64, offset: CGFloat(offset))
+            guard let img = img else { continue }
+            
+            summaryView.append(leftPixels: leftImg, rightPixels: img, data: [leftData, rightData], size: CGSize(width: summaryView.frame.height / 3.0 * 1.3, height: summaryView.frame.height))
+            
+            results.append(diff(orig: leftData, zoomed: rightData, ratio: 1.0))
         }
+    }
+    
+    private func populateHistogram(histogram: Histogram, data:ImageEditorData) {
+        let movedMargin = Histogram.TextureMargin(left: data.margins.left, top: data.margins.top,
+                                          right: data.margins.right, bottom: data.margins.bottom)
+        histogram.setMargins(movedMargin)
+        histogram.setZoom(Float(data.zoom))
+    }
+    
+    private func compareHistograms(histogram1: Histogram, histogram2: Histogram) -> ([Float], [Float]) {
+        guard let data2 = histogram2.calculate(),
+              let data1 = histogram1.calculate()
+        else { return ([Float](), [Float]()) }
+        
+        var data1Count:Int32 = 0
+        var data2Count:Int32 = 0
+        for i in 0 ..< data1.count {
+            data1Count += data1[i]
+            data2Count += data2[i]
+        }
+        
+        let ratio = Float(data1Count) / Float(data2Count)
+        
+        var data1f:[Float] = Array()
+        for data1Item in data1 {
+            data1f.append(Float(data1Item))
+        }
+        
+        var data2f:[Float] = Array()
+        for data2Item in data2 {
+            let data2Val = Float(data2Item) * ratio
+            data2f.append(data2Val)
+        }
+        
+        return (data1f, data2f)
+    }
+    
+    private func renderImage(buffer: CVPixelBuffer, zoom: CGFloat, offset: CGFloat) -> UIImage?
+    {
+        var img:CIImage? = CIImage(cvPixelBuffer: buffer)
+        
+        let offset = CGPoint(x: CGFloat(0), y: CGFloat(offset))
+        let squareFilter = SquareFilter(orientation: .DEG_0, zoom: zoom, offset: offset)
+        img = squareFilter.update(img!)
+        
+        
+        guard let imgout = img else { return nil }
+        
+        let ctx = CIContext()
+        var outBuf:CVPixelBuffer?
+        CVPixelBufferCreate(kCFAllocatorDefault, Int(2160), Int(2160), kCVPixelFormatType_32BGRA, [kCVPixelBufferMetalCompatibilityKey: true] as CFDictionary, &outBuf)
+        
+        guard let outBufConst = outBuf else { return nil }
+        
+        ctx.render(imgout, to: outBufConst)
+        let ciImage = CIImage(cvPixelBuffer: outBufConst)
+        let uiImage = UIImage(ciImage: ciImage)
+        
+        return uiImage
     }
     
     func diff(orig:[Float], zoomed:[Float], ratio:Float) -> Float {

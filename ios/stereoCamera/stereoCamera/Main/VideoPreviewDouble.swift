@@ -50,6 +50,7 @@ public class VideoPreviewDouble : MTKView, AVCaptureVideoDataOutputSampleBufferD
         case .RED_BLUE: _imageProc = ImageProcessorRedCyan(outSize: sz)
         case .ANIMATED: _imageProc = nil
         case .SINGLE: _imageProc = ImageProcessorSingle(outSize: sz)
+        case .UNKNOWN: _imageProc = ImageProcessorSplit(outSize: sz)
         }
     }
     

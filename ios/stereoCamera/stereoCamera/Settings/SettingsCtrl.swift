@@ -114,6 +114,7 @@ class SettingsCtrl : UIViewController
                 let sel = Cookie.instance.photoFormat
                 ctrl.data.removeAll()
                 for fmt in ImageFormat.allCases {
+                    guard fmt != .UNKNOWN && fmt != .ANIMATED else { continue }
                     ctrl.data.append(SettingsListSelectorCtrl.dataItem(
                         title: fmt.toString(),
                         value: fmt,
@@ -164,9 +165,9 @@ class SettingsCtrl : UIViewController
                     var fmtSet = Set<ImageFormat>()
                     
                     for datum in data {
-                        if let fmt = datum.value as? ImageFormat {
-                            fmtSet.insert(fmt)
-                        }
+                        guard let fmt = datum.value as? ImageFormat,
+                              fmt != .UNKNOWN && fmt != .ANIMATED else { continue }
+                        fmtSet.insert(fmt)
                     }
                     
                     Cookie.instance.photoFormat = fmtSet

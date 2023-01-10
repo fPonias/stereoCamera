@@ -15,6 +15,8 @@ class GalleryGridWidget: UICollectionViewCell
     @IBOutlet weak var thumbnail: UIImageView!
     @IBOutlet weak var playIcon: UIImageView!
     
+    
+    
     func displayContent(asset: PHAsset)
     {
         Files.instance.assetToImage(asset, asThumbnail: true, completed: {[weak self] img in
@@ -23,6 +25,7 @@ class GalleryGridWidget: UICollectionViewCell
             else { return }
             
             self.playIcon.isHidden = asset.mediaType != .video
+            self.selectedOverlay.isHidden = !self.isSelected
             
             self.scaleImage(image: image)
             self.thumbnail.image = image
@@ -57,14 +60,11 @@ class GalleryGridWidget: UICollectionViewCell
         setNeedsLayout()
     }
     
-    private var _highlighted = false
-    override var isHighlighted:Bool
-    {
-        get { return _highlighted }
-        set
-        {
-            _highlighted = newValue
-            selectedOverlay.isHidden = !_highlighted
+    override var isSelected: Bool {
+        get { return super.isSelected }
+        set {
+            super.isSelected = newValue
+            selectedOverlay.isHidden = !newValue
         }
     }
     

@@ -50,7 +50,7 @@ class Histogram
         marginBuf?.contents().initializeMemory(as: Int32.self, repeating: 0, count: 4)
     }
     
-    struct TextureMargin {
+    public struct TextureMargin {
         var left:Int
         var top:Int
         var right:Int

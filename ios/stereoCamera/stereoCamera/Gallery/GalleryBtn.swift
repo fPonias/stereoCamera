@@ -65,7 +65,7 @@ class GalleryBtn : UIImageView, FilesDelegate //I'd make this a UIButton but the
     
     func update()
     {
-        files = Files.instance.getGalleryFiles()
+        let files = Files.instance.getGalleryFiles()
         if (files.count > 0)
         {
             let asset = files[files.count - 1]

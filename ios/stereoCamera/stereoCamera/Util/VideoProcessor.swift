@@ -155,6 +155,22 @@ class VideoProcessor
         } catch { return }
         
         
+        var metadataList = [AVMetadataItem]()
+        var metadata = AVMutableMetadataItem()
+        metadata.keySpace = AVMetadataKeySpace.quickTimeMetadata
+        metadata.identifier = .quickTimeMetadataSoftware
+        metadata.value = "3D42" as NSString
+        metadataList.append(metadata)
+        
+        metadata = AVMutableMetadataItem()
+        metadata.keySpace = AVMetadataKeySpace.quickTimeMetadata
+        metadata.identifier = .quickTimeMetadataDescription
+        metadata.value = ImageFormat.SPLIT.toString() as NSString
+        metadataList.append(metadata)
+        
+        writer?.metadata = metadataList
+        
+        
         timestamp = Date().timeIntervalSince1970
         writerInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         audioWriterInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)

@@ -48,7 +48,7 @@ class ImageExporter {
             } else if (processType == .RED_BLUE) {
                 proc = ImageProcessorRedCyan(outSize: outSz!)
             } else if (processType == .ANIMATED) {
-                proc = ImageProcessorAnimatedGif(outSize: outSz!, frameDelay: 0.15)
+                proc = ImageProcessorAnimatedGif(outSize: outSz!, frameDelay: 0.1)
             } else if (processType == .SINGLE) {
                 proc = ImageProcessorSingle(outSize: outSz!)
             } else {
@@ -71,10 +71,12 @@ class ImageExporter {
         proc.setPixels(pixels: rightImg, margins: rightData.margins, rotation: rightData.rotation, offset: CGPoint(x: 0, y: 0))
         proc.processCurrentInTexture(.RIGHT)
         
-        guard let data = proc.getFinalImageData() else { return }
-        let ext = proc is ImageProcessorAnimatedGif ? "gif" : "jpg"
+        guard let data = proc.getFinalImageData(),
+              let data2 = proc.addMetaData(data)
+        else { return }
+        let ext = proc.getFileExtension()
         
-        Files.instance.saveImageToPhotos(data: data, extension: ext, onSaved: { savedImg in
+        Files.instance.saveImageToPhotos(data: data2, extension: ext, onSaved: { savedImg in
             print ("saved successfully")
         })
     }

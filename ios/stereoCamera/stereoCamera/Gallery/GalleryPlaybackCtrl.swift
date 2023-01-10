@@ -9,6 +9,9 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     @IBOutlet weak var toolbar: UIToolbar!
     @IBOutlet weak var playBtn: UIButton!
     @IBOutlet weak var toolbarHeightConstraint: NSLayoutConstraint!
+    @IBOutlet weak var muteBtn: UIButton!
+    @IBOutlet weak var restartBtn: UIButton!
+    @IBOutlet weak var playbackControlView: UIStackView!
     
     var files = [PHAsset]()
     
@@ -16,7 +19,9 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     {
         super.viewDidLoad()
         
-        files = Files.instance.getSortedGalleryFiles()
+        let filter = Cookie.instance.galleryFilter
+        let mediaTypes = Cookie.instance.mediaTypesFilter
+        files = Files.instance.getSortedGalleryFiles(by: filter, ofType: mediaTypes)
         index = _startIndex
         
         toolbarHeight = toolbarHeightConstraint.constant
@@ -42,6 +47,21 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         }
     }
     private var toolbarHeight:CGFloat = 44
+    
+    private var muted = false
+    
+    @IBAction func muteClicked(_ sender: Any) {
+        muted = !muted
+        let img = (muted) ? UIImage(named: "volume_up") : UIImage(named: "volume_off")
+        muteBtn.setImage(img, for: .normal)
+        
+        for slide in renderedSlides.values {
+            if (slide is VideoView) {
+                guard let videoSlide = slide as? VideoView else {continue}
+                videoSlide.mute(muted)
+            }
+        }
+    }
     
     @IBAction func playClicked(_ sender: Any)
     {
@@ -73,6 +93,11 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         }
     }
     
+    @IBAction func restartClicked(_ sender: Any) {
+        guard let slide = renderedSlides[_index] as? VideoView else { return }
+        slide.restart()
+    }
+    
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator)
     {
         coordinator.animateAlongsideTransition(in: self.view, animation: nil, completion: {
@@ -89,6 +114,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: animated)
+        playbackControlView.isHidden = true
         
         scroller.clipsToBounds = true
     }
@@ -113,6 +139,10 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     func resize()
     {
         toolbar.layoutIfNeeded()
+    }
+    
+    @IBAction func onScrollerTapped(_ sender: Any) {
+        playbackControlView.isHidden = !playbackControlView.isHidden
     }
     
     func cancelPlay()
@@ -185,6 +215,10 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
             
             print("velocity \(velocity)")
             
+            if (isPlaying) {
+                cancelPlay()
+            }
+            
             let delta = (panEndVelocity > 0) ? -1 : 1
             slideBy(start: panStartX, delta: delta)
         } else {
@@ -199,10 +233,18 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     
     @IBAction func onLeftSwipe(_ sender: Any) {
         index -= 1
+        
+        if (isPlaying) {
+            cancelPlay()
+        }
     }
     
     @IBAction func onRightSwipe(_ sender: Any) {
         index += 1
+        
+        if (isPlaying) {
+            cancelPlay()
+        }
     }
     
     private func setIndex(_ next:Int)
@@ -227,8 +269,12 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         let nextIdx = Int(-nextX / w) + _index
         
         let duration:CGFloat
-        if (nextIdx < 0 || nextIdx >= files.count) {
+        if (nextIdx < 0) {
             nextX = 0
+            let diff = nextX - x
+            duration = 0.5 / 1200.0 * diff
+        } else if (nextIdx > files.count) {
+            nextX = -w
             let diff = nextX - x
             duration = 0.5 / 1200.0 * diff
         } else {
@@ -268,8 +314,16 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         
         if (index == files.count - 1)
             { index -= 1 }
+        
+        let filter = Cookie.instance.galleryFilter
+        let fileTypes = Cookie.instance.mediaTypesFilter
+        files = Files.instance.getSortedGalleryFiles(by: filter, ofType: fileTypes)
+        
+        for page in renderedSlides {
+            cleanUpPage(page: page.key)
+        }
 
-        files = Files.instance.getGalleryFiles()
+        index = index
     }
     
     var imageCache:[ImageView] = Array()
@@ -302,7 +356,9 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         
         if (thisFile.mediaType == .video) {
             if (movieCache.isEmpty) {
-                ret = VideoView()
+                let retTmp = VideoView()
+                retTmp.mute(muted)
+                ret = retTmp
             } else {
                 ret = movieCache.removeLast()
             }
@@ -460,6 +516,7 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
                 else { return }
                 
                 self.player = AVPlayer(url: url)
+                self.mute(self.muted)
                 self.setupLayer()
                 
                 if (self.isSelected) {
@@ -494,6 +551,21 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         override func deselected() {
             super.deselected()
             player.pause()
+        }
+        
+        var muted = false
+        
+        func mute(_ muted:Bool) {
+            self.muted = muted
+            player.volume = (muted) ? 0 : 1
+        }
+        
+        func restart() {
+            player.seek(to: kCMTimeZero)
+            
+            if (isSelected) {
+                player.play()
+            }
         }
     }
     
@@ -563,10 +635,6 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
         true
     }
     
-    @objc func onTap()
-    {
-    }
-    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool
     {
         let r = playBtn.frame
@@ -599,10 +667,20 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
     
     fileprivate func loadCurrentPages(force: Bool = false)
     {
-        let changed = resetIndex()
-        guard force || changed else { return }
-        
+        if (!force) {
+            let changed = resetIndex()
+            if !changed { return }
+        }
+                
         loadCurrentPages2()
+        
+        if (renderedSlides[_index] is VideoView) {
+            muteBtn.isHidden = false
+            restartBtn.isHidden = false
+        } else {
+            muteBtn.isHidden = true
+            restartBtn.isHidden = true
+        }
     }
     
     fileprivate func loadCurrentPages2()
@@ -655,21 +733,25 @@ class GalleryPlaybackCtrl: UIViewController, UIDocumentInteractionControllerDele
                 continue
             }
             
-            print("recycling page \(page)")
-            if let slide = renderedSlides[page] {
-                slide.deselected()
-                slide.removeFromSuperview()
-                
-                if let videoSlide = slide as? VideoView {
-                    movieCache.append(videoSlide)
-                } else if let photoSlide = slide as? ImageView {
-                    imageCache.append(photoSlide)
-                } else if let toggleSlide = slide as? ToggleView {
-                    toggleCache.append(toggleSlide)
-                }
-                
-                renderedSlides[page] = nil
+            cleanUpPage(page: page)
+        }
+    }
+    
+    private func cleanUpPage(page:Int) {
+        print("recycling page \(page)")
+        if let slide = renderedSlides[page] {
+            slide.deselected()
+            slide.removeFromSuperview()
+            
+            if let videoSlide = slide as? VideoView {
+                movieCache.append(videoSlide)
+            } else if let photoSlide = slide as? ImageView {
+                imageCache.append(photoSlide)
+            } else if let toggleSlide = slide as? ToggleView {
+                toggleCache.append(toggleSlide)
             }
+            
+            renderedSlides[page] = nil
         }
     }
 }

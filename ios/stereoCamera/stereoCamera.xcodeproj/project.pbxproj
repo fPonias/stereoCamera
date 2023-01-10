@@ -33,6 +33,10 @@
 		7CF59842210E08DC0015260C /* SettingsListSelectorCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */; };
 		7CF59844211157810015260C /* SettingsListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CF59843211157810015260C /* SettingsListWidget.swift */; };
 		7E16ABE62737831400D8107C /* DualCameraFakeCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */; };
+		7E34E8492964CCA700BCE298 /* FilterSelectWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E34E8482964CCA700BCE298 /* FilterSelectWidget.swift */; };
+		7E3C1886296C9DBD00FADA99 /* SettingsListCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3C1885296C9DBD00FADA99 /* SettingsListCtrl.swift */; };
+		7E3C1888296CC21300FADA99 /* SelectorCollectionWidget.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7E3C1887296CC21300FADA99 /* SelectorCollectionWidget.xib */; };
+		7E3C188A296CED7F00FADA99 /* FilterSelectListCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E3C1889296CED7F00FADA99 /* FilterSelectListCtrl.swift */; };
 		7E5A01222618EFDC00BF8D86 /* MulticastDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */; };
 		7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */; };
 		7E5A0129261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */; };
@@ -59,6 +63,8 @@
 		7EA68B45262FA68E00D96250 /* PlotWidget.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7EA68B44262FA68E00D96250 /* PlotWidget.xib */; };
 		7EA68B482630AEA300D96250 /* MeasureCtrlScroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */; };
 		7EAE4283260AA815001E67C7 /* ImageUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAE4282260AA815001E67C7 /* ImageUtils.swift */; };
+		7EB191C229637F5500B2CE69 /* SplashCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB191C129637F5500B2CE69 /* SplashCtrl.swift */; };
+		7EB191C42964BC5100B2CE69 /* FilterSelectCtrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EB191C32964BC5100B2CE69 /* FilterSelectCtrl.swift */; };
 		7ED00E592635D9A500D12A4C /* RotateFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E582635D9A500D12A4C /* RotateFilter.swift */; };
 		7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E5B26361FDC00D12A4C /* OffsetFinder.swift */; };
 		7ED00E5F2636567600D12A4C /* VideoProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED00E5E2636567600D12A4C /* VideoProcessor.swift */; };
@@ -104,6 +110,10 @@
 		7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListSelectorCtrl.swift; sourceTree = "<group>"; };
 		7CF59843211157810015260C /* SettingsListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListWidget.swift; sourceTree = "<group>"; };
 		7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraFakeCtrl.swift; sourceTree = "<group>"; };
+		7E34E8482964CCA700BCE298 /* FilterSelectWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSelectWidget.swift; sourceTree = "<group>"; };
+		7E3C1885296C9DBD00FADA99 /* SettingsListCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsListCtrl.swift; sourceTree = "<group>"; };
+		7E3C1887296CC21300FADA99 /* SelectorCollectionWidget.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = SelectorCollectionWidget.xib; sourceTree = "<group>"; };
+		7E3C1889296CED7F00FADA99 /* FilterSelectListCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSelectListCtrl.swift; sourceTree = "<group>"; };
 		7E5A01212618EFDC00BF8D86 /* MulticastDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MulticastDelegate.swift; sourceTree = "<group>"; };
 		7E5A0125261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraMultiCameraCtrl.swift; sourceTree = "<group>"; };
 		7E5A0128261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DualCameraLegacyCameraCtrl.swift; sourceTree = "<group>"; };
@@ -130,6 +140,8 @@
 		7EA68B44262FA68E00D96250 /* PlotWidget.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = PlotWidget.xib; sourceTree = "<group>"; };
 		7EA68B472630AEA300D96250 /* MeasureCtrlScroller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeasureCtrlScroller.swift; sourceTree = "<group>"; };
 		7EAE4282260AA815001E67C7 /* ImageUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageUtils.swift; sourceTree = "<group>"; };
+		7EB191C129637F5500B2CE69 /* SplashCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplashCtrl.swift; sourceTree = "<group>"; };
+		7EB191C32964BC5100B2CE69 /* FilterSelectCtrl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterSelectCtrl.swift; sourceTree = "<group>"; };
 		7ED00E582635D9A500D12A4C /* RotateFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RotateFilter.swift; sourceTree = "<group>"; };
 		7ED00E5B26361FDC00D12A4C /* OffsetFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffsetFinder.swift; sourceTree = "<group>"; };
 		7ED00E5E2636567600D12A4C /* VideoProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoProcessor.swift; sourceTree = "<group>"; };
@@ -287,6 +299,10 @@
 				7EA1318D29485C9F001BEEB2 /* MediaExporter.swift */,
 				7CDC467620DAFE9E005BE7A8 /* GalleryGridCtrl.swift */,
 				7C35B69520DD766B00500196 /* GalleryPlaybackCtrl.swift */,
+				7EB191C32964BC5100B2CE69 /* FilterSelectCtrl.swift */,
+				7E34E8482964CCA700BCE298 /* FilterSelectWidget.swift */,
+				7E3C1887296CC21300FADA99 /* SelectorCollectionWidget.xib */,
+				7E3C1889296CED7F00FADA99 /* FilterSelectListCtrl.swift */,
 			);
 			path = Gallery;
 			sourceTree = "<group>";
@@ -298,6 +314,7 @@
 				7CA546FA21085A9600C81830 /* SettingsCtrl.swift */,
 				7CF59841210E08DC0015260C /* SettingsListSelectorCtrl.swift */,
 				7CAE81CE2138C2850022569D /* SettingsHtmlCtrl.swift */,
+				7E3C1885296C9DBD00FADA99 /* SettingsListCtrl.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -326,6 +343,7 @@
 				7E16ABE52737831400D8107C /* DualCameraFakeCtrl.swift */,
 				7CAD57B72118F493007205B2 /* LoadingPopupCtrl.swift */,
 				7E691E5B25FEB30000ED228E /* DualCameraCtrl.swift */,
+				7EB191C129637F5500B2CE69 /* SplashCtrl.swift */,
 			);
 			path = Main;
 			sourceTree = "<group>";
@@ -422,6 +440,7 @@
 			files = (
 				7E9AB3CF2636656F009A25B3 /* Main.storyboard in Resources */,
 				7C6CD11F20D0DA550010F6B1 /* LaunchScreen.storyboard in Resources */,
+				7E3C1888296CC21300FADA99 /* SelectorCollectionWidget.xib in Resources */,
 				7C6CD11C20D0DA550010F6B1 /* Assets.xcassets in Resources */,
 				7EA68B45262FA68E00D96250 /* PlotWidget.xib in Resources */,
 			);
@@ -459,6 +478,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7EB191C229637F5500B2CE69 /* SplashCtrl.swift in Sources */,
 				7E9FCE2D26080DB300223114 /* ZoomFinder.swift in Sources */,
 				7EFFA0F12642D72C0084F31D /* FrameRateCounter.swift in Sources */,
 				7EA171792609402800EF314C /* ImageProcessor.swift in Sources */,
@@ -466,6 +486,7 @@
 				7CAD57BC211A2BEC007205B2 /* ClickableButton.swift in Sources */,
 				7EFFA100264723FB0084F31D /* PopupButtonPicker.swift in Sources */,
 				7CCB729D20E8B4AC000BE923 /* Cookie.swift in Sources */,
+				7E3C188A296CED7F00FADA99 /* FilterSelectListCtrl.swift in Sources */,
 				7E5A0126261A860600BF8D86 /* DualCameraMultiCameraCtrl.swift in Sources */,
 				7EA68B1B262B3BC600D96250 /* GammaFilter.swift in Sources */,
 				7EA68B42262DE5A800D96250 /* GraphPlot.swift in Sources */,
@@ -507,7 +528,9 @@
 				7EA1318E29485CA0001BEEB2 /* MediaExporter.swift in Sources */,
 				7ED00E5C26361FDC00D12A4C /* OffsetFinder.swift in Sources */,
 				7ED00E6226365D3400D12A4C /* VideoPreviewDouble.swift in Sources */,
+				7E34E8492964CCA700BCE298 /* FilterSelectWidget.swift in Sources */,
 				7C35B69420DD6B5C00500196 /* GalleryGridLayout.swift in Sources */,
+				7E3C1886296C9DBD00FADA99 /* SettingsListCtrl.swift in Sources */,
 				7ED00E5F2636567600D12A4C /* VideoProcessor.swift in Sources */,
 				7C35B69620DD766B00500196 /* GalleryPlaybackCtrl.swift in Sources */,
 				7EA68B24262B65A400D96250 /* ScaleFilter.swift in Sources */,
@@ -518,6 +541,7 @@
 				7ED4E2D0260CC8D40085112E /* Matrix.swift in Sources */,
 				7E5A0129261A940500BF8D86 /* DualCameraLegacyCameraCtrl.swift in Sources */,
 				7CDC416B20D4F0F6005BE7A8 /* Bytes.swift in Sources */,
+				7EB191C42964BC5100B2CE69 /* FilterSelectCtrl.swift in Sources */,
 				7EA68B2B262BB46900D96250 /* ImageEditorData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

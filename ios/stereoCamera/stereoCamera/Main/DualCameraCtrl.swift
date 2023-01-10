@@ -189,7 +189,13 @@ class DualCameraCtrl: UIViewController
         shutterBtn?.addTarget(self, action: #selector(shutterClicked), for: .primaryActionTriggered)
         cancelBtn?.addTarget(self, action: #selector(cancelClicked), for: .primaryActionTriggered)
         saveBtn?.addTarget(self, action: #selector(saveClicked), for: .primaryActionTriggered)
+        
+        #if DEBUG
+        debugBtn?.isHidden = false
+        #else
         debugBtn?.isHidden = true
+        #endif
+        
     }
     
     var forcedOrientation:UIInterfaceOrientation!
@@ -694,15 +700,17 @@ class DualCameraCtrl: UIViewController
         //self.showLoader(false)
         //sleep(100)
         
+        /*
         DispatchQueue.main.async {
             self.performSegue(withIdentifier: "editorSegue", sender: [lPixelBuffer, rPixelBuffer])
         }
+         */
         
-        /*
+        
         DispatchQueue.main.async {
             self.performSegue(withIdentifier: "measureSegue", sender: [lPixelBuffer, rPixelBuffer])
         }
-        */
+        
     }
     
     private let saver = Files.instance

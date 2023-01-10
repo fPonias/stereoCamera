@@ -51,7 +51,7 @@ public class Files
     }
     
     
-    func getGalleryFiles() -> [PHAsset]
+    func getGalleryFiles(by: Set<ImageFormat>? = nil, ofType: Set<PHAssetMediaType>? = nil) -> [PHAsset]
     {
         let galleryTitle:String = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as! String
         var files = [PHAsset]()
@@ -68,13 +68,122 @@ public class Files
         let sz = collectionResult.count
         guard sz > 0 else { return files }
         
-        
         for i in 0 ... sz - 1
         {
-            files.append(collectionResult.object(at: i))
+            let file = collectionResult.object(at: i)
+            let type = stereoTypeIndex[file.localIdentifier] ?? .UNKNOWN
+            let mediaType = mediaTypeIndex[file.localIdentifier] ?? .unknown
+            
+            if (by == nil || by?.contains(type) ?? true) && (ofType == nil || ofType?.contains(mediaType) ?? true) {
+                files.append(file)
+            }
         }
         
         return files
+    }
+    
+    private var stereoTypeIndex = Dictionary<String, ImageFormat>()
+    private var mediaTypeIndex = Dictionary<String, PHAssetMediaType>()
+    
+    func indexImages(completed: (() -> Void)? = nil) {
+        let orig = getGalleryFiles()
+        let indexer = GalleryIndexer(parent: self, orig: orig)
+        indexer.index(completed: {
+            DispatchQueue.main.async {
+                completed?()
+            }
+        })
+    }
+    
+    private class GalleryIndexer {
+        let fileQueue = DispatchQueue(label: "file processor")
+        let orig:[PHAsset]
+        var completed: (() -> Void)?
+        let parent: Files
+        
+        init(parent: Files, orig: [PHAsset]) {
+            self.parent = parent
+            self.orig = orig
+            self.completed = nil
+        }
+        
+        func index(completed: @escaping () -> Void) {
+            self.completed = completed
+            self.index2(0)
+        }
+        
+        private func index2(_ index: Int) {
+            if (index == orig.count) {
+                guard let completed = completed else {return}
+                completed()
+                return
+            }
+            
+            let id = orig[index].localIdentifier
+            parent.mediaTypeIndex[id] = orig[index].mediaType
+            
+            let that = self
+            parent.getImageType(orig[index], completed: {type in
+                that.parent.stereoTypeIndex[id] = type
+                
+                that.index2(index + 1)
+            })
+        }
+    }
+    
+    func getImageType(_ asset: PHAsset, completed: @escaping (ImageFormat) -> Void)  {
+        if (asset.mediaType == .image) {
+            assetToData(asset, completed: {[weak self] data in
+                guard let self = self,
+                      let data = data
+                else { completed(.SINGLE); return }
+                
+                completed(self.getImageType(data))
+            })
+        } else if (asset.mediaType == .video) {
+            assetToUrl(asset, completed: {[weak self] url in
+                guard let self = self,
+                      let url = url
+                else {completed(.SPLIT); return }
+                
+                completed(self.getVideoType(url))
+            })
+            
+            //completed(.SPLIT)
+        } else {
+            completed(.UNKNOWN)
+        }
+    }
+    
+    func getImageType(_ data: Data) -> ImageFormat {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+            let metadata = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as NSDictionary?
+        else { return .SPLIT }
+        
+        let tiffData = metadata.value(forKey: kCGImagePropertyTIFFDictionary as String) as? NSDictionary ?? NSDictionary()
+        
+        guard let ret = tiffData.value(forKey: kCGImagePropertyTIFFModel as String) as? String else { return .SPLIT }
+        return ImageFormat.fromString(ret)
+    }
+    
+    func getVideoType(_ url: URL) -> ImageFormat {
+        let asset = AVURLAsset(url: url)
+        let metadata = asset.metadata
+        
+        for item in metadata {
+            if (item.identifier == .quickTimeMetadataDescription) {
+                guard let type = item.value as? String else { continue }
+                let ret = ImageFormat.fromString(type)
+                return ret
+            }
+        }
+        
+        return .SPLIT
+    }
+ 
+    func hasType(_ type: ImageFormat) -> Bool {
+        let idx = stereoTypeIndex.values.firstIndex(where: { item in item == type })
+        return idx != nil
     }
     
     func dateToLabel(_ date:Date) -> String
@@ -101,12 +210,12 @@ public class Files
         return ret
     }
     
-    func getGroupedGalleryFiles() -> ([String], [[PHAsset]])
+    func getGroupedGalleryFiles(by: Set<ImageFormat>? = nil, ofType: Set<PHAssetMediaType>? = nil) -> ([String], [[PHAsset]])
     {
         var headers = [String]()
         var files = [[PHAsset]]()
     
-        let data = getGalleryFiles()
+        let data = getGalleryFiles(by: by, ofType: ofType)
         var currentLabel = ""
         var currentList = [PHAsset]()
         
@@ -138,9 +247,9 @@ public class Files
         return (headers, files)
     }
     
-    func getSortedGalleryFiles() -> [PHAsset]
+    func getSortedGalleryFiles(by: Set<ImageFormat>? = nil, ofType: Set<PHAssetMediaType>? = nil) -> [PHAsset]
     {
-        let (_, files) = getGroupedGalleryFiles()
+        let (_, files) = getGroupedGalleryFiles(by: by, ofType: ofType)
         var ret = [PHAsset]()
     
         for group in files
